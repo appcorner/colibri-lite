@@ -135,10 +135,10 @@ impl Qwen3MoeBlock {
 }
 
 #[derive(Debug)]
-struct RouterOutput {
-    logits: Tensor,
-    weights: Tensor,
-    selected_experts: Vec<usize>,
+pub(crate) struct RouterOutput {
+    pub(crate) logits: Tensor,
+    pub(crate) weights: Tensor,
+    pub(crate) selected_experts: Vec<usize>,
 }
 
 pub(crate) fn rms_norm(
@@ -178,31 +178,42 @@ pub(crate) fn rms_norm(
     Tensor::new(input.shape().clone(), output)
 }
 
-fn attention(
+pub(crate) fn attention(
     hidden_states: TensorView<'_>,
     config: Qwen3MoeConfig,
     weights: &Qwen3MoeBlockWeightsSpec,
+) -> Result<Tensor, RuntimeError> {
+    attention_with_weights(
+        hidden_states,
+        config,
+        weights.query_projection.view(),
+        weights.key_projection.view(),
+        weights.value_projection.view(),
+        weights.output_projection.view(),
+        weights.query_norm.view(),
+        weights.key_norm.view(),
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn attention_with_weights(
+    hidden_states: TensorView<'_>,
+    config: Qwen3MoeConfig,
+    query_weight: TensorView<'_>,
+    key_weight: TensorView<'_>,
+    value_weight: TensorView<'_>,
+    output_weight: TensorView<'_>,
+    query_norm_weight: TensorView<'_>,
+    key_norm_weight: TensorView<'_>,
 ) -> Result<Tensor, RuntimeError> {
     let sequence_length = hidden_states.shape().dimensions()[0];
     let query_head_count = config.model().attention_head_count();
     let key_value_head_count = config.model().key_value_head_count();
     let head_dimension = config.head_dimension();
 
-    let query = linear(
-        hidden_states,
-        weights.query_projection.view(),
-        "query projection",
-    )?;
-    let key = linear(
-        hidden_states,
-        weights.key_projection.view(),
-        "key projection",
-    )?;
-    let value = linear(
-        hidden_states,
-        weights.value_projection.view(),
-        "value projection",
-    )?;
+    let query = linear(hidden_states, query_weight, "query projection")?;
+    let key = linear(hidden_states, key_weight, "key projection")?;
+    let value = linear(hidden_states, value_weight, "value projection")?;
     let query = Tensor::new(
         TensorShape::new([sequence_length, query_head_count, head_dimension]),
         query.into_data(),
@@ -215,16 +226,8 @@ fn attention(
         TensorShape::new([sequence_length, key_value_head_count, head_dimension]),
         value.into_data(),
     )?;
-    let query = rms_norm(
-        query.view(),
-        weights.query_norm.view(),
-        config.rms_norm_epsilon(),
-    )?;
-    let key = rms_norm(
-        key.view(),
-        weights.key_norm.view(),
-        config.rms_norm_epsilon(),
-    )?;
+    let query = rms_norm(query.view(), query_norm_weight, config.rms_norm_epsilon())?;
+    let key = rms_norm(key.view(), key_norm_weight, config.rms_norm_epsilon())?;
     let (query, key) = apply_rotary_embeddings(query.view(), key.view(), config)?;
 
     let mut attended = vec![0.0; sequence_length * query_head_count * head_dimension];
@@ -268,7 +271,7 @@ fn attention(
     )?;
     linear(
         attended.view(),
-        weights.output_projection.view(),
+        output_weight,
         "attention output projection",
     )
 }
@@ -351,7 +354,7 @@ fn rotate_pair_group(
     }
 }
 
-fn route_tokens(
+pub(crate) fn route_tokens(
     hidden_states: TensorView<'_>,
     router_weight: TensorView<'_>,
     config: Qwen3MoeConfig,
@@ -399,56 +402,95 @@ fn routed_experts(
     router: &RouterOutput,
     config: Qwen3MoeConfig,
 ) -> Result<Tensor, RuntimeError> {
-    let token_count = hidden_states.shape().dimensions()[0];
     let hidden_size = config.model().hidden_size();
     let intermediate_size = config.moe_intermediate_size();
-    let top_k = config.experts_per_token();
-    let mut output = vec![0.0; token_count * hidden_size];
-
-    // Match the oracle accumulation order: ascending expert ID, then token/top-k.
-    for expert_id in 0..config.expert_count() {
-        for token_index in 0..token_count {
-            for top_k_position in 0..top_k {
-                let selection_index = token_index * top_k + top_k_position;
-                if router.selected_experts[selection_index] != expert_id {
-                    continue;
-                }
+    combine_routed_experts(hidden_states, router, config, |expert_id, occurrences| {
+        let gate_up_base = expert_id * 2 * intermediate_size * hidden_size;
+        let down_base = expert_id * hidden_size * intermediate_size;
+        let gate =
+            &gate_up_weight.data()[gate_up_base..gate_up_base + intermediate_size * hidden_size];
+        let up = &gate_up_weight.data()[gate_up_base + intermediate_size * hidden_size
+            ..gate_up_base + 2 * intermediate_size * hidden_size];
+        let down = &down_weight.data()[down_base..down_base + hidden_size * intermediate_size];
+        Ok(occurrences
+            .iter()
+            .map(|(token_index, _)| {
                 let input = &hidden_states.data()
                     [token_index * hidden_size..(token_index + 1) * hidden_size];
-                let gate_up_base = expert_id * 2 * intermediate_size * hidden_size;
-                let mut gate = vec![0.0; intermediate_size];
-                let mut up = vec![0.0; intermediate_size];
-                for intermediate_index in 0..intermediate_size {
-                    let gate_row = gate_up_base + intermediate_index * hidden_size;
-                    let up_row =
-                        gate_up_base + (intermediate_size + intermediate_index) * hidden_size;
-                    gate[intermediate_index] = dot(
-                        input,
-                        &gate_up_weight.data()[gate_row..gate_row + hidden_size],
-                    );
-                    up[intermediate_index] =
-                        dot(input, &gate_up_weight.data()[up_row..up_row + hidden_size]);
-                }
-                let activated: Vec<f32> = gate
-                    .iter()
-                    .zip(&up)
-                    .map(|(gate_value, up_value)| {
-                        gate_value / (1.0 + (-gate_value).exp()) * up_value
-                    })
-                    .collect();
-                let routing_weight = router.weights.data()[selection_index];
-                let down_base = expert_id * hidden_size * intermediate_size;
-                for hidden_index in 0..hidden_size {
-                    let row = down_base + hidden_index * intermediate_size;
-                    output[token_index * hidden_size + hidden_index] += dot(
-                        &activated,
-                        &down_weight.data()[row..row + intermediate_size],
-                    ) * routing_weight;
+                expert_mlp(input, gate, up, down, hidden_size, intermediate_size)
+            })
+            .collect())
+    })
+}
+
+pub(crate) fn combine_routed_experts<E, F>(
+    hidden_states: TensorView<'_>,
+    router: &RouterOutput,
+    config: Qwen3MoeConfig,
+    mut compute: F,
+) -> Result<Tensor, E>
+where
+    E: From<RuntimeError>,
+    F: FnMut(usize, &[(usize, usize)]) -> Result<Vec<Vec<f32>>, E>,
+{
+    let token_count = hidden_states.shape().dimensions()[0];
+    let hidden_size = config.model().hidden_size();
+    let top_k = config.experts_per_token();
+    let mut output = vec![0.0; token_count * hidden_size];
+    for expert_id in 0..config.expert_count() {
+        let mut occurrences = Vec::new();
+        for token_index in 0..token_count {
+            for position in 0..top_k {
+                if router.selected_experts[token_index * top_k + position] == expert_id {
+                    occurrences.push((token_index, position));
                 }
             }
         }
+        if occurrences.is_empty() {
+            continue;
+        }
+        let expert_outputs = compute(expert_id, &occurrences)?;
+        if expert_outputs.len() != occurrences.len()
+            || expert_outputs
+                .iter()
+                .any(|values| values.len() != hidden_size)
+        {
+            return Err(RuntimeError::InvalidShape {
+                reason: "expert callback output shape mismatch",
+            }
+            .into());
+        }
+        for ((token_index, position), values) in occurrences.iter().zip(expert_outputs) {
+            let weight = router.weights.data()[token_index * top_k + position];
+            for (hidden_index, value) in values.into_iter().enumerate() {
+                output[token_index * hidden_size + hidden_index] += value * weight;
+            }
+        }
     }
-    Tensor::new(TensorShape::new([token_count, hidden_size]), output)
+    Tensor::new(TensorShape::new([token_count, hidden_size]), output).map_err(Into::into)
+}
+
+pub(crate) fn expert_mlp(
+    input: &[f32],
+    gate: &[f32],
+    up: &[f32],
+    down: &[f32],
+    hidden_size: usize,
+    intermediate_size: usize,
+) -> Vec<f32> {
+    let mut activated = vec![0.0; intermediate_size];
+    for (intermediate_index, activated_value) in activated.iter_mut().enumerate() {
+        let start = intermediate_index * hidden_size;
+        let gate_value = dot(input, &gate[start..start + hidden_size]);
+        let up_value = dot(input, &up[start..start + hidden_size]);
+        *activated_value = gate_value / (1.0 + (-gate_value).exp()) * up_value;
+    }
+    (0..hidden_size)
+        .map(|hidden_index| {
+            let start = hidden_index * intermediate_size;
+            dot(&activated, &down[start..start + intermediate_size])
+        })
+        .collect()
 }
 
 pub(crate) fn linear(

@@ -128,7 +128,7 @@ impl Qwen3MoeModel {
     }
 }
 
-fn embedding_lookup(
+pub(crate) fn embedding_lookup(
     embedding_weight: TensorView<'_>,
     token_ids: &[usize],
     vocabulary_size: usize,
