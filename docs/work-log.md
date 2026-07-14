@@ -587,3 +587,19 @@ mapping decisions.
 
 Next task: M4.1-02 - document upstream license and artifact provenance, only
 after review of ADR 0011 and the `head_dim` contract conflict.
+
+## 2026-07-14 - M4.1-02 provenance approval
+
+Date: 2026-07-14
+
+Starting task: M4.1-02 - document upstream license and artifact provenance.
+
+Completed task: M4.1-02. ADR 0011 and source manifest v1 were approved. The
+immutable model revision, Apache-2.0 license, complete source inventory, file
+hashes, and download-space requirements are now the accepted provenance
+contract.
+
+Known issue: Configuration mapping remains gated on the separately reviewed
+explicit `head_dim` contract in ADR 0012.
+
+Next: Implement and verify ADR 0012 before beginning M4.1-03.

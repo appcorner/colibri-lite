@@ -1,6 +1,6 @@
 # ADR 0011: Qwen3-30B-A3B Source Contract
 
-- Status: Proposed - review required
+- Status: Accepted
 - Date: 2026-07-14
 - Milestone: M4.1
 - Task: M4.1-01
@@ -86,7 +86,8 @@ Two additional mapping decisions are recorded but not resolved here:
 - `max_position_embeddings` is 40,960 while tokenizer `model_max_length` is
   131,072, so the model limit remains authoritative pending a RoPE policy.
 
-This ADR does not approve a redesign. Work stops for review before M4.1-02.
+The source contract is approved. The explicit-head-dimension redesign remains
+separately governed by ADR 0012 before configuration mapping proceeds.
 
 ## Excluded work
 
