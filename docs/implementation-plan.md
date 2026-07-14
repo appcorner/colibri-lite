@@ -2,48 +2,99 @@
 
 ## Purpose
 
-Build a Rust-first, CPU-first inference runtime for low-memory
-Mixture-of-Experts models. The runtime must prioritize numerical correctness,
-predictable memory use, and on-demand expert loading before performance work.
+Build a Rust-first, CPU-first, storage-aware inference runtime for low-memory
+Mixture-of-Experts models.
 
-This document is the implementation plan. Executable work items and their
-status are tracked in [tasks.md](tasks.md).
+The first supported architecture is Qwen3-MoE. The first full-size target is
+Qwen3-30B-A3B on Windows x64. The runtime must prioritize numerical
+correctness, predictable memory use, and on-demand expert residency before
+performance optimization.
+
+This document defines milestone scope and engineering gates. Executable work
+items and status are tracked in [tasks.md](tasks.md).
+
+## Product boundary
+
+`colibri-lite-rs` is not a Rust rewrite of `llama.cpp`, `ik_llama.cpp`, or
+Colibri. It is a focused runtime for MoE models whose total weights may exceed
+the configured resident-memory budget.
+
+North-star capability:
+
+```text
+Load a Qwen3-MoE model, keep dense tensors resident, load routed experts on
+demand, enforce a byte-level RAM budget, and produce numerically validated
+tokens on Windows x64.
+```
+
+## Reference roles
+
+| Project | Role in this project |
+| --- | --- |
+| Hugging Face Transformers | Numerical correctness oracle |
+| Colibri | Expert streaming and storage-hierarchy reference |
+| ik_llama.cpp | Performance, quantization, and CPU-kernel baseline |
+| katgpt-rs | Post-MVP algorithm research reference |
+| colibri-lite-rs | Product codebase |
+
+Reference projects may inform design and benchmarks, but code is not copied
+without an explicit license and provenance review.
 
 ## Delivery principles
 
 1. Correctness before optimization.
-2. Keep the core contracts independent of model files and operating-system I/O.
-3. Make memory limits explicit and testable.
-4. Add model-specific behavior outside `clr-core`.
-5. Require repeatable tests and benchmarks for every optimization.
-6. Keep `unsafe` forbidden until a measured requirement justifies a narrowly
-   scoped exception.
+2. Prove one small vertical slice before broadening abstractions.
+3. Keep core contracts independent of file formats and operating-system I/O.
+4. Keep model-specific behavior outside `clr-core`.
+5. Make memory limits explicit, byte-based, observable, and testable.
+6. Require repeatable tests or benchmarks for every optimization claim.
+7. Prefer safe Rust; isolate and document unavoidable `unsafe`.
+8. Optimize only after a profiler or benchmark identifies a bottleneck.
+9. Add one architecture first; do not create a premature general model zoo.
+10. Do not let UI, server, agent, GPU, or speculative-decoding work enter MVP.
 
 ## Workspace boundaries
 
 | Crate | Responsibility | Must not own |
 | --- | --- | --- |
-| `clr-core` | Shared data types, validation, errors, and runtime contracts | File formats, Qwen-specific logic, CLI output |
-| `clr-storage` | Model files, memory mapping, expert loading, and cache policy | Tensor arithmetic, model architecture |
-| `clr-qwen3-moe` | Qwen3-MoE configuration and forward-pass implementation | CLI concerns, generic file caching |
-| `clr-cli` | User-facing commands and runtime diagnostics | Inference algorithms and storage policy |
+| `clr-core` | Shared value types, tensor contracts, validation, errors, runtime traits | Filesystem I/O, serialization formats, Qwen-specific logic, CLI presentation |
+| `clr-storage` | Artifact access, tensor metadata, expert loading, residency policy, cache metrics | Tensor arithmetic, attention, router or model architecture |
+| `clr-qwen3-moe` | Qwen3-MoE configuration mapping and forward implementation | CLI concerns, generic caching policy |
+| `clr-cli` | User-facing commands, diagnostics, fixture execution | Inference algorithms, tensor kernels, cache policy |
 
-Dependencies flow in one direction:
+Initial dependency direction:
 
 ```text
-clr-cli ---------> clr-core
-                      ^
-                      |
-clr-qwen3-moe --> clr-storage
-       |              |
-       +--------------+
+clr-cli ----------> clr-core
+   |                    ^
+   |                    |
+   +--> clr-qwen3-moe --> clr-storage
+             |               |
+             +---------------+
 ```
 
-No lower-level crate may depend on `clr-cli` or `clr-qwen3-moe`.
+`clr-storage` depends only on `clr-core`.
+`clr-qwen3-moe` depends on `clr-core` and `clr-storage`.
+`clr-cli` may compose all three but must not contain their implementation.
+
+A new crate must not be added until an existing crate has a demonstrated
+boundary problem.
+
+## Non-goals through M4
+
+- General replacement for llama.cpp.
+- Broad model-family or GGUF compatibility.
+- Production HTTP service.
+- GPU acceleration.
+- Continuous batching or concurrent multi-user scheduling.
+- Tool calling, agent framework, latent reasoning, or speculative decoding.
+- Multimodal or distributed inference.
+- Training, fine-tuning, or LoRA.
+- Performance parity with optimized C/C++ runtimes.
 
 ## Milestones
 
-### M0 - Bootstrap and core contracts
+### M0 - Bootstrap, contracts, and reference harness
 
 #### M0.1 - Workspace bootstrap
 
@@ -55,14 +106,15 @@ Deliverables:
 - Shared package metadata and lint policy.
 - Runtime identity exposed by `clr-core`.
 - CLI reports `bootstrap ready`.
-- Format, build, test, and Clippy checks pass on Windows x64 MSVC.
+- Format, build, test, Clippy, and CLI smoke checks pass on Windows x64 MSVC.
 
-#### M0.2 - Core contracts
+#### M0.2 - Core value contracts
 
 Status: next.
 
-Goal: define stable, well-tested vocabulary for later tensor, storage, and
-model work without implementing inference yet.
+Goal: define the minimum stable vocabulary required by the first tiny-model
+vertical slice. Do not implement inference, I/O, serialization, or
+quantization.
 
 Planned module layout:
 
@@ -78,110 +130,252 @@ crates/clr-core/src/
 
 Contracts:
 
-- `TensorShape`: owns tensor dimensions and provides rank, dimension access,
-  scalar detection, and checked element-count calculation.
-- `DataType`: initially represents only dense compute types required by the
-  correctness path (`F32`, `F16`, and `BF16`). Quantized encodings are deferred
-  until their storage and block-size semantics are known.
-- `ModelConfig`: contains architecture-independent dimensions needed to
-  validate a decoder-only MoE model. Construction must reject zero dimensions,
-  inconsistent attention head counts, and invalid expert routing counts.
-- `RuntimeError`: one crate-wide error type with structured variants for shape
-  overflow and invalid configuration. It must implement `Display` and
-  `std::error::Error` without adding an external dependency.
-- Existing `RuntimeInfo` behavior moves to `runtime.rs` and remains publicly
-  available through re-exports from `lib.rs`.
+- `TensorShape`: owns dimensions and provides rank, dimension access, scalar
+  detection, empty-tensor detection, and checked element-count calculation.
+- `DataType`: metadata for `F32`, `F16`, and `BF16`. Only `F32` computation is
+  required before later milestones.
+- `ModelConfig`: minimum architecture-neutral decoder dimensions shared by the
+  tiny fixture. Qwen-specific fields and semantics stay in `clr-qwen3-moe`.
+- `RuntimeError`: structured errors for invalid shapes, arithmetic overflow,
+  and invalid configuration, with useful `Display` output.
+- Existing `RuntimeInfo` moves to `runtime.rs` and remains re-exported.
 
-API rules:
+Contract rules:
 
 - Fields that can violate invariants remain private.
-- Constructors validate input and return `Result` when validation can fail.
-- Arithmetic derived from dimensions uses checked operations.
-- Public types implement `Debug`, equality traits where meaningful, and concise
-  rustdoc with invariant notes.
-- `clr-core` remains free of filesystem, serialization, and model-specific
-  dependencies.
+- Constructors validate input and return `Result`.
+- Derived dimension arithmetic uses checked operations.
+- Error categories are matchable without parsing messages.
+- Public APIs document invariants and scalar/zero-size behavior.
+- No filesystem, serialization, model-specific, or third-party dependency is
+  added to `clr-core`.
 
-Test strategy:
+Important design guard:
 
-- Unit tests cover normal shapes, scalar shapes, zero-sized dimensions, and
-  element-count overflow.
-- Configuration tests cover a valid MoE configuration and each validation
-  failure independently.
-- Error tests verify useful `Display` output.
-- Existing runtime identity test remains intact.
-- Workspace format, build, tests, and Clippy remain clean with warnings denied.
+`ModelConfig` must not become a dump of Qwen configuration fields. If a field
+is not needed by at least the generic tensor/runtime boundary, it belongs in
+`clr-qwen3-moe`.
 
 Definition of Done:
 
-- All five modules exist with documented public APIs.
-- Invalid states cannot be created through public constructors.
-- Checked shape arithmetic cannot panic or wrap.
-- `clr-core` has no new third-party dependency.
-- `cargo fmt --all --check` passes.
-- `cargo check --workspace` passes.
-- `cargo test --workspace` passes.
-- `cargo clippy --workspace --all-targets -- -D warnings` passes.
-- `cargo run -p clr-cli` still reports `status: bootstrap ready`.
+- Modules and public contracts exist with tests.
+- Invalid public states cannot be constructed.
+- Dimension arithmetic cannot wrap or panic.
+- `clr-core` has no new external dependency.
+- All standard verification commands pass.
+- CLI still reports `bootstrap ready`.
+
+#### M0.3 - Deterministic fixture and oracle contract
+
+Goal: freeze the evidence used to decide whether the Rust implementation is
+correct before writing the forward pass.
+
+Scope:
+
+- Pin Python, PyTorch, Transformers, and model-configuration versions.
+- Create a deterministic tiny Qwen3-MoE configuration.
+- Fix random seeds and export input IDs, weights, selected intermediate
+  tensors, and expected logits.
+- Define a versioned fixture manifest including tensor name, shape, dtype,
+  byte order, offset or file path, and SHA-256.
+- Define absolute/relative numerical tolerances per comparison point.
+- Record commands that regenerate and verify the fixture.
+- Keep generated model artifacts out of Git when large; keep a tiny fixture in
+  Git only if license and size permit.
+
+Exit condition:
+
+A clean machine can regenerate the same fixture metadata and expected outputs,
+or verify a checked-in fixture, without relying on undocumented state.
 
 ### M1 - Tiny Qwen3-MoE correctness
 
-Goal: run a deterministic forward pass for a tiny Qwen3-MoE fixture and match a
-Python/Transformers reference.
+Goal: execute a deterministic tiny Qwen3-MoE model in Rust and match the frozen
+oracle layer by layer.
 
-Planned scope:
+#### M1.1 - Dense tensor and kernel correctness
 
-- Dense tensor storage and checked views.
-- Required CPU `f32` operations only.
-- Qwen3 attention, normalization, rotary embeddings, router, and expert MLP.
-- Tiny deterministic model fixture and Python reference output.
-- Layer-by-layer comparison before full-logit comparison.
+Scope:
 
-Exit condition: Rust logits match the reference within a documented tolerance.
+- Owned dense `f32` tensor storage.
+- Checked immutable and mutable views.
+- Minimal operations required by the fixture only: indexing, reshape/view,
+  elementwise add/multiply, matrix-vector or matrix-matrix multiply, softmax,
+  SiLU, and reductions as required.
+- Shape-validation and numerical unit tests.
+
+Exit condition:
+
+Every primitive matches a small independently calculated test case.
+
+#### M1.2 - Single decoder/MoE block correctness
+
+Scope:
+
+- RMS normalization.
+- Rotary embeddings.
+- Causal grouped-query attention for the frozen fixture.
+- Router logits, deterministic top-k selection, and routing weights.
+- Expert gated MLP and weighted expert-output combination.
+- Comparison of router selections and intermediate outputs with the oracle.
+
+Exit condition:
+
+One decoder block matches the recorded reference within its documented
+tolerance, including exact selected expert IDs.
+
+#### M1.3 - Full tiny decoder correctness
+
+Scope:
+
+- Embedding lookup.
+- Multiple decoder blocks.
+- Final normalization and language-model head.
+- Final-logit comparison.
+- Diagnostic output that identifies the first mismatching stage.
+
+Exit condition:
+
+Final logits match the reference tolerance and all selected expert IDs match
+exactly.
 
 ### M2 - Storage and expert residency
 
-Goal: load model tensors without requiring all experts to be resident in RAM.
+Goal: run the correctness-proven path while experts are loaded on demand under
+a strict byte budget.
 
-Planned scope:
+#### M2.1 - Artifact reader
 
-- Model manifest and tensor metadata validation.
-- Read-only memory mapping behind a narrowly reviewed safety boundary.
+Scope:
+
+- Versioned manifest and tensor metadata.
+- Validation of paths/offsets, lengths, shapes, dtypes, endianness, and hashes.
+- A portable buffered/read-at implementation first.
+- Clear ownership of loaded bytes and tensor views.
+
+Exit condition:
+
+Malformed artifacts fail before tensor execution, with deterministic errors.
+
+#### M2.2 - Expert store and byte-budgeted cache
+
+Scope:
+
+- `ExpertId` and stable cache key contract.
 - On-demand expert loading.
-- RAM-budgeted LRU expert cache.
-- Cache and I/O metrics.
+- Byte-budgeted LRU cache.
+- Pin/lease semantics preventing eviction while an expert is in use.
+- Strict handling of an expert larger than the configured budget.
+- Hit, miss, load, eviction, resident-byte, and bytes-read metrics.
 
-Exit condition: repeated expert access respects the configured RAM budget and
-passes deterministic eviction tests.
+Exit condition:
+
+Deterministic tests prove eviction order, no budget overrun, no use-after-
+eviction, and unchanged numerical output.
+
+#### M2.3 - Optional memory mapping
+
+Scope:
+
+- Add read-only mapping only after M2.1 and M2.2 pass.
+- Keep mapping behind the same artifact-reader interface.
+- Isolate `unsafe` in the smallest crate/module possible.
+- Document Windows file-lifetime and mapping-lifetime invariants.
+- Benchmark against buffered/read-at access before retaining it.
+
+Exit condition:
+
+Mapping produces identical outputs and is retained only if evidence shows a
+useful benefit or materially simpler residency behavior.
 
 ### M3 - Autoregressive generation
 
-Goal: produce tokens from a prompt using the correctness-proven model path.
+Goal: generate deterministic token IDs using the tiny correctness-proven path.
 
-Planned scope:
+Scope:
 
-- Token sampling with deterministic seeded tests.
-- KV cache with explicit size accounting.
-- Prefill and decode loops.
-- Minimal CLI generation command.
+- Greedy decoding first.
+- Seeded temperature sampling second.
+- Explicit KV-cache shape and byte accounting.
+- Prefill and single-token decode loops.
+- Context-length checks.
+- Minimal CLI command accepting token IDs directly.
+- Reproducible multi-token tests and bounded-memory tests.
 
-Exit condition: a tiny model produces reproducible multi-token output without
-unbounded memory growth.
+Tokenizer integration is not required for M3; accepting token IDs keeps this
+milestone focused on runtime correctness.
+
+Exit condition:
+
+The tiny model produces reproducible token-ID sequences with no unbounded
+resident-memory growth.
 
 ### M4 - Full Qwen3-30B-A3B path
 
-Goal: run the target model with storage-aware expert loading under a defined
-memory budget.
+Goal: generate tokens with Qwen3-30B-A3B while enforcing a documented
+resident-memory budget.
 
-Planned scope:
+#### M4.1 - Full-model artifact conversion
 
-- Target model conversion/loading contract.
-- Quantized expert representation selected from measured evidence.
-- Full-model compatibility and memory tests.
-- Baseline JSON report for speed, peak RAM, model size, hardware, and commit.
+Scope:
 
-Exit condition: the target model generates tokens and emits a reproducible
-baseline report while respecting the documented RAM budget.
+- Pin one exact upstream model revision.
+- Convert only the required Qwen3-MoE tensor set from Safetensors.
+- Validate tensor names, shapes, config values, tokenizer assets, and hashes.
+- Produce a versioned artifact that supports independent dense and expert
+  access.
+- Document conversion provenance and licensing.
+
+#### M4.2 - Full-model correctness checkpoint
+
+Scope:
+
+- Validate selected layers/tensors against Transformers before quantization.
+- Run a short deterministic prompt or token sequence.
+- Compare expert selections and selected intermediate outputs.
+- Record peak RAM and bytes read even if performance is poor.
+
+Exit condition:
+
+The unoptimized storage-aware path is numerically credible and debuggable.
+
+#### M4.3 - Evidence-driven quantization
+
+Scope:
+
+- Select a first expert quantization only after measuring memory and I/O.
+- Keep sensitive dense/router tensors at a higher precision when evidence
+  supports it.
+- Validate degradation against a defined prompt/evaluation set.
+- Treat ik_llama.cpp as a performance and quantization baseline, not a code
+  target.
+
+#### M4.4 - Reproducible baseline
+
+Required JSON fields:
+
+```json
+{
+  "runtime": "colibri-lite-rs",
+  "runtime_commit": "",
+  "model_id": "",
+  "model_revision": "",
+  "artifact_version": "",
+  "quantization": "",
+  "hardware": {},
+  "resident_budget_bytes": 0,
+  "peak_resident_bytes": 0,
+  "bytes_read": 0,
+  "cache_hit_rate": 0.0,
+  "prompt_tokens_per_second": 0.0,
+  "generation_tokens_per_second": 0.0
+}
+```
+
+Exit condition:
+
+The target model generates tokens, respects the configured budget, and emits a
+reproducible report with known limitations.
 
 ## Deferred until after M4
 
@@ -194,13 +388,30 @@ baseline report while respecting the documented RAM budget.
 - Distributed inference or RPC.
 - Agent frameworks and tool calling.
 - Broad model-family support.
+- katgpt-rs-inspired reasoning policies.
+- Production-grade tokenizer/chat-template abstraction.
+- Cross-platform tuning beyond Windows x64 correctness.
 
 ## Review gates
 
 Every milestone ends with these gates:
 
 1. Contract review: public APIs and invariants are documented.
-2. Correctness review: tests fail for known invalid inputs.
-3. Quality review: format, check, test, and Clippy commands pass.
-4. Scope review: deferred features have not entered the implementation.
-5. Evidence review: benchmark or numerical claims include reproducible inputs.
+2. Correctness review: positive and known-invalid cases are tested.
+3. Quality review: format, check, test, and Clippy pass.
+4. Scope review: deferred work has not entered the implementation.
+5. Evidence review: numerical or performance claims are reproducible.
+6. Provenance review: fixtures, weights, and borrowed ideas have documented
+   source revision and license.
+7. Windows review: path, file-lifetime, and resource-release behavior is tested
+   on Windows x64 MSVC.
+
+## Standard verification commands
+
+```powershell
+cargo fmt --all --check
+cargo check --workspace
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
+cargo run -p clr-cli
+```

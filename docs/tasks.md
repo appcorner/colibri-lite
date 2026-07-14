@@ -4,6 +4,16 @@ Task states:
 
 - `[x]` complete
 - `[ ]` not started
+- `[~]` in progress
+- `[!]` blocked
+
+Rules:
+
+- Close tasks in order unless a task explicitly says it may run in parallel.
+- Every completed milestone must pass the standard verification commands.
+- New ideas that do not unblock the current milestone go to `docs/backlog.md`.
+- Do not start optimization work before a correctness test exposes the same
+  execution path.
 
 ## M0.1 - Workspace bootstrap
 
@@ -17,130 +27,272 @@ Task states:
 - [x] M0.1-08 Pass format, check, tests, Clippy, and CLI smoke test.
 - [x] M0.1-09 Commit the bootstrap baseline.
 
-## M0.2 - Core contracts
+## M0.2 - Core value contracts
 
 ### Error contract
 
 - [ ] M0.2-01 Add `crates/clr-core/src/error.rs`.
 - [ ] M0.2-02 Define structured `RuntimeError` variants for invalid shapes,
-  element-count overflow, and invalid model configuration.
-- [ ] M0.2-03 Implement `Display` and `std::error::Error` for `RuntimeError`.
-- [ ] M0.2-04 Add tests for stable, useful error messages.
+  checked-arithmetic overflow, invalid configuration, and out-of-range access.
+- [ ] M0.2-03 Implement `Display` and `std::error::Error` without an external
+  error crate.
+- [ ] M0.2-04 Test error categories and useful stable message fragments.
 
 Acceptance:
 
-- Callers can match error categories without parsing strings.
-- No external error-handling dependency is added.
+- Callers match categories without parsing messages.
+- No external dependency is added to `clr-core`.
 
 ### Data type contract
 
 - [ ] M0.2-05 Add `crates/clr-core/src/dtype.rs`.
-- [ ] M0.2-06 Define `DataType::{F32, F16, BF16}`.
-- [ ] M0.2-07 Add byte-width and display-name queries.
-- [ ] M0.2-08 Test every variant's width and display value.
+- [ ] M0.2-06 Define metadata variants `DataType::{F32, F16, BF16}`.
+- [ ] M0.2-07 Add byte-width, display-name, and floating-point queries.
+- [ ] M0.2-08 Document that M0/M1 computation supports `F32` only.
+- [ ] M0.2-09 Test every variant.
 
 Acceptance:
 
-- Dense correctness-path types have unambiguous byte widths.
-- Quantized types are not introduced before block semantics are designed.
+- Metadata widths are unambiguous.
+- Quantized block formats are not introduced.
 
 ### Shape contract
 
-- [ ] M0.2-09 Add `crates/clr-core/src/shape.rs`.
-- [ ] M0.2-10 Implement `TensorShape` with private owned dimensions.
-- [ ] M0.2-11 Add rank, dimensions, scalar, and empty-tensor queries.
-- [ ] M0.2-12 Implement checked element-count calculation.
-- [ ] M0.2-13 Test scalar, vector, matrix, zero-sized, and overflowing shapes.
+- [ ] M0.2-10 Add `crates/clr-core/src/shape.rs`.
+- [ ] M0.2-11 Implement `TensorShape` with private owned dimensions.
+- [ ] M0.2-12 Add rank, dimensions, dimension access, scalar, and empty queries.
+- [ ] M0.2-13 Implement checked element-count and checked byte-count helpers.
+- [ ] M0.2-14 Freeze and document scalar `[]` and zero-sized `[2, 0, 3]`
+  semantics.
+- [ ] M0.2-15 Test scalar, vector, matrix, zero-sized, invalid access, and
+  overflow cases.
 
 Acceptance:
 
-- Dimension multiplication never wraps or panics.
-- Scalar and zero-sized behavior is explicitly tested and documented.
+- Multiplication never wraps or panics.
+- Scalar and zero-sized behavior is explicit.
 
 ### Model configuration contract
 
-- [ ] M0.2-14 Add `crates/clr-core/src/config.rs`.
-- [ ] M0.2-15 Define architecture-independent decoder/MoE dimensions in
-  `ModelConfig`.
-- [ ] M0.2-16 Provide a validating constructor or builder.
-- [ ] M0.2-17 Reject zero required dimensions.
-- [ ] M0.2-18 Validate attention-head and KV-head relationships.
-- [ ] M0.2-19 Validate expert count and experts-per-token relationships.
-- [ ] M0.2-20 Test one valid configuration and each invalid invariant.
+- [ ] M0.2-16 Add `crates/clr-core/src/config.rs`.
+- [ ] M0.2-17 List the truly architecture-neutral fields required by M1.
+- [ ] M0.2-18 Define a minimal validated `ModelConfig`; keep Qwen-only fields
+  out of `clr-core`.
+- [ ] M0.2-19 Reject zero required dimensions.
+- [ ] M0.2-20 Validate generic hidden/head/KV-head relationships only when they
+  are genuinely architecture-neutral.
+- [ ] M0.2-21 Test one valid configuration and every invariant independently.
+- [ ] M0.2-22 Add a review test/checklist ensuring no Qwen field has leaked into
+  the generic config.
 
 Acceptance:
 
-- Public construction cannot produce a configuration that violates a listed
-  invariant.
-- Validation errors identify the invalid field or relationship.
+- Public construction cannot create a listed invalid state.
+- Validation identifies the invalid field or relationship.
+- `ModelConfig` does not become a mirror of Hugging Face Qwen config.
 
 ### Module integration
 
-- [ ] M0.2-21 Move runtime identity code to `runtime.rs` without changing its
+- [ ] M0.2-23 Move runtime identity code to `runtime.rs` without changing its
   public behavior.
-- [ ] M0.2-22 Declare the new modules from `lib.rs`.
-- [ ] M0.2-23 Re-export the main contract types from the crate root.
-- [ ] M0.2-24 Add rustdoc for every public type, constructor, and invariant.
-- [ ] M0.2-25 Confirm `clr-storage` and `clr-qwen3-moe` still compile against
-  `clr-core` without adding implementation code.
+- [ ] M0.2-24 Declare modules from `lib.rs`.
+- [ ] M0.2-25 Re-export primary contract types from the crate root.
+- [ ] M0.2-26 Add rustdoc for every public type, constructor, and invariant.
+- [ ] M0.2-27 Confirm dependent crates compile without adding inference,
+  serialization, storage, or model implementation.
 
 ### M0.2 verification
 
-- [ ] M0.2-26 Run `cargo fmt --all --check`.
-- [ ] M0.2-27 Run `cargo check --workspace`.
-- [ ] M0.2-28 Run `cargo test --workspace`.
-- [ ] M0.2-29 Run `cargo clippy --workspace --all-targets -- -D warnings`.
-- [ ] M0.2-30 Run `cargo run -p clr-cli` and confirm `bootstrap ready`.
-- [ ] M0.2-31 Review the diff for inference, I/O, serialization, or
-  quantization work that belongs to a later milestone.
-- [ ] M0.2-32 Commit M0.2 with a focused commit message.
+- [ ] M0.2-28 Run the standard verification commands.
+- [ ] M0.2-29 Review the diff for out-of-scope I/O, serialization,
+  quantization, tensor math, and Qwen-specific behavior.
+- [ ] M0.2-30 Commit with `feat(core): add validated runtime value contracts`.
 
-## M1 - Tiny Qwen3-MoE correctness
+## M0.3 - Deterministic fixture and oracle contract
 
-- [ ] M1-01 Freeze the tiny model configuration and deterministic fixture.
-- [ ] M1-02 Create the Python/Transformers reference script.
-- [ ] M1-03 Define dense tensor storage and safe views.
-- [ ] M1-04 Implement only the required `f32` tensor operations.
-- [ ] M1-05 Implement RMS normalization and rotary embeddings.
-- [ ] M1-06 Implement causal attention and grouped-query attention behavior.
-- [ ] M1-07 Implement router scoring and top-k expert selection.
-- [ ] M1-08 Implement the expert MLP and routed output combination.
-- [ ] M1-09 Compare intermediate layer outputs with the Python reference.
-- [ ] M1-10 Compare final logits within the documented tolerance.
-- [ ] M1-11 Record fixture provenance, tolerance, and reproduction commands.
+### Environment and provenance
 
-## M2 - Storage and expert residency
+- [ ] M0.3-01 Add `python/reference/requirements.lock` or an equivalent pinned
+  environment file.
+- [ ] M0.3-02 Record Python, PyTorch, Transformers, and Safetensors versions.
+- [ ] M0.3-03 Pin the exact Qwen3-MoE architecture/config reference revision.
+- [ ] M0.3-04 Add fixture license and provenance notes.
 
-- [ ] M2-01 Define the model manifest and tensor metadata contract.
-- [ ] M2-02 Validate offsets, lengths, shapes, and data types before reads.
-- [ ] M2-03 Add read-only memory mapping behind a reviewed safety boundary.
-- [ ] M2-04 Implement on-demand expert loading.
-- [ ] M2-05 Implement a byte-budgeted LRU expert cache.
-- [ ] M2-06 Add cache hit, miss, load, eviction, and resident-byte metrics.
-- [ ] M2-07 Test deterministic eviction and strict RAM-budget behavior.
+### Tiny model definition
+
+- [ ] M0.3-05 Define a tiny Qwen3-MoE config with small vocabulary, hidden size,
+  layer count, expert count, and top-k.
+- [ ] M0.3-06 Fix all random seeds and deterministic settings.
+- [ ] M0.3-07 Freeze a short token-ID input sequence.
+- [ ] M0.3-08 Export model configuration and deterministic weights.
+
+### Oracle outputs
+
+- [ ] M0.3-09 Record router logits and selected expert IDs.
+- [ ] M0.3-10 Record outputs after normalization, attention, MoE, one full
+  decoder block, and final logits.
+- [ ] M0.3-11 Define per-stage absolute and relative tolerances.
+- [ ] M0.3-12 Add SHA-256 values for all fixture files.
+- [ ] M0.3-13 Add commands to regenerate and verify the fixture.
+- [ ] M0.3-14 Verify regeneration or verification on a clean environment.
+
+Acceptance:
+
+- Expert IDs are deterministic and exact.
+- Numerical checkpoints are versioned and reproducible.
+- Rust implementation work does not begin until this contract is frozen.
+
+## M1.1 - Dense tensor and kernel correctness
+
+### Tensor ownership and views
+
+- [ ] M1.1-01 Define owned dense `f32` tensor storage.
+- [ ] M1.1-02 Define checked immutable and mutable views.
+- [ ] M1.1-03 Enforce shape/length equality at construction.
+- [ ] M1.1-04 Add checked indexing and contiguous-layout documentation.
+
+### Minimal operations
+
+- [ ] M1.1-05 Implement only operations required by the fixture.
+- [ ] M1.1-06 Implement elementwise add/multiply and required reductions.
+- [ ] M1.1-07 Implement matrix-vector or matrix-matrix multiplication.
+- [ ] M1.1-08 Implement softmax and SiLU.
+- [ ] M1.1-09 Add independent hand-calculated unit tests for every primitive.
+- [ ] M1.1-10 Add shape-error and non-finite-input diagnostic tests where
+  applicable.
+
+Acceptance:
+
+- No operation exists only because it may be useful later.
+- All operations pass independent small-value tests.
+
+## M1.2 - Single Qwen3-MoE block correctness
+
+- [ ] M1.2-01 Define Qwen3-specific config mapping in `clr-qwen3-moe`.
+- [ ] M1.2-02 Implement RMS normalization.
+- [ ] M1.2-03 Implement rotary embeddings.
+- [ ] M1.2-04 Implement causal grouped-query attention for the fixture.
+- [ ] M1.2-05 Implement router logits and deterministic top-k selection.
+- [ ] M1.2-06 Define tie-breaking behavior and test it explicitly.
+- [ ] M1.2-07 Implement routing-weight normalization.
+- [ ] M1.2-08 Implement gated expert MLP.
+- [ ] M1.2-09 Implement weighted expert-output combination.
+- [ ] M1.2-10 Compare expert IDs exactly with the oracle.
+- [ ] M1.2-11 Compare every recorded intermediate output within tolerance.
+- [ ] M1.2-12 Add diagnostics naming the first mismatching stage.
+
+Acceptance:
+
+- One decoder/MoE block matches the frozen oracle.
+- Router tie behavior is deterministic.
+
+## M1.3 - Full tiny decoder correctness
+
+- [ ] M1.3-01 Implement embedding lookup.
+- [ ] M1.3-02 Compose multiple decoder blocks.
+- [ ] M1.3-03 Implement final normalization and LM head.
+- [ ] M1.3-04 Compare final logits with the oracle.
+- [ ] M1.3-05 Test repeated runs for identical output.
+- [ ] M1.3-06 Record reproduction commands and first correctness report.
+
+Acceptance:
+
+- Final logits satisfy documented tolerance.
+- All expert selections match exactly.
+- Standard verification commands pass.
+
+## M2.1 - Artifact reader
+
+- [ ] M2.1-01 Define a versioned artifact manifest.
+- [ ] M2.1-02 Define tensor metadata: name, shape, dtype, byte order, location,
+  length, and hash.
+- [ ] M2.1-03 Validate duplicate names, paths/offsets, lengths, shape-derived
+  byte counts, and hashes.
+- [ ] M2.1-04 Implement portable read/read-at access before memory mapping.
+- [ ] M2.1-05 Reject malformed artifacts before tensor execution.
+- [ ] M2.1-06 Add corruption, truncation, and wrong-endianness tests.
+
+## M2.2 - Expert store and cache
+
+- [ ] M2.2-01 Define `ExpertId` and a stable cache key.
+- [ ] M2.2-02 Implement on-demand expert loading through the artifact reader.
+- [ ] M2.2-03 Implement a byte-budgeted LRU cache.
+- [ ] M2.2-04 Define lease/pin behavior while an expert is in use.
+- [ ] M2.2-05 Define behavior when one expert exceeds the entire budget.
+- [ ] M2.2-06 Add hit, miss, load, eviction, resident-byte, peak-byte, and
+  bytes-read metrics.
+- [ ] M2.2-07 Test deterministic eviction order.
+- [ ] M2.2-08 Test strict budget enforcement and no use-after-eviction.
+- [ ] M2.2-09 Run the tiny model through resident and on-demand paths and prove
+  identical output.
+
+## M2.3 - Optional memory mapping
+
+- [ ] M2.3-01 Benchmark portable access before adding mapping.
+- [ ] M2.3-02 Add read-only mapping behind the artifact-reader interface.
+- [ ] M2.3-03 Isolate and document every `unsafe` block.
+- [ ] M2.3-04 Test Windows mapping/file lifetime and file replacement/deletion
+  behavior.
+- [ ] M2.3-05 Prove mapped and portable paths produce identical output.
+- [ ] M2.3-06 Keep mapping only if evidence justifies it.
 
 ## M3 - Autoregressive generation
 
-- [ ] M3-01 Define token sampling inputs and seeded RNG behavior.
-- [ ] M3-02 Implement greedy and temperature sampling.
-- [ ] M3-03 Implement KV cache allocation and byte accounting.
-- [ ] M3-04 Implement prefill and single-token decode paths.
-- [ ] M3-05 Add a minimal generation command to `clr-cli`.
-- [ ] M3-06 Test reproducible multi-token generation and bounded memory use.
+- [ ] M3-01 Implement greedy token-ID decoding.
+- [ ] M3-02 Define seeded RNG behavior.
+- [ ] M3-03 Implement temperature sampling after greedy decoding passes.
+- [ ] M3-04 Define KV-cache layout, context limit, and byte accounting.
+- [ ] M3-05 Implement prefill.
+- [ ] M3-06 Implement single-token decode.
+- [ ] M3-07 Add a CLI command accepting token IDs directly.
+- [ ] M3-08 Test reproducible token sequences.
+- [ ] M3-09 Test bounded memory over repeated decode steps.
+- [ ] M3-10 Record a tiny-generation correctness report.
 
-## M4 - Full Qwen3-30B-A3B path
+## M4.1 - Full-model artifact conversion
 
-- [ ] M4-01 Define the supported model artifact and conversion procedure.
-- [ ] M4-02 Validate full-model tensor names, shapes, and configuration.
-- [ ] M4-03 Select quantization from measured correctness and memory evidence.
-- [ ] M4-04 Run the full model with on-demand expert loading.
-- [ ] M4-05 Emit the common baseline JSON report.
-- [ ] M4-06 Record tokens/second, peak RAM, model size, hardware, and commit.
-- [ ] M4-07 Document the supported configuration and known limitations.
+- [ ] M4.1-01 Pin exact Qwen3-30B-A3B model ID and revision.
+- [ ] M4.1-02 Document upstream license and artifact provenance.
+- [ ] M4.1-03 Map required Hugging Face configuration fields.
+- [ ] M4.1-04 Map and validate required tensor names and shapes.
+- [ ] M4.1-05 Convert dense tensors for resident access.
+- [ ] M4.1-06 Convert experts for independent on-demand access.
+- [ ] M4.1-07 Include tokenizer assets required for the first full-model test.
+- [ ] M4.1-08 Generate hashes and a reproducible conversion manifest.
+
+## M4.2 - Full-model correctness checkpoint
+
+- [ ] M4.2-01 Validate selected tensor values against Safetensors.
+- [ ] M4.2-02 Validate selected layer router IDs against Transformers.
+- [ ] M4.2-03 Validate selected intermediate outputs.
+- [ ] M4.2-04 Run a short deterministic token sequence.
+- [ ] M4.2-05 Record peak resident bytes, bytes read, and cache metrics.
+- [ ] M4.2-06 Document failures or tolerance differences before optimization.
+
+## M4.3 - Evidence-driven quantization
+
+- [ ] M4.3-01 Establish an unquantized or higher-precision correctness baseline.
+- [ ] M4.3-02 Define the first candidate expert quantization format.
+- [ ] M4.3-03 Keep router and sensitive dense tensors at measured safe precision.
+- [ ] M4.3-04 Compare output degradation against the baseline.
+- [ ] M4.3-05 Compare memory/I/O and speed against ik_llama.cpp where formats
+  and hardware permit.
+- [ ] M4.3-06 Select or reject the candidate based on recorded evidence.
+
+## M4.4 - Reproducible full-model baseline
+
+- [ ] M4.4-01 Emit versioned baseline JSON.
+- [ ] M4.4-02 Record runtime/model commits and artifact version.
+- [ ] M4.4-03 Record hardware and Windows version.
+- [ ] M4.4-04 Record resident budget, peak resident bytes, total bytes read, and
+  cache hit rate.
+- [ ] M4.4-05 Record prompt and generation throughput.
+- [ ] M4.4-06 Document supported configuration and known limitations.
+- [ ] M4.4-07 Repeat the run and verify the report is reproducible.
 
 ## Standard verification commands
 
-Run these commands before closing any milestone:
+Run before closing every milestone:
 
 ```powershell
 cargo fmt --all --check
