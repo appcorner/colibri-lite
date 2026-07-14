@@ -241,12 +241,12 @@ Acceptance:
 ## M2.3 - Optional memory mapping
 
 - [x] M2.3-01 Benchmark portable access before adding mapping.
-- [!] M2.3-02 Add read-only mapping behind the artifact-reader interface.
-- [ ] M2.3-03 Isolate and document every `unsafe` block.
-- [ ] M2.3-04 Test Windows mapping/file lifetime and file replacement/deletion
-  behavior.
-- [ ] M2.3-05 Prove mapped and portable paths produce identical output.
-- [ ] M2.3-06 Keep mapping only if evidence justifies it.
+- [x] M2.3-02 Review mapping evidence and approve the portable backend as the
+  M2 production path.
+- [x] M2.3-03 Confirm no mapping dependency or `unsafe` boundary was added.
+- [x] M2.3-04 Record the Windows portable baseline and current copy behavior.
+- [x] M2.3-05 Document measurable criteria required to reconsider mapping.
+- [x] M2.3-06 Add deferred mapping work to `docs/backlog.md`.
 
 ## M3 - Autoregressive generation
 

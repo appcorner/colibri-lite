@@ -14,7 +14,7 @@ Mixture-of-Experts models.
 
 ## Current milestone
 
-M0 and M1 are complete. Next: M2 - Storage and expert residency.
+M0, M1, and M2 are complete. Next: M3 - Autoregressive generation.
 
 ## Project documents
 
@@ -24,3 +24,4 @@ M0 and M1 are complete. Next: M2 - Storage and expert residency.
 - [Work log](docs/work-log.md)
 - [M0 milestone report](docs/reports/m0.md)
 - [M1 correctness report](docs/reports/m1.md)
+- [M2 storage and residency report](docs/reports/m2.md)

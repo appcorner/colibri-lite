@@ -264,7 +264,7 @@ exactly.
 
 ### M2 - Storage and expert residency
 
-Status: next.
+Status: complete.
 
 Goal: run the correctness-proven path while experts are loaded on demand under
 a strict byte budget.
@@ -300,20 +300,26 @@ eviction, and unchanged numerical output.
 
 #### M2.3 - Optional memory mapping
 
+Status: deferred by evidence; not an M2 exit requirement.
+
 Scope:
 
-- Add read-only mapping only after M2.1 and M2.2 pass.
-- Keep mapping behind the same artifact-reader interface.
-- Isolate `unsafe` in the smallest crate/module possible.
-- Document Windows file-lifetime and mapping-lifetime invariants.
-- Benchmark against buffered/read-at access before retaining it.
+- Benchmark the portable reader before considering mapping.
+- Add no mapping dependency or unsafe boundary without profiling evidence.
+- Record the defer decision and measurable reconsideration criteria.
+- If reconsidered, keep mapping behind the artifact-reader interface, isolate
+  the boundary, and test Windows file/mapping lifetimes.
 
 Exit condition:
 
-Mapping produces identical outputs and is retained only if evidence shows a
-useful benefit or materially simpler residency behavior.
+Portable access has a reproducible baseline and mapping is either rejected or
+retained from measured evidence. The approved M2 decision is to defer mapping:
+portable access is not a demonstrated decode bottleneck and mapping would not
+remove the current F32 decode/copy step.
 
 ### M3 - Autoregressive generation
+
+Status: next.
 
 Goal: generate deterministic token IDs using the tiny correctness-proven path.
 

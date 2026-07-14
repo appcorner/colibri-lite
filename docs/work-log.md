@@ -370,3 +370,30 @@ mapping backend; if approved, define the smallest isolated boundary and compare
 it against this exact workload.
 
 Commit: `5ffd40c` (`bench(storage): record portable reader baseline`).
+
+## 2026-07-14 - M2 closure with portable backend
+
+Date: 2026-07-14
+
+Starting task: Resolve the reviewed M2.3 mapping decision and close M2.
+
+Completed tasks: M2.3-02 through M2.3-06. Approved portable access as the M2
+production path, confirmed no mapping dependency/unsafe code, documented the
+baseline and copy behavior, added measurable reconsideration criteria, moved
+mapping to the backlog, created ADR 0008, and produced the M2 milestone report.
+
+Commands executed: Documentation scope review, all standard Cargo verification
+commands, Git diff/status review, and the focused M2 closure commit.
+
+Tests: All 59 workspace tests passed with zero failures. Clippy passed with
+warnings denied, CLI smoke output remained correct, and the recorded portable
+release benchmark remains 129.367 MiB/s for the verified 200 MiB workload.
+
+Known issues: Streaming expert payloads are decoded/copied into temporary F32
+vectors. Mapping is intentionally deferred until profiling proves artifact I/O
+or copy cost is material under a representative full-model decode workload.
+
+Next task: Merge the reported M2 branch, create
+`milestone/m3-generation`, and begin M3-01 greedy token-ID decoding.
+
+Commit: Pending M2 closure evidence commit.
