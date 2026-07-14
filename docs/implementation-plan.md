@@ -129,7 +129,7 @@ Deliverables:
 
 #### M0.2 - Core value contracts
 
-Status: next.
+Status: complete.
 
 Goal: define the minimum stable vocabulary required by the first tiny-model
 vertical slice. Do not implement inference, I/O, serialization, or
@@ -186,6 +186,8 @@ Definition of Done:
 
 #### M0.3 - Deterministic fixture and oracle contract
 
+Status: complete.
+
 Goal: freeze the evidence used to decide whether the Rust implementation is
 correct before writing the forward pass.
 
@@ -208,6 +210,8 @@ A clean machine can regenerate the same fixture metadata and expected outputs,
 or verify a checked-in fixture, without relying on undocumented state.
 
 ### M1 - Tiny Qwen3-MoE correctness
+
+Status: next.
 
 Goal: execute a deterministic tiny Qwen3-MoE model in Rust and match the frozen
 oracle layer by layer.

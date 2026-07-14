@@ -68,3 +68,35 @@ support is limited to `F32`.
 Next task: M0.3-01 - add a pinned Python reference environment file.
 
 Commit: `bb7e6f2` (`feat(core): add validated runtime value contracts`).
+
+## 2026-07-14 - M0.3 deterministic oracle fixture
+
+Date: 2026-07-14
+
+Starting task: M0.3-01 - pin the Python reference environment.
+
+Completed tasks: M0.3-01 through M0.3-14. Pinned the reference environment and
+Qwen3-MoE revision, created deterministic synthetic weights and a two-layer
+fixture, recorded 23 oracle checkpoints and exact selected experts, defined
+tolerances, generated SHA-256 evidence, and verified byte-for-byte regeneration
+in an isolated venv.
+
+Commands executed: Python/package version inspection; read-only Hugging Face
+metadata lookup; fixture `generate` and `verify`; Safetensors inventory and
+expert-ID inspection; isolated venv verification; all standard Cargo
+verification commands; Git diff/status review; and the focused Git commit.
+
+Tests: Fixture regeneration matched every committed SHA-256 digest. The
+isolated venv verification passed. All 15 Rust unit tests and all workspace/doc
+test targets passed with zero failures. Clippy passed with warnings denied. CLI
+output ended with `status: bootstrap ready`.
+
+Known issues: Python and Git HTTPS could not validate the local certificate
+chain for the Hugging Face API; Windows PowerShell HTTPS returned and verified
+the exact revision/license metadata. Fixture generation and verification are
+offline. The requirements lock pins versions but does not yet pin wheel hashes.
+
+Next task: Create the M0 milestone report, then begin M1.1-01 on
+`milestone/m1-tiny-qwen-correctness`.
+
+Commit: `18d905c` (`test(oracle): freeze tiny qwen3-moe reference fixture`).

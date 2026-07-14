@@ -14,7 +14,7 @@ Mixture-of-Experts models.
 
 ## Current milestone
 
-M0 - Project bootstrap
+M0 is complete. Next: M1 - Tiny Qwen3-MoE correctness.
 
 ## Project documents
 
@@ -22,3 +22,4 @@ M0 - Project bootstrap
 - [Task tracker](docs/tasks.md)
 - [Deferred ideas and backlog](docs/backlog.md)
 - [Work log](docs/work-log.md)
+- [M0 milestone report](docs/reports/m0.md)
