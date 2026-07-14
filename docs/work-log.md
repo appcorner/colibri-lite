@@ -428,3 +428,29 @@ Next task: Review a separate generation-session/KV-cache boundary that preserves
 the resident and streaming full-forward oracle APIs.
 
 Commit: `a141551` (`feat(qwen3): add deterministic token sampling`).
+
+## 2026-07-14 - M3 KV-cache contract review
+
+Date: 2026-07-14
+
+Starting task: M3-04 - define KV-cache layout, context limit, and byte
+accounting.
+
+Completed task: M3-04. Review accepted the generation-session boundary in ADR
+0010. Added a fixed-capacity, per-layer contiguous F32 key/value cache with
+checked byte accounting, transactional append validation, an explicit context
+limit error, and fixed-allocation/repeated-release tests.
+
+Commands executed: repository recovery inspection, `cargo fmt --all`,
+`cargo test -p clr-core error::tests`, and
+`cargo test -p clr-qwen3-moe cache::tests`.
+
+Tests: Two core error tests and four KV-cache tests passed with zero failures.
+The recovered partial workspace also passed all 69 tests before this task was
+closed; full milestone verification remains deferred until M3-10.
+
+Known issues: The cache contract is not yet connected to model execution, so
+the private append/view paths produce dead-code warnings in a normal check.
+M3-05 will connect them through prefill.
+
+Next task: M3-05 - implement prefill.

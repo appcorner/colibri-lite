@@ -52,6 +52,13 @@ pub enum RuntimeError {
         /// Flat element index containing the invalid value.
         index: usize,
     },
+    /// A sequence or cache append exceeds its fixed context capacity.
+    ContextLengthExceeded {
+        /// Requested sequence length after the operation.
+        requested: usize,
+        /// Fixed cache/context capacity.
+        capacity: usize,
+    },
     /// A model configuration field or relationship is invalid.
     InvalidModelConfig {
         /// Field primarily responsible for the validation failure.
@@ -100,6 +107,13 @@ impl fmt::Display for RuntimeError {
             Self::NonFiniteInput { operation, index } => write!(
                 formatter,
                 "non-finite input for {operation} at flat index {index}"
+            ),
+            Self::ContextLengthExceeded {
+                requested,
+                capacity,
+            } => write!(
+                formatter,
+                "context length {requested} exceeds fixed capacity {capacity}"
             ),
             Self::InvalidModelConfig { field, reason } => {
                 write!(
@@ -191,6 +205,13 @@ mod tests {
                     index: 2,
                 },
                 "non-finite input for softmax at flat index 2",
+            ),
+            (
+                RuntimeError::ContextLengthExceeded {
+                    requested: 9,
+                    capacity: 8,
+                },
+                "context length 9 exceeds fixed capacity 8",
             ),
         ];
 

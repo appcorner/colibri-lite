@@ -1,6 +1,7 @@
 #![doc = "Qwen3-MoE architecture implementation for colibri-lite-rs."]
 
 mod block;
+mod cache;
 mod config;
 mod generation;
 mod model;
@@ -9,6 +10,7 @@ mod streaming;
 mod test_fixture;
 
 pub use block::{Qwen3MoeBlock, Qwen3MoeBlockOutput, Qwen3MoeBlockWeightsSpec};
+pub use cache::KvCache;
 pub use config::{Qwen3MoeConfig, Qwen3MoeConfigSpec};
 pub use generation::{SeededRng, greedy_token, sample_token};
 pub use model::{Qwen3MoeModel, Qwen3MoeModelOutput, Qwen3MoeModelWeightsSpec};
