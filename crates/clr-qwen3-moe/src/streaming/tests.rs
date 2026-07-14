@@ -292,8 +292,7 @@ fn repeated_streaming_decode_respects_expert_and_kv_budgets() {
     let mut fixture = fixture(budget);
     let token_ids = test_fixture::token_ids();
     let capacity = config.model().max_sequence_length();
-    let expected_kv_bytes =
-        2 * capacity * config.model().key_value_head_count() * config.head_dimension() * 2 * 4;
+    let expected_kv_bytes = 2 * capacity * config.model().key_value_projection_width() * 2 * 4;
     let mut session =
         GenerationSession::streaming(&fixture.streaming, &mut fixture.store, capacity, 0)
             .expect("streaming session");

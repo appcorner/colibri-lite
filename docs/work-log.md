@@ -603,3 +603,31 @@ Known issue: Configuration mapping remains gated on the separately reviewed
 explicit `head_dim` contract in ADR 0012.
 
 Next: Implement and verify ADR 0012 before beginning M4.1-03.
+
+## 2026-07-14 - Explicit attention head dimension contract
+
+Date: 2026-07-14
+
+Starting work: Implement the approved public-contract prerequisite for
+M4.1-03.
+
+Completed: Added explicit generic head dimension and checked query/KV
+projection widths, removed the hidden/query-width equality assumption, updated
+Qwen attention/output projection and KV-cache construction, and recorded ADR
+0012. The tiny fixture now states `head_dim = 4` explicitly without changing
+weights or checkpoints.
+
+Commands executed: focused core/Qwen config tests; exact frozen M1 logits and
+M3 greedy/seeded regression tests; `python python\reference\generate_fixture.py
+verify`; and all five standard Cargo verification commands.
+
+Evidence: All 87 workspace tests passed; Clippy passed with warnings denied;
+CLI smoke passed. Fixture regeneration matched every committed artifact hash.
+Pinned dimensions `2048/32/4/128` are accepted with query width 4,096 and KV
+width 512. Zero head dimension and query/KV overflow cases return structured
+errors. Frozen numerical outputs and generation sequences are unchanged.
+
+Known issues: BF16 remains source metadata only. Model maximum positions,
+tokenizer limit, and session capacity remain intentionally separate.
+
+Next task: M4.1-03 - map required Hugging Face configuration fields.

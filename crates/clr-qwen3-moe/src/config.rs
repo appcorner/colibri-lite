@@ -43,7 +43,7 @@ impl Qwen3MoeConfig {
         if spec.model.data_type() != DataType::F32 {
             return Err(invalid("data_type", "M1 computation requires f32"));
         }
-        if spec.model.hidden_size() / spec.model.attention_head_count() % 2 != 0 {
+        if spec.model.head_dimension() % 2 != 0 {
             return Err(invalid(
                 "head_dimension",
                 "must be even for rotary embeddings",
@@ -78,7 +78,7 @@ impl Qwen3MoeConfig {
     /// Returns the width of one query/key/value head.
     #[must_use]
     pub const fn head_dimension(self) -> usize {
-        self.model.hidden_size() / self.model.attention_head_count()
+        self.model.head_dimension()
     }
 
     /// Returns the number of query heads sharing each key/value head.
@@ -156,13 +156,18 @@ mod tests {
         ));
     }
 
-    fn generic_config(data_type: DataType, hidden_size: usize) -> ModelConfig {
+    fn generic_config(
+        data_type: DataType,
+        hidden_size: usize,
+        head_dimension: usize,
+    ) -> ModelConfig {
         ModelConfig::new(ModelConfigSpec {
             vocabulary_size: frozen_fixture::VOCABULARY_SIZE,
             hidden_size,
             layer_count: frozen_fixture::LAYER_COUNT,
             attention_head_count: frozen_fixture::ATTENTION_HEAD_COUNT,
             key_value_head_count: frozen_fixture::KEY_VALUE_HEAD_COUNT,
+            head_dimension,
             intermediate_size: frozen_fixture::INTERMEDIATE_SIZE,
             max_sequence_length: frozen_fixture::MAX_SEQUENCE_LENGTH,
             data_type,
@@ -172,7 +177,11 @@ mod tests {
 
     fn valid_spec() -> Qwen3MoeConfigSpec {
         Qwen3MoeConfigSpec {
-            model: generic_config(DataType::F32, frozen_fixture::HIDDEN_SIZE),
+            model: generic_config(
+                DataType::F32,
+                frozen_fixture::HIDDEN_SIZE,
+                frozen_fixture::HEAD_DIMENSION,
+            ),
             rms_norm_epsilon: frozen_fixture::RMS_NORM_EPSILON,
             rope_theta: frozen_fixture::ROPE_THETA,
             expert_count: frozen_fixture::EXPERT_COUNT,
@@ -197,16 +206,40 @@ mod tests {
     }
 
     #[test]
+    fn accepts_pinned_full_model_projection_dimensions() {
+        let model = ModelConfig::new(ModelConfigSpec {
+            vocabulary_size: 151_936,
+            hidden_size: 2_048,
+            layer_count: 48,
+            attention_head_count: 32,
+            key_value_head_count: 4,
+            head_dimension: 128,
+            intermediate_size: 6_144,
+            max_sequence_length: 40_960,
+            data_type: DataType::F32,
+        })
+        .expect("pinned generic dimensions");
+        let mut spec = valid_spec();
+        spec.model = model;
+
+        let config = Qwen3MoeConfig::new(spec).expect("pinned Qwen dimensions");
+
+        assert_eq!(config.head_dimension(), 128);
+        assert_eq!(config.model().query_projection_width(), 4_096);
+        assert_eq!(config.model().key_value_projection_width(), 512);
+    }
+
+    #[test]
     fn rejects_non_f32_and_odd_head_dimensions() {
         let mut spec = valid_spec();
-        spec.model = generic_config(DataType::BF16, 16);
+        spec.model = generic_config(DataType::BF16, 16, frozen_fixture::HEAD_DIMENSION);
         assert_eq!(
             Qwen3MoeConfig::new(spec),
             Err(invalid("data_type", "M1 computation requires f32"))
         );
 
         let mut spec = valid_spec();
-        spec.model = generic_config(DataType::F32, 12);
+        spec.model = generic_config(DataType::F32, 16, 3);
         assert_eq!(
             Qwen3MoeConfig::new(spec),
             Err(invalid(

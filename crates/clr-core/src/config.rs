@@ -17,6 +17,8 @@ pub struct ModelConfigSpec {
     pub attention_head_count: usize,
     /// Number of key/value attention heads.
     pub key_value_head_count: usize,
+    /// Width of each query/key/value attention head.
+    pub head_dimension: usize,
     /// Width of the decoder feed-forward intermediate state.
     pub intermediate_size: usize,
     /// Maximum number of token positions accepted by the model.
@@ -36,6 +38,9 @@ pub struct ModelConfig {
     layer_count: usize,
     attention_head_count: usize,
     key_value_head_count: usize,
+    head_dimension: usize,
+    query_projection_width: usize,
+    key_value_projection_width: usize,
     intermediate_size: usize,
     max_sequence_length: usize,
     data_type: DataType,
@@ -47,23 +52,17 @@ impl ModelConfig {
     /// # Errors
     ///
     /// Returns [`RuntimeError::InvalidModelConfig`] when a required dimension
-    /// is zero, the hidden size is not divisible by the query-head count, or
-    /// the query-head count is not divisible by the key/value-head count.
+    /// is zero, the query-head count is not divisible by the key/value-head
+    /// count, or a projection width overflows `usize`.
     pub fn new(spec: ModelConfigSpec) -> Result<Self, RuntimeError> {
         require_nonzero("vocabulary_size", spec.vocabulary_size)?;
         require_nonzero("hidden_size", spec.hidden_size)?;
         require_nonzero("layer_count", spec.layer_count)?;
         require_nonzero("attention_head_count", spec.attention_head_count)?;
         require_nonzero("key_value_head_count", spec.key_value_head_count)?;
+        require_nonzero("head_dimension", spec.head_dimension)?;
         require_nonzero("intermediate_size", spec.intermediate_size)?;
         require_nonzero("max_sequence_length", spec.max_sequence_length)?;
-
-        if spec.hidden_size % spec.attention_head_count != 0 {
-            return Err(RuntimeError::InvalidModelConfig {
-                field: "attention_head_count",
-                reason: "must divide hidden_size evenly",
-            });
-        }
 
         if spec.attention_head_count % spec.key_value_head_count != 0 {
             return Err(RuntimeError::InvalidModelConfig {
@@ -72,12 +71,26 @@ impl ModelConfig {
             });
         }
 
+        let key_value_projection_width = checked_projection_width(
+            "KV projection width",
+            spec.key_value_head_count,
+            spec.head_dimension,
+        )?;
+        let query_projection_width = checked_projection_width(
+            "query projection width",
+            spec.attention_head_count,
+            spec.head_dimension,
+        )?;
+
         Ok(Self {
             vocabulary_size: spec.vocabulary_size,
             hidden_size: spec.hidden_size,
             layer_count: spec.layer_count,
             attention_head_count: spec.attention_head_count,
             key_value_head_count: spec.key_value_head_count,
+            head_dimension: spec.head_dimension,
+            query_projection_width,
+            key_value_projection_width,
             intermediate_size: spec.intermediate_size,
             max_sequence_length: spec.max_sequence_length,
             data_type: spec.data_type,
@@ -114,6 +127,28 @@ impl ModelConfig {
         self.key_value_head_count
     }
 
+    /// Returns the explicit width of each attention head.
+    #[must_use]
+    pub const fn head_dimension(self) -> usize {
+        self.head_dimension
+    }
+
+    /// Returns `attention_head_count * head_dimension`.
+    ///
+    /// Construction validates that this value is representable by `usize`.
+    #[must_use]
+    pub const fn query_projection_width(self) -> usize {
+        self.query_projection_width
+    }
+
+    /// Returns `key_value_head_count * head_dimension`.
+    ///
+    /// Construction validates that this value is representable by `usize`.
+    #[must_use]
+    pub const fn key_value_projection_width(self) -> usize {
+        self.key_value_projection_width
+    }
+
     /// Returns the decoder feed-forward intermediate width.
     #[must_use]
     pub const fn intermediate_size(self) -> usize {
@@ -131,6 +166,16 @@ impl ModelConfig {
     pub const fn data_type(self) -> DataType {
         self.data_type
     }
+}
+
+fn checked_projection_width(
+    operation: &'static str,
+    head_count: usize,
+    head_dimension: usize,
+) -> Result<usize, RuntimeError> {
+    head_count
+        .checked_mul(head_dimension)
+        .ok_or(RuntimeError::ArithmeticOverflow { operation })
 }
 
 fn require_nonzero(field: &'static str, value: usize) -> Result<(), RuntimeError> {
@@ -155,6 +200,7 @@ mod tests {
             layer_count: 2,
             attention_head_count: 4,
             key_value_head_count: 2,
+            head_dimension: 8,
             intermediate_size: 64,
             max_sequence_length: 256,
             data_type: DataType::F32,
@@ -170,6 +216,9 @@ mod tests {
         assert_eq!(config.layer_count(), 2);
         assert_eq!(config.attention_head_count(), 4);
         assert_eq!(config.key_value_head_count(), 2);
+        assert_eq!(config.head_dimension(), 8);
+        assert_eq!(config.query_projection_width(), 32);
+        assert_eq!(config.key_value_projection_width(), 16);
         assert_eq!(config.intermediate_size(), 64);
         assert_eq!(config.max_sequence_length(), 256);
         assert_eq!(config.data_type(), DataType::F32);
@@ -183,8 +232,9 @@ mod tests {
             ("layer_count", 2),
             ("attention_head_count", 3),
             ("key_value_head_count", 4),
-            ("intermediate_size", 5),
-            ("max_sequence_length", 6),
+            ("head_dimension", 5),
+            ("intermediate_size", 6),
+            ("max_sequence_length", 7),
         ];
 
         for (expected_field, zeroed_field) in cases {
@@ -195,8 +245,9 @@ mod tests {
                 2 => spec.layer_count = 0,
                 3 => spec.attention_head_count = 0,
                 4 => spec.key_value_head_count = 0,
-                5 => spec.intermediate_size = 0,
-                6 => spec.max_sequence_length = 0,
+                5 => spec.head_dimension = 0,
+                6 => spec.intermediate_size = 0,
+                7 => spec.max_sequence_length = 0,
                 _ => unreachable!(),
             }
 
@@ -211,15 +262,57 @@ mod tests {
     }
 
     #[test]
-    fn hidden_size_must_be_divisible_by_attention_heads() {
+    fn hidden_size_is_independent_from_query_projection_width() {
         let mut spec = valid_spec();
         spec.hidden_size = 30;
+        spec.attention_head_count = 4;
+        spec.head_dimension = 16;
 
+        let config = ModelConfig::new(spec).expect("independent projection width");
+        assert_eq!(config.hidden_size(), 30);
+        assert_eq!(config.query_projection_width(), 64);
+    }
+
+    #[test]
+    fn qwen3_30b_a3b_projection_dimensions_are_accepted() {
+        let config = ModelConfig::new(ModelConfigSpec {
+            vocabulary_size: 151_936,
+            hidden_size: 2_048,
+            layer_count: 48,
+            attention_head_count: 32,
+            key_value_head_count: 4,
+            head_dimension: 128,
+            intermediate_size: 6_144,
+            max_sequence_length: 40_960,
+            data_type: DataType::F32,
+        })
+        .expect("pinned Qwen3 dimensions");
+
+        assert_eq!(config.query_projection_width(), 4_096);
+        assert_eq!(config.key_value_projection_width(), 512);
+    }
+
+    #[test]
+    fn projection_width_overflow_is_structured() {
+        let mut query_overflow = valid_spec();
+        query_overflow.attention_head_count = usize::MAX;
+        query_overflow.key_value_head_count = 1;
+        query_overflow.head_dimension = 2;
         assert_eq!(
-            ModelConfig::new(spec),
-            Err(RuntimeError::InvalidModelConfig {
-                field: "attention_head_count",
-                reason: "must divide hidden_size evenly",
+            ModelConfig::new(query_overflow),
+            Err(RuntimeError::ArithmeticOverflow {
+                operation: "query projection width",
+            })
+        );
+
+        let mut kv_overflow = valid_spec();
+        kv_overflow.attention_head_count = 2;
+        kv_overflow.key_value_head_count = 2;
+        kv_overflow.head_dimension = usize::MAX;
+        assert_eq!(
+            ModelConfig::new(kv_overflow),
+            Err(RuntimeError::ArithmeticOverflow {
+                operation: "KV projection width",
             })
         );
     }
@@ -249,6 +342,9 @@ mod tests {
             layer_count: _,
             attention_head_count: _,
             key_value_head_count: _,
+            head_dimension: _,
+            query_projection_width: _,
+            key_value_projection_width: _,
             intermediate_size: _,
             max_sequence_length: _,
             data_type: _,

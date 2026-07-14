@@ -267,7 +267,7 @@ pub(crate) fn attention_with_weights(
         }
     }
     let attended = Tensor::new(
-        TensorShape::new([sequence_length, config.model().hidden_size()]),
+        TensorShape::new([sequence_length, config.model().query_projection_width()]),
         attended,
     )?;
     linear(
@@ -379,7 +379,7 @@ pub(crate) fn cached_attention_with_weights(
         }
     }
     let attended = Tensor::new(
-        TensorShape::new([1, config.model().hidden_size()]),
+        TensorShape::new([1, config.model().query_projection_width()]),
         attended,
     )?;
     let output = linear(
@@ -718,8 +718,8 @@ fn validate_weight_shapes(
     weights: &Qwen3MoeBlockWeightsSpec,
 ) -> Result<(), RuntimeError> {
     let hidden = config.model().hidden_size();
-    let query_width = config.model().attention_head_count() * config.head_dimension();
-    let key_value_width = config.model().key_value_head_count() * config.head_dimension();
+    let query_width = config.model().query_projection_width();
+    let key_value_width = config.model().key_value_projection_width();
     let experts = config.expert_count();
     let intermediate = config.moe_intermediate_size();
     require_shape(&weights.input_norm, &[hidden], "input norm weight")?;

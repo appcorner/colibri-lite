@@ -109,8 +109,9 @@
     ]
   },
   "compatibility_review": {
-    "status": "review_required",
-    "stop_condition": "Upstream head_dim conflicts with the frozen tiny-model derivation and requires public contract review before configuration mapping.",
+    "status": "resolved_by_adr_0012",
+    "stop_condition": null,
+    "resolution": "The generic model contract stores explicit head_dimension and checked query/KV projection widths; Qwen mapping must read upstream head_dim directly.",
     "findings": [
       {
         "field": "head_dim",

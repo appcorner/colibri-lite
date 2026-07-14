@@ -286,7 +286,7 @@ fn cache_for_config(config: Qwen3MoeConfig, capacity: usize) -> Result<KvCache, 
         config.model().layer_count(),
         capacity,
         config.model().key_value_head_count(),
-        config.head_dimension(),
+        config.model().head_dimension(),
     )
 }
 
