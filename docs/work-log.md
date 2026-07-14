@@ -397,3 +397,34 @@ Next task: Merge the reported M2 branch, create
 `milestone/m3-generation`, and begin M3-01 greedy token-ID decoding.
 
 Commit: `fdcfc13` (`docs: close M2 with portable backend evidence`).
+
+## 2026-07-14 - M3 sampling through KV-cache stop
+
+Date: 2026-07-14
+
+Starting task: M3-01 - implement greedy token-ID decoding.
+
+Completed tasks: M3-01 through M3-03. Added deterministic greedy argmax with
+lower-ID ties, frozen-oracle first-token coverage, documented SplitMix64,
+temperature sampling, recomputing generation methods, validation tests, and ADR
+0009.
+
+Commands executed: Frozen oracle argmax inspection; targeted generation tests;
+all standard Cargo verification commands; Git diff/status review; and the
+focused Git commit.
+
+Tests: Six generation tests pass for oracle token 10, tie/rank/empty/non-finite
+behavior, repeated greedy output, pinned SplitMix64 outputs, same-seed sampling,
+and invalid temperature. All 65 workspace tests passed with zero failures;
+Clippy passed with warnings denied and CLI smoke output remained correct.
+
+Known issues: Generation currently recomputes the complete sequence. M3-04 and
+M3-05 require persistent per-layer KV state, position-aware single-token
+attention, explicit byte accounting, context limits, and shared resident/
+streaming session ownership. This is a public API/attention-state redesign
+under Stop Condition 2.
+
+Next task: Review a separate generation-session/KV-cache boundary that preserves
+the resident and streaming full-forward oracle APIs.
+
+Commit: `a141551` (`feat(qwen3): add deterministic token sampling`).
