@@ -200,11 +200,11 @@ Acceptance:
 
 ## M1.3 - Full tiny decoder correctness
 
-- [ ] M1.3-01 Implement embedding lookup.
-- [ ] M1.3-02 Compose multiple decoder blocks.
-- [ ] M1.3-03 Implement final normalization and LM head.
-- [ ] M1.3-04 Compare final logits with the oracle.
-- [ ] M1.3-05 Test repeated runs for identical output.
+- [x] M1.3-01 Implement embedding lookup.
+- [x] M1.3-02 Compose multiple decoder blocks.
+- [x] M1.3-03 Implement final normalization and LM head.
+- [x] M1.3-04 Compare final logits with the oracle.
+- [x] M1.3-05 Test repeated runs for identical output.
 - [ ] M1.3-06 Record reproduction commands and first correctness report.
 
 Acceptance:

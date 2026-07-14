@@ -141,7 +141,7 @@ struct RouterOutput {
     selected_experts: Vec<usize>,
 }
 
-fn rms_norm(
+pub(crate) fn rms_norm(
     input: TensorView<'_>,
     weight: TensorView<'_>,
     epsilon: f32,
@@ -451,7 +451,7 @@ fn routed_experts(
     Tensor::new(TensorShape::new([token_count, hidden_size]), output)
 }
 
-fn linear(
+pub(crate) fn linear(
     input: TensorView<'_>,
     weight: TensorView<'_>,
     operation: &'static str,
