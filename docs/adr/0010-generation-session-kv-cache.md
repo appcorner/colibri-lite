@@ -31,6 +31,23 @@ attention uses the current cache length as position and attends to cached K/V
 plus the current token's local K/V. The complete token succeeds before its K/V
 is committed. Decode appends exactly one position.
 
+## Public API surface
+
+- `RuntimeError::ContextLengthExceeded` reports requested and fixed capacity.
+- `KvCache::{new, capacity, len, is_empty, byte_size}` exposes fixed layout and
+  accounting; append and per-layer views remain crate-private.
+- `GenerationError` preserves resident/runtime versus streaming failure
+  categories.
+- `PrefillOutput` exposes per-token logits and exact per-layer expert IDs.
+- `GenerationSession::{resident, streaming, prefill, decode_greedy,
+  decode_temperature, sequence, cache}` defines session construction,
+  execution, and observable state.
+- `frozen_tiny_model` and `frozen_tiny_prompt` expose only the versioned tiny
+  fixture required by the M3 CLI; they do not introduce a general model loader.
+
+Existing `Qwen3MoeModel::forward` and `StreamingQwen3MoeModel::forward`
+signatures and behavior remain unchanged.
+
 ## Invariants
 
 - Stateless full-forward APIs remain unchanged.

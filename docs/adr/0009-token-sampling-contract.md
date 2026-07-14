@@ -28,6 +28,17 @@ output transform. Temperature sampling:
 `Qwen3MoeModel` exposes recomputing greedy and temperature generation methods
 that return only newly generated token IDs.
 
+## Public API surface
+
+- `SeededRng::{new, next_u64}` defines the pinned sampling state and observable
+  deterministic output stream.
+- `greedy_token` and `sample_token` select from the final logits row.
+- `Qwen3MoeModel::{generate_greedy, generate_temperature}` provide the
+  correctness-first recomputing generation path.
+
+No existing public sampling or generation API was removed or changed because
+these are the first generation contracts.
+
 ## Invariants
 
 - Empty prompts and empty/non-matrix logits fail with structured errors.
