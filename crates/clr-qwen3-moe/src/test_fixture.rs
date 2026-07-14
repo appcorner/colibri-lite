@@ -1,6 +1,9 @@
 use clr_core::{DataType, ModelConfig, ModelConfigSpec, Tensor, TensorShape};
 
-use crate::{Qwen3MoeBlockWeightsSpec, Qwen3MoeConfig, Qwen3MoeConfigSpec};
+use crate::{
+    Qwen3MoeBlockWeightsSpec, Qwen3MoeConfig, Qwen3MoeConfigSpec, Qwen3MoeModel,
+    Qwen3MoeModelWeightsSpec,
+};
 
 const WEIGHTS_BYTES: &[u8] = include_bytes!(concat!(
     env!("CARGO_MANIFEST_DIR"),
@@ -75,6 +78,32 @@ pub(crate) fn token_ids() -> Vec<usize> {
     read_i64(CHECKPOINT_BYTES, 2_272, 2_304)
 }
 
+/// Builds the frozen deterministic tiny Qwen3-MoE model bundled for
+/// correctness checks and the M3 token-ID CLI.
+///
+/// # Errors
+///
+/// Returns a structured validation error if the versioned fixture no longer
+/// satisfies the model contract.
+pub fn frozen_tiny_model() -> Result<Qwen3MoeModel, clr_core::RuntimeError> {
+    Qwen3MoeModel::new(
+        config(),
+        Qwen3MoeModelWeightsSpec {
+            token_embeddings: token_embeddings(),
+            blocks: vec![block_weights(0), block_weights(1)],
+            final_norm: final_norm_weight(),
+            language_model_head: language_model_head(),
+        },
+    )
+}
+
+/// Returns the frozen prompt token IDs used by the tiny correctness oracle.
+#[must_use]
+pub fn frozen_tiny_prompt() -> Vec<usize> {
+    token_ids()
+}
+
+#[cfg(test)]
 pub(crate) fn hidden_state(index: usize) -> Tensor {
     let (start, end) = match index {
         0 => (3_712, 3_968),
@@ -85,6 +114,7 @@ pub(crate) fn hidden_state(index: usize) -> Tensor {
     read_f32(CHECKPOINT_BYTES, start, end, &[4, 16])
 }
 
+#[cfg(test)]
 pub(crate) fn block_checkpoint(layer: usize, name: &str) -> Tensor {
     let (start, end, shape): (usize, usize, &[usize]) = match (layer, name) {
         (0, "attention_output") => (4_480, 4_736, &[4, 16]),
@@ -106,14 +136,17 @@ pub(crate) fn block_checkpoint(layer: usize, name: &str) -> Tensor {
     read_f32(CHECKPOINT_BYTES, start, end, shape)
 }
 
+#[cfg(test)]
 pub(crate) fn final_norm_checkpoint() -> Tensor {
     read_f32(CHECKPOINT_BYTES, 3_456, 3_712, &[4, 16])
 }
 
+#[cfg(test)]
 pub(crate) fn final_logits() -> Tensor {
     read_f32(CHECKPOINT_BYTES, 2_432, 3_456, &[4, 64])
 }
 
+#[cfg(test)]
 pub(crate) fn selected_experts(layer: usize) -> Vec<usize> {
     let (start, end) = match layer {
         0 => (2_304, 2_368),

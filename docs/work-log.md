@@ -481,3 +481,27 @@ warnings denied.
 Known issues: The CLI does not yet expose token-ID generation.
 
 Next task: M3-07 - add a CLI command accepting token IDs directly.
+
+## 2026-07-14 - M3 token-ID CLI
+
+Date: 2026-07-14
+
+Starting task: M3-07 - add a CLI command accepting token IDs directly.
+
+Completed task: M3-07. Exposed the versioned frozen tiny fixture through a
+narrow constructor and added a dependency-free `generate` command with direct
+comma-separated token IDs, a required new-token count, optional temperature,
+and an optional seed. The no-argument bootstrap smoke output remains unchanged.
+
+Commands executed: `cargo fmt --all --check`, `cargo test -p clr-cli`,
+`cargo clippy -p clr-cli --all-targets -- -D warnings`, and
+`cargo run -p clr-cli -- generate --tokens 1,7,3,12 --max-new-tokens 4`.
+
+Tests: All three CLI tests passed. The command generated `10,11,54,11`, emitted
+the complete sequence, and reported a 1,024-byte cache at 8/8 initialized
+positions. CLI Clippy passed with warnings denied.
+
+Known issues: Milestone-wide repeatability and fixed-allocation stress evidence
+remain to be recorded.
+
+Next task: M3-08 - test reproducible token sequences.

@@ -10,6 +10,7 @@ description = "Command-line interface for colibri-lite-rs"
 
 [dependencies]
 clr-core = { path = "../clr-core" }
+clr-qwen3-moe = { path = "../clr-qwen3-moe" }
 
 [lints]
 workspace = true

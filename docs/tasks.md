@@ -256,7 +256,7 @@ Acceptance:
 - [x] M3-04 Define KV-cache layout, context limit, and byte accounting.
 - [x] M3-05 Implement prefill.
 - [x] M3-06 Implement single-token decode.
-- [ ] M3-07 Add a CLI command accepting token IDs directly.
+- [x] M3-07 Add a CLI command accepting token IDs directly.
 - [ ] M3-08 Test reproducible token sequences.
 - [ ] M3-09 Test bounded memory over repeated decode steps.
 - [ ] M3-10 Record a tiny-generation correctness report.

@@ -7,7 +7,6 @@ mod generation;
 mod model;
 mod session;
 mod streaming;
-#[cfg(test)]
 mod test_fixture;
 
 pub use block::{Qwen3MoeBlock, Qwen3MoeBlockOutput, Qwen3MoeBlockWeightsSpec};
@@ -20,3 +19,4 @@ pub use streaming::{
     PackedExpertLayout, StreamingBlockWeightsSpec, StreamingModelError, StreamingModelWeightsSpec,
     StreamingQwen3MoeModel,
 };
+pub use test_fixture::{frozen_tiny_model, frozen_tiny_prompt};
