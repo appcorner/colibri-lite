@@ -215,14 +215,14 @@ Acceptance:
 
 ## M2.1 - Artifact reader
 
-- [ ] M2.1-01 Define a versioned artifact manifest.
-- [ ] M2.1-02 Define tensor metadata: name, shape, dtype, byte order, location,
+- [x] M2.1-01 Define a versioned artifact manifest.
+- [x] M2.1-02 Define tensor metadata: name, shape, dtype, byte order, location,
   length, and hash.
-- [ ] M2.1-03 Validate duplicate names, paths/offsets, lengths, shape-derived
+- [x] M2.1-03 Validate duplicate names, paths/offsets, lengths, shape-derived
   byte counts, and hashes.
-- [ ] M2.1-04 Implement portable read/read-at access before memory mapping.
-- [ ] M2.1-05 Reject malformed artifacts before tensor execution.
-- [ ] M2.1-06 Add corruption, truncation, and wrong-endianness tests.
+- [x] M2.1-04 Implement portable read/read-at access before memory mapping.
+- [x] M2.1-05 Reject malformed artifacts before tensor execution.
+- [x] M2.1-06 Add corruption, truncation, and wrong-endianness tests.
 
 ## M2.2 - Expert store and cache
 
