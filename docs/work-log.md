@@ -129,3 +129,94 @@ Next task: M1.2-01 - define Qwen3-specific configuration mapping in
 `clr-qwen3-moe`.
 
 Commit: `1ed5fb5` (`feat(core): add dense f32 tensor correctness path`).
+
+## 2026-07-14 - M1.2 stopped on RoPE configuration conflict
+
+Date: 2026-07-14
+
+Starting task: M1.2-01 - define Qwen3-specific configuration mapping.
+
+Completed tasks: None. A draft Qwen-specific config and block implementation
+was started but is not accepted or committed.
+
+Commands executed: Inspected the pinned Transformers 5.12.1 Qwen3-MoE source,
+ran three draft config tests, inspected frozen fixture tensor names/shapes, and
+checked the frozen `config.json` RoPE values.
+
+Tests: Three draft config validation tests passed, but their fixture mapping is
+not valid evidence because the draft used the wrong `rope_theta` value.
+
+Known issues: Stop condition 3 in `AGENTS.md` applies. The frozen fixture uses
+`rope_theta = 10000.0`, while the draft test assumed `1000000.0`. Transformers
+uses `config.rope_parameters["rope_theta"]` directly for inverse frequencies,
+so continuing would cause deterministic RoPE and attention divergence.
+
+Next task: Review and approve correcting the M1.2 config mapping to the frozen
+fixture value `10000.0`, then rerun M1.2-01 evidence before continuing.
+
+Commit: None; unverified M1.2 work remains uncommitted.
+
+## 2026-07-14 - M1.2 stopped on Rust toolchain corruption
+
+Date: 2026-07-14
+
+Starting task: Resume M1.2 after approval to map `rope_theta` from the frozen
+fixture and add RoPE/attention oracle tests.
+
+Completed tasks: Extended the offline fixture generator to pin
+`rope_theta = 10000.0`, emit a generated Rust config constant, capture post-RoPE
+query/key tensors, and verify the extended fixture byte-for-byte. These changes
+remain uncommitted because Rust verification is unavailable.
+
+Commands executed: Fixture generation/verification, frozen config and tensor
+offset inspection, `cargo check -p clr-qwen3-moe`, `rustc --version`,
+`rustup show`, `rustup which rustc`, installed-component inspection, and
+`rustup component add rustc --toolchain stable-x86_64-pc-windows-msvc`.
+
+Tests: Python fixture generation and byte-for-byte regeneration passed. Rust
+tests could not run because the active toolchain cannot execute `rustc.exe`.
+
+Known issues: Rustup lists the `rustc` component as installed and up to date,
+but `rustup which rustc` reports it missing and `rustc --version` reports that
+the binary is not applicable to the active stable MSVC toolchain. Repair now
+requires a force reinstall or uninstall/install of the external toolchain,
+which triggers Stop Condition 12.
+
+Next task: Obtain approval for a stable MSVC Rust toolchain reinstall, verify
+`rustc --version`, then continue the requested M1.2 tests before changing the
+blocked task status.
+
+Commit: None; M1.2 remains blocked and uncommitted.
+
+## 2026-07-14 - M1.2 sparse decoder block resolved
+
+Date: 2026-07-14
+
+Starting task: Resume M1.2 after the reviewed RoPE configuration conflict and
+Rust toolchain repair.
+
+Completed tasks: M1.2-01 through M1.2-12. Added config-driven Qwen3-MoE
+mapping, RMSNorm, default RoPE, causal grouped-query attention, deterministic
+top-k routing, optional selected-weight normalization, gated expert MLP,
+weighted expert combination, full sparse block checkpoints, first-stage
+diagnostics, and ADR 0003.
+
+Commands executed: Repaired-toolchain checks; Python fixture generation and
+verification; targeted config, RoPE, attention, router, expert, and block tests;
+all standard Cargo verification commands; Git whitespace/status review; and the
+focused Git commit.
+
+Tests: The mapping test reads generated constants derived from frozen
+`config.json` and confirms `rope_theta = 10000.0`. A two-theta regression test
+confirms RoPE uses config values. Query/key RoPE, attention, router, experts,
+and every block checkpoint match the frozen oracle. Expert IDs match exactly.
+All 42 Rust tests passed with zero failures; Clippy passed with warnings denied;
+fixture byte-for-byte regeneration and the CLI smoke test passed.
+
+Known issues: The fixture path is batch-one, F32-only, causal, and starts at
+position zero. Padding, KV cache, arbitrary position offsets, sliding-window
+attention, and optimized kernels remain outside M1.2.
+
+Next task: M1.3-01 - implement embedding lookup for the full tiny decoder.
+
+Commit: `e951ab1` (`feat(qwen3): match frozen sparse decoder block`).
