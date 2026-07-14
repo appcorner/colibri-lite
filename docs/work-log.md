@@ -308,3 +308,36 @@ Next task: Review the expert-provider boundary for M2.2-09, then prove resident
 and on-demand tiny-model outputs are identical.
 
 Commit: `3a3a437` (`feat(storage): add byte-budgeted expert cache`).
+
+## 2026-07-14 - M2.2 streaming equivalence
+
+Date: 2026-07-14
+
+Starting task: Resume M2.2-09 with the approved `StreamingQwen3MoeModel` and
+packed per-expert F32 payload design.
+
+Completed tasks: M2.2-09. Added a separate streaming model, config-derived
+gate/up/down payload layout, shard-independent expert ranges, lease-scoped
+decode/computation, shared resident/streaming expert MLP and routing combination,
+full resident equivalence tests, and ADR 0007.
+
+Commands executed: Targeted packed/streaming failure and equivalence tests; all
+standard Cargo verification commands; Git diff/status review; and the focused
+Git commit.
+
+Tests: Exact packed F32 round-trip passed for all eight fixture experts.
+Resident and streaming paths match every block stage, exact expert IDs, expert
+outputs, block outputs, and final logits at existing M1 tolerances. A strict
+two-expert budget produced 8 misses, 8 loads, 6 evictions, 0 hits, and exact
+resident/peak/bytes-read metrics. Oversize, hash-invalid, and truncated payloads
+failed before computation. All 59 workspace tests passed; Clippy passed with
+warnings denied and CLI smoke output remained correct.
+
+Known issues: Streaming currently decodes a leased expert payload into temporary
+F32 vectors for computation. This preserves cache residency and correctness but
+is not optimized. Memory mapping remains unevaluated until M2.3 evidence.
+
+Next task: M2.3-01 - benchmark portable artifact access before considering
+memory mapping.
+
+Commit: `441b491` (`feat(qwen3): add storage-aware streaming model`).
