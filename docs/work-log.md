@@ -100,3 +100,32 @@ Next task: Create the M0 milestone report, then begin M1.1-01 on
 `milestone/m1-tiny-qwen-correctness`.
 
 Commit: `18d905c` (`test(oracle): freeze tiny qwen3-moe reference fixture`).
+
+## 2026-07-14 - M1.1 dense F32 tensor correctness
+
+Date: 2026-07-14
+
+Starting task: M1.1-01 - define owned dense F32 tensor storage.
+
+Completed tasks: M1.1-01 through M1.1-10. Added checked owned/borrowed tensor
+contracts, contiguous row-major indexing, elementwise operations, reductions,
+matrix-vector/matrix-matrix multiplication, stable softmax, `SiLU`, structured
+shape/rank/non-finite errors, and ADR 0002.
+
+Commands executed: Targeted tensor/error/operation tests; all standard Cargo
+verification commands; source scope search for SIMD, FFI, unsafe, broadcasting,
+strides, and parallelism; Git diff/status review; and the focused Git commit.
+
+Tests: Five tensor/view tests, ten operation tests, and two error regression
+tests passed. All 30 `clr-core` unit tests and all workspace/doc-test targets
+passed with zero failures. Clippy passed with warnings denied. CLI output ended
+with `status: bootstrap ready`.
+
+Known issues: Kernels are intentionally scalar, contiguous, and F32-only. There
+is no broadcasting, strided layout, batched matrix multiplication, or optimized
+backend.
+
+Next task: M1.2-01 - define Qwen3-specific configuration mapping in
+`clr-qwen3-moe`.
+
+Commit: `1ed5fb5` (`feat(core): add dense f32 tensor correctness path`).
