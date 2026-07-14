@@ -1,0 +1,10 @@
+/target/
+/models/*
+!/models/.gitkeep
+/.idea/
+/.vscode/
+*.pdb
+*.ilk
+*.exe
+__pycache__/
+.venv/

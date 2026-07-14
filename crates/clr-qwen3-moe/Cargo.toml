@@ -1,0 +1,16 @@
+[package]
+name = "clr-qwen3-moe"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Qwen3-MoE architecture implementation for colibri-lite-rs"
+
+[dependencies]
+clr-core = { path = "../clr-core" }
+clr-storage = { path = "../clr-storage" }
+
+[lints]
+workspace = true
