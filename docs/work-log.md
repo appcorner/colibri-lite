@@ -369,4 +369,4 @@ Next task: Review whether benchmark evidence justifies implementing a read-only
 mapping backend; if approved, define the smallest isolated boundary and compare
 it against this exact workload.
 
-Commit: Pending benchmark evidence commit.
+Commit: `5ffd40c` (`bench(storage): record portable reader baseline`).
