@@ -692,3 +692,43 @@ downloaded or converted, and no tokenizer parsing or optimized execution path
 was introduced.
 
 Next task: M4.1-05 - convert dense tensors for resident access.
+
+## 2026-07-14 - M4.1-05 dense resident artifact conversion
+
+Date: 2026-07-14
+
+Starting task: M4.1-05 - convert dense tensors for resident access.
+
+Completed task: M4.1-05. Added safe, chunked BF16-to-F32 conversion with full
+source-shard hash verification before decode, Qwen role/shape validation,
+preflight disk accounting, deterministic multi-range artifact manifests,
+temporary output plus manifest-last atomic commit, and streaming exact F32
+round-trip verification. ADR 0015, the 435-tensor source plan, report, and
+compact evidence record the accepted design and real conversion results.
+
+Real evidence: The initial three-norm slice verified all 1,087,928,584 bytes of
+shard 16 and produced a 24,576-byte artifact. The complete conversion verified
+61,066,575,648 source-shard bytes before decoding and converted all 435 dense
+tensors into one 6,164,373,504-byte physical payload with independent logical
+ranges. Maximum explicit working buffers were 327,680 bytes. Both slice and
+complete conversions were independently repeated with identical payload and
+manifest hashes; every F32 element matched direct BF16 decoding byte-for-byte.
+
+Commands executed: immutable pinned index/shard downloads into `D:\tmp`;
+source length/hash/header/index reconciliation; focused storage, Qwen, and plan
+parser tests; two real slice runs; two complete release-profile conversion
+runs; external artifact hash checks; and all five standard verification
+commands.
+
+Tests: All 114 workspace tests passed with zero failures or ignored tests, plus
+the focused conversion-plan parser test. Failure coverage includes wrong hash,
+truncation, wrong dtype, wrong pinned shape, invalid range, insufficient disk,
+expert selection, incomplete full inventory, and incomplete-output cleanup.
+Clippy passed with warnings denied and the CLI smoke passed.
+
+Known issues: Source and converted multi-gigabyte files remain local and are
+not committed. BF16 is source metadata/decoding only. Expert conversion,
+tokenizer parsing, quantization, mmap, SIMD, FFI, and optimized kernels remain
+unimplemented.
+
+Next task: M4.1-06 - convert experts for independent on-demand access.

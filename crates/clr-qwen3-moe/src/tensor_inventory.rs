@@ -292,37 +292,7 @@ pub fn validate_qwen3_moe_tensor_inventory(
                 name: tensor.name.clone(),
             });
         }
-        if tensor.shard_index >= shard_count {
-            return Err(Qwen3MoeTensorInventoryError::ShardIndexOutOfRange {
-                name: tensor.name.clone(),
-                shard_index: tensor.shard_index,
-                shard_count,
-            });
-        }
-
-        let role = parse_role(tensor.name(), config)?;
-        if tensor.data_type != mapping.source_data_type() {
-            return Err(Qwen3MoeTensorInventoryError::DataTypeMismatch {
-                name: tensor.name.clone(),
-                expected: mapping.source_data_type(),
-                actual: tensor.data_type,
-            });
-        }
-        let expected_shape = expected_shape(role, config);
-        if tensor.shape.rank() != expected_shape.rank() {
-            return Err(Qwen3MoeTensorInventoryError::RankMismatch {
-                name: tensor.name.clone(),
-                expected: expected_shape.rank(),
-                actual: tensor.shape.rank(),
-            });
-        }
-        if tensor.shape != expected_shape {
-            return Err(Qwen3MoeTensorInventoryError::ShapeMismatch {
-                name: tensor.name.clone(),
-                expected: expected_shape.dimensions().into(),
-                actual: tensor.shape.dimensions().into(),
-            });
-        }
+        let role = validate_tensor_metadata(mapping, shard_count, tensor)?;
         mapped.push(Qwen3MoeMappedTensor {
             metadata: tensor.clone(),
             role,
@@ -341,6 +311,52 @@ pub fn validate_qwen3_moe_tensor_inventory(
     Ok(Qwen3MoeTensorInventory {
         tensors: mapped.into_boxed_slice(),
     })
+}
+
+pub(crate) fn validate_qwen3_moe_tensor_metadata(
+    source: Qwen3MoeSourceConfig,
+    shard_count: usize,
+    tensor: &Qwen3MoeTensorMetadata,
+) -> Result<Qwen3MoeTensorRole, Qwen3MoeTensorInventoryError> {
+    validate_tensor_metadata(source.map_to_f32_runtime()?, shard_count, tensor)
+}
+
+fn validate_tensor_metadata(
+    mapping: crate::Qwen3MoeConfigMapping,
+    shard_count: usize,
+    tensor: &Qwen3MoeTensorMetadata,
+) -> Result<Qwen3MoeTensorRole, Qwen3MoeTensorInventoryError> {
+    if tensor.shard_index >= shard_count {
+        return Err(Qwen3MoeTensorInventoryError::ShardIndexOutOfRange {
+            name: tensor.name.clone(),
+            shard_index: tensor.shard_index,
+            shard_count,
+        });
+    }
+    let role = parse_role(tensor.name(), mapping.runtime_config())?;
+    if tensor.data_type != mapping.source_data_type() {
+        return Err(Qwen3MoeTensorInventoryError::DataTypeMismatch {
+            name: tensor.name.clone(),
+            expected: mapping.source_data_type(),
+            actual: tensor.data_type,
+        });
+    }
+    let expected_shape = expected_shape(role, mapping.runtime_config());
+    if tensor.shape.rank() != expected_shape.rank() {
+        return Err(Qwen3MoeTensorInventoryError::RankMismatch {
+            name: tensor.name.clone(),
+            expected: expected_shape.rank(),
+            actual: tensor.shape.rank(),
+        });
+    }
+    if tensor.shape != expected_shape {
+        return Err(Qwen3MoeTensorInventoryError::ShapeMismatch {
+            name: tensor.name.clone(),
+            expected: expected_shape.dimensions().into(),
+            actual: tensor.shape.dimensions().into(),
+        });
+    }
+    Ok(role)
 }
 
 fn expected_tensor_count(config: Qwen3MoeConfig) -> Result<usize, Qwen3MoeTensorInventoryError> {
@@ -507,6 +523,31 @@ fn for_each_expected_name(
                     "model.layers.{layer}.mlp.experts.{expert}.{projection}.weight"
                 ))?;
             }
+        }
+    }
+    Ok(())
+}
+
+pub(crate) fn for_each_expected_dense_name(
+    config: Qwen3MoeConfig,
+    mut visit: impl FnMut(String) -> Result<(), Qwen3MoeTensorInventoryError>,
+) -> Result<(), Qwen3MoeTensorInventoryError> {
+    visit("model.embed_tokens.weight".to_owned())?;
+    visit("model.norm.weight".to_owned())?;
+    visit("lm_head.weight".to_owned())?;
+    for layer in 0..config.model().layer_count() {
+        for suffix in [
+            "input_layernorm.weight",
+            "post_attention_layernorm.weight",
+            "self_attn.q_proj.weight",
+            "self_attn.k_proj.weight",
+            "self_attn.v_proj.weight",
+            "self_attn.o_proj.weight",
+            "self_attn.q_norm.weight",
+            "self_attn.k_norm.weight",
+            "mlp.gate.weight",
+        ] {
+            visit(format!("model.layers.{layer}.{suffix}"))?;
         }
     }
     Ok(())

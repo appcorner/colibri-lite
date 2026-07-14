@@ -3,6 +3,7 @@
 mod block;
 mod cache;
 mod config;
+mod dense_conversion;
 mod generation;
 mod model;
 mod session;
@@ -14,6 +15,11 @@ mod test_fixture;
 pub use block::{Qwen3MoeBlock, Qwen3MoeBlockOutput, Qwen3MoeBlockWeightsSpec};
 pub use cache::KvCache;
 pub use config::{Qwen3MoeConfig, Qwen3MoeConfigSpec};
+pub use dense_conversion::{
+    PINNED_QWEN3_30B_A3B_MODEL_ID, PINNED_QWEN3_30B_A3B_REVISION, Qwen3MoeDenseConversionError,
+    Qwen3MoeDenseConversionScope, Qwen3MoeDenseConversionSpec, Qwen3MoeDenseSourceTensor,
+    convert_pinned_qwen3_moe_dense_tensors,
+};
 pub use generation::{SeededRng, greedy_token, sample_token};
 pub use model::{Qwen3MoeModel, Qwen3MoeModelOutput, Qwen3MoeModelWeightsSpec};
 pub use session::{GenerationError, GenerationSession, PrefillOutput};

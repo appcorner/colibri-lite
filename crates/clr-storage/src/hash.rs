@@ -76,21 +76,70 @@ const ROUND_CONSTANTS: [u32; 64] = [
     0xc671_78f2,
 ];
 
+#[derive(Debug, Clone)]
+pub(crate) struct Sha256 {
+    state: [u32; 8],
+    buffer: [u8; 64],
+    buffer_length: usize,
+    total_bytes: u64,
+}
+
+impl Sha256 {
+    pub(crate) const fn new() -> Self {
+        Self {
+            state: INITIAL_STATE,
+            buffer: [0; 64],
+            buffer_length: 0,
+            total_bytes: 0,
+        }
+    }
+
+    pub(crate) fn update(&mut self, mut input: &[u8]) {
+        self.total_bytes = self.total_bytes.wrapping_add(input.len() as u64);
+        if self.buffer_length != 0 {
+            let copied = (64 - self.buffer_length).min(input.len());
+            self.buffer[self.buffer_length..self.buffer_length + copied]
+                .copy_from_slice(&input[..copied]);
+            self.buffer_length += copied;
+            input = &input[copied..];
+            if self.buffer_length < 64 {
+                return;
+            }
+            compress(&mut self.state, &self.buffer);
+            self.buffer_length = 0;
+        }
+        while input.len() >= 64 {
+            compress(&mut self.state, &input[..64]);
+            input = &input[64..];
+        }
+        self.buffer[..input.len()].copy_from_slice(input);
+        self.buffer_length = input.len();
+    }
+
+    pub(crate) fn finalize(mut self) -> [u8; 32] {
+        let bit_length = self.total_bytes.wrapping_mul(8);
+        self.buffer[self.buffer_length] = 0x80;
+        self.buffer_length += 1;
+        if self.buffer_length > 56 {
+            self.buffer[self.buffer_length..].fill(0);
+            compress(&mut self.state, &self.buffer);
+            self.buffer_length = 0;
+        }
+        self.buffer[self.buffer_length..56].fill(0);
+        self.buffer[56..].copy_from_slice(&bit_length.to_be_bytes());
+        compress(&mut self.state, &self.buffer);
+
+        state_bytes(self.state)
+    }
+}
+
 pub(crate) fn sha256(input: &[u8]) -> [u8; 32] {
-    let bit_length = (input.len() as u64).wrapping_mul(8);
-    let mut padded = Vec::with_capacity(input.len() + 72);
-    padded.extend_from_slice(input);
-    padded.push(0x80);
-    while padded.len() % 64 != 56 {
-        padded.push(0);
-    }
-    padded.extend_from_slice(&bit_length.to_be_bytes());
+    let mut hasher = Sha256::new();
+    hasher.update(input);
+    hasher.finalize()
+}
 
-    let mut state = INITIAL_STATE;
-    for block in padded.chunks_exact(64) {
-        compress(&mut state, block);
-    }
-
+fn state_bytes(state: [u32; 8]) -> [u8; 32] {
     let mut output = [0_u8; 32];
     for (chunk, value) in output.chunks_exact_mut(4).zip(state) {
         chunk.copy_from_slice(&value.to_be_bytes());
@@ -168,5 +217,19 @@ mod tests {
             hex(&sha256(b"abc")),
             "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
         );
+    }
+
+    #[test]
+    fn incremental_updates_match_one_shot_hashing() {
+        let input = (0_u8..=255).cycle().take(10_003).collect::<Vec<_>>();
+        let expected = sha256(&input);
+
+        for chunk_size in [1, 3, 63, 64, 65, 1_024] {
+            let mut hasher = Sha256::new();
+            for chunk in input.chunks(chunk_size) {
+                hasher.update(chunk);
+            }
+            assert_eq!(hasher.finalize(), expected, "chunk size {chunk_size}");
+        }
     }
 }

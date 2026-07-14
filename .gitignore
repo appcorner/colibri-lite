@@ -5,6 +5,8 @@
 /models/qwen3-30b-a3b/*
 !/models/qwen3-30b-a3b/source-manifest-v1.json
 !/models/qwen3-30b-a3b/tensor-inventory-summary-v1.json
+!/models/qwen3-30b-a3b/dense-source-plan-v1.tsv
+!/models/qwen3-30b-a3b/dense-conversion-evidence-v1.json
 /.idea/
 /.vscode/
 *.pdb
