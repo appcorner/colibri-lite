@@ -14,7 +14,7 @@ Mixture-of-Experts models.
 
 ## Current milestone
 
-M0 is complete. Next: M1 - Tiny Qwen3-MoE correctness.
+M0 and M1 are complete. Next: M2 - Storage and expert residency.
 
 ## Project documents
 
@@ -23,3 +23,4 @@ M0 is complete. Next: M1 - Tiny Qwen3-MoE correctness.
 - [Deferred ideas and backlog](docs/backlog.md)
 - [Work log](docs/work-log.md)
 - [M0 milestone report](docs/reports/m0.md)
+- [M1 correctness report](docs/reports/m1.md)

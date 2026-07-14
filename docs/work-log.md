@@ -220,3 +220,32 @@ attention, and optimized kernels remain outside M1.2.
 Next task: M1.3-01 - implement embedding lookup for the full tiny decoder.
 
 Commit: `e951ab1` (`feat(qwen3): match frozen sparse decoder block`).
+
+## 2026-07-14 - M1.3 full tiny decoder correctness
+
+Date: 2026-07-14
+
+Starting task: M1.3-01 - implement embedding lookup.
+
+Completed tasks: M1.3-01 through M1.3-05. Added checked embedding lookup,
+two-layer decoder composition, final RMSNorm, LM head, full hidden-stage and
+logit oracle comparisons, deterministic repeated runs, and ADR 0004.
+
+Commands executed: Targeted embedding/model tests; layer-stage diagnostic tests;
+all standard Cargo verification commands; Git status review; and the focused
+Git commit.
+
+Tests: Five M1.3 model tests passed. Both layers match every frozen stage and
+expert ID; final norm and `[4, 64]` logits match tolerance; repeated complete
+forwards are exactly equal. All 47 Rust tests passed with zero failures. Clippy
+passed with warnings denied and CLI output ended with `status: bootstrap ready`.
+
+Known issues: Rust model output retains raw block hidden states, while
+Transformers' final `hidden_states` entry is post-final-normalization. Tests map
+these semantic checkpoints explicitly. Tokenizer, generation, KV cache,
+artifact loading, and optimized kernels remain outside M1.
+
+Next task: M1.3-06 - record the first correctness/milestone report, then begin
+M2.1-01 on `milestone/m2-expert-residency`.
+
+Commit: `57add35` (`feat(qwen3): match frozen full tiny decoder`).

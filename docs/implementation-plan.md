@@ -211,7 +211,7 @@ or verify a checked-in fixture, without relying on undocumented state.
 
 ### M1 - Tiny Qwen3-MoE correctness
 
-Status: next.
+Status: complete.
 
 Goal: execute a deterministic tiny Qwen3-MoE model in Rust and match the frozen
 oracle layer by layer.
@@ -263,6 +263,8 @@ Final logits match the reference tolerance and all selected expert IDs match
 exactly.
 
 ### M2 - Storage and expert residency
+
+Status: next.
 
 Goal: run the correctness-proven path while experts are loaded on demand under
 a strict byte budget.
