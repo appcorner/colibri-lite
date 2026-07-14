@@ -172,7 +172,7 @@ impl KvCache {
     }
 
     #[cfg(test)]
-    fn allocation_capacities(&self) -> Vec<(usize, usize)> {
+    pub(crate) fn allocation_capacities(&self) -> Vec<(usize, usize)> {
         self.layers
             .iter()
             .map(|layer| (layer.key.capacity(), layer.value.capacity()))

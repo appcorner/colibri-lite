@@ -257,8 +257,8 @@ Acceptance:
 - [x] M3-05 Implement prefill.
 - [x] M3-06 Implement single-token decode.
 - [x] M3-07 Add a CLI command accepting token IDs directly.
-- [ ] M3-08 Test reproducible token sequences.
-- [ ] M3-09 Test bounded memory over repeated decode steps.
+- [x] M3-08 Test reproducible token sequences.
+- [x] M3-09 Test bounded memory over repeated decode steps.
 - [ ] M3-10 Record a tiny-generation correctness report.
 
 ## M4.1 - Full-model artifact conversion

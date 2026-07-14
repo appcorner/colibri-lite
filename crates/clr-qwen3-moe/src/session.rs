@@ -617,6 +617,65 @@ mod tests {
     }
 
     #[test]
+    fn cached_seeded_sequences_are_reproducible_and_frozen() {
+        let model = fixture_model();
+        let prompt = test_fixture::token_ids();
+        let generate = || {
+            let mut session =
+                GenerationSession::resident(&model, prompt.len() + 4, 42).expect("session");
+            session.prefill(&prompt).expect("prefill");
+            (0..4)
+                .map(|_| session.decode_temperature(0.8).expect("decode"))
+                .collect::<Vec<_>>()
+        };
+
+        let first = generate();
+        let second = generate();
+
+        assert_eq!(first, [47, 10, 18, 22]);
+        assert_eq!(first, second);
+        assert_eq!(
+            model.generate_greedy(&prompt, 4).expect("greedy sequence"),
+            [10, 11, 10, 11]
+        );
+    }
+
+    #[test]
+    fn repeated_decode_keeps_fixed_kv_allocations_and_byte_size() {
+        let model = fixture_model();
+        let prompt = test_fixture::token_ids();
+        let capacity = model.config.model().max_sequence_length();
+        let mut session = GenerationSession::resident(&model, capacity, 0).expect("session");
+        let allocation_capacities = session.cache().allocation_capacities();
+        let byte_size = session.cache().byte_size();
+        session.prefill(&prompt).expect("prefill");
+
+        while session.cache().len() < capacity {
+            session.decode_greedy().expect("bounded decode");
+            assert_eq!(
+                session.cache().allocation_capacities(),
+                allocation_capacities
+            );
+            assert_eq!(session.cache().byte_size(), byte_size);
+            assert!(session.cache().len() <= capacity);
+        }
+
+        assert_eq!(session.cache().len(), capacity);
+        assert_eq!(session.sequence().len(), capacity);
+        assert!(matches!(
+            session.decode_greedy(),
+            Err(GenerationError::Runtime(
+                RuntimeError::ContextLengthExceeded { .. }
+            ))
+        ));
+        assert_eq!(
+            session.cache().allocation_capacities(),
+            allocation_capacities
+        );
+        assert_eq!(session.cache().byte_size(), byte_size);
+    }
+
+    #[test]
     fn decode_requires_prefill_and_preserves_full_session() {
         let model = fixture_model();
         let prompt = test_fixture::token_ids();

@@ -505,3 +505,28 @@ Known issues: Milestone-wide repeatability and fixed-allocation stress evidence
 remain to be recorded.
 
 Next task: M3-08 - test reproducible token sequences.
+
+## 2026-07-14 - M3 reproducibility and bounded memory
+
+Date: 2026-07-14
+
+Starting task: M3-08 - test reproducible token sequences.
+
+Completed tasks: M3-08 and M3-09. Froze the oracle-prompt greedy and seeded
+temperature sequences, repeated sampled generation from independent sessions,
+filled the complete 32-token context, and checked KV allocation capacities at
+every decode step. Repeated streaming decode also checked the expert budget.
+
+Commands executed: the temperature CLI run,
+`cargo test -p clr-qwen3-moe reproducible`, and
+`cargo test -p clr-qwen3-moe repeated`.
+
+Tests: The oracle prompt `1,5,7,2` reproducibly generates greedy
+`10,11,10,11` and temperature-0.8/seed-42 `47,10,18,22`. Four repeated-path
+tests passed. The full 32-position cache stayed exactly 4,096 bytes with fixed
+allocation capacities; the streaming expert cache stayed within its 9,216-byte
+budget.
+
+Known issues: Full standard verification and the M3 correctness report remain.
+
+Next task: M3-10 - record a tiny-generation correctness report.

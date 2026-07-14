@@ -285,6 +285,34 @@ fn streaming_cached_decode_matches_resident_cached_decode() {
 }
 
 #[test]
+fn repeated_streaming_decode_respects_expert_and_kv_budgets() {
+    let config = test_fixture::config();
+    let payload = PackedExpertLayout::for_config(config).total_byte_length;
+    let budget = 2 * payload;
+    let mut fixture = fixture(budget);
+    let token_ids = test_fixture::token_ids();
+    let capacity = config.model().max_sequence_length();
+    let expected_kv_bytes =
+        2 * capacity * config.model().key_value_head_count() * config.head_dimension() * 2 * 4;
+    let mut session =
+        GenerationSession::streaming(&fixture.streaming, &mut fixture.store, capacity, 0)
+            .expect("streaming session");
+    session.prefill(&token_ids).expect("streaming prefill");
+    while session.cache().len() < capacity {
+        session.decode_greedy().expect("streaming decode");
+        assert_eq!(session.cache().byte_size(), expected_kv_bytes);
+        assert!(session.cache().len() <= capacity);
+    }
+    drop(session);
+
+    let metrics = fixture.store.metrics();
+    assert!(metrics.resident_bytes <= budget);
+    assert!(metrics.peak_resident_bytes <= budget);
+    assert!(metrics.loads > 0);
+    assert!(metrics.bytes_read > 0);
+}
+
+#[test]
 fn oversize_and_corrupt_payloads_fail_before_computation() {
     let config = test_fixture::config();
     let payload = PackedExpertLayout::for_config(config).total_byte_length;
