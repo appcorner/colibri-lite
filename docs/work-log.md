@@ -658,3 +658,37 @@ Known issues: Source JSON parsing is intentionally deferred. Tensor names and
 shapes have not been mapped or validated, and no weight shard is downloaded.
 
 Next task: M4.1-04 - map and validate required tensor names and shapes.
+
+## 2026-07-14 - M4.1-04 pinned tensor inventory
+
+Date: 2026-07-14
+
+Starting task: M4.1-04 - map and validate required tensor names and shapes.
+
+Completed task: M4.1-04. Added metadata-only Qwen3-MoE tensor-role mapping and
+validation for the complete pinned Safetensors inventory. The validator uses
+checked config-derived shapes, explicit query/KV widths, complete layer and
+expert coverage, separate untied embedding/LM-head requirements, and
+structured errors for all required invalid inventory categories. ADR 0014 and
+tensor inventory summary v1 record the frozen grammar and source evidence.
+
+Commands executed: bounded upstream Safetensors index/header inspection with
+no tensor payload reads; inventory evidence reconciliation; focused inventory
+tests; `cargo fmt --all --check`, `cargo check --workspace`,
+`cargo test --workspace`,
+`cargo clippy --workspace --all-targets -- -D warnings`, and
+`cargo run -p clr-cli`.
+
+Evidence: All 18,867 pinned index tensors are classified and shape-validated:
+3 top-level tensors, 48 copies of each of 9 per-layer roles, and 6,144 copies
+of each expert gate/up/down role. Unknown and unsupported counts are zero. The
+16 shard headers contain the same 18,867 tensors in 2,330,272 inspected bytes;
+no tensor payload byte was downloaded. All 102 workspace tests passed with
+zero failures or ignored tests; 12 tensor-inventory tests cover the full valid
+inventory and required failure modes. Clippy and CLI smoke passed.
+
+Known issues: Source BF16 remains storage metadata only. No weights have been
+downloaded or converted, and no tokenizer parsing or optimized execution path
+was introduced.
+
+Next task: M4.1-05 - convert dense tensors for resident access.

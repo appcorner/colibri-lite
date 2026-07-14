@@ -8,6 +8,7 @@ mod model;
 mod session;
 mod source_config;
 mod streaming;
+mod tensor_inventory;
 mod test_fixture;
 
 pub use block::{Qwen3MoeBlock, Qwen3MoeBlockOutput, Qwen3MoeBlockWeightsSpec};
@@ -20,5 +21,10 @@ pub use source_config::{PINNED_QWEN3_30B_A3B_CONFIG, Qwen3MoeConfigMapping, Qwen
 pub use streaming::{
     PackedExpertLayout, StreamingBlockWeightsSpec, StreamingModelError, StreamingModelWeightsSpec,
     StreamingQwen3MoeModel,
+};
+pub use tensor_inventory::{
+    PINNED_QWEN3_30B_A3B_SHARD_COUNT, Qwen3MoeMappedTensor, Qwen3MoeTensorInventory,
+    Qwen3MoeTensorInventoryError, Qwen3MoeTensorMetadata, Qwen3MoeTensorRole,
+    validate_qwen3_moe_tensor_inventory,
 };
 pub use test_fixture::{frozen_tiny_model, frozen_tiny_prompt};

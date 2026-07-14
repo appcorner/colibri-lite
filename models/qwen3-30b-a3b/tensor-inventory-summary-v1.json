@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-14",
+  "model_id": "Qwen/Qwen3-30B-A3B",
+  "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+  "source": {
+    "config_path": "config.json",
+    "config_sha256": "2850ddb3bf7aecad20b611e2d44f3077fc8193f4827c93beddd4c02ad63c2297",
+    "index_path": "model.safetensors.index.json",
+    "index_sha256": "df0d481ec595c55a0ba58426d517390c6214a566ec4ff1c8fc4bbce9f57b3c24",
+    "source_dtype": "BF16",
+    "shard_count": 16
+  },
+  "inspection": {
+    "index_tensor_count": 18867,
+    "header_tensor_count": 18867,
+    "expected_tensor_count": 18867,
+    "classified_tensor_count": 18867,
+    "unknown_tensor_count": 0,
+    "unsupported_tensor_count": 0,
+    "canonical_inventory_sha256": "1252b1b9073edc0d414b8424eba388352be6591864f961d20d898e41063a2bd2",
+    "inspected_header_bytes": 2330272,
+    "tensor_payload_bytes_downloaded": 0,
+    "method": "The pinned index weight_map supplied names and shards. One HTTP byte-range read per pinned shard supplied only the Safetensors metadata header; tensor data offsets were not requested. Names, dtypes, ranks, and shapes were classified against the pinned config."
+  },
+  "tied_weights": {
+    "tie_word_embeddings": false,
+    "embedding_tensor": "model.embed_tokens.weight",
+    "language_model_head_tensor": "lm_head.weight",
+    "decision": "Both tensors are independently present and required."
+  },
+  "expected_counts": {
+    "token_embedding": 1,
+    "final_norm": 1,
+    "language_model_head": 1,
+    "input_norm": 48,
+    "post_attention_norm": 48,
+    "query_projection": 48,
+    "key_projection": 48,
+    "value_projection": 48,
+    "output_projection": 48,
+    "query_norm": 48,
+    "key_norm": 48,
+    "router": 48,
+    "expert_gate_projection": 6144,
+    "expert_up_projection": 6144,
+    "expert_down_projection": 6144
+  },
+  "shape_formulas": {
+    "token_embedding": ["vocabulary_size", "hidden_size"],
+    "final_norm": ["hidden_size"],
+    "language_model_head": ["vocabulary_size", "hidden_size"],
+    "input_norm": ["hidden_size"],
+    "post_attention_norm": ["hidden_size"],
+    "query_projection": ["attention_heads * head_dim", "hidden_size"],
+    "key_projection": ["kv_heads * head_dim", "hidden_size"],
+    "value_projection": ["kv_heads * head_dim", "hidden_size"],
+    "output_projection": ["hidden_size", "attention_heads * head_dim"],
+    "query_norm": ["head_dim"],
+    "key_norm": ["head_dim"],
+    "router": ["expert_count", "hidden_size"],
+    "expert_gate_projection": ["moe_intermediate_size", "hidden_size"],
+    "expert_up_projection": ["moe_intermediate_size", "hidden_size"],
+    "expert_down_projection": ["hidden_size", "moe_intermediate_size"]
+  },
+  "shard_headers": [
+    {"shard": 1, "header_bytes": 130712, "tensor_count": 1063, "header_sha256": "b749467c61b8bc9b6d136ae30ee514fb76708a76915417d7744d91d02e139ee4"},
+    {"shard": 2, "header_bytes": 154920, "tensor_count": 1262, "header_sha256": "7c5c9c7d04b63f27d3c676a47890cc300b5d252169ff9d7f8da610522b4ef674"},
+    {"shard": 3, "header_bytes": 154296, "tensor_count": 1258, "header_sha256": "1ea36c309d774ba379225b46f039f941ca8e60788219c6f6c3b761e86a293733"},
+    {"shard": 4, "header_bytes": 155784, "tensor_count": 1262, "header_sha256": "746a6cca25d68eb9de1f3e3295a87f537503873f1645ddd209ca9949f83e3317"},
+    {"shard": 5, "header_bytes": 156128, "tensor_count": 1262, "header_sha256": "7a6a685f6919353375b2c22cfe276d7cb3aa25b5f06d4b754038d3f42e17ccb5"},
+    {"shard": 6, "header_bytes": 156128, "tensor_count": 1262, "header_sha256": "026d575f6ac276b478db03dafd4ccfd327c4090a800fe665d9adfa5459b5e218"},
+    {"shard": 7, "header_bytes": 156200, "tensor_count": 1262, "header_sha256": "1f75c260e391cfad88c4b7c0a7118ba5f3cc6be38fb3a98c0c42d56bba714e32"},
+    {"shard": 8, "header_bytes": 155528, "tensor_count": 1258, "header_sha256": "8d87d57dbfcac23e5d1703e3a8304a23644bb8035d37a873b739f57fff19f3ed"},
+    {"shard": 9, "header_bytes": 156136, "tensor_count": 1262, "header_sha256": "3cd2b41ff6762f593deb12a212219d5754f1404574bb8c9f431d6bfc88f59f68"},
+    {"shard": 10, "header_bytes": 156128, "tensor_count": 1262, "header_sha256": "a8b6a6dddbcac3e839bd7c7942ff4e24b3504e609e67bb45f4ba6c0901174e93"},
+    {"shard": 11, "header_bytes": 156136, "tensor_count": 1262, "header_sha256": "e208470515f8b6221cf6842c66b4524b5865f39fd7feb03c8dab9d4f2625a091"},
+    {"shard": 12, "header_bytes": 155944, "tensor_count": 1260, "header_sha256": "ba0ddd93abc4a38587fee597ab01adfe431ee5d730c001e1008c42ed55fc8e3b"},
+    {"shard": 13, "header_bytes": 155288, "tensor_count": 1256, "header_sha256": "3d1f8a8141bb12259c5f3f44f52c2cf261f2b636260018de10ebd512cd872489"},
+    {"shard": 14, "header_bytes": 156128, "tensor_count": 1262, "header_sha256": "3cb3223f7e11acee334b7248c0533fd30f2ccb4d6ac1bf3cdc160ddc621601ad"},
+    {"shard": 15, "header_bytes": 156128, "tensor_count": 1262, "header_sha256": "71363701a547b328706c529e67301b96f5555b74e27e0ee55f9d6ddcc8917ad0"},
+    {"shard": 16, "header_bytes": 18688, "tensor_count": 152, "header_sha256": "15a6afc9d85becb10dec9f16636063699ec45c7f62c2fd84f9476c9097a1bfa9"}
+  ],
+  "architecture_review": {
+    "unsupported_tensors": [],
+    "new_numerical_operations_required": [],
+    "finding": "Separate gate_proj and up_proj tensors feed the existing gated expert MLP operation. No architecture or public core contract mismatch was found."
+  }
+}

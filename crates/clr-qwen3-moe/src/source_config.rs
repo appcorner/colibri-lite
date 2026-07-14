@@ -34,9 +34,9 @@ pub struct Qwen3MoeSourceConfig {
     pub max_position_embeddings: usize,
     /// Upstream `rms_norm_eps`.
     pub rms_norm_epsilon: f32,
-    /// Default RoPE base from upstream configuration.
+    /// Default `RoPE` base from upstream configuration.
     pub rope_theta: f32,
-    /// Whether upstream requests non-default RoPE scaling.
+    /// Whether upstream requests non-default `RoPE` scaling.
     pub rope_scaling_enabled: bool,
     /// Upstream `hidden_act` name.
     pub hidden_activation: &'static str,
