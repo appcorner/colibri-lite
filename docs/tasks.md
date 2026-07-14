@@ -43,12 +43,12 @@ Milestone branches:
 
 ### Error contract
 
-- [ ] M0.2-01 Add `crates/clr-core/src/error.rs`.
-- [ ] M0.2-02 Define structured `RuntimeError` variants for invalid shapes,
+- [x] M0.2-01 Add `crates/clr-core/src/error.rs`.
+- [x] M0.2-02 Define structured `RuntimeError` variants for invalid shapes,
   checked-arithmetic overflow, invalid configuration, and out-of-range access.
-- [ ] M0.2-03 Implement `Display` and `std::error::Error` without an external
+- [x] M0.2-03 Implement `Display` and `std::error::Error` without an external
   error crate.
-- [ ] M0.2-04 Test error categories and useful stable message fragments.
+- [x] M0.2-04 Test error categories and useful stable message fragments.
 
 Acceptance:
 
@@ -57,11 +57,11 @@ Acceptance:
 
 ### Data type contract
 
-- [ ] M0.2-05 Add `crates/clr-core/src/dtype.rs`.
-- [ ] M0.2-06 Define metadata variants `DataType::{F32, F16, BF16}`.
-- [ ] M0.2-07 Add byte-width, display-name, and floating-point queries.
-- [ ] M0.2-08 Document that M0/M1 computation supports `F32` only.
-- [ ] M0.2-09 Test every variant.
+- [x] M0.2-05 Add `crates/clr-core/src/dtype.rs`.
+- [x] M0.2-06 Define metadata variants `DataType::{F32, F16, BF16}`.
+- [x] M0.2-07 Add byte-width, display-name, and floating-point queries.
+- [x] M0.2-08 Document that M0/M1 computation supports `F32` only.
+- [x] M0.2-09 Test every variant.
 
 Acceptance:
 
@@ -70,13 +70,13 @@ Acceptance:
 
 ### Shape contract
 
-- [ ] M0.2-10 Add `crates/clr-core/src/shape.rs`.
-- [ ] M0.2-11 Implement `TensorShape` with private owned dimensions.
-- [ ] M0.2-12 Add rank, dimensions, dimension access, scalar, and empty queries.
-- [ ] M0.2-13 Implement checked element-count and checked byte-count helpers.
-- [ ] M0.2-14 Freeze and document scalar `[]` and zero-sized `[2, 0, 3]`
+- [x] M0.2-10 Add `crates/clr-core/src/shape.rs`.
+- [x] M0.2-11 Implement `TensorShape` with private owned dimensions.
+- [x] M0.2-12 Add rank, dimensions, dimension access, scalar, and empty queries.
+- [x] M0.2-13 Implement checked element-count and checked byte-count helpers.
+- [x] M0.2-14 Freeze and document scalar `[]` and zero-sized `[2, 0, 3]`
   semantics.
-- [ ] M0.2-15 Test scalar, vector, matrix, zero-sized, invalid access, and
+- [x] M0.2-15 Test scalar, vector, matrix, zero-sized, invalid access, and
   overflow cases.
 
 Acceptance:
@@ -86,15 +86,15 @@ Acceptance:
 
 ### Model configuration contract
 
-- [ ] M0.2-16 Add `crates/clr-core/src/config.rs`.
-- [ ] M0.2-17 List the truly architecture-neutral fields required by M1.
-- [ ] M0.2-18 Define a minimal validated `ModelConfig`; keep Qwen-only fields
+- [x] M0.2-16 Add `crates/clr-core/src/config.rs`.
+- [x] M0.2-17 List the truly architecture-neutral fields required by M1.
+- [x] M0.2-18 Define a minimal validated `ModelConfig`; keep Qwen-only fields
   out of `clr-core`.
-- [ ] M0.2-19 Reject zero required dimensions.
-- [ ] M0.2-20 Validate generic hidden/head/KV-head relationships only when they
+- [x] M0.2-19 Reject zero required dimensions.
+- [x] M0.2-20 Validate generic hidden/head/KV-head relationships only when they
   are genuinely architecture-neutral.
-- [ ] M0.2-21 Test one valid configuration and every invariant independently.
-- [ ] M0.2-22 Add a review test/checklist ensuring no Qwen field has leaked into
+- [x] M0.2-21 Test one valid configuration and every invariant independently.
+- [x] M0.2-22 Add a review test/checklist ensuring no Qwen field has leaked into
   the generic config.
 
 Acceptance:
@@ -105,18 +105,18 @@ Acceptance:
 
 ### Module integration
 
-- [ ] M0.2-23 Move runtime identity code to `runtime.rs` without changing its
+- [x] M0.2-23 Move runtime identity code to `runtime.rs` without changing its
   public behavior.
-- [ ] M0.2-24 Declare modules from `lib.rs`.
-- [ ] M0.2-25 Re-export primary contract types from the crate root.
-- [ ] M0.2-26 Add rustdoc for every public type, constructor, and invariant.
-- [ ] M0.2-27 Confirm dependent crates compile without adding inference,
+- [x] M0.2-24 Declare modules from `lib.rs`.
+- [x] M0.2-25 Re-export primary contract types from the crate root.
+- [x] M0.2-26 Add rustdoc for every public type, constructor, and invariant.
+- [x] M0.2-27 Confirm dependent crates compile without adding inference,
   serialization, storage, or model implementation.
 
 ### M0.2 verification
 
-- [ ] M0.2-28 Run the standard verification commands.
-- [ ] M0.2-29 Review the diff for out-of-scope I/O, serialization,
+- [x] M0.2-28 Run the standard verification commands.
+- [x] M0.2-29 Review the diff for out-of-scope I/O, serialization,
   quantization, tensor math, and Qwen-specific behavior.
 - [ ] M0.2-30 Commit with `feat(core): add validated runtime value contracts`.
 
