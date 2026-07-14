@@ -259,7 +259,7 @@ Acceptance:
 - [x] M3-07 Add a CLI command accepting token IDs directly.
 - [x] M3-08 Test reproducible token sequences.
 - [x] M3-09 Test bounded memory over repeated decode steps.
-- [ ] M3-10 Record a tiny-generation correctness report.
+- [x] M3-10 Record a tiny-generation correctness report.
 
 ## M4.1 - Full-model artifact conversion
 

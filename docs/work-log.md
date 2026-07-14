@@ -530,3 +530,27 @@ budget.
 Known issues: Full standard verification and the M3 correctness report remain.
 
 Next task: M3-10 - record a tiny-generation correctness report.
+
+## 2026-07-14 - M3 closure
+
+Date: 2026-07-14
+
+Starting task: M3-10 - record a tiny-generation correctness report.
+
+Completed task: M3-10 and milestone M3. Added the generation correctness,
+memory, CLI, scope, and limitation evidence in `docs/reports/m3.md`.
+
+Commands executed: `cargo fmt --all --check`, `cargo check --workspace`,
+`cargo test --workspace`,
+`cargo clippy --workspace --all-targets -- -D warnings`, and
+`cargo run -p clr-cli`.
+
+Tests: All 83 workspace tests passed with zero failures; doc tests passed.
+Workspace Clippy passed with zero warnings. The required CLI smoke reported
+`x86_64-windows` and `status: bootstrap ready`.
+
+Known issues: Full-size Qwen3-30B-A3B artifacts, provenance, tensor mapping,
+and correctness are not implemented and remain M4 work.
+
+Next task: Create `milestone/m4-full-qwen3` from the reviewed M3 closure and
+begin M4.1-01 by pinning the exact full-model ID and revision.

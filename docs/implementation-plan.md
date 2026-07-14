@@ -319,7 +319,7 @@ remove the current F32 decode/copy step.
 
 ### M3 - Autoregressive generation
 
-Status: next.
+Status: complete.
 
 Goal: generate deterministic token IDs using the tiny correctness-proven path.
 
