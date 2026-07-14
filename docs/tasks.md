@@ -240,8 +240,8 @@ Acceptance:
 
 ## M2.3 - Optional memory mapping
 
-- [ ] M2.3-01 Benchmark portable access before adding mapping.
-- [ ] M2.3-02 Add read-only mapping behind the artifact-reader interface.
+- [x] M2.3-01 Benchmark portable access before adding mapping.
+- [!] M2.3-02 Add read-only mapping behind the artifact-reader interface.
 - [ ] M2.3-03 Isolate and document every `unsafe` block.
 - [ ] M2.3-04 Test Windows mapping/file lifetime and file replacement/deletion
   behavior.

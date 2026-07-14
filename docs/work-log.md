@@ -341,3 +341,32 @@ Next task: M2.3-01 - benchmark portable artifact access before considering
 memory mapping.
 
 Commit: `441b491` (`feat(qwen3): add storage-aware streaming model`).
+
+## 2026-07-14 - M2.3 portable baseline and mapping stop
+
+Date: 2026-07-14
+
+Starting task: M2.3-01 - benchmark portable access before adding mapping.
+
+Completed tasks: M2.3-01. Added a dependency-free release benchmark for the
+complete portable open/seek/read-exact/SHA-256 path and recorded hardware,
+software, workload, and result evidence.
+
+Commands executed: Release portable-reader benchmark; Windows CPU/RAM/OS/disk
+inventory; Rust version and Git commit inspection; standard Cargo verification
+for the benchmark target; and Git diff/status review.
+
+Tests: The release benchmark read and verified 200 MiB total at 129.367 MiB/s
+for 1 MiB payloads. Existing portable reader, cache, streaming equivalence, and
+workspace correctness tests remain passing.
+
+Known issues: M2.3-02 requires a read-only memory-mapping implementation and
+dedicated Windows mapping/file lifetime invariants. This introduces a new
+unsafe or externally-audited mapping boundary, triggering Stop Condition 5
+before implementation.
+
+Next task: Review whether benchmark evidence justifies implementing a read-only
+mapping backend; if approved, define the smallest isolated boundary and compare
+it against this exact workload.
+
+Commit: Pending benchmark evidence commit.
