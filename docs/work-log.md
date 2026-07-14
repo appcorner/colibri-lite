@@ -249,3 +249,32 @@ Next task: M1.3-06 - record the first correctness/milestone report, then begin
 M2.1-01 on `milestone/m2-expert-residency`.
 
 Commit: `57add35` (`feat(qwen3): match frozen full tiny decoder`).
+
+## 2026-07-14 - M2.1 portable artifact reader
+
+Date: 2026-07-14
+
+Starting task: M2.1-01 - define a versioned artifact manifest.
+
+Completed tasks: M2.1-01 through M2.1-06. Added versioned tensor metadata,
+little-endian/path/range/hash validation, dependency-free SHA-256, portable
+seek/read-exact access, structured storage errors, Windows handle-lifetime
+coverage, and ADR 0005.
+
+Commands executed: Targeted storage tests and Clippy; all standard Cargo
+verification commands; Git status review; and the focused Git commit.
+
+Tests: Six storage tests passed, including published SHA-256 vectors,
+version/endian/duplicate/path/length/overflow/overlap rejection, exact range
+reads, unknown tensors, truncation, corruption, and immediate Windows file
+deletion after read. All 53 workspace tests passed with zero failures; Clippy
+passed with warnings denied and CLI output ended with `status: bootstrap ready`.
+
+Known issues: Manifest serialization is deferred; the M4 converter must
+construct this validated Rust contract. Files are opened per tensor read and
+payload hashes are verified before cache admission. Memory mapping remains
+deferred to M2.3.
+
+Next task: M2.2-01 - define `ExpertId` and a stable cache key.
+
+Commit: `63ee620` (`feat(storage): add validated portable artifact reader`).
