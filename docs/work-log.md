@@ -278,3 +278,33 @@ deferred to M2.3.
 Next task: M2.2-01 - define `ExpertId` and a stable cache key.
 
 Commit: `63ee620` (`feat(storage): add validated portable artifact reader`).
+
+## 2026-07-14 - M2.2 expert cache through integration stop
+
+Date: 2026-07-14
+
+Starting task: M2.2-01 - define `ExpertId` and a stable cache key.
+
+Completed tasks: M2.2-01 through M2.2-08. Added on-demand `ExpertStore`, stable
+layer/expert keys, byte-budgeted deterministic LRU, Arc lease/pin semantics,
+oversize/pinned admission errors, cache/I/O metrics, and ADR 0006.
+
+Commands executed: Targeted expert-cache/store tests; all standard Cargo
+verification commands; Git status review; and the focused Git commit.
+
+Tests: Three expert tests pass for deterministic hit/miss/eviction order,
+strict budget, live lease safety, oversized payloads, artifact-backed loading,
+cache hits, unknown keys, and exact metrics. All 56 workspace tests passed with
+zero failures; Clippy passed with warnings denied and CLI output ended with
+`status: bootstrap ready`.
+
+Known issues: M2.2-09 requires the public Qwen block/model weight ownership to
+support expert payloads supplied by `ExpertStore` leases rather than only owned
+`Tensor` fields. This is a public API redesign affecting `clr-qwen3-moe`,
+`clr-storage`, fixture constructors, and future CLI composition, so Stop
+Condition 2 requires review before implementation.
+
+Next task: Review the expert-provider boundary for M2.2-09, then prove resident
+and on-demand tiny-model outputs are identical.
+
+Commit: `3a3a437` (`feat(storage): add byte-budgeted expert cache`).

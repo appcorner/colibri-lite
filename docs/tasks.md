@@ -235,7 +235,7 @@ Acceptance:
   bytes-read metrics.
 - [x] M2.2-07 Test deterministic eviction order.
 - [x] M2.2-08 Test strict budget enforcement and no use-after-eviction.
-- [ ] M2.2-09 Run the tiny model through resident and on-demand paths and prove
+- [!] M2.2-09 Run the tiny model through resident and on-demand paths and prove
   identical output.
 
 ## M2.3 - Optional memory mapping
