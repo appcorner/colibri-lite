@@ -20,3 +20,5 @@ M0 - Project bootstrap
 
 - [Implementation plan](docs/implementation-plan.md)
 - [Task tracker](docs/tasks.md)
+- [Deferred ideas and backlog](docs/backlog.md)
+- [Work log](docs/work-log.md)

@@ -14,6 +14,18 @@ Rules:
 - New ideas that do not unblock the current milestone go to `docs/backlog.md`.
 - Do not start optimization work before a correctness test exposes the same
   execution path.
+- Work on the branch assigned to the current milestone before changing code.
+- Record each meaningful work session in `docs/work-log.md`.
+
+Milestone branches:
+
+| Milestone | Branch |
+| --- | --- |
+| M0 | `milestone/m0-core-contracts` |
+| M1 | `milestone/m1-tiny-qwen-correctness` |
+| M2 | `milestone/m2-expert-residency` |
+| M3 | `milestone/m3-generation` |
+| M4 | `milestone/m4-full-qwen3` |
 
 ## M0.1 - Workspace bootstrap
 

@@ -92,6 +92,25 @@ boundary problem.
 - Training, fine-tuning, or LoRA.
 - Performance parity with optimized C/C++ runtimes.
 
+## Milestone branch policy
+
+Each milestone is developed on its own branch. Create the branch from an
+up-to-date `main`, keep commits focused, and merge only after the milestone's
+acceptance criteria and required verification pass.
+
+| Milestone | Branch |
+| --- | --- |
+| M0 | `milestone/m0-core-contracts` |
+| M1 | `milestone/m1-tiny-qwen-correctness` |
+| M2 | `milestone/m2-expert-residency` |
+| M3 | `milestone/m3-generation` |
+| M4 | `milestone/m4-full-qwen3` |
+
+Only one milestone branch should be active for implementation at a time. A
+later milestone branch must not begin while the current milestone has failed
+acceptance criteria. Focused commits remain required within a milestone branch;
+the branch is not a substitute for the commit policy in `AGENTS.md`.
+
 ## Milestones
 
 ### M0 - Bootstrap, contracts, and reference harness
