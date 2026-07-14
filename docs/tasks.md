@@ -226,15 +226,15 @@ Acceptance:
 
 ## M2.2 - Expert store and cache
 
-- [ ] M2.2-01 Define `ExpertId` and a stable cache key.
-- [ ] M2.2-02 Implement on-demand expert loading through the artifact reader.
-- [ ] M2.2-03 Implement a byte-budgeted LRU cache.
-- [ ] M2.2-04 Define lease/pin behavior while an expert is in use.
-- [ ] M2.2-05 Define behavior when one expert exceeds the entire budget.
-- [ ] M2.2-06 Add hit, miss, load, eviction, resident-byte, peak-byte, and
+- [x] M2.2-01 Define `ExpertId` and a stable cache key.
+- [x] M2.2-02 Implement on-demand expert loading through the artifact reader.
+- [x] M2.2-03 Implement a byte-budgeted LRU cache.
+- [x] M2.2-04 Define lease/pin behavior while an expert is in use.
+- [x] M2.2-05 Define behavior when one expert exceeds the entire budget.
+- [x] M2.2-06 Add hit, miss, load, eviction, resident-byte, peak-byte, and
   bytes-read metrics.
-- [ ] M2.2-07 Test deterministic eviction order.
-- [ ] M2.2-08 Test strict budget enforcement and no use-after-eviction.
+- [x] M2.2-07 Test deterministic eviction order.
+- [x] M2.2-08 Test strict budget enforcement and no use-after-eviction.
 - [ ] M2.2-09 Run the tiny model through resident and on-demand paths and prove
   identical output.
 

@@ -1,6 +1,7 @@
 use std::{fmt, io, path::PathBuf};
 
 use crate::ByteOrder;
+use crate::ExpertKey;
 
 /// Errors produced while validating or reading model artifacts.
 #[derive(Debug)]
@@ -39,6 +40,22 @@ pub enum StorageError {
         expected: [u8; 32],
         actual: [u8; 32],
     },
+    /// One expert payload cannot fit inside the configured cache budget.
+    ExpertExceedsBudget {
+        key: ExpertKey,
+        bytes: usize,
+        budget: usize,
+    },
+    /// Pinned entries prevent enough eviction to admit an expert.
+    CacheBudgetExhausted {
+        requested: usize,
+        budget: usize,
+        resident: usize,
+    },
+    /// An expert key occurs more than once in the store mapping.
+    DuplicateExpertKey { key: ExpertKey },
+    /// No tensor mapping exists for a requested expert.
+    ExpertNotRegistered { key: ExpertKey },
     /// A filesystem operation failed.
     Io {
         action: &'static str,
@@ -94,6 +111,24 @@ impl fmt::Display for StorageError {
             ),
             Self::HashMismatch { tensor, .. } => {
                 write!(formatter, "SHA-256 mismatch for tensor '{tensor}'")
+            }
+            Self::ExpertExceedsBudget { key, bytes, budget } => write!(
+                formatter,
+                "expert {key:?} requires {bytes} bytes, cache budget is {budget}"
+            ),
+            Self::CacheBudgetExhausted {
+                requested,
+                budget,
+                resident,
+            } => write!(
+                formatter,
+                "cannot admit {requested} bytes with {resident}/{budget} resident bytes and pinned entries"
+            ),
+            Self::DuplicateExpertKey { key } => {
+                write!(formatter, "duplicate expert cache key {key:?}")
+            }
+            Self::ExpertNotRegistered { key } => {
+                write!(formatter, "expert cache key {key:?} is not registered")
             }
             Self::Io {
                 action,
