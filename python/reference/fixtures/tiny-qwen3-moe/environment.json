@@ -1,0 +1,14 @@
+{
+  "artifact_format_version": "tiny-qwen3-moe-v1",
+  "device": "cpu",
+  "model_id": "Qwen/Qwen3-30B-A3B",
+  "model_revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+  "seed": 20260714,
+  "tool_versions": {
+    "numpy": "2.3.3",
+    "python": "3.12.10",
+    "safetensors": "0.8.0",
+    "torch": "2.12.1",
+    "transformers": "5.12.1"
+  }
+}

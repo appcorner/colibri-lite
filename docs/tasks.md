@@ -124,29 +124,29 @@ Acceptance:
 
 ### Environment and provenance
 
-- [ ] M0.3-01 Add `python/reference/requirements.lock` or an equivalent pinned
+- [x] M0.3-01 Add `python/reference/requirements.lock` or an equivalent pinned
   environment file.
-- [ ] M0.3-02 Record Python, PyTorch, Transformers, and Safetensors versions.
-- [ ] M0.3-03 Pin the exact Qwen3-MoE architecture/config reference revision.
-- [ ] M0.3-04 Add fixture license and provenance notes.
+- [x] M0.3-02 Record Python, PyTorch, Transformers, and Safetensors versions.
+- [x] M0.3-03 Pin the exact Qwen3-MoE architecture/config reference revision.
+- [x] M0.3-04 Add fixture license and provenance notes.
 
 ### Tiny model definition
 
-- [ ] M0.3-05 Define a tiny Qwen3-MoE config with small vocabulary, hidden size,
+- [x] M0.3-05 Define a tiny Qwen3-MoE config with small vocabulary, hidden size,
   layer count, expert count, and top-k.
-- [ ] M0.3-06 Fix all random seeds and deterministic settings.
-- [ ] M0.3-07 Freeze a short token-ID input sequence.
-- [ ] M0.3-08 Export model configuration and deterministic weights.
+- [x] M0.3-06 Fix all random seeds and deterministic settings.
+- [x] M0.3-07 Freeze a short token-ID input sequence.
+- [x] M0.3-08 Export model configuration and deterministic weights.
 
 ### Oracle outputs
 
-- [ ] M0.3-09 Record router logits and selected expert IDs.
-- [ ] M0.3-10 Record outputs after normalization, attention, MoE, one full
+- [x] M0.3-09 Record router logits and selected expert IDs.
+- [x] M0.3-10 Record outputs after normalization, attention, MoE, one full
   decoder block, and final logits.
-- [ ] M0.3-11 Define per-stage absolute and relative tolerances.
-- [ ] M0.3-12 Add SHA-256 values for all fixture files.
-- [ ] M0.3-13 Add commands to regenerate and verify the fixture.
-- [ ] M0.3-14 Verify regeneration or verification on a clean environment.
+- [x] M0.3-11 Define per-stage absolute and relative tolerances.
+- [x] M0.3-12 Add SHA-256 values for all fixture files.
+- [x] M0.3-13 Add commands to regenerate and verify the fixture.
+- [x] M0.3-14 Verify regeneration or verification on a clean environment.
 
 Acceptance:
 

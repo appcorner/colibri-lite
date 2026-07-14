@@ -1,0 +1,401 @@
+{
+  "artifact_format_version": "tiny-qwen3-moe-v1",
+  "checkpoints": {
+    "attention_mask": {
+      "byte_count": 32,
+      "dtype": "int64",
+      "shape": [
+        1,
+        4
+      ]
+    },
+    "final_logits": {
+      "byte_count": 1024,
+      "dtype": "float32",
+      "shape": [
+        1,
+        4,
+        64
+      ]
+    },
+    "final_norm": {
+      "byte_count": 256,
+      "dtype": "float32",
+      "shape": [
+        1,
+        4,
+        16
+      ]
+    },
+    "hidden_state_0": {
+      "byte_count": 256,
+      "dtype": "float32",
+      "shape": [
+        1,
+        4,
+        16
+      ]
+    },
+    "hidden_state_1": {
+      "byte_count": 256,
+      "dtype": "float32",
+      "shape": [
+        1,
+        4,
+        16
+      ]
+    },
+    "hidden_state_2": {
+      "byte_count": 256,
+      "dtype": "float32",
+      "shape": [
+        1,
+        4,
+        16
+      ]
+    },
+    "input_ids": {
+      "byte_count": 32,
+      "dtype": "int64",
+      "shape": [
+        1,
+        4
+      ]
+    },
+    "layer_0.attention_output": {
+      "byte_count": 256,
+      "dtype": "float32",
+      "shape": [
+        1,
+        4,
+        16
+      ]
+    },
+    "layer_0.block_output": {
+      "byte_count": 256,
+      "dtype": "float32",
+      "shape": [
+        1,
+        4,
+        16
+      ]
+    },
+    "layer_0.input_norm": {
+      "byte_count": 256,
+      "dtype": "float32",
+      "shape": [
+        1,
+        4,
+        16
+      ]
+    },
+    "layer_0.moe_output": {
+      "byte_count": 256,
+      "dtype": "float32",
+      "shape": [
+        1,
+        4,
+        16
+      ]
+    },
+    "layer_0.post_attention_norm": {
+      "byte_count": 256,
+      "dtype": "float32",
+      "shape": [
+        1,
+        4,
+        16
+      ]
+    },
+    "layer_0.router_logits": {
+      "byte_count": 64,
+      "dtype": "float32",
+      "shape": [
+        4,
+        4
+      ]
+    },
+    "layer_0.routing_weights": {
+      "byte_count": 32,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2
+      ]
+    },
+    "layer_0.selected_experts": {
+      "byte_count": 64,
+      "dtype": "int64",
+      "shape": [
+        4,
+        2
+      ]
+    },
+    "layer_1.attention_output": {
+      "byte_count": 256,
+      "dtype": "float32",
+      "shape": [
+        1,
+        4,
+        16
+      ]
+    },
+    "layer_1.block_output": {
+      "byte_count": 256,
+      "dtype": "float32",
+      "shape": [
+        1,
+        4,
+        16
+      ]
+    },
+    "layer_1.input_norm": {
+      "byte_count": 256,
+      "dtype": "float32",
+      "shape": [
+        1,
+        4,
+        16
+      ]
+    },
+    "layer_1.moe_output": {
+      "byte_count": 256,
+      "dtype": "float32",
+      "shape": [
+        1,
+        4,
+        16
+      ]
+    },
+    "layer_1.post_attention_norm": {
+      "byte_count": 256,
+      "dtype": "float32",
+      "shape": [
+        1,
+        4,
+        16
+      ]
+    },
+    "layer_1.router_logits": {
+      "byte_count": 64,
+      "dtype": "float32",
+      "shape": [
+        4,
+        4
+      ]
+    },
+    "layer_1.routing_weights": {
+      "byte_count": 32,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2
+      ]
+    },
+    "layer_1.selected_experts": {
+      "byte_count": 64,
+      "dtype": "int64",
+      "shape": [
+        4,
+        2
+      ]
+    }
+  },
+  "weights": {
+    "lm_head.weight": {
+      "byte_count": 4096,
+      "dtype": "float32",
+      "shape": [
+        64,
+        16
+      ]
+    },
+    "model.embed_tokens.weight": {
+      "byte_count": 4096,
+      "dtype": "float32",
+      "shape": [
+        64,
+        16
+      ]
+    },
+    "model.layers.0.input_layernorm.weight": {
+      "byte_count": 64,
+      "dtype": "float32",
+      "shape": [
+        16
+      ]
+    },
+    "model.layers.0.mlp.experts.down_proj": {
+      "byte_count": 6144,
+      "dtype": "float32",
+      "shape": [
+        4,
+        16,
+        24
+      ]
+    },
+    "model.layers.0.mlp.experts.gate_up_proj": {
+      "byte_count": 12288,
+      "dtype": "float32",
+      "shape": [
+        4,
+        48,
+        16
+      ]
+    },
+    "model.layers.0.mlp.gate.weight": {
+      "byte_count": 256,
+      "dtype": "float32",
+      "shape": [
+        4,
+        16
+      ]
+    },
+    "model.layers.0.post_attention_layernorm.weight": {
+      "byte_count": 64,
+      "dtype": "float32",
+      "shape": [
+        16
+      ]
+    },
+    "model.layers.0.self_attn.k_norm.weight": {
+      "byte_count": 16,
+      "dtype": "float32",
+      "shape": [
+        4
+      ]
+    },
+    "model.layers.0.self_attn.k_proj.weight": {
+      "byte_count": 512,
+      "dtype": "float32",
+      "shape": [
+        8,
+        16
+      ]
+    },
+    "model.layers.0.self_attn.o_proj.weight": {
+      "byte_count": 1024,
+      "dtype": "float32",
+      "shape": [
+        16,
+        16
+      ]
+    },
+    "model.layers.0.self_attn.q_norm.weight": {
+      "byte_count": 16,
+      "dtype": "float32",
+      "shape": [
+        4
+      ]
+    },
+    "model.layers.0.self_attn.q_proj.weight": {
+      "byte_count": 1024,
+      "dtype": "float32",
+      "shape": [
+        16,
+        16
+      ]
+    },
+    "model.layers.0.self_attn.v_proj.weight": {
+      "byte_count": 512,
+      "dtype": "float32",
+      "shape": [
+        8,
+        16
+      ]
+    },
+    "model.layers.1.input_layernorm.weight": {
+      "byte_count": 64,
+      "dtype": "float32",
+      "shape": [
+        16
+      ]
+    },
+    "model.layers.1.mlp.experts.down_proj": {
+      "byte_count": 6144,
+      "dtype": "float32",
+      "shape": [
+        4,
+        16,
+        24
+      ]
+    },
+    "model.layers.1.mlp.experts.gate_up_proj": {
+      "byte_count": 12288,
+      "dtype": "float32",
+      "shape": [
+        4,
+        48,
+        16
+      ]
+    },
+    "model.layers.1.mlp.gate.weight": {
+      "byte_count": 256,
+      "dtype": "float32",
+      "shape": [
+        4,
+        16
+      ]
+    },
+    "model.layers.1.post_attention_layernorm.weight": {
+      "byte_count": 64,
+      "dtype": "float32",
+      "shape": [
+        16
+      ]
+    },
+    "model.layers.1.self_attn.k_norm.weight": {
+      "byte_count": 16,
+      "dtype": "float32",
+      "shape": [
+        4
+      ]
+    },
+    "model.layers.1.self_attn.k_proj.weight": {
+      "byte_count": 512,
+      "dtype": "float32",
+      "shape": [
+        8,
+        16
+      ]
+    },
+    "model.layers.1.self_attn.o_proj.weight": {
+      "byte_count": 1024,
+      "dtype": "float32",
+      "shape": [
+        16,
+        16
+      ]
+    },
+    "model.layers.1.self_attn.q_norm.weight": {
+      "byte_count": 16,
+      "dtype": "float32",
+      "shape": [
+        4
+      ]
+    },
+    "model.layers.1.self_attn.q_proj.weight": {
+      "byte_count": 1024,
+      "dtype": "float32",
+      "shape": [
+        16,
+        16
+      ]
+    },
+    "model.layers.1.self_attn.v_proj.weight": {
+      "byte_count": 512,
+      "dtype": "float32",
+      "shape": [
+        8,
+        16
+      ]
+    },
+    "model.norm.weight": {
+      "byte_count": 64,
+      "dtype": "float32",
+      "shape": [
+        16
+      ]
+    }
+  }
+}

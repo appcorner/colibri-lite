@@ -1,0 +1,6 @@
+# M0.3 deterministic oracle environment.
+# Install only in an isolated environment; generation and verification are offline.
+numpy==2.3.3
+safetensors==0.8.0
+torch==2.12.1
+transformers==5.12.1

@@ -1,0 +1,23 @@
+{
+  "exact": [
+    "tensor_names",
+    "tensor_shapes",
+    "input_ids",
+    "attention_mask",
+    "selected_experts"
+  ],
+  "floating_point": {
+    "default": {
+      "absolute": 1e-06,
+      "relative": 1e-05
+    },
+    "final_logits": {
+      "absolute": 1e-06,
+      "relative": 1e-05
+    },
+    "router_logits": {
+      "absolute": 1e-07,
+      "relative": 1e-06
+    }
+  }
+}
