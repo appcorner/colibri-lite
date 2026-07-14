@@ -89,6 +89,16 @@
         16
       ]
     },
+    "layer_0.key_rope": {
+      "byte_count": 128,
+      "dtype": "float32",
+      "shape": [
+        1,
+        2,
+        4,
+        4
+      ]
+    },
     "layer_0.moe_output": {
       "byte_count": 256,
       "dtype": "float32",
@@ -105,6 +115,16 @@
         1,
         4,
         16
+      ]
+    },
+    "layer_0.query_rope": {
+      "byte_count": 256,
+      "dtype": "float32",
+      "shape": [
+        1,
+        4,
+        4,
+        4
       ]
     },
     "layer_0.router_logits": {
@@ -158,6 +178,16 @@
         16
       ]
     },
+    "layer_1.key_rope": {
+      "byte_count": 128,
+      "dtype": "float32",
+      "shape": [
+        1,
+        2,
+        4,
+        4
+      ]
+    },
     "layer_1.moe_output": {
       "byte_count": 256,
       "dtype": "float32",
@@ -174,6 +204,16 @@
         1,
         4,
         16
+      ]
+    },
+    "layer_1.query_rope": {
+      "byte_count": 256,
+      "dtype": "float32",
+      "shape": [
+        1,
+        4,
+        4,
+        4
       ]
     },
     "layer_1.router_logits": {

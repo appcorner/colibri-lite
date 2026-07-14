@@ -46,6 +46,7 @@ It does not use network access.
 - input normalization output;
 - attention output;
 - post-attention normalization output;
+- post-RoPE query and key tensors;
 - router logits and routing weights;
 - exact selected expert IDs;
 - MoE output;

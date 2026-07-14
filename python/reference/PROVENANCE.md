@@ -43,6 +43,7 @@ The saved weights are synthetic and are not derived from upstream Qwen weights.
 
 - `config.json`: complete tiny Transformers configuration.
 - `inputs.json`: fixed token IDs and attention mask.
+- `rust-config.rs`: generated test constants derived from the frozen config.
 - `environment.json`: pinned generator environment and source revisions.
 - `tolerances.json`: per-stage numerical comparison policy.
 - `weights.safetensors`: deterministic synthetic model state dictionary.

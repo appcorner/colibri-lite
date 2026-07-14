@@ -180,18 +180,18 @@ Acceptance:
 
 ## M1.2 - Single Qwen3-MoE block correctness
 
-- [ ] M1.2-01 Define Qwen3-specific config mapping in `clr-qwen3-moe`.
-- [ ] M1.2-02 Implement RMS normalization.
-- [ ] M1.2-03 Implement rotary embeddings.
-- [ ] M1.2-04 Implement causal grouped-query attention for the fixture.
-- [ ] M1.2-05 Implement router logits and deterministic top-k selection.
-- [ ] M1.2-06 Define tie-breaking behavior and test it explicitly.
-- [ ] M1.2-07 Implement routing-weight normalization.
-- [ ] M1.2-08 Implement gated expert MLP.
-- [ ] M1.2-09 Implement weighted expert-output combination.
-- [ ] M1.2-10 Compare expert IDs exactly with the oracle.
-- [ ] M1.2-11 Compare every recorded intermediate output within tolerance.
-- [ ] M1.2-12 Add diagnostics naming the first mismatching stage.
+- [x] M1.2-01 Define Qwen3-specific config mapping in `clr-qwen3-moe`.
+- [x] M1.2-02 Implement RMS normalization.
+- [x] M1.2-03 Implement rotary embeddings.
+- [x] M1.2-04 Implement causal grouped-query attention for the fixture.
+- [x] M1.2-05 Implement router logits and deterministic top-k selection.
+- [x] M1.2-06 Define tie-breaking behavior and test it explicitly.
+- [x] M1.2-07 Implement routing-weight normalization.
+- [x] M1.2-08 Implement gated expert MLP.
+- [x] M1.2-09 Implement weighted expert-output combination.
+- [x] M1.2-10 Compare expert IDs exactly with the oracle.
+- [x] M1.2-11 Compare every recorded intermediate output within tolerance.
+- [x] M1.2-12 Add diagnostics naming the first mismatching stage.
 
 Acceptance:
 
