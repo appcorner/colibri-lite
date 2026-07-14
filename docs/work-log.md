@@ -554,3 +554,36 @@ and correctness are not implemented and remain M4 work.
 
 Next task: Create `milestone/m4-full-qwen3` from the reviewed M3 closure and
 begin M4.1-01 by pinning the exact full-model ID and revision.
+
+## 2026-07-14 - M4.1-01 full-model source contract
+
+Date: 2026-07-14
+
+Starting task: M4.1-01 - pin the exact Qwen3-30B-A3B model ID and revision.
+
+Completed task: M4.1-01. Merged the approved M3 branch into `main` with merge
+commit `dfa800b`, tagged it `m3-generation`, and created
+`milestone/m4-full-qwen3`. Pinned `Qwen/Qwen3-30B-A3B` at immutable revision
+`ad44e777bcd18fa416d9da3bd8f70d33ebb85d39`. Added source manifest v1 and ADR
+0011 with Apache-2.0 license, architecture/config, tokenizer, 16-shard
+inventory, source hashes, and disk requirements.
+
+Commands executed: all five standard M3 verification commands; `main...M3`
+scope, test, dependency, unsafe, deferred-feature, and public-API diff review;
+official Hugging Face immutable-revision API queries; in-memory SHA-256 hashing
+of non-weight source files; and Safetensors index inspection.
+
+Evidence: All 83 workspace tests passed; Clippy passed with warnings denied;
+the CLI smoke passed. The source tree contains 26 files totaling
+61,084,187,391 bytes (56.889 GiB), including 16 weight shards totaling
+61,066,575,648 bytes. The index maps 18,867 tensors. No weight shard was
+downloaded.
+
+Known issue and stop condition: upstream `head_dim = 128`, while the current
+public runtime derives `2048 / 32 = 64`. M4 configuration mapping would be
+incorrect without a reviewed public contract change. BF16 source storage and
+the 40,960 model versus 131,072 tokenizer context limits also require explicit
+mapping decisions.
+
+Next task: M4.1-02 - document upstream license and artifact provenance, only
+after review of ADR 0011 and the `head_dim` contract conflict.

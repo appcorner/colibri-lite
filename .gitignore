@@ -1,6 +1,9 @@
 /target/
 /models/*
 !/models/.gitkeep
+!/models/qwen3-30b-a3b/
+/models/qwen3-30b-a3b/*
+!/models/qwen3-30b-a3b/source-manifest-v1.json
 /.idea/
 /.vscode/
 *.pdb

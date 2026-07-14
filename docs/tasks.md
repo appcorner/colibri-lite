@@ -263,7 +263,7 @@ Acceptance:
 
 ## M4.1 - Full-model artifact conversion
 
-- [ ] M4.1-01 Pin exact Qwen3-30B-A3B model ID and revision.
+- [x] M4.1-01 Pin exact Qwen3-30B-A3B model ID and revision.
 - [ ] M4.1-02 Document upstream license and artifact provenance.
 - [ ] M4.1-03 Map required Hugging Face configuration fields.
 - [ ] M4.1-04 Map and validate required tensor names and shapes.
