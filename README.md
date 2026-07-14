@@ -15,3 +15,8 @@ Mixture-of-Experts models.
 ## Current milestone
 
 M0 - Project bootstrap
+
+## Project documents
+
+- [Implementation plan](docs/implementation-plan.md)
+- [Task tracker](docs/tasks.md)
