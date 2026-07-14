@@ -7,6 +7,7 @@ name = "clr-cli"
 version = "0.1.0"
 dependencies = [
  "clr-core",
+ "clr-qwen3-moe",
 ]
 
 [[package]]

@@ -14,7 +14,13 @@ Mixture-of-Experts models.
 
 ## Current milestone
 
-M0, M1, and M2 are complete. Next: M3 - Autoregressive generation.
+M0, M1, M2, and M3 are complete. Next: M4 - full Qwen3-30B-A3B path.
+
+The frozen tiny model accepts token IDs directly:
+
+```powershell
+cargo run -p clr-cli -- generate --tokens 1,7,3,12 --max-new-tokens 4
+```
 
 ## Project documents
 
@@ -25,3 +31,4 @@ M0, M1, and M2 are complete. Next: M3 - Autoregressive generation.
 - [M0 milestone report](docs/reports/m0.md)
 - [M1 correctness report](docs/reports/m1.md)
 - [M2 storage and residency report](docs/reports/m2.md)
+- [M3 autoregressive generation report](docs/reports/m3.md)

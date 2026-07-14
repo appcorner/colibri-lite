@@ -1,6 +1,7 @@
 use clr_core::{RuntimeError, Tensor, TensorShape, TensorView, ops::elementwise_add};
 
 use crate::Qwen3MoeConfig;
+use crate::cache::LayerKvView;
 
 /// Unvalidated tensors required by one sparse Qwen3-MoE decoder block.
 #[derive(Debug, Clone, PartialEq)]
@@ -53,8 +54,8 @@ pub struct Qwen3MoeBlockOutput {
 /// Correctness-first implementation of one sparse Qwen3-MoE decoder block.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Qwen3MoeBlock {
-    config: Qwen3MoeConfig,
-    weights: Qwen3MoeBlockWeightsSpec,
+    pub(crate) config: Qwen3MoeConfig,
+    pub(crate) weights: Qwen3MoeBlockWeightsSpec,
 }
 
 impl Qwen3MoeBlock {
@@ -276,10 +277,136 @@ pub(crate) fn attention_with_weights(
     )
 }
 
+pub(crate) struct CachedAttentionOutput {
+    pub output: Tensor,
+    pub key: Vec<f32>,
+    pub value: Vec<f32>,
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn cached_attention_with_weights(
+    hidden_states: TensorView<'_>,
+    config: Qwen3MoeConfig,
+    query_weight: TensorView<'_>,
+    key_weight: TensorView<'_>,
+    value_weight: TensorView<'_>,
+    output_weight: TensorView<'_>,
+    query_norm_weight: TensorView<'_>,
+    key_norm_weight: TensorView<'_>,
+    cache: LayerKvView<'_>,
+) -> Result<CachedAttentionOutput, RuntimeError> {
+    let query_head_count = config.model().attention_head_count();
+    let key_value_head_count = config.model().key_value_head_count();
+    let head_dimension = config.head_dimension();
+    let values_per_token = key_value_head_count.checked_mul(head_dimension).ok_or(
+        RuntimeError::ArithmeticOverflow {
+            operation: "cached attention values per token",
+        },
+    )?;
+    let initialized =
+        cache
+            .len
+            .checked_mul(values_per_token)
+            .ok_or(RuntimeError::ArithmeticOverflow {
+                operation: "cached attention initialized values",
+            })?;
+    if hidden_states.shape().dimensions() != [1, config.model().hidden_size()]
+        || cache.key.len() != initialized
+        || cache.value.len() != initialized
+    {
+        return Err(RuntimeError::InvalidShape {
+            reason: "cached attention input or cache shape mismatch",
+        });
+    }
+
+    let query = linear(hidden_states, query_weight, "cached query projection")?;
+    let key = linear(hidden_states, key_weight, "cached key projection")?;
+    let value = linear(hidden_states, value_weight, "cached value projection")?;
+    let query = Tensor::new(
+        TensorShape::new([1, query_head_count, head_dimension]),
+        query.into_data(),
+    )?;
+    let key = Tensor::new(
+        TensorShape::new([1, key_value_head_count, head_dimension]),
+        key.into_data(),
+    )?;
+    let value = Tensor::new(
+        TensorShape::new([1, key_value_head_count, head_dimension]),
+        value.into_data(),
+    )?;
+    let query = rms_norm(query.view(), query_norm_weight, config.rms_norm_epsilon())?;
+    let key = rms_norm(key.view(), key_norm_weight, config.rms_norm_epsilon())?;
+    let (query, key) = apply_rotary_embeddings_at(query.view(), key.view(), config, cache.len)?;
+
+    let mut attended = vec![0.0; query_head_count * head_dimension];
+    #[allow(clippy::cast_precision_loss)]
+    let scale = (head_dimension as f32).sqrt().recip();
+    let group_count = config.key_value_group_count();
+    for query_head in 0..query_head_count {
+        let key_value_head = query_head / group_count;
+        let query_offset = query_head * head_dimension;
+        let query_values = &query.data()[query_offset..query_offset + head_dimension];
+        let mut scores = Vec::with_capacity(cache.len + 1);
+        for key_position in 0..=cache.len {
+            let key_offset =
+                (key_position * key_value_head_count + key_value_head) * head_dimension;
+            let key_values = if key_position == cache.len {
+                &key.data()[key_value_head * head_dimension..(key_value_head + 1) * head_dimension]
+            } else {
+                &cache.key[key_offset..key_offset + head_dimension]
+            };
+            let score: f32 = query_values
+                .iter()
+                .zip(key_values)
+                .map(|(query_value, key_value)| query_value * key_value)
+                .sum();
+            scores.push(score * scale);
+        }
+        softmax_slice(&mut scores);
+
+        for (key_position, attention_weight) in scores.iter().enumerate() {
+            let value_offset =
+                (key_position * key_value_head_count + key_value_head) * head_dimension;
+            let values = if key_position == cache.len {
+                &value.data()
+                    [key_value_head * head_dimension..(key_value_head + 1) * head_dimension]
+            } else {
+                &cache.value[value_offset..value_offset + head_dimension]
+            };
+            for dimension in 0..head_dimension {
+                attended[query_offset + dimension] += attention_weight * values[dimension];
+            }
+        }
+    }
+    let attended = Tensor::new(
+        TensorShape::new([1, config.model().hidden_size()]),
+        attended,
+    )?;
+    let output = linear(
+        attended.view(),
+        output_weight,
+        "cached attention output projection",
+    )?;
+    Ok(CachedAttentionOutput {
+        output,
+        key: key.into_data(),
+        value: value.into_data(),
+    })
+}
+
 fn apply_rotary_embeddings(
     query: TensorView<'_>,
     key: TensorView<'_>,
     config: Qwen3MoeConfig,
+) -> Result<(Tensor, Tensor), RuntimeError> {
+    apply_rotary_embeddings_at(query, key, config, 0)
+}
+
+pub(crate) fn apply_rotary_embeddings_at(
+    query: TensorView<'_>,
+    key: TensorView<'_>,
+    config: Qwen3MoeConfig,
+    position_offset: usize,
 ) -> Result<(Tensor, Tensor), RuntimeError> {
     require_rank(query, 3, "RoPE query")?;
     require_rank(key, 3, "RoPE key")?;
@@ -299,11 +426,17 @@ fn apply_rotary_embeddings(
     let mut rotated_query = query.data().to_vec();
     let mut rotated_key = key.data().to_vec();
     for position in 0..sequence_length {
+        let absolute_position =
+            position_offset
+                .checked_add(position)
+                .ok_or(RuntimeError::ArithmeticOverflow {
+                    operation: "RoPE absolute position",
+                })?;
         for pair_index in 0..head_dimension / 2 {
             #[allow(clippy::cast_precision_loss)]
             let exponent = (pair_index * 2) as f32 / head_dimension as f32;
             #[allow(clippy::cast_precision_loss)]
-            let frequency = position as f32 / config.rope_theta().powf(exponent);
+            let frequency = absolute_position as f32 / config.rope_theta().powf(exponent);
             let cosine = frequency.cos();
             let sine = frequency.sin();
             rotate_pair_group(
@@ -395,7 +528,7 @@ pub(crate) fn route_tokens(
     })
 }
 
-fn routed_experts(
+pub(crate) fn routed_experts(
     hidden_states: TensorView<'_>,
     gate_up_weight: TensorView<'_>,
     down_weight: TensorView<'_>,

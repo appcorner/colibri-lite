@@ -397,3 +397,160 @@ Next task: Merge the reported M2 branch, create
 `milestone/m3-generation`, and begin M3-01 greedy token-ID decoding.
 
 Commit: `fdcfc13` (`docs: close M2 with portable backend evidence`).
+
+## 2026-07-14 - M3 sampling through KV-cache stop
+
+Date: 2026-07-14
+
+Starting task: M3-01 - implement greedy token-ID decoding.
+
+Completed tasks: M3-01 through M3-03. Added deterministic greedy argmax with
+lower-ID ties, frozen-oracle first-token coverage, documented SplitMix64,
+temperature sampling, recomputing generation methods, validation tests, and ADR
+0009.
+
+Commands executed: Frozen oracle argmax inspection; targeted generation tests;
+all standard Cargo verification commands; Git diff/status review; and the
+focused Git commit.
+
+Tests: Six generation tests pass for oracle token 10, tie/rank/empty/non-finite
+behavior, repeated greedy output, pinned SplitMix64 outputs, same-seed sampling,
+and invalid temperature. All 65 workspace tests passed with zero failures;
+Clippy passed with warnings denied and CLI smoke output remained correct.
+
+Known issues: Generation currently recomputes the complete sequence. M3-04 and
+M3-05 require persistent per-layer KV state, position-aware single-token
+attention, explicit byte accounting, context limits, and shared resident/
+streaming session ownership. This is a public API/attention-state redesign
+under Stop Condition 2.
+
+Next task: Review a separate generation-session/KV-cache boundary that preserves
+the resident and streaming full-forward oracle APIs.
+
+Commit: `a141551` (`feat(qwen3): add deterministic token sampling`).
+
+## 2026-07-14 - M3 KV-cache contract review
+
+Date: 2026-07-14
+
+Starting task: M3-04 - define KV-cache layout, context limit, and byte
+accounting.
+
+Completed task: M3-04. Review accepted the generation-session boundary in ADR
+0010. Added a fixed-capacity, per-layer contiguous F32 key/value cache with
+checked byte accounting, transactional append validation, an explicit context
+limit error, and fixed-allocation/repeated-release tests.
+
+Commands executed: repository recovery inspection, `cargo fmt --all`,
+`cargo test -p clr-core error::tests`, and
+`cargo test -p clr-qwen3-moe cache::tests`.
+
+Tests: Two core error tests and four KV-cache tests passed with zero failures.
+The recovered partial workspace also passed all 69 tests before this task was
+closed; full milestone verification remains deferred until M3-10.
+
+Known issues: The cache contract is not yet connected to model execution, so
+the private append/view paths produce dead-code warnings in a normal check.
+M3-05 will connect them through prefill.
+
+Next task: M3-05 - implement prefill.
+
+## 2026-07-14 - M3 cached prefill and decode
+
+Date: 2026-07-14
+
+Starting task: M3-05 - implement prefill.
+
+Completed tasks: M3-05 and M3-06. Added a shared position-aware cached
+attention/block path and `GenerationSession` backends for resident and
+on-demand expert models. Prefill validates capacity and token IDs before
+mutation. Greedy and temperature decode use cached logits; sampling RNG state
+is committed only after successful execution.
+
+Commands executed: `cargo fmt --all`, focused prefill tests, focused decode
+tests, `cargo test -p clr-qwen3-moe`, and
+`cargo clippy -p clr-qwen3-moe --all-targets -- -D warnings`.
+
+Tests: Three prefill tests passed for resident-oracle logits, exact expert IDs,
+streaming equivalence, and pre-mutation validation. Five decode-related tests
+passed for recomputing equivalence, seeded sampling, resident/streaming
+equivalence, context failure, and prefill requirements.
+All 38 `clr-qwen3-moe` tests and doc tests passed; crate Clippy passed with
+warnings denied.
+
+Known issues: The CLI does not yet expose token-ID generation.
+
+Next task: M3-07 - add a CLI command accepting token IDs directly.
+
+## 2026-07-14 - M3 token-ID CLI
+
+Date: 2026-07-14
+
+Starting task: M3-07 - add a CLI command accepting token IDs directly.
+
+Completed task: M3-07. Exposed the versioned frozen tiny fixture through a
+narrow constructor and added a dependency-free `generate` command with direct
+comma-separated token IDs, a required new-token count, optional temperature,
+and an optional seed. The no-argument bootstrap smoke output remains unchanged.
+
+Commands executed: `cargo fmt --all --check`, `cargo test -p clr-cli`,
+`cargo clippy -p clr-cli --all-targets -- -D warnings`, and
+`cargo run -p clr-cli -- generate --tokens 1,7,3,12 --max-new-tokens 4`.
+
+Tests: All three CLI tests passed. The command generated `10,11,54,11`, emitted
+the complete sequence, and reported a 1,024-byte cache at 8/8 initialized
+positions. CLI Clippy passed with warnings denied.
+
+Known issues: Milestone-wide repeatability and fixed-allocation stress evidence
+remain to be recorded.
+
+Next task: M3-08 - test reproducible token sequences.
+
+## 2026-07-14 - M3 reproducibility and bounded memory
+
+Date: 2026-07-14
+
+Starting task: M3-08 - test reproducible token sequences.
+
+Completed tasks: M3-08 and M3-09. Froze the oracle-prompt greedy and seeded
+temperature sequences, repeated sampled generation from independent sessions,
+filled the complete 32-token context, and checked KV allocation capacities at
+every decode step. Repeated streaming decode also checked the expert budget.
+
+Commands executed: the temperature CLI run,
+`cargo test -p clr-qwen3-moe reproducible`, and
+`cargo test -p clr-qwen3-moe repeated`.
+
+Tests: The oracle prompt `1,5,7,2` reproducibly generates greedy
+`10,11,10,11` and temperature-0.8/seed-42 `47,10,18,22`. Four repeated-path
+tests passed. The full 32-position cache stayed exactly 4,096 bytes with fixed
+allocation capacities; the streaming expert cache stayed within its 9,216-byte
+budget.
+
+Known issues: Full standard verification and the M3 correctness report remain.
+
+Next task: M3-10 - record a tiny-generation correctness report.
+
+## 2026-07-14 - M3 closure
+
+Date: 2026-07-14
+
+Starting task: M3-10 - record a tiny-generation correctness report.
+
+Completed task: M3-10 and milestone M3. Added the generation correctness,
+memory, CLI, scope, and limitation evidence in `docs/reports/m3.md`.
+
+Commands executed: `cargo fmt --all --check`, `cargo check --workspace`,
+`cargo test --workspace`,
+`cargo clippy --workspace --all-targets -- -D warnings`, and
+`cargo run -p clr-cli`.
+
+Tests: All 83 workspace tests passed with zero failures; doc tests passed.
+Workspace Clippy passed with zero warnings. The required CLI smoke reported
+`x86_64-windows` and `status: bootstrap ready`.
+
+Known issues: Full-size Qwen3-30B-A3B artifacts, provenance, tensor mapping,
+and correctness are not implemented and remain M4 work.
+
+Next task: Create `milestone/m4-full-qwen3` from the reviewed M3 closure and
+begin M4.1-01 by pinning the exact full-model ID and revision.

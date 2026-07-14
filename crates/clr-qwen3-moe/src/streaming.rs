@@ -108,9 +108,9 @@ impl std::error::Error for StreamingModelError {}
 /// Tiny Qwen3-MoE path with dense/router weights resident and experts on demand.
 #[derive(Debug, Clone, PartialEq)]
 pub struct StreamingQwen3MoeModel {
-    config: Qwen3MoeConfig,
-    weights: StreamingModelWeightsSpec,
-    layout: PackedExpertLayout,
+    pub(crate) config: Qwen3MoeConfig,
+    pub(crate) weights: StreamingModelWeightsSpec,
+    pub(crate) layout: PackedExpertLayout,
 }
 
 struct DecodedExpert {
@@ -204,35 +204,13 @@ impl StreamingQwen3MoeModel {
             weights.router.view(),
             self.config,
         )?;
-        let hidden_size = self.config.model().hidden_size();
-        let intermediate = self.config.moe_intermediate_size();
-        let moe_output = combine_routed_experts(
+        let moe_output = streaming_routed_experts(
             post_attention_norm.view(),
             &router,
             self.config,
-            |expert_id, occurrences| -> Result<Vec<Vec<f32>>, StreamingModelError> {
-                let key = ExpertKey {
-                    layer_index: u32::try_from(layer_index).unwrap_or(u32::MAX),
-                    expert_id: clr_storage::ExpertId(u32::try_from(expert_id).unwrap_or(u32::MAX)),
-                };
-                let lease = store.load(key)?;
-                let decoded = decode_payload(key, lease.bytes(), self.layout)?;
-                Ok(occurrences
-                    .iter()
-                    .map(|(token, _)| {
-                        let input = &post_attention_norm.data()
-                            [token * hidden_size..(token + 1) * hidden_size];
-                        expert_mlp(
-                            input,
-                            &decoded.gate,
-                            &decoded.up,
-                            &decoded.down,
-                            hidden_size,
-                            intermediate,
-                        )
-                    })
-                    .collect())
-            },
+            layer_index,
+            store,
+            self.layout,
         )?;
         let block_output = elementwise_add(after_attention.view(), moe_output.view())?;
         Ok(Qwen3MoeBlockOutput {
@@ -246,6 +224,46 @@ impl StreamingQwen3MoeModel {
             block_output,
         })
     }
+}
+
+pub(crate) fn streaming_routed_experts(
+    hidden_states: TensorView<'_>,
+    router: &crate::block::RouterOutput,
+    config: Qwen3MoeConfig,
+    layer_index: usize,
+    store: &mut ExpertStore,
+    layout: PackedExpertLayout,
+) -> Result<Tensor, StreamingModelError> {
+    let hidden_size = config.model().hidden_size();
+    let intermediate = config.moe_intermediate_size();
+    combine_routed_experts(
+        hidden_states,
+        router,
+        config,
+        |expert_id, occurrences| -> Result<Vec<Vec<f32>>, StreamingModelError> {
+            let key = ExpertKey {
+                layer_index: u32::try_from(layer_index).unwrap_or(u32::MAX),
+                expert_id: clr_storage::ExpertId(u32::try_from(expert_id).unwrap_or(u32::MAX)),
+            };
+            let lease = store.load(key)?;
+            let decoded = decode_payload(key, lease.bytes(), layout)?;
+            Ok(occurrences
+                .iter()
+                .map(|(token, _)| {
+                    let input =
+                        &hidden_states.data()[token * hidden_size..(token + 1) * hidden_size];
+                    expert_mlp(
+                        input,
+                        &decoded.gate,
+                        &decoded.up,
+                        &decoded.down,
+                        hidden_size,
+                        intermediate,
+                    )
+                })
+                .collect())
+        },
+    )
 }
 
 fn decode_payload(
