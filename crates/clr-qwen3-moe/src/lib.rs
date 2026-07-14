@@ -6,6 +6,7 @@ mod config;
 mod generation;
 mod model;
 mod session;
+mod source_config;
 mod streaming;
 mod test_fixture;
 
@@ -15,6 +16,7 @@ pub use config::{Qwen3MoeConfig, Qwen3MoeConfigSpec};
 pub use generation::{SeededRng, greedy_token, sample_token};
 pub use model::{Qwen3MoeModel, Qwen3MoeModelOutput, Qwen3MoeModelWeightsSpec};
 pub use session::{GenerationError, GenerationSession, PrefillOutput};
+pub use source_config::{PINNED_QWEN3_30B_A3B_CONFIG, Qwen3MoeConfigMapping, Qwen3MoeSourceConfig};
 pub use streaming::{
     PackedExpertLayout, StreamingBlockWeightsSpec, StreamingModelError, StreamingModelWeightsSpec,
     StreamingQwen3MoeModel,

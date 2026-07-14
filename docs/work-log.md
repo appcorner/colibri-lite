@@ -631,3 +631,30 @@ Known issues: BF16 remains source metadata only. Model maximum positions,
 tokenizer limit, and session capacity remain intentionally separate.
 
 Next task: M4.1-03 - map required Hugging Face configuration fields.
+
+## 2026-07-14 - M4.1-03 pinned configuration mapping
+
+Date: 2026-07-14
+
+Starting task: M4.1-03 - map required Hugging Face configuration fields.
+
+Completed task: M4.1-03. Added a typed Qwen3-MoE source configuration and
+validated source-to-F32-runtime mapping for the immutable Qwen3-30B-A3B
+revision. `head_dim=128` maps directly; query/KV widths are 4,096/512. BF16 is
+retained separately as source storage metadata. ADR 0013 records field
+mappings, rejected unsupported features, and deliberately separate context
+limits.
+
+Commands executed: focused source-mapping tests and all five standard Cargo
+verification commands.
+
+Evidence: All 90 workspace tests passed; doc tests passed; Clippy passed with
+warnings denied; CLI smoke passed. Unsupported architecture, dtype, activation,
+attention bias/dropout, RoPE scaling, dense-only layers, sliding window, and
+tied embeddings return structured errors. Frozen M1/M3 regressions remain
+unchanged through the full workspace suite.
+
+Known issues: Source JSON parsing is intentionally deferred. Tensor names and
+shapes have not been mapped or validated, and no weight shard is downloaded.
+
+Next task: M4.1-04 - map and validate required tensor names and shapes.

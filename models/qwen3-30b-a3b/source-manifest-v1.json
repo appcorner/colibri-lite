@@ -134,6 +134,15 @@
       }
     ]
   },
+  "runtime_mapping": {
+    "status": "mapped_by_adr_0013",
+    "rust_source_constant": "PINNED_QWEN3_30B_A3B_CONFIG",
+    "source_data_type": "BF16",
+    "runtime_compute_data_type": "F32",
+    "model_max_position_count": 40960,
+    "tokenizer_model_max_length": 131072,
+    "session_capacity_policy": "separate per-session capacity bounded by model configuration"
+  },
   "files": [
     {
       "path": ".gitattributes",
