@@ -396,4 +396,4 @@ or copy cost is material under a representative full-model decode workload.
 Next task: Merge the reported M2 branch, create
 `milestone/m3-generation`, and begin M3-01 greedy token-ID decoding.
 
-Commit: Pending M2 closure evidence commit.
+Commit: `fdcfc13` (`docs: close M2 with portable backend evidence`).
