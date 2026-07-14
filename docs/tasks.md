@@ -250,9 +250,9 @@ Acceptance:
 
 ## M3 - Autoregressive generation
 
-- [ ] M3-01 Implement greedy token-ID decoding.
-- [ ] M3-02 Define seeded RNG behavior.
-- [ ] M3-03 Implement temperature sampling after greedy decoding passes.
+- [x] M3-01 Implement greedy token-ID decoding.
+- [x] M3-02 Define seeded RNG behavior.
+- [x] M3-03 Implement temperature sampling after greedy decoding passes.
 - [ ] M3-04 Define KV-cache layout, context limit, and byte accounting.
 - [ ] M3-05 Implement prefill.
 - [ ] M3-06 Implement single-token decode.

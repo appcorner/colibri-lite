@@ -2,6 +2,7 @@
 
 mod block;
 mod config;
+mod generation;
 mod model;
 mod streaming;
 #[cfg(test)]
@@ -9,6 +10,7 @@ mod test_fixture;
 
 pub use block::{Qwen3MoeBlock, Qwen3MoeBlockOutput, Qwen3MoeBlockWeightsSpec};
 pub use config::{Qwen3MoeConfig, Qwen3MoeConfigSpec};
+pub use generation::{SeededRng, greedy_token, sample_token};
 pub use model::{Qwen3MoeModel, Qwen3MoeModelOutput, Qwen3MoeModelWeightsSpec};
 pub use streaming::{
     PackedExpertLayout, StreamingBlockWeightsSpec, StreamingModelError, StreamingModelWeightsSpec,
