@@ -158,19 +158,19 @@ Acceptance:
 
 ### Tensor ownership and views
 
-- [ ] M1.1-01 Define owned dense `f32` tensor storage.
-- [ ] M1.1-02 Define checked immutable and mutable views.
-- [ ] M1.1-03 Enforce shape/length equality at construction.
-- [ ] M1.1-04 Add checked indexing and contiguous-layout documentation.
+- [x] M1.1-01 Define owned dense `f32` tensor storage.
+- [x] M1.1-02 Define checked immutable and mutable views.
+- [x] M1.1-03 Enforce shape/length equality at construction.
+- [x] M1.1-04 Add checked indexing and contiguous-layout documentation.
 
 ### Minimal operations
 
-- [ ] M1.1-05 Implement only operations required by the fixture.
-- [ ] M1.1-06 Implement elementwise add/multiply and required reductions.
-- [ ] M1.1-07 Implement matrix-vector or matrix-matrix multiplication.
-- [ ] M1.1-08 Implement softmax and SiLU.
-- [ ] M1.1-09 Add independent hand-calculated unit tests for every primitive.
-- [ ] M1.1-10 Add shape-error and non-finite-input diagnostic tests where
+- [x] M1.1-05 Implement only operations required by the fixture.
+- [x] M1.1-06 Implement elementwise add/multiply and required reductions.
+- [x] M1.1-07 Implement matrix-vector or matrix-matrix multiplication.
+- [x] M1.1-08 Implement softmax and SiLU.
+- [x] M1.1-09 Add independent hand-calculated unit tests for every primitive.
+- [x] M1.1-10 Add shape-error and non-finite-input diagnostic tests where
   applicable.
 
 Acceptance:
