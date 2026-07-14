@@ -40,3 +40,31 @@ Next task: M0.2-01 - add `crates/clr-core/src/error.rs` on
 `milestone/m0-core-contracts`.
 
 Commit: Pending.
+
+## 2026-07-14 - M0.2 core value contracts
+
+Date: 2026-07-14
+
+Starting task: M0.2-01 - add the dependency-free runtime error contract on
+`milestone/m0-core-contracts`.
+
+Completed tasks: M0.2-01 through M0.2-30. Added structured runtime errors,
+dense data-type metadata, checked tensor shapes, validated generic model
+configuration, runtime module integration, crate-root re-exports, and ADR 0001.
+
+Commands executed: `cargo fmt --all --check`, targeted `clr-core` error, dtype,
+shape, and config tests, `cargo check --workspace`, `cargo test --workspace`,
+`cargo clippy --workspace --all-targets -- -D warnings`,
+`cargo run -p clr-cli`, source scope search, Git status/diff review, and the
+focused Git commit.
+
+Tests: All 15 `clr-core` unit tests passed; all workspace and doc-test targets
+passed with zero failures. Clippy passed with warnings denied. CLI output ended
+with `status: bootstrap ready`.
+
+Known issues: None. `F16` and `BF16` remain metadata-only by design; M1 compute
+support is limited to `F32`.
+
+Next task: M0.3-01 - add a pinned Python reference environment file.
+
+Commit: `bb7e6f2` (`feat(core): add validated runtime value contracts`).

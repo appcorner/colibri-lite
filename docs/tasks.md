@@ -118,7 +118,7 @@ Acceptance:
 - [x] M0.2-28 Run the standard verification commands.
 - [x] M0.2-29 Review the diff for out-of-scope I/O, serialization,
   quantization, tensor math, and Qwen-specific behavior.
-- [ ] M0.2-30 Commit with `feat(core): add validated runtime value contracts`.
+- [x] M0.2-30 Commit with `feat(core): add validated runtime value contracts`.
 
 ## M0.3 - Deterministic fixture and oracle contract
 
