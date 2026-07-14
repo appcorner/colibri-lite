@@ -454,3 +454,30 @@ the private append/view paths produce dead-code warnings in a normal check.
 M3-05 will connect them through prefill.
 
 Next task: M3-05 - implement prefill.
+
+## 2026-07-14 - M3 cached prefill and decode
+
+Date: 2026-07-14
+
+Starting task: M3-05 - implement prefill.
+
+Completed tasks: M3-05 and M3-06. Added a shared position-aware cached
+attention/block path and `GenerationSession` backends for resident and
+on-demand expert models. Prefill validates capacity and token IDs before
+mutation. Greedy and temperature decode use cached logits; sampling RNG state
+is committed only after successful execution.
+
+Commands executed: `cargo fmt --all`, focused prefill tests, focused decode
+tests, `cargo test -p clr-qwen3-moe`, and
+`cargo clippy -p clr-qwen3-moe --all-targets -- -D warnings`.
+
+Tests: Three prefill tests passed for resident-oracle logits, exact expert IDs,
+streaming equivalence, and pre-mutation validation. Five decode-related tests
+passed for recomputing equivalence, seeded sampling, resident/streaming
+equivalence, context failure, and prefill requirements.
+All 38 `clr-qwen3-moe` tests and doc tests passed; crate Clippy passed with
+warnings denied.
+
+Known issues: The CLI does not yet expose token-ID generation.
+
+Next task: M3-07 - add a CLI command accepting token IDs directly.

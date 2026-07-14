@@ -11,7 +11,7 @@ use clr_storage::{
 };
 
 use super::*;
-use crate::{Qwen3MoeModel, Qwen3MoeModelWeightsSpec, test_fixture};
+use crate::{GenerationSession, Qwen3MoeModel, Qwen3MoeModelWeightsSpec, test_fixture};
 
 static NEXT_DIRECTORY: AtomicU64 = AtomicU64::new(0);
 
@@ -224,6 +224,64 @@ fn streaming_matches_resident_with_forced_eviction() {
         metrics.bytes_read,
         u64::try_from(8 * payload).expect("bytes read")
     );
+}
+
+#[test]
+fn streaming_prefill_matches_resident_logits_and_experts() {
+    let config = test_fixture::config();
+    let payload = PackedExpertLayout::for_config(config).total_byte_length;
+    let mut fixture = fixture(2 * payload);
+    let token_ids = test_fixture::token_ids();
+    let expected = fixture
+        .resident
+        .forward(&token_ids)
+        .expect("resident forward");
+    let mut session = GenerationSession::streaming(
+        &fixture.streaming,
+        &mut fixture.store,
+        config.model().max_sequence_length(),
+        0,
+    )
+    .expect("streaming session");
+
+    let actual = session.prefill(&token_ids).expect("streaming prefill");
+
+    assert_tensor("prefill logits", &actual.logits, &expected.logits);
+    assert_eq!(
+        actual.selected_experts,
+        expected
+            .block_outputs
+            .iter()
+            .map(|block| block.selected_experts.clone())
+            .collect::<Vec<_>>()
+    );
+    assert_eq!(session.cache().len(), token_ids.len());
+    assert_eq!(session.sequence(), token_ids);
+}
+
+#[test]
+fn streaming_cached_decode_matches_resident_cached_decode() {
+    let config = test_fixture::config();
+    let payload = PackedExpertLayout::for_config(config).total_byte_length;
+    let mut fixture = fixture(2 * payload);
+    let token_ids = test_fixture::token_ids();
+    let capacity = config.model().max_sequence_length();
+    let mut resident =
+        GenerationSession::resident(&fixture.resident, capacity, 42).expect("resident session");
+    let mut streaming =
+        GenerationSession::streaming(&fixture.streaming, &mut fixture.store, capacity, 42)
+            .expect("streaming session");
+    resident.prefill(&token_ids).expect("resident prefill");
+    streaming.prefill(&token_ids).expect("streaming prefill");
+
+    for _ in 0..4 {
+        assert_eq!(
+            streaming.decode_greedy().expect("streaming decode"),
+            resident.decode_greedy().expect("resident decode")
+        );
+    }
+    assert_eq!(streaming.sequence(), resident.sequence());
+    assert_eq!(streaming.cache().len(), resident.cache().len());
 }
 
 #[test]

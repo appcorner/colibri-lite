@@ -34,11 +34,11 @@ pub struct Qwen3MoeModelOutput {
 /// Correctness-first complete tiny Qwen3-MoE decoder.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Qwen3MoeModel {
-    config: Qwen3MoeConfig,
-    token_embeddings: Tensor,
-    blocks: Vec<Qwen3MoeBlock>,
-    final_norm: Tensor,
-    language_model_head: Tensor,
+    pub(crate) config: Qwen3MoeConfig,
+    pub(crate) token_embeddings: Tensor,
+    pub(crate) blocks: Vec<Qwen3MoeBlock>,
+    pub(crate) final_norm: Tensor,
+    pub(crate) language_model_head: Tensor,
 }
 
 impl Qwen3MoeModel {
