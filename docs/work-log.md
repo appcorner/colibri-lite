@@ -838,3 +838,59 @@ implemented. Model maximum positions (40,960), tokenizer-declared length
 (131,072), and caller-configured runtime session capacity remain separate.
 
 Next task: M4.1-08 - generate hashes and a reproducible conversion manifest.
+
+## 2026-07-15 - M4.1-08 unified model manifest and M4.1 closure
+
+Date: 2026-07-15
+
+Starting task: M4.1-08 - generate hashes and a reproducible conversion
+manifest.
+
+Completed task: M4.1-08 and milestone M4.1. Added deterministic root artifact
+format `colibri-lite-model` version 1, a standard-library generator, strict
+metadata/full validators, synthetic failure tests, ADR 0018, task/closure
+reports, and compact non-canonical build evidence. Existing dense, expert,
+tokenizer, `ArtifactManifest`, and `ExpertStore` contracts remain unchanged.
+
+Canonical evidence: Two independent generations produced the same 11,395 bytes
+and root SHA-256
+`f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2`.
+The root contains 57 unique canonical relative file records and no timestamp,
+absolute/local path, temporary directory, user/host name, or build identity.
+Regeneration after moving the complete directory produced the same bytes/hash.
+
+Closure footprint: 122,147,678,312 logical bytes across 58 files including the
+root manifest. Components are 12,786 source-provenance bytes; 6,164,520,354
+dense bytes across a manifest and 435-tensor payload; 115,967,247,918 expert
+bytes across a manifest and 48 shards for 6,144 experts; and 15,885,859
+tokenizer bytes across its manifest and four assets.
+
+Validation evidence: Metadata mode passed after hashing 19,187,816 bytes across
+9 files and checking sizes/cross-references for every required file. Full mode
+passed after hashing 122,147,678,312 bytes across all 58 files. Metadata
+validation passed after moving the real complete artifact, and synthetic full
+validation passed after relocation.
+
+Tests: Four grouped synthetic tests cover deterministic generation, metadata
+and full validation, relocation, missing/renamed/truncated/corrupted files,
+hash/size mismatch, missing/duplicate expert shards, unsupported versions,
+incompatible architecture/model type, unknown critical root fields, and
+incomplete temporary output. All tests passed.
+
+Commands executed: Two canonical generations; canonical-environment audit;
+real metadata/full validation; real relocation and post-move regeneration;
+`python -m unittest python\reference\test_model_artifact_manifest.py -v`;
+`cargo fmt --all --check`, `cargo check --workspace`,
+`cargo test --workspace`,
+`cargo clippy --workspace --all-targets -- -D warnings`, and
+`cargo run -p clr-cli`.
+
+Standard verification: All 118 workspace tests passed with zero failures or
+ignored tests. Clippy passed with warnings denied and the CLI smoke reported
+`bootstrap ready`.
+
+Known issues: The F32 artifact requires approximately 113.76 GiB. Rust text
+tokenization, chat rendering, quantization, mmap, SIMD, GPU work, performance
+optimization, and full-model numerical inference remain unimplemented.
+
+Next task: M4.2-01 - validate selected tensor values against Safetensors.

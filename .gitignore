@@ -16,6 +16,8 @@
 !/models/qwen3-30b-a3b/tokenizer-artifact-manifest-v1.json
 !/models/qwen3-30b-a3b/tokenizer-reference-v1.json
 !/models/qwen3-30b-a3b/tokenizer-evidence-v1.json
+!/models/qwen3-30b-a3b/model-manifest-v1.json
+!/models/qwen3-30b-a3b/model-manifest-evidence-v1.json
 /.idea/
 /.vscode/
 *.pdb

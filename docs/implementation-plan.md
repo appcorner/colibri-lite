@@ -348,6 +348,8 @@ resident-memory budget.
 
 #### M4.1 - Full-model artifact conversion
 
+Status: complete.
+
 Scope:
 
 - Pin one exact upstream model revision.

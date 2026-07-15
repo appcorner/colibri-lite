@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-15",
+  "model_id": "Qwen/Qwen3-30B-A3B",
+  "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+  "canonical_root": {
+    "path": "model-manifest-v1.json",
+    "bytes": 11395,
+    "sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "format": "colibri-lite-model",
+    "format_version": 1,
+    "canonical_relative_file_records": 57,
+    "unique_relative_file_records": 57,
+    "absolute_path_count": 0,
+    "timestamp_field_count": 0,
+    "local_identity_field_count": 0
+  },
+  "components": {
+    "source": {"files": 1, "bytes": 12786},
+    "dense": {
+      "files": 2,
+      "bytes": 6164520354,
+      "tensor_count": 435,
+      "manifest_sha256": "aff0f4c59a71b98590bd2a1efc4e3fd6a95d58794063ce4b1092acce1597bc54",
+      "payload_sha256": "bfad7fdc0f8611537ca5751f8e7140c35cf72bb4e67934b02d99711c89640893"
+    },
+    "experts": {
+      "files": 49,
+      "bytes": 115967247918,
+      "manifest_sha256": "9c581c6c46ecf830e7d0dd0e380d26b17803784f009b37ef2657ae34d06b2939",
+      "ordered_shard_set_sha256": "b90d537f5c0c202b2bf5db0e74b8bf8b9ba9ea5378d788733d2bf9e11d36bf91",
+      "shard_count": 48,
+      "logical_expert_count": 6144,
+      "source_tensor_count": 18432
+    },
+    "tokenizer": {
+      "files": 5,
+      "bytes": 15885859,
+      "manifest_sha256": "a66c5b39331656b1a3befd2d695265f15bdc5f16226fbbf7794bfb5ae9220c5e",
+      "asset_file_count": 4
+    }
+  },
+  "footprint": {
+    "component_files": 57,
+    "component_bytes": 122147666917,
+    "complete_files_including_root": 58,
+    "complete_bytes_including_root": 122147678312
+  },
+  "generation": {
+    "independent_runs": 2,
+    "byte_identical": true,
+    "hash_identical": true,
+    "relocated_generation_identical": true
+  },
+  "metadata_validation": {
+    "status": "passed",
+    "hashed_files_including_root": 9,
+    "hashed_bytes_including_root": 19187816,
+    "all_required_file_sizes_checked": true,
+    "component_cross_references_checked": true
+  },
+  "full_validation": {
+    "status": "passed",
+    "hashed_files_including_root": 58,
+    "hashed_bytes_including_root": 122147678312,
+    "elapsed_seconds": 207.7
+  },
+  "relocation": {
+    "complete_directory_moved": true,
+    "metadata_validation_after_move": "passed",
+    "full_validation_after_move": "passed in synthetic fixture",
+    "canonical_hash_after_move": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2"
+  },
+  "tests": {
+    "grouped_test_count": 4,
+    "status": "passed",
+    "failure_cases": [
+      "missing file",
+      "renamed file",
+      "truncated file",
+      "same-size corrupted payload",
+      "hash mismatch",
+      "size mismatch",
+      "missing expert shard",
+      "duplicate expert shard",
+      "unsupported root version",
+      "unsupported dense component version",
+      "incompatible architecture",
+      "incompatible model type",
+      "unknown critical root field",
+      "incomplete temporary output"
+    ]
+  },
+  "tools": {
+    "generator": {
+      "path": "python/reference/model_artifact_manifest.py",
+      "bytes": 28776,
+      "sha256": "f70eb2adc87052f7be18b1b22caa051c4a094d7051bfc55be999e9ee761bf3fa"
+    },
+    "tests": {
+      "path": "python/reference/test_model_artifact_manifest.py",
+      "bytes": 9265,
+      "sha256": "aee31ab52550b671c23af5211994c499f64d80590b29db899840d438859d4899"
+    },
+    "dependencies_added": false,
+    "unsafe_added": false,
+    "public_api_changed": false
+  },
+  "standard_verification": {
+    "status": "passed",
+    "workspace_tests": 118,
+    "failed_tests": 0,
+    "ignored_tests": 0,
+    "clippy_warnings": 0,
+    "cli_smoke": "bootstrap ready",
+    "commands": [
+      "cargo fmt --all --check",
+      "cargo check --workspace",
+      "cargo test --workspace",
+      "cargo clippy --workspace --all-targets -- -D warnings",
+      "cargo run -p clr-cli"
+    ]
+  },
+  "excluded": [
+    "model conversion",
+    "inference",
+    "quantization",
+    "memory mapping",
+    "SIMD",
+    "GPU work",
+    "tokenizer algorithms",
+    "performance optimization"
+  ]
+}
