@@ -1,0 +1,12 @@
+format_version	1
+tensor	attention_mask	F32	1176	64	1,1,4,4
+tensor	attention_output	F32	1240	32768	4,2048
+tensor	embedding_output	F32	34008	32768	4,2048
+tensor	input_ids	I64	856	32	4
+tensor	input_rmsnorm	F32	66776	32768	4,2048
+tensor	position_ids	I64	888	32	4
+tensor	post_attention_rmsnorm	F32	99544	32768	4,2048
+tensor	residual_output	F32	132312	32768	4,2048
+tensor	router_logits	F32	165080	2048	4,128
+tensor	routing_weights	F32	167128	128	4,8
+tensor	selected_expert_ids	I64	920	256	4,8

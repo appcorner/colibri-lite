@@ -96,39 +96,35 @@ impl Qwen3MoeBlock {
             });
         }
 
-        let input_norm = rms_norm(
+        let pre_router = pre_router_with_weights(
             hidden_states,
             self.weights.input_norm.view(),
-            self.config.rms_norm_epsilon(),
-        )?;
-        let attention_output = attention(input_norm.view(), self.config, &self.weights)?;
-        let after_attention = elementwise_add(hidden_states, attention_output.view())?;
-        let post_attention_norm = rms_norm(
-            after_attention.view(),
+            self.weights.query_projection.view(),
+            self.weights.key_projection.view(),
+            self.weights.value_projection.view(),
+            self.weights.output_projection.view(),
+            self.weights.query_norm.view(),
+            self.weights.key_norm.view(),
             self.weights.post_attention_norm.view(),
-            self.config.rms_norm_epsilon(),
-        )?;
-        let router = route_tokens(
-            post_attention_norm.view(),
             self.weights.router.view(),
             self.config,
         )?;
         let moe_output = routed_experts(
-            post_attention_norm.view(),
+            pre_router.post_attention_norm.view(),
             self.weights.expert_gate_up.view(),
             self.weights.expert_down.view(),
-            &router,
+            &pre_router.router,
             self.config,
         )?;
-        let block_output = elementwise_add(after_attention.view(), moe_output.view())?;
+        let block_output = elementwise_add(pre_router.residual_output.view(), moe_output.view())?;
 
         Ok(Qwen3MoeBlockOutput {
-            input_norm,
-            attention_output,
-            post_attention_norm,
-            router_logits: router.logits,
-            routing_weights: router.weights,
-            selected_experts: router.selected_experts,
+            input_norm: pre_router.input_norm,
+            attention_output: pre_router.attention_output,
+            post_attention_norm: pre_router.post_attention_norm,
+            router_logits: pre_router.router.logits,
+            routing_weights: pre_router.router.weights,
+            selected_experts: pre_router.router.selected_experts,
             moe_output,
             block_output,
         })
@@ -140,6 +136,55 @@ pub(crate) struct RouterOutput {
     pub(crate) logits: Tensor,
     pub(crate) weights: Tensor,
     pub(crate) selected_experts: Vec<usize>,
+}
+
+pub(crate) struct PreRouterOutput {
+    pub(crate) input_norm: Tensor,
+    pub(crate) attention_output: Tensor,
+    pub(crate) residual_output: Tensor,
+    pub(crate) post_attention_norm: Tensor,
+    pub(crate) router: RouterOutput,
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn pre_router_with_weights(
+    hidden_states: TensorView<'_>,
+    input_norm_weight: TensorView<'_>,
+    query_weight: TensorView<'_>,
+    key_weight: TensorView<'_>,
+    value_weight: TensorView<'_>,
+    output_weight: TensorView<'_>,
+    query_norm_weight: TensorView<'_>,
+    key_norm_weight: TensorView<'_>,
+    post_attention_norm_weight: TensorView<'_>,
+    router_weight: TensorView<'_>,
+    config: Qwen3MoeConfig,
+) -> Result<PreRouterOutput, RuntimeError> {
+    let input_norm = rms_norm(hidden_states, input_norm_weight, config.rms_norm_epsilon())?;
+    let attention_output = attention_with_weights(
+        input_norm.view(),
+        config,
+        query_weight,
+        key_weight,
+        value_weight,
+        output_weight,
+        query_norm_weight,
+        key_norm_weight,
+    )?;
+    let residual_output = elementwise_add(hidden_states, attention_output.view())?;
+    let post_attention_norm = rms_norm(
+        residual_output.view(),
+        post_attention_norm_weight,
+        config.rms_norm_epsilon(),
+    )?;
+    let router = route_tokens(post_attention_norm.view(), router_weight, config)?;
+    Ok(PreRouterOutput {
+        input_norm,
+        attention_output,
+        residual_output,
+        post_attention_norm,
+        router,
+    })
 }
 
 pub(crate) fn rms_norm(
@@ -179,6 +224,7 @@ pub(crate) fn rms_norm(
     Tensor::new(input.shape().clone(), output)
 }
 
+#[cfg(test)]
 pub(crate) fn attention(
     hidden_states: TensorView<'_>,
     config: Qwen3MoeConfig,

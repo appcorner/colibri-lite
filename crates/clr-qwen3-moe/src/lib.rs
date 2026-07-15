@@ -5,6 +5,8 @@ mod cache;
 mod config;
 mod dense_conversion;
 mod expert_conversion;
+#[cfg(all(test, feature = "full-model-validation"))]
+mod full_model_validation_tests;
 mod generation;
 mod model;
 mod session;

@@ -1,0 +1,331 @@
+{
+  "attention_mask": {
+    "allowed_value": 0.0,
+    "kind": "causal additive",
+    "masked_value": "minimum finite BF16",
+    "shape": [
+      1,
+      1,
+      4,
+      4
+    ]
+  },
+  "bf16_vs_f32": {
+    "attention_output": {
+      "maximum_absolute_difference": 0.0040149688720703125,
+      "maximum_relative_difference": 89.2898941040039
+    },
+    "input_rmsnorm": {
+      "maximum_absolute_difference": 0.00045756250619888306,
+      "maximum_relative_difference": 0.007500986102968454
+    },
+    "post_attention_rmsnorm": {
+      "maximum_absolute_difference": 0.01611185073852539,
+      "maximum_relative_difference": 1.5210785159442319e+35
+    },
+    "residual_output": {
+      "maximum_absolute_difference": 0.00400775671005249,
+      "maximum_relative_difference": 1.967021359190395e+34
+    },
+    "router_logits": {
+      "maximum_absolute_difference": 0.03326892852783203,
+      "maximum_relative_difference": 0.005133951548486948
+    },
+    "routing_weights": {
+      "maximum_absolute_difference": 0.0019285976886749268,
+      "maximum_relative_difference": 0.011961575597524643
+    }
+  },
+  "checkpoint_file": {
+    "bytes": 167256,
+    "sha256": "6d08447259e276aedd1e0bdff56d495cf575e0382cbd3e58ea0c09f1745d8e29"
+  },
+  "checkpoint_inventory": {
+    "attention_mask": {
+      "bytes": 64,
+      "dtype": "float32",
+      "shape": [
+        1,
+        1,
+        4,
+        4
+      ]
+    },
+    "attention_output": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "embedding_output": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "input_ids": {
+      "bytes": 32,
+      "dtype": "int64",
+      "shape": [
+        4
+      ]
+    },
+    "input_rmsnorm": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "position_ids": {
+      "bytes": 32,
+      "dtype": "int64",
+      "shape": [
+        4
+      ]
+    },
+    "post_attention_rmsnorm": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "residual_output": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "router_logits": {
+      "bytes": 2048,
+      "dtype": "float32",
+      "shape": [
+        4,
+        128
+      ]
+    },
+    "routing_weights": {
+      "bytes": 128,
+      "dtype": "float32",
+      "shape": [
+        4,
+        8
+      ]
+    },
+    "selected_expert_ids": {
+      "bytes": 256,
+      "dtype": "int64",
+      "shape": [
+        4,
+        8
+      ]
+    }
+  },
+  "control_compute_dtype": "F32",
+  "determinism": {
+    "attention_implementation": "eager",
+    "device": "cpu",
+    "gradient_tracking": false,
+    "module_mode": "eval",
+    "seed": 0,
+    "torch_deterministic_algorithms": true,
+    "torch_interop_threads": 1,
+    "torch_threads": 1
+  },
+  "environment": {
+    "python": "3.12.10",
+    "safetensors": "0.8.0",
+    "torch": "2.12.1+cpu",
+    "transformers": "5.12.1"
+  },
+  "execution_seconds": 0.0165705000035814,
+  "expert_execution": false,
+  "f32_correctness_tolerance": {
+    "default": {
+      "absolute": 1e-06,
+      "relative": 1e-05
+    },
+    "router_logits": {
+      "absolute": 1e-07,
+      "relative": 1e-06
+    }
+  },
+  "input_token_ids": [
+    9707,
+    11,
+    1879,
+    0
+  ],
+  "layer": 0,
+  "model_id": "Qwen/Qwen3-30B-A3B",
+  "position_ids": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+  "router_boundaries": [
+    {
+      "expert_ids": [
+        62,
+        21,
+        75,
+        87,
+        36,
+        126,
+        34,
+        91
+      ],
+      "highest_unselected_logit": -3.7143404483795166,
+      "kth_selected_logit": -3.667461395263672,
+      "routing_weights": [
+        0.2957717776298523,
+        0.15278638899326324,
+        0.14915664494037628,
+        0.13744115829467773,
+        0.07047730684280396,
+        0.06607351452112198,
+        0.06558515876531601,
+        0.06270808726549149
+      ],
+      "selected_logits": [
+        -2.116363763809204,
+        -2.7769110202789307,
+        -2.800954818725586,
+        -2.882755994796753,
+        -3.550661087036133,
+        -3.6151838302612305,
+        -3.6226024627685547,
+        -3.667461395263672
+      ],
+      "selection_margin": 0.04687905311584473,
+      "token_index": 0,
+      "top_k_boundary_tied": false
+    },
+    {
+      "expert_ids": [
+        114,
+        44,
+        26,
+        65,
+        59,
+        104,
+        83,
+        69
+      ],
+      "highest_unselected_logit": -3.7184572219848633,
+      "kth_selected_logit": -3.6951115131378174,
+      "routing_weights": [
+        0.2734129726886749,
+        0.19796636700630188,
+        0.15590135753154755,
+        0.1222735345363617,
+        0.11137653142213821,
+        0.05315236747264862,
+        0.04394473135471344,
+        0.041972335427999496
+      ],
+      "selected_logits": [
+        -1.821138858795166,
+        -2.1440250873565674,
+        -2.3828988075256348,
+        -2.625861644744873,
+        -2.719205617904663,
+        -3.4589595794677734,
+        -3.6491894721984863,
+        -3.6951115131378174
+      ],
+      "selection_margin": 0.0233457088470459,
+      "token_index": 1,
+      "top_k_boundary_tied": false
+    },
+    {
+      "expert_ids": [
+        87,
+        105,
+        110,
+        91,
+        25,
+        54,
+        41,
+        21
+      ],
+      "highest_unselected_logit": -3.615557909011841,
+      "kth_selected_logit": -3.584653854370117,
+      "routing_weights": [
+        0.27160003781318665,
+        0.13891589641571045,
+        0.13093341886997223,
+        0.12815167009830475,
+        0.09862831979990005,
+        0.08810261636972427,
+        0.07373103499412537,
+        0.06993695348501205
+      ],
+      "selected_logits": [
+        -2.227917432785034,
+        -2.898379325866699,
+        -2.957559108734131,
+        -2.9790334701538086,
+        -3.240889549255371,
+        -3.353745698928833,
+        -3.5318241119384766,
+        -3.584653854370117
+      ],
+      "selection_margin": 0.030904054641723633,
+      "token_index": 2,
+      "top_k_boundary_tied": false
+    },
+    {
+      "expert_ids": [
+        98,
+        65,
+        99,
+        114,
+        100,
+        72,
+        40,
+        96
+      ],
+      "highest_unselected_logit": -3.4770712852478027,
+      "kth_selected_logit": -3.443150520324707,
+      "routing_weights": [
+        0.3791462182998657,
+        0.1323743611574173,
+        0.10289736837148666,
+        0.09715346246957779,
+        0.08958639204502106,
+        0.07592591643333435,
+        0.06914587318897247,
+        0.05377044528722763
+      ],
+      "selected_logits": [
+        -1.489952564239502,
+        -2.542240619659424,
+        -2.794142484664917,
+        -2.8515827655792236,
+        -2.932671070098877,
+        -3.098116397857666,
+        -3.1916561126708984,
+        -3.443150520324707
+      ],
+      "selection_margin": 0.0339207649230957,
+      "token_index": 3,
+      "top_k_boundary_tied": false
+    }
+  ],
+  "schema_version": 1,
+  "source_storage_dtype": "BF16",
+  "status": "f32_control_export_passed",
+  "weight_derivation": "exact BF16 values decoded to F32; no different pretrained weights"
+}
