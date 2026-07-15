@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-15",
+  "model_id": "Qwen/Qwen3-30B-A3B",
+  "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+  "reference": {
+    "transformers": "5.12.1",
+    "tokenizer_class": "Qwen2Tokenizer",
+    "fast_backend": true,
+    "local_files_only": true,
+    "add_special_tokens": false,
+    "skip_special_tokens_on_decode": false,
+    "clean_up_tokenization_spaces": false
+  },
+  "cases": [
+    {
+      "name": "english",
+      "text": "Hello, world! Qwen3 tokenizer.",
+      "token_ids": [9707, 11, 1879, 0, 1207, 16948, 18, 45958, 13],
+      "decoded": "Hello, world! Qwen3 tokenizer.",
+      "exact_round_trip": true
+    },
+    {
+      "name": "thai",
+      "text": "\u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35\u0e04\u0e23\u0e31\u0e1a \u0e42\u0e25\u0e01\u0e19\u0e35\u0e49\u0e2a\u0e27\u0e22\u0e07\u0e32\u0e21",
+      "token_ids": [143126, 23271, 125136, 28319, 123886, 83546, 220, 126397, 20184, 124032, 135324],
+      "decoded": "\u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35\u0e04\u0e23\u0e31\u0e1a \u0e42\u0e25\u0e01\u0e19\u0e35\u0e49\u0e2a\u0e27\u0e22\u0e07\u0e32\u0e21",
+      "exact_round_trip": true
+    },
+    {
+      "name": "source_code",
+      "text": "fn main() {\n    println!(\"hello\");\n}\n",
+      "token_ids": [8822, 1887, 368, 341, 262, 13751, 17223, 14990, 797, 532],
+      "decoded": "fn main() {\n    println!(\"hello\");\n}\n",
+      "exact_round_trip": true
+    },
+    {
+      "name": "whitespace_newlines",
+      "text": "  leading\tmiddle  \n\ntrailing \n",
+      "token_ids": [220, 6388, 2109, 3310, 18611, 376, 14277, 715],
+      "decoded": "  leading\tmiddle  \n\ntrailing \n",
+      "exact_round_trip": true
+    },
+    {
+      "name": "unicode_emoji",
+      "text": "Caf\u00e9 na\u00efve \u2014 \u6771\u4eac \ud83d\ude80\ud83d\ude42",
+      "token_ids": [34, 2577, 963, 94880, 586, 1959, 60596, 109, 46553, 11162, 248, 222, 145080],
+      "decoded": "Caf\u00e9 na\u00efve \u2014 \u6771\u4eac \ud83d\ude80\ud83d\ude42",
+      "exact_round_trip": true
+    },
+    {
+      "name": "special_tokens",
+      "text": "<|im_start|>user\nHello<|im_end|>\n",
+      "token_ids": [151644, 872, 198, 9707, 151645, 198],
+      "decoded": "<|im_start|>user\nHello<|im_end|>\n",
+      "exact_round_trip": true
+    },
+    {
+      "name": "empty",
+      "text": "",
+      "token_ids": [],
+      "decoded": "",
+      "exact_round_trip": true
+    }
+  ]
+}

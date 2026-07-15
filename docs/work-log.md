@@ -786,3 +786,55 @@ optimized kernels, and full-model generation remain unimplemented.
 
 Next task: M4.1-07 - include tokenizer assets required for the first full-model
 test.
+
+## 2026-07-15 - M4.1-07 pinned offline tokenizer assets
+
+Date: 2026-07-15
+
+Starting task: M4.1-07 - include tokenizer assets required for the first
+full-model test.
+
+Completed task: M4.1-07. Added all four canonical Qwen3-30B-A3B tokenizer
+assets from the approved immutable revision, a versioned artifact manifest, a
+frozen seven-case reference fixture, and an offline-only verification adapter.
+ADR 0017, the task report, and compact evidence record the byte-level BPE
+contract, vocabulary and added-token metadata, special IDs, chat-template hash,
+separate length concepts, provenance, and dependency decision.
+
+Artifact evidence: `tokenizer.json`, `tokenizer_config.json`, `vocab.json`, and
+`merges.txt` total 15,881,072 bytes. All sizes and SHA-256 hashes match ADR 0011
+at revision `ad44e777bcd18fa416d9da3bd8f70d33ebb85d39`. The tokenizer has
+151,643 base entries, 151,387 merges, 26 added tokens, and 151,669 total entries
+against the model's separate 151,936 vocabulary size. The 4,168-byte preserved
+chat template hashes to
+`a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8`.
+
+Reference evidence: The existing Transformers 5.12.1/tokenizers 0.22.2 oracle
+loaded only committed local files with Hugging Face offline mode forced. Exact
+token IDs, decoded text, and round trips matched 7/7 cases covering English,
+Thai, source code/indentation, whitespace/newlines, Unicode/emoji, special
+tokens, and empty input.
+
+Dependency decision: No Cargo or Python dependency, native library, unsafe
+boundary, or public API was added. Rust inference remains token-ID based. A
+production Rust Unicode-regex/BPE tokenizer and chat-template renderer remain
+deferred for separate review; no chat framework, tool calling, or API was
+implemented.
+
+Commands executed: Pinned HTTPS downloads for four tokenizer files only;
+source-contract size/hash reconciliation; tokenizer JSON/vocabulary/merge,
+added-token, special-ID, limit, and chat-template inspection;
+`python python\reference\verify_tokenizer.py`; `cargo fmt --all --check`,
+`cargo check --workspace`, `cargo test --workspace`,
+`cargo clippy --workspace --all-targets -- -D warnings`, and
+`cargo run -p clr-cli`.
+
+Tests: Offline tokenizer verification passed all seven exact comparison cases.
+All 118 workspace tests passed with zero failures or ignored tests. Clippy
+passed with warnings denied and the CLI smoke reported `bootstrap ready`.
+
+Known issues: Rust text tokenization and chat-template rendering are not
+implemented. Model maximum positions (40,960), tokenizer-declared length
+(131,072), and caller-configured runtime session capacity remain separate.
+
+Next task: M4.1-08 - generate hashes and a reproducible conversion manifest.

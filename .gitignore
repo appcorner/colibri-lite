@@ -9,6 +9,13 @@
 !/models/qwen3-30b-a3b/dense-conversion-evidence-v1.json
 !/models/qwen3-30b-a3b/expert-source-plan-v1.tsv
 !/models/qwen3-30b-a3b/expert-conversion-evidence-v1.json
+!/models/qwen3-30b-a3b/tokenizer.json
+!/models/qwen3-30b-a3b/tokenizer_config.json
+!/models/qwen3-30b-a3b/vocab.json
+!/models/qwen3-30b-a3b/merges.txt
+!/models/qwen3-30b-a3b/tokenizer-artifact-manifest-v1.json
+!/models/qwen3-30b-a3b/tokenizer-reference-v1.json
+!/models/qwen3-30b-a3b/tokenizer-evidence-v1.json
 /.idea/
 /.vscode/
 *.pdb

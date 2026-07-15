@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-15",
+  "model_id": "Qwen/Qwen3-30B-A3B",
+  "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+  "license": "Apache-2.0",
+  "canonical_asset_bytes": 15881072,
+  "files": [
+    {"path": "tokenizer.json", "bytes": 11422654, "sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4", "verified": true},
+    {"path": "tokenizer_config.json", "bytes": 9732, "sha256": "d5d09f07b48c3086c508b30d1c9114bd1189145b74e982a265350c923acd8101", "verified": true},
+    {"path": "vocab.json", "bytes": 2776833, "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910", "verified": true},
+    {"path": "merges.txt", "bytes": 1671853, "sha256": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5", "verified": true}
+  ],
+  "sidecars": {
+    "artifact_manifest": {
+      "path": "tokenizer-artifact-manifest-v1.json",
+      "bytes": 4787,
+      "sha256": "a66c5b39331656b1a3befd2d695265f15bdc5f16226fbbf7794bfb5ae9220c5e"
+    },
+    "reference_fixture": {
+      "path": "tokenizer-reference-v1.json",
+      "bytes": 2391,
+      "sha256": "d410f890f324866043b4610b83e84f76c338d5e5b992161884a1aaedef93c909"
+    },
+    "offline_adapter": {
+      "path": "python/reference/verify_tokenizer.py",
+      "bytes": 7787,
+      "sha256": "ed754ca7c82b91717588f562c4cf64c168c3e25546c2cfde3ca3bc62349f672e"
+    }
+  },
+  "tokenizer": {
+    "class": "Qwen2Tokenizer",
+    "type": "NFC-normalized byte-level BPE",
+    "base_vocabulary_size": 151643,
+    "merge_count": 151387,
+    "added_token_count": 26,
+    "special_added_token_count": 14,
+    "total_tokenizer_entries": 151669,
+    "model_vocabulary_size": 151936,
+    "tokenizer_bos_id": null,
+    "tokenizer_eos_id": 151645,
+    "tokenizer_pad_id": 151643,
+    "tokenizer_unk_id": null,
+    "model_config_bos_id": 151643,
+    "model_config_eos_id": 151645
+  },
+  "limits": {
+    "model_max_positions": 40960,
+    "tokenizer_declared_max_length": 131072,
+    "runtime_session_capacity": null,
+    "kept_separate": true
+  },
+  "chat_template": {
+    "preserved": true,
+    "rendering_implemented": false,
+    "bytes": 4168,
+    "sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8"
+  },
+  "reference_environment": {
+    "python": "3.12.10",
+    "transformers": "5.12.1",
+    "tokenizers": "0.22.2",
+    "os": "Windows-11-10.0.26200-SP0",
+    "offline_environment": true,
+    "local_files_only": true
+  },
+  "reference_results": {
+    "case_count": 7,
+    "exact_encode_matches": 7,
+    "exact_decode_matches": 7,
+    "exact_round_trips": 7,
+    "cases": [
+      {"name": "english", "token_count": 9, "exact": true},
+      {"name": "thai", "token_count": 11, "exact": true},
+      {"name": "source_code", "token_count": 10, "exact": true},
+      {"name": "whitespace_newlines", "token_count": 8, "exact": true},
+      {"name": "unicode_emoji", "token_count": 13, "exact": true},
+      {"name": "special_tokens", "token_count": 6, "exact": true},
+      {"name": "empty", "token_count": 0, "exact": true}
+    ]
+  },
+  "dependency_decision": {
+    "cargo_dependency_added": false,
+    "python_dependency_added": false,
+    "native_library_added": false,
+    "unsafe_added": false,
+    "public_api_changed": false
+  },
+  "standard_verification": {
+    "status": "passed",
+    "workspace_tests": 118,
+    "failed_tests": 0,
+    "ignored_tests": 0,
+    "clippy_warnings": 0,
+    "cli_smoke": "bootstrap ready",
+    "commands": [
+      "cargo fmt --all --check",
+      "cargo check --workspace",
+      "cargo test --workspace",
+      "cargo clippy --workspace --all-targets -- -D warnings",
+      "cargo run -p clr-cli"
+    ]
+  },
+  "excluded": [
+    "Rust text tokenizer API",
+    "chat-template rendering",
+    "tool calling",
+    "OpenAI-compatible API",
+    "model weight changes",
+    "quantization",
+    "memory mapping",
+    "SIMD",
+    "GPU work",
+    "performance optimization",
+    "full-model inference"
+  ]
+}
