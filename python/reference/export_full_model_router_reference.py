@@ -138,22 +138,24 @@ def execute_pre_router(
     position_ids: torch.Tensor,
     mask: torch.Tensor,
     dtype: torch.dtype,
+    layer_index: int = 0,
 ) -> tuple[dict[str, torch.Tensor], float]:
+    prefix = f"model.layers.{layer_index}"
     with torch.device("meta"):
         input_norm = Qwen3MoeRMSNorm(2048, eps=1.0e-6)
-        attention = Qwen3MoeAttention(config, 0)
+        attention = Qwen3MoeAttention(config, layer_index)
         post_norm = Qwen3MoeRMSNorm(2048, eps=1.0e-6)
         router = Qwen3MoeTopKRouter(config)
     rotary = Qwen3MoeRotaryEmbedding(config, device="cpu")
-    assign_weight(input_norm, "weight", loaded["model.layers.0.input_layernorm.weight"].to(dtype))
-    assign_weight(attention, "q_proj.weight", loaded["model.layers.0.self_attn.q_proj.weight"].to(dtype))
-    assign_weight(attention, "k_proj.weight", loaded["model.layers.0.self_attn.k_proj.weight"].to(dtype))
-    assign_weight(attention, "v_proj.weight", loaded["model.layers.0.self_attn.v_proj.weight"].to(dtype))
-    assign_weight(attention, "o_proj.weight", loaded["model.layers.0.self_attn.o_proj.weight"].to(dtype))
-    assign_weight(attention, "q_norm.weight", loaded["model.layers.0.self_attn.q_norm.weight"].to(dtype))
-    assign_weight(attention, "k_norm.weight", loaded["model.layers.0.self_attn.k_norm.weight"].to(dtype))
-    assign_weight(post_norm, "weight", loaded["model.layers.0.post_attention_layernorm.weight"].to(dtype))
-    assign_weight(router, "weight", loaded["model.layers.0.mlp.gate.weight"].to(dtype))
+    assign_weight(input_norm, "weight", loaded[f"{prefix}.input_layernorm.weight"].to(dtype))
+    assign_weight(attention, "q_proj.weight", loaded[f"{prefix}.self_attn.q_proj.weight"].to(dtype))
+    assign_weight(attention, "k_proj.weight", loaded[f"{prefix}.self_attn.k_proj.weight"].to(dtype))
+    assign_weight(attention, "v_proj.weight", loaded[f"{prefix}.self_attn.v_proj.weight"].to(dtype))
+    assign_weight(attention, "o_proj.weight", loaded[f"{prefix}.self_attn.o_proj.weight"].to(dtype))
+    assign_weight(attention, "q_norm.weight", loaded[f"{prefix}.self_attn.q_norm.weight"].to(dtype))
+    assign_weight(attention, "k_norm.weight", loaded[f"{prefix}.self_attn.k_norm.weight"].to(dtype))
+    assign_weight(post_norm, "weight", loaded[f"{prefix}.post_attention_layernorm.weight"].to(dtype))
+    assign_weight(router, "weight", loaded[f"{prefix}.mlp.gate.weight"].to(dtype))
     for module in (input_norm, attention, post_norm, router, rotary):
         module.eval()
 
@@ -227,6 +229,31 @@ def router_boundaries(run: dict[str, torch.Tensor]) -> list[dict[str, Any]]:
             }
         )
     return boundaries
+
+
+def reference_config() -> Qwen3MoeConfig:
+    config = Qwen3MoeConfig(
+        vocab_size=151936,
+        hidden_size=2048,
+        intermediate_size=6144,
+        num_hidden_layers=48,
+        num_attention_heads=32,
+        num_key_value_heads=4,
+        head_dim=128,
+        max_position_embeddings=40960,
+        rms_norm_eps=1.0e-6,
+        rope_theta=1_000_000.0,
+        attention_bias=False,
+        attention_dropout=0.0,
+        use_sliding_window=False,
+        sliding_window=None,
+        moe_intermediate_size=768,
+        num_experts_per_tok=8,
+        num_experts=128,
+        norm_topk_prob=True,
+    )
+    config._attn_implementation = "eager"
+    return config
 
 
 def checkpoint_plan(path: Path) -> bytes:
@@ -309,27 +336,7 @@ def export(args: argparse.Namespace) -> dict[str, Any]:
     torch.set_num_threads(contract["determinism"]["torch_threads"])
     torch.set_num_interop_threads(contract["determinism"]["torch_interop_threads"])
     torch.use_deterministic_algorithms(contract["determinism"]["torch_deterministic_algorithms"])
-    config = Qwen3MoeConfig(
-        vocab_size=151936,
-        hidden_size=2048,
-        intermediate_size=6144,
-        num_hidden_layers=48,
-        num_attention_heads=32,
-        num_key_value_heads=4,
-        head_dim=128,
-        max_position_embeddings=40960,
-        rms_norm_eps=1.0e-6,
-        rope_theta=1_000_000.0,
-        attention_bias=False,
-        attention_dropout=0.0,
-        use_sliding_window=False,
-        sliding_window=None,
-        moe_intermediate_size=768,
-        num_experts_per_tok=8,
-        num_experts=128,
-        norm_topk_prob=True,
-    )
-    config._attn_implementation = "eager"
+    config = reference_config()
     sequence_length = len(contract["input_token_ids"])
     position_ids = torch.tensor([contract["position_ids"]], dtype=torch.long)
     mask = torch.zeros((1, 1, sequence_length, sequence_length), dtype=torch.bfloat16)

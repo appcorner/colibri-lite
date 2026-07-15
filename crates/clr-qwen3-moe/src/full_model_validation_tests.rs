@@ -1,17 +1,25 @@
+#![allow(clippy::float_cmp, clippy::too_many_lines)]
+
 use std::{
     collections::{HashMap, HashSet},
     env,
+    fmt::Write as _,
     fs::{self, File},
     io::{Read, Seek, SeekFrom, Write},
     path::PathBuf,
     time::Instant,
 };
 
-use clr_core::{Tensor, TensorShape};
+use clr_core::{DataType, Tensor, TensorShape, ops::elementwise_add};
+use clr_storage::{
+    ARTIFACT_FORMAT_VERSION, ArtifactManifest, ArtifactReader, ByteOrder, ExpertId, ExpertKey,
+    ExpertRegistration, ExpertStore, TensorLocation, TensorMetadata,
+};
 
 use crate::{
     PINNED_QWEN3_30B_A3B_CONFIG,
     block::{PreRouterOutput, pre_router_with_weights, route_tokens},
+    streaming::{PackedExpertLayout, streaming_routed_experts_with_observer},
 };
 
 const RUNTIME_PLAN: &str = include_str!(concat!(
@@ -34,9 +42,40 @@ const F32_CHECKPOINTS: &[u8] = include_bytes!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../../models/qwen3-30b-a3b/m4.2-02-transformers-f32-layer0.safetensors"
 ));
+const LAYER1_RUNTIME_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-02-layer1-dense-runtime-plan-v1.tsv"
+));
+const LAYER0_EXPERT_RUNTIME_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-02-layer0-selected-expert-runtime-plan-v1.tsv"
+));
+const LAYER1_BF16_CHECKPOINT_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-02-layer1-transformers-bf16-checkpoint-plan-v1.tsv"
+));
+const LAYER1_BF16_CHECKPOINTS: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-02-layer1-transformers-bf16-v1.safetensors"
+));
+const LAYER1_F32_CHECKPOINT_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-02-layer1-transformers-f32-checkpoint-plan-v1.tsv"
+));
+const LAYER1_F32_CHECKPOINTS: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-02-layer1-transformers-f32-v1.safetensors"
+));
 const INPUT_IDS: [usize; 4] = [9707, 11, 1879, 0];
 const POSITION_IDS: [usize; 4] = [0, 1, 2, 3];
-const POST_NORM_PROPAGATED_ABSOLUTE_BUDGET: f32 = 4.255_092_6e-6;
+const POST_NORM_PROPAGATED_ABSOLUTE_BUDGET: f32 = 4.255_093e-6;
+const LAYER1_INPUT_MAXIMUM_ERROR: f32 = 1.907_348_6e-6;
+const LAYER1_INPUT_NORM_BUDGET: f32 = 6.222_046e-6;
+const LAYER1_ATTENTION_BUDGET: f32 = 2.123_415_5e-6;
+const LAYER1_RESIDUAL_BUDGET: f32 = 4.030_764e-6;
+const LAYER1_POST_NORM_BUDGET: f32 = 6.222_046e-6;
+const LAYER1_ROUTER_LOGIT_BUDGET: f32 = 2.217_292_8e-5;
+const LAYER1_ROUTING_WEIGHT_BUDGET: f32 = 1.0e-6;
 
 #[derive(Debug, Clone)]
 struct RangeRecord {
@@ -58,7 +97,7 @@ struct CheckpointRecord {
     range: RangeRecord,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 struct StageMetrics {
     maximum_absolute_difference: f32,
     maximum_relative_difference: f32,
@@ -71,11 +110,11 @@ fn parse_shape(value: &str) -> Vec<usize> {
         .collect()
 }
 
-fn runtime_plan() -> RuntimePlan {
+fn runtime_plan(source: &str) -> RuntimePlan {
     let mut payload = None;
     let mut payload_length = None;
     let mut tensors = HashMap::new();
-    for line in RUNTIME_PLAN.lines() {
+    for line in source.lines() {
         let fields: Vec<_> = line.split('\t').collect();
         match fields[0] {
             "payload" => {
@@ -190,6 +229,94 @@ fn embedding_rows(file: &mut File, plan: &RuntimePlan, bytes_read: &mut u64) -> 
     Tensor::new(TensorShape::new([4, 2048]), data).expect("embedding rows")
 }
 
+struct LayerWeights {
+    input_norm: Tensor,
+    query: Tensor,
+    key: Tensor,
+    value: Tensor,
+    output: Tensor,
+    query_norm: Tensor,
+    key_norm: Tensor,
+    post_norm: Tensor,
+    router: Tensor,
+}
+
+fn layer_weights(
+    file: &mut File,
+    plan: &RuntimePlan,
+    layer: usize,
+    bytes_read: &mut u64,
+) -> LayerWeights {
+    let prefix = format!("model.layers.{layer}");
+    let mut read =
+        |suffix: &str| artifact_tensor(file, plan, &format!("{prefix}.{suffix}"), bytes_read);
+    LayerWeights {
+        input_norm: read("input_layernorm.weight"),
+        query: read("self_attn.q_proj.weight"),
+        key: read("self_attn.k_proj.weight"),
+        value: read("self_attn.v_proj.weight"),
+        output: read("self_attn.o_proj.weight"),
+        query_norm: read("self_attn.q_norm.weight"),
+        key_norm: read("self_attn.k_norm.weight"),
+        post_norm: read("post_attention_layernorm.weight"),
+        router: read("mlp.gate.weight"),
+    }
+}
+
+fn decode_sha256(value: &str) -> [u8; 32] {
+    assert_eq!(value.len(), 64, "SHA-256 text length");
+    let mut output = [0_u8; 32];
+    for (index, byte) in output.iter_mut().enumerate() {
+        *byte = u8::from_str_radix(&value[index * 2..index * 2 + 2], 16)
+            .expect("lowercase SHA-256 hex");
+    }
+    output
+}
+
+fn selected_expert_store(artifact_root: &std::path::Path) -> ExpertStore {
+    let mut metadata = Vec::new();
+    let mut registrations = Vec::new();
+    for line in LAYER0_EXPERT_RUNTIME_PLAN.lines() {
+        let fields: Vec<_> = line.split('\t').collect();
+        if fields[0] != "expert" {
+            continue;
+        }
+        assert_eq!(fields.len(), 8, "invalid selected-expert plan record");
+        let layer_index: u32 = fields[1].parse().expect("expert layer");
+        let expert_id: u32 = fields[2].parse().expect("expert ID");
+        let name = fields[3].to_owned();
+        let length: u64 = fields[6].parse().expect("expert payload length");
+        assert_eq!(layer_index, 0, "only Layer-0 experts may be registered");
+        assert_eq!(length, 18_874_368, "packed expert payload length");
+        metadata.push(TensorMetadata {
+            name: name.clone(),
+            shape: TensorShape::new([
+                usize::try_from(length / 4).expect("expert F32 element count")
+            ]),
+            data_type: DataType::F32,
+            location: TensorLocation {
+                path: fields[4].into(),
+                offset: fields[5].parse().expect("expert payload offset"),
+                length,
+            },
+            sha256: decode_sha256(fields[7]),
+        });
+        registrations.push(ExpertRegistration {
+            key: ExpertKey {
+                layer_index,
+                expert_id: ExpertId(expert_id),
+            },
+            tensor_name: name,
+        });
+    }
+    assert_eq!(registrations.len(), 27, "selected Layer-0 expert count");
+    let manifest = ArtifactManifest::new(ARTIFACT_FORMAT_VERSION, ByteOrder::Little, metadata)
+        .expect("selected expert artifact manifest");
+    let reader = ArtifactReader::open(artifact_root.join("experts"), manifest)
+        .expect("canonical selected expert reader");
+    ExpertStore::new(reader, registrations, 18_874_368).expect("one-expert cache budget")
+}
+
 fn checkpoint_f32(bytes: &[u8], plan: &HashMap<String, CheckpointRecord>, name: &str) -> Tensor {
     let record = &plan[name];
     assert_eq!(record.data_type, "F32", "checkpoint {name} dtype");
@@ -219,7 +346,7 @@ fn checkpoint_ids(
 }
 
 fn assert_stage(
-    stage: &'static str,
+    stage: &str,
     actual: &Tensor,
     expected: &Tensor,
     absolute_tolerance: f32,
@@ -288,7 +415,7 @@ fn measure_stage(actual: &Tensor, expected: &Tensor) -> StageMetrics {
 }
 
 fn compare_three_paths(
-    stage: &'static str,
+    stage: &str,
     rust: &Tensor,
     bf16: &Tensor,
     f32_control: &Tensor,
@@ -307,7 +434,7 @@ fn compare_three_paths(
 }
 
 fn record_three_paths(
-    stage: &'static str,
+    stage: &str,
     rust: &Tensor,
     bf16: &Tensor,
     f32_control: &Tensor,
@@ -385,7 +512,6 @@ fn export_rms_diagnostics(residual: &Tensor, post_norm: &Tensor, epsilon: f32) {
         let plus = mean + epsilon;
         let square_root = plus.sqrt();
         let reciprocal = square_root.recip();
-        use std::fmt::Write as _;
         writeln!(
             &mut rows,
             "{token}\t{sum:.17e}\t{mean:.17e}\t{epsilon:.17e}\t{plus:.17e}\t{square_root:.17e}\t{reciprocal:.17e}\t{:08x}\t{:08x}\t{:08x}\t{:08x}\t{:08x}",
@@ -428,6 +554,7 @@ fn validate_router_boundaries(
     f32_logits: &Tensor,
     bf16_ids: &[usize],
     f32_ids: &[usize],
+    evidence_file: &str,
 ) -> Vec<&'static str> {
     let expert_count = 128;
     let top_k = 8;
@@ -521,7 +648,6 @@ fn validate_router_boundaries(
         println!(
             "router_boundary token={token} classification={classification} bf16_classification={bf16_classification} ids_assertable={ids_assertable} transformers_bf16_ids={bf16_selected:?} transformers_f32_ids={f32_selected:?} rust_ids={actual_selected:?} transformers_bf16_selected_logits={bf16_selected_logits:?} transformers_f32_selected_logits={f32_selected_logits:?} rust_selected_logits={rust_selected_logits:?} kth={kth} highest_unselected={highest_unselected} margin={margin} bf16_kth={bf16_kth} bf16_highest_unselected={bf16_highest_unselected} bf16_margin={bf16_margin} f32_vs_rust_max_logit_error={f32_vs_rust_maximum_error} bf16_vs_rust_max_logit_error={bf16_vs_rust_maximum_error} bf16_vs_f32_max_logit_error={bf16_vs_f32_maximum_error} required_margin={required_margin} bf16_required_margin={bf16_required_margin}"
         );
-        use std::fmt::Write as _;
         writeln!(
             evidence,
             "{token}\t{classification}\t{bf16_classification}\t{f32_vs_rust_maximum_error:.17e}\t{bf16_vs_rust_maximum_error:.17e}\t{bf16_vs_f32_maximum_error:.17e}\t{required_margin:.17e}\t{bf16_required_margin:.17e}\t{kth:.17e}\t{highest_unselected:.17e}\t{margin:.17e}\t{bf16_kth:.17e}\t{bf16_highest_unselected:.17e}\t{bf16_margin:.17e}\t{}\t{}\t{}\t{}\t{}\t{}",
@@ -538,10 +664,7 @@ fn validate_router_boundaries(
     let root = env::var_os("COLIBRI_RMS_DIAGNOSTIC_ROOT")
         .map(PathBuf::from)
         .expect("COLIBRI_RMS_DIAGNOSTIC_ROOT must be set for router evidence");
-    atomic_diagnostic(
-        &root.join("m4.2-02-rust-layer0-router-evidence-v1.tsv"),
-        evidence.as_bytes(),
-    );
+    atomic_diagnostic(&root.join(evidence_file), evidence.as_bytes());
     assertable
 }
 
@@ -554,7 +677,7 @@ fn pinned_layer_zero_pre_router_matches_transformers() {
         artifact_root.is_absolute(),
         "artifact root must be absolute"
     );
-    let plan = runtime_plan();
+    let plan = runtime_plan(RUNTIME_PLAN);
     let payload_path = artifact_root.join(&plan.payload);
     let mut payload = File::open(&payload_path).expect("open canonical dense payload");
     assert_eq!(
@@ -756,6 +879,7 @@ fn pinned_layer_zero_pre_router_matches_transformers() {
         &reference_logits,
         &bf16_ids,
         &f32_ids,
+        "m4.2-02-rust-layer0-router-evidence-v1.tsv",
     );
     let routing_metrics = record_three_paths(
         "routing_weights",
@@ -800,5 +924,397 @@ fn pinned_layer_zero_pre_router_matches_transformers() {
         post_norm_metrics.maximum_relative_difference,
         router_metrics.maximum_relative_difference,
         routing_metrics.maximum_relative_difference,
+    );
+}
+
+#[test]
+fn pinned_layer_one_router_uses_genuine_streaming_layer_zero_output() {
+    let artifact_root = env::var_os("COLIBRI_ARTIFACT_ROOT")
+        .map(PathBuf::from)
+        .expect("COLIBRI_ARTIFACT_ROOT must name the stable canonical artifact");
+    assert!(
+        artifact_root.is_absolute(),
+        "artifact root must be absolute"
+    );
+    let plan = runtime_plan(LAYER1_RUNTIME_PLAN);
+    let mut payload = File::open(artifact_root.join(&plan.payload)).expect("open dense payload");
+    assert_eq!(
+        payload.metadata().expect("dense payload metadata").len(),
+        plan.payload_length,
+        "dense payload length"
+    );
+    let bf16_plan = checkpoint_plan(LAYER1_BF16_CHECKPOINT_PLAN);
+    let f32_plan = checkpoint_plan(LAYER1_F32_CHECKPOINT_PLAN);
+    assert_eq!(
+        checkpoint_ids(LAYER1_F32_CHECKPOINTS, &f32_plan, "input_ids"),
+        INPUT_IDS
+    );
+    assert_eq!(
+        checkpoint_ids(LAYER1_F32_CHECKPOINTS, &f32_plan, "position_ids"),
+        POSITION_IDS
+    );
+
+    let mut dense_bytes_read = 0_u64;
+    let embedding = embedding_rows(&mut payload, &plan, &mut dense_bytes_read);
+    let layer0 = layer_weights(&mut payload, &plan, 0, &mut dense_bytes_read);
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("pinned runtime config")
+        .runtime_config();
+    let started = Instant::now();
+    let layer0_pre_router = pre_router_with_weights(
+        embedding.view(),
+        layer0.input_norm.view(),
+        layer0.query.view(),
+        layer0.key.view(),
+        layer0.value.view(),
+        layer0.output.view(),
+        layer0.query_norm.view(),
+        layer0.key_norm.view(),
+        layer0.post_norm.view(),
+        layer0.router.view(),
+        config,
+    )
+    .expect("Layer-0 pre-router execution");
+
+    let bf16_layer0_ids = checkpoint_ids(
+        LAYER1_BF16_CHECKPOINTS,
+        &bf16_plan,
+        "layer0_selected_expert_ids",
+    );
+    let f32_layer0_ids = checkpoint_ids(
+        LAYER1_F32_CHECKPOINTS,
+        &f32_plan,
+        "layer0_selected_expert_ids",
+    );
+    assert_eq!(bf16_layer0_ids, f32_layer0_ids, "Layer-0 reference IDs");
+    assert_eq!(
+        layer0_pre_router.router.selected_experts, f32_layer0_ids,
+        "approved Layer-0 Rust expert IDs changed"
+    );
+    compare_three_paths(
+        "layer0_expert_input",
+        &layer0_pre_router.post_attention_norm,
+        &checkpoint_f32(LAYER1_BF16_CHECKPOINTS, &bf16_plan, "layer0_expert_input"),
+        &checkpoint_f32(LAYER1_F32_CHECKPOINTS, &f32_plan, "layer0_expert_input"),
+        POST_NORM_PROPAGATED_ABSOLUTE_BUDGET,
+        0.0,
+    );
+    compare_three_paths(
+        "layer0_routing_weights",
+        &layer0_pre_router.router.weights,
+        &checkpoint_f32(
+            LAYER1_BF16_CHECKPOINTS,
+            &bf16_plan,
+            "layer0_routing_weights",
+        ),
+        &checkpoint_f32(LAYER1_F32_CHECKPOINTS, &f32_plan, "layer0_routing_weights"),
+        1.0e-6,
+        1.0e-5,
+    );
+
+    let mut store = selected_expert_store(&artifact_root);
+    let mut observed_expert_outputs = HashMap::new();
+    let expert_layout = PackedExpertLayout::for_config(config);
+    let layer0_moe = streaming_routed_experts_with_observer(
+        layer0_pre_router.post_attention_norm.view(),
+        &layer0_pre_router.router,
+        config,
+        0,
+        &mut store,
+        expert_layout,
+        |expert, token, position, values| {
+            let name = format!("layer0_expert_output_t{token}_p{position}_e{expert}");
+            let tensor = Tensor::new(TensorShape::new([2048]), values.to_vec())
+                .expect("observed expert output");
+            assert!(
+                observed_expert_outputs.insert(name, tensor).is_none(),
+                "duplicate observed expert output"
+            );
+        },
+    )
+    .expect("stream selected Layer-0 experts");
+    assert_eq!(observed_expert_outputs.len(), 32, "expert occurrence count");
+
+    let mut expert_evidence = String::from(
+        "checkpoint\tmaximum_f32_vs_rust_absolute_error\tmaximum_f32_vs_rust_relative_error\n",
+    );
+    for token in 0..4 {
+        for position in 0..8 {
+            let expert = layer0_pre_router.router.selected_experts[token * 8 + position];
+            let name = format!("layer0_expert_output_t{token}_p{position}_e{expert}");
+            let metrics = compare_three_paths(
+                &name,
+                &observed_expert_outputs[&name],
+                &checkpoint_f32(LAYER1_BF16_CHECKPOINTS, &bf16_plan, &name),
+                &checkpoint_f32(LAYER1_F32_CHECKPOINTS, &f32_plan, &name),
+                1.0e-6,
+                1.0e-5,
+            );
+            writeln!(
+                expert_evidence,
+                "{name}\t{:.17e}\t{:.17e}",
+                metrics.maximum_absolute_difference, metrics.maximum_relative_difference,
+            )
+            .expect("write selected expert evidence");
+        }
+    }
+
+    let layer0_moe_metrics = compare_three_paths(
+        "layer0_moe_output",
+        &layer0_moe,
+        &checkpoint_f32(LAYER1_BF16_CHECKPOINTS, &bf16_plan, "layer0_moe_output"),
+        &checkpoint_f32(LAYER1_F32_CHECKPOINTS, &f32_plan, "layer0_moe_output"),
+        1.0e-6,
+        1.0e-5,
+    );
+    let layer0_block = elementwise_add(layer0_pre_router.residual_output.view(), layer0_moe.view())
+        .expect("Layer-0 final residual");
+    let layer0_block_metrics = compare_three_paths(
+        "layer0_block_output",
+        &layer0_block,
+        &checkpoint_f32(LAYER1_BF16_CHECKPOINTS, &bf16_plan, "layer0_block_output"),
+        &checkpoint_f32(LAYER1_F32_CHECKPOINTS, &f32_plan, "layer0_block_output"),
+        1.0e-6,
+        1.0e-5,
+    );
+    let cache_metrics = store.metrics();
+    writeln!(
+        expert_evidence,
+        "layer0_moe_output\t{:.17e}\t{:.17e}",
+        layer0_moe_metrics.maximum_absolute_difference,
+        layer0_moe_metrics.maximum_relative_difference,
+    )
+    .expect("write Layer-0 MoE evidence");
+    writeln!(
+        expert_evidence,
+        "layer0_block_output\t{:.17e}\t{:.17e}",
+        layer0_block_metrics.maximum_absolute_difference,
+        layer0_block_metrics.maximum_relative_difference,
+    )
+    .expect("write Layer-0 block evidence");
+    writeln!(
+        expert_evidence,
+        "cache\thits={}\tmisses={}\tloads={}\tevictions={}\tresident_bytes={}\tpeak_resident_bytes={}\tbytes_read={}",
+        cache_metrics.hits,
+        cache_metrics.misses,
+        cache_metrics.loads,
+        cache_metrics.evictions,
+        cache_metrics.resident_bytes,
+        cache_metrics.peak_resident_bytes,
+        cache_metrics.bytes_read,
+    )
+    .expect("write Layer-0 cache evidence");
+    let diagnostic_root = env::var_os("COLIBRI_RMS_DIAGNOSTIC_ROOT")
+        .map(PathBuf::from)
+        .expect("diagnostic root for Layer-0 expert evidence");
+    atomic_diagnostic(
+        &diagnostic_root.join("m4.2-02-rust-layer0-expert-evidence-v1.tsv"),
+        expert_evidence.as_bytes(),
+    );
+
+    let layer1 = layer_weights(&mut payload, &plan, 1, &mut dense_bytes_read);
+    let layer1_pre_router = pre_router_with_weights(
+        layer0_block.view(),
+        layer1.input_norm.view(),
+        layer1.query.view(),
+        layer1.key.view(),
+        layer1.value.view(),
+        layer1.output.view(),
+        layer1.query_norm.view(),
+        layer1.key_norm.view(),
+        layer1.post_norm.view(),
+        layer1.router.view(),
+        config,
+    )
+    .expect("Layer-1 pre-router execution");
+    let layer1_input_metrics = compare_three_paths(
+        "layer1_input",
+        &layer0_block,
+        &checkpoint_f32(LAYER1_BF16_CHECKPOINTS, &bf16_plan, "layer1_input"),
+        &checkpoint_f32(LAYER1_F32_CHECKPOINTS, &f32_plan, "layer1_input"),
+        1.0e-6,
+        1.0e-5,
+    );
+    assert_eq!(
+        layer1_input_metrics.maximum_absolute_difference, LAYER1_INPUT_MAXIMUM_ERROR,
+        "frozen genuine Layer-1 incoming error changed"
+    );
+    let layer1_input_norm_metrics = compare_three_paths(
+        "layer1_input_rmsnorm",
+        &layer1_pre_router.input_norm,
+        &checkpoint_f32(LAYER1_BF16_CHECKPOINTS, &bf16_plan, "layer1_input_rmsnorm"),
+        &checkpoint_f32(LAYER1_F32_CHECKPOINTS, &f32_plan, "layer1_input_rmsnorm"),
+        LAYER1_INPUT_NORM_BUDGET,
+        0.0,
+    );
+    let layer1_attention_metrics = compare_three_paths(
+        "layer1_attention_output",
+        &layer1_pre_router.attention_output,
+        &checkpoint_f32(
+            LAYER1_BF16_CHECKPOINTS,
+            &bf16_plan,
+            "layer1_attention_output",
+        ),
+        &checkpoint_f32(LAYER1_F32_CHECKPOINTS, &f32_plan, "layer1_attention_output"),
+        LAYER1_ATTENTION_BUDGET,
+        0.0,
+    );
+    let layer1_residual_metrics = compare_three_paths(
+        "layer1_residual_output",
+        &layer1_pre_router.residual_output,
+        &checkpoint_f32(
+            LAYER1_BF16_CHECKPOINTS,
+            &bf16_plan,
+            "layer1_residual_output",
+        ),
+        &checkpoint_f32(LAYER1_F32_CHECKPOINTS, &f32_plan, "layer1_residual_output"),
+        LAYER1_RESIDUAL_BUDGET,
+        0.0,
+    );
+    let layer1_post_norm_metrics = compare_three_paths(
+        "layer1_post_attention_rmsnorm",
+        &layer1_pre_router.post_attention_norm,
+        &checkpoint_f32(
+            LAYER1_BF16_CHECKPOINTS,
+            &bf16_plan,
+            "layer1_post_attention_rmsnorm",
+        ),
+        &checkpoint_f32(
+            LAYER1_F32_CHECKPOINTS,
+            &f32_plan,
+            "layer1_post_attention_rmsnorm",
+        ),
+        LAYER1_POST_NORM_BUDGET,
+        0.0,
+    );
+    let bf16_layer1_logits =
+        checkpoint_f32(LAYER1_BF16_CHECKPOINTS, &bf16_plan, "layer1_router_logits");
+    let f32_layer1_logits =
+        checkpoint_f32(LAYER1_F32_CHECKPOINTS, &f32_plan, "layer1_router_logits");
+    let layer1_router_metrics = compare_three_paths(
+        "layer1_router_logits",
+        &layer1_pre_router.router.logits,
+        &bf16_layer1_logits,
+        &f32_layer1_logits,
+        LAYER1_ROUTER_LOGIT_BUDGET,
+        0.0,
+    );
+    let bf16_layer1_ids = checkpoint_ids(
+        LAYER1_BF16_CHECKPOINTS,
+        &bf16_plan,
+        "layer1_selected_expert_ids",
+    );
+    let f32_layer1_ids = checkpoint_ids(
+        LAYER1_F32_CHECKPOINTS,
+        &f32_plan,
+        "layer1_selected_expert_ids",
+    );
+    let classifications = validate_router_boundaries(
+        &layer1_pre_router,
+        &bf16_layer1_logits,
+        &f32_layer1_logits,
+        &bf16_layer1_ids,
+        &f32_layer1_ids,
+        "m4.2-02-rust-layer1-router-evidence-v1.tsv",
+    );
+    let layer1_routing_metrics = compare_three_paths(
+        "layer1_routing_weights",
+        &layer1_pre_router.router.weights,
+        &checkpoint_f32(
+            LAYER1_BF16_CHECKPOINTS,
+            &bf16_plan,
+            "layer1_routing_weights",
+        ),
+        &checkpoint_f32(LAYER1_F32_CHECKPOINTS, &f32_plan, "layer1_routing_weights"),
+        LAYER1_ROUTING_WEIGHT_BUDGET,
+        0.0,
+    );
+
+    let mut checkpoint_evidence = String::from(
+        "checkpoint\tmaximum_f32_vs_rust_absolute_error\tabsolute_budget\tmaximum_f32_vs_rust_relative_error\n",
+    );
+    for (name, metrics, budget) in [
+        (
+            "layer1_input",
+            layer1_input_metrics,
+            LAYER1_INPUT_MAXIMUM_ERROR,
+        ),
+        (
+            "layer1_input_rmsnorm",
+            layer1_input_norm_metrics,
+            LAYER1_INPUT_NORM_BUDGET,
+        ),
+        (
+            "layer1_attention_output",
+            layer1_attention_metrics,
+            LAYER1_ATTENTION_BUDGET,
+        ),
+        (
+            "layer1_residual_output",
+            layer1_residual_metrics,
+            LAYER1_RESIDUAL_BUDGET,
+        ),
+        (
+            "layer1_post_attention_rmsnorm",
+            layer1_post_norm_metrics,
+            LAYER1_POST_NORM_BUDGET,
+        ),
+        (
+            "layer1_router_logits",
+            layer1_router_metrics,
+            LAYER1_ROUTER_LOGIT_BUDGET,
+        ),
+        (
+            "layer1_routing_weights",
+            layer1_routing_metrics,
+            LAYER1_ROUTING_WEIGHT_BUDGET,
+        ),
+    ] {
+        writeln!(
+            checkpoint_evidence,
+            "{name}\t{:.17e}\t{budget:.17e}\t{:.17e}",
+            metrics.maximum_absolute_difference, metrics.maximum_relative_difference,
+        )
+        .expect("write Layer-1 checkpoint evidence");
+    }
+    let runtime_elements = embedding.data().len()
+        + layer0_pre_router.input_norm.data().len()
+        + layer0_pre_router.attention_output.data().len()
+        + layer0_pre_router.residual_output.data().len()
+        + layer0_pre_router.post_attention_norm.data().len()
+        + layer0_pre_router.router.logits.data().len()
+        + layer0_pre_router.router.weights.data().len()
+        + observed_expert_outputs
+            .values()
+            .map(|tensor| tensor.data().len())
+            .sum::<usize>()
+        + layer0_moe.data().len()
+        + layer0_block.data().len()
+        + layer1_pre_router.input_norm.data().len()
+        + layer1_pre_router.attention_output.data().len()
+        + layer1_pre_router.residual_output.data().len()
+        + layer1_pre_router.post_attention_norm.data().len()
+        + layer1_pre_router.router.logits.data().len()
+        + layer1_pre_router.router.weights.data().len()
+        + bf16_layer1_logits.data().len()
+        + f32_layer1_logits.data().len();
+    let peak_explicit_bytes = usize::try_from(dense_bytes_read).expect("dense bytes fit usize")
+        + runtime_elements * 4
+        + cache_metrics.peak_resident_bytes
+        + expert_layout.total_byte_length;
+    writeln!(
+        checkpoint_evidence,
+        "resources\tdense_bytes_read={dense_bytes_read}\texpert_bytes_read={}\texpert_peak_resident_bytes={}\tpeak_explicit_bytes={peak_explicit_bytes}",
+        cache_metrics.bytes_read, cache_metrics.peak_resident_bytes,
+    )
+    .expect("write Layer-1 resource evidence");
+    atomic_diagnostic(
+        &diagnostic_root.join("m4.2-02-rust-layer1-checkpoint-evidence-v1.tsv"),
+        checkpoint_evidence.as_bytes(),
+    );
+    println!(
+        "layer1_end_to_end dense_bytes_read={dense_bytes_read} expert_metrics={cache_metrics:?} peak_explicit_bytes={peak_explicit_bytes} elapsed_seconds={} layer0_moe={layer0_moe_metrics:?} layer0_block={layer0_block_metrics:?} layer1_input={layer1_input_metrics:?} layer1_input_norm={layer1_input_norm_metrics:?} layer1_attention={layer1_attention_metrics:?} layer1_residual={layer1_residual_metrics:?} layer1_post_norm={layer1_post_norm_metrics:?} layer1_router={layer1_router_metrics:?} layer1_routing={layer1_routing_metrics:?} classifications={classifications:?}",
+        started.elapsed().as_secs_f64(),
     );
 }

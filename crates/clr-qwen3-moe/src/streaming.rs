@@ -219,6 +219,30 @@ pub(crate) fn streaming_routed_experts(
     store: &mut ExpertStore,
     layout: PackedExpertLayout,
 ) -> Result<Tensor, StreamingModelError> {
+    streaming_routed_experts_with_observer(
+        hidden_states,
+        router,
+        config,
+        layer_index,
+        store,
+        layout,
+        |_, _, _, _| {},
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn streaming_routed_experts_with_observer<F>(
+    hidden_states: TensorView<'_>,
+    router: &crate::block::RouterOutput,
+    config: Qwen3MoeConfig,
+    layer_index: usize,
+    store: &mut ExpertStore,
+    layout: PackedExpertLayout,
+    mut observe: F,
+) -> Result<Tensor, StreamingModelError>
+where
+    F: FnMut(usize, usize, usize, &[f32]),
+{
     let hidden_size = config.model().hidden_size();
     let intermediate = config.moe_intermediate_size();
     combine_routed_experts(
@@ -232,21 +256,21 @@ pub(crate) fn streaming_routed_experts(
             };
             let lease = store.load(key)?;
             let decoded = decode_payload(key, lease.bytes(), layout)?;
-            Ok(occurrences
-                .iter()
-                .map(|(token, _)| {
-                    let input =
-                        &hidden_states.data()[token * hidden_size..(token + 1) * hidden_size];
-                    expert_mlp(
-                        input,
-                        &decoded.gate,
-                        &decoded.up,
-                        &decoded.down,
-                        hidden_size,
-                        intermediate,
-                    )
-                })
-                .collect())
+            let mut outputs = Vec::with_capacity(occurrences.len());
+            for &(token, position) in occurrences {
+                let input = &hidden_states.data()[token * hidden_size..(token + 1) * hidden_size];
+                let output = expert_mlp(
+                    input,
+                    &decoded.gate,
+                    &decoded.up,
+                    &decoded.down,
+                    hidden_size,
+                    intermediate,
+                );
+                observe(expert_id, token, position, &output);
+                outputs.push(output);
+            }
+            Ok(outputs)
         },
     )
 }

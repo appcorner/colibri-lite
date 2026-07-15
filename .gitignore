@@ -33,6 +33,17 @@
 !/models/qwen3-30b-a3b/m4.2-02-rust-layer0-postnorm-f32.bin
 !/models/qwen3-30b-a3b/m4.2-02-rust-rms-row-diagnostics-v1.tsv
 !/models/qwen3-30b-a3b/m4.2-02-rust-layer0-router-evidence-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-02-rust-layer1-router-evidence-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-02-rust-layer0-expert-evidence-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-02-rust-layer1-checkpoint-evidence-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-02-layer0-selected-expert-runtime-plan-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-02-layer1-dense-runtime-plan-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-02-layer1-transformers-bf16-checkpoint-plan-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-02-layer1-transformers-bf16-evidence-v1.json
+!/models/qwen3-30b-a3b/m4.2-02-layer1-transformers-bf16-v1.safetensors
+!/models/qwen3-30b-a3b/m4.2-02-layer1-transformers-f32-checkpoint-plan-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-02-layer1-transformers-f32-evidence-v1.json
+!/models/qwen3-30b-a3b/m4.2-02-layer1-transformers-f32-v1.safetensors
 !/models/qwen3-30b-a3b/m4.2-02-rms-scalar-diagnostics-v1.json
 /.idea/
 /.vscode/
