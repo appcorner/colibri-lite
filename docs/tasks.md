@@ -274,7 +274,7 @@ Acceptance:
 
 ## M4.2 - Full-model correctness checkpoint
 
-- [ ] M4.2-01 Validate selected tensor values against Safetensors.
+- [x] M4.2-01 Validate selected tensor values against Safetensors.
 - [ ] M4.2-02 Validate selected layer router IDs against Transformers.
 - [ ] M4.2-03 Validate selected intermediate outputs.
 - [ ] M4.2-04 Run a short deterministic token sequence.

@@ -57,3 +57,24 @@ and final logits. Floating-point comparisons use `tolerances.json`; shapes,
 tensor names, input IDs, and expert IDs require exact equality.
 
 See [PROVENANCE.md](PROVENANCE.md) for source revisions and licensing.
+
+## Full-model tensor values
+
+M4.2-01 uses only the Python standard library to compare selected values from
+the pinned Qwen3-30B-A3B Safetensors shards with the stable F32 artifact. It
+hashes each selected source shard before reading payload samples and compares
+exact F32 bit patterns after deterministic BF16 decoding.
+
+```powershell
+python python\reference\validate_full_model_tensor_values.py `
+  --source-root D:\tmp\colibri-m4.1-05 `
+  --registry models\qwen3-30b-a3b\canonical-root-registry-v1.json `
+  --source-manifest models\qwen3-30b-a3b\source-manifest-v1.json `
+  --dense-plan models\qwen3-30b-a3b\dense-source-plan-v1.tsv `
+  --expert-plan models\qwen3-30b-a3b\expert-source-plan-v1.tsv `
+  --selection models\qwen3-30b-a3b\m4.2-01-tensor-selection-v1.json `
+  --output models\qwen3-30b-a3b\m4.2-01-tensor-evidence-v1.json
+```
+
+The command does not load a full tensor or create model payloads. Repeated runs
+require the existing evidence to be byte-identical.

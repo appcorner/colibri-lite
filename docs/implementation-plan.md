@@ -361,6 +361,8 @@ Scope:
 
 #### M4.2 - Full-model correctness checkpoint
 
+Status: in progress. M4.2-01 is complete.
+
 Scope:
 
 - Validate selected layers/tensors against Transformers before quantization.

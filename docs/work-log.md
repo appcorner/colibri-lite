@@ -957,3 +957,23 @@ cleanup tests, 3 source-validator tests, 118 Rust tests, formatting, workspace
 check, warning-free clippy, and CLI bootstrap passed.
 
 Next task: M4.2-01 - validate selected tensor values against Safetensors.
+
+## 2026-07-15 - M4.2-01 selected full-model tensor values
+
+Date: 2026-07-15
+
+Completed task: M4.2-01. Added a deterministic, standard-library validator that
+binds the stable canonical-root registry, pinned source provenance, dense and
+expert source plans, component manifests, and a versioned tensor selection.
+
+Validated 88 exact BF16-to-F32 bit samples across 13 dense tensors and 9
+gate/up/down projections for three experts spanning layers 0, 24, and 47.
+Selected source shards 0, 7, 14, and 15 were hash-verified across
+13,084,683,552 bytes before payload sampling. No value, shape, offset, dtype,
+orientation, or layout mismatch occurred.
+
+Two real runs produced identical 34,479-byte evidence with SHA-256
+`4c77a28a4ccc6fa764c5d7da64379f737278924caf65f295eb71930127818068`;
+the second run left the existing evidence unchanged.
+
+Next task: M4.2-02 - validate selected layer router IDs against Transformers.
