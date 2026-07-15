@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "model_id": "Qwen/Qwen3-30B-A3B",
+  "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+  "canonical_artifact_root": "D:\\models\\colibri-lite\\qwen3-30b-a3b\\artifact-v1",
+  "root_manifest_bytes": 11395,
+  "root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+  "canonical_file_count": 58
+}

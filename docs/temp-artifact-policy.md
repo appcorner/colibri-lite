@@ -24,6 +24,11 @@ Canonical source and artifact roots are separate from run directories. They
 are treated as read-only inputs. Tasks receive their paths explicitly and must
 reuse them rather than copying them into a run directory.
 
+The stable artifact root must be registered in the tracked model-specific
+canonical-root registry. Cleanup requires that registry as a separate input,
+rejects any plan naming a different canonical root, and rejects canonical roots
+inside the temporary namespace.
+
 ## Output lifecycle
 
 1. Write a final output to one sibling `.incomplete` path in the task run.
@@ -97,10 +102,13 @@ A successful task is not closed while an unreviewed run directory remains.
 
 ## Cleanup
 
-`scripts/cleanup_temp_artifacts.py` consumes a reviewed JSON plan. Dry-run is
-the default; deletion requires `--apply`. Before either mode it verifies:
+`scripts/cleanup_temp_artifacts.py` consumes a reviewed JSON plan and tracked
+canonical-root registry. Dry-run is the default; deletion requires `--apply`.
+Before either mode it verifies:
 
 - the canonical root manifest and all referenced final paths exist;
+- the canonical root is outside the temporary namespace and exactly matches the
+  registry path, manifest size/hash, and file count;
 - protected source paths exist;
 - every candidate remains within the declared temp root;
 - candidates do not overlap protected/canonical paths or one another;

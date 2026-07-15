@@ -18,6 +18,7 @@
 !/models/qwen3-30b-a3b/tokenizer-evidence-v1.json
 !/models/qwen3-30b-a3b/model-manifest-v1.json
 !/models/qwen3-30b-a3b/model-manifest-evidence-v1.json
+!/models/qwen3-30b-a3b/canonical-root-registry-v1.json
 /.idea/
 /.vscode/
 *.pdb

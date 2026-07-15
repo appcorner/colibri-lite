@@ -928,3 +928,32 @@ warning-free clippy, CLI bootstrap, all 5 cleanup safety tests, and
 
 Next: review the classification and cleanup decision. Do not resume M4.2-01
 until cleanup approval is recorded.
+
+## 2026-07-15 - stable artifact promotion and approved cleanup
+
+Date: 2026-07-15
+
+The conditional cleanup review was approved. Promoted the canonical artifact
+by same-volume directory rename to
+`D:\models\colibri-lite\qwen3-30b-a3b\artifact-v1`; no 122 GB payload copy was
+created. Added a tracked canonical-root registry and made cleanup require an
+exact registry match outside the temporary namespace.
+
+Pre-cleanup metadata and full-integrity validation passed at the stable root.
+The second dry-run matched exactly 11 approved paths, 117 files,
+244,392,722,124 logical bytes, 122,128,490,496 shared hard-link bytes, and
+122,264,231,628 expected last-link bytes. Applied only that reviewed set.
+
+Disk free bytes increased from 202,957,639,680 to 325,221,920,768. Logical
+bytes removed were 244,392,722,124; actual physical bytes reclaimed were
+122,264,281,088. All 11 candidates are absent. The stable 58-file artifact and
+17 pinned source files remain present.
+
+Post-cleanup metadata/full validation passed across all 122,147,678,312
+canonical bytes with root hash
+`f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2`.
+Pinned-source validation passed across 17 files and 61,068,275,406 bytes. All 6
+cleanup tests, 3 source-validator tests, 118 Rust tests, formatting, workspace
+check, warning-free clippy, and CLI bootstrap passed.
+
+Next task: M4.2-01 - validate selected tensor values against Safetensors.

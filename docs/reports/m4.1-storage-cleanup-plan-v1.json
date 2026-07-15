@@ -2,7 +2,7 @@
   "schema_version": 1,
   "generated_at": "2026-07-15",
   "temp_root": "D:\\tmp",
-  "canonical_artifact_root": "D:\\tmp\\colibri-m4.1-08-moved\\relocated-model-artifact-v1",
+  "canonical_artifact_root": "D:\\models\\colibri-lite\\qwen3-30b-a3b\\artifact-v1",
   "protected_paths": [
     "D:\\tmp\\colibri-m4.1-05\\model.safetensors.index.json",
     "D:\\tmp\\colibri-m4.1-05\\model-00001-of-00016.safetensors",

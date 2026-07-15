@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import shutil
@@ -22,6 +23,15 @@ PLAN_KEYS = {
     "protected_paths",
     "schema_version",
     "temp_root",
+}
+REGISTRY_KEYS = {
+    "canonical_artifact_root",
+    "canonical_file_count",
+    "model_id",
+    "revision",
+    "root_manifest_bytes",
+    "root_manifest_sha256",
+    "schema_version",
 }
 CANDIDATE_KEYS = {
     "classification",
@@ -123,6 +133,14 @@ def manifest_file_paths(canonical_root: Path) -> list[Path]:
     return output
 
 
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def load_plan(path: Path) -> dict[str, Any]:
     try:
         plan = json.loads(path.read_text(encoding="utf-8"))
@@ -135,16 +153,38 @@ def load_plan(path: Path) -> dict[str, Any]:
     return plan
 
 
-def validate_plan(plan: dict[str, Any]) -> tuple[Path, Path, list[dict[str, Any]]]:
+def load_registry(path: Path) -> dict[str, Any]:
+    try:
+        registry = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise CleanupError(f"cannot read canonical-root registry: {error}") from error
+    strict_keys(registry, REGISTRY_KEYS, "canonical-root registry")
+    require(registry["schema_version"] == 1, "unsupported canonical-root registry version")
+    require(isinstance(registry["canonical_file_count"], int), "canonical file count must be an integer")
+    require(isinstance(registry["root_manifest_bytes"], int), "root manifest bytes must be an integer")
+    expected_hash = registry["root_manifest_sha256"]
+    require(isinstance(expected_hash, str) and len(expected_hash) == 64, "registry root manifest hash is invalid")
+    return registry
+
+
+def validate_plan(
+    plan: dict[str, Any], registry: dict[str, Any]
+) -> tuple[Path, Path, list[dict[str, Any]]]:
     temp_root = resolved(plan["temp_root"])
     canonical_root = resolved(plan["canonical_artifact_root"])
+    registered_root = resolved(registry["canonical_artifact_root"])
     require(temp_root.is_dir(), f"temporary root is missing: {temp_root}")
     require(canonical_root.is_dir(), f"canonical artifact root is missing: {canonical_root}")
-    require(temp_root == canonical_root or temp_root in canonical_root.parents, "canonical root must be under the temporary volume root")
+    require(canonical_root == registered_root, "cleanup canonical root differs from registry")
+    require(not overlaps(temp_root, canonical_root), "canonical root must be outside the temporary root")
     protected = [canonical_root, *[resolved(value) for value in plan["protected_paths"]]]
     for path in protected:
         require(path.exists(), f"protected path is missing: {path}")
     referenced = manifest_file_paths(canonical_root)
+    manifest_path = canonical_root / "model-manifest-v1.json"
+    require(manifest_path.stat().st_size == registry["root_manifest_bytes"], "canonical root manifest size differs from registry")
+    require(sha256_file(manifest_path) == registry["root_manifest_sha256"], "canonical root manifest hash differs from registry")
+    require(len(set(referenced)) == registry["canonical_file_count"], "canonical file count differs from registry")
 
     validated: list[dict[str, Any]] = []
     candidate_paths: list[Path] = []
@@ -183,9 +223,10 @@ def delete_candidate(path: Path) -> None:
         shutil.rmtree(path)
 
 
-def execute(plan_path: Path, apply: bool = False) -> dict[str, Any]:
+def execute(plan_path: Path, registry_path: Path, apply: bool = False) -> dict[str, Any]:
     plan = load_plan(plan_path)
-    temp_root, canonical_root, candidates = validate_plan(plan)
+    registry = load_registry(registry_path)
+    temp_root, canonical_root, candidates = validate_plan(plan, registry)
     free_before = shutil.disk_usage(temp_root).free
     totals = {
         "file_count": sum(candidate["file_count"] for candidate in candidates),
@@ -206,6 +247,7 @@ def execute(plan_path: Path, apply: bool = False) -> dict[str, Any]:
         "candidate_count": len(candidates),
         "candidates": candidates,
         "canonical_artifact_root": str(canonical_root),
+        "canonical_root_registry": str(registry_path.resolve()),
         "disk_free_after": free_after,
         "disk_free_before": free_before,
         "disk_free_delta": free_after - free_before,
@@ -218,6 +260,7 @@ def execute(plan_path: Path, apply: bool = False) -> dict[str, Any]:
 def parse_arguments(arguments: Iterable[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plan", type=Path, required=True, help="reviewed JSON cleanup plan")
+    parser.add_argument("--registry", type=Path, required=True, help="canonical-root registry")
     parser.add_argument("--apply", action="store_true", help="perform deletion; default is dry-run")
     return parser.parse_args(arguments)
 
@@ -225,7 +268,7 @@ def parse_arguments(arguments: Iterable[str] | None = None) -> argparse.Namespac
 def main(arguments: Iterable[str] | None = None) -> int:
     args = parse_arguments(arguments)
     try:
-        result = execute(args.plan.resolve(), args.apply)
+        result = execute(args.plan.resolve(), args.registry.resolve(), args.apply)
     except CleanupError as error:
         print(f"cleanup refused: {error}", file=sys.stderr)
         return 1
