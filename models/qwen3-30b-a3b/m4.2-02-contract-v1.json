@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "model_id": "Qwen/Qwen3-30B-A3B",
+  "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+  "validated_layers": [0],
+  "input_token_ids": [9707, 11, 1879, 0],
+  "position_ids": [0, 1, 2, 3],
+  "attention_mask": {
+    "kind": "causal additive",
+    "shape": [1, 1, 4, 4],
+    "allowed_value": 0.0,
+    "masked_value": "minimum finite BF16"
+  },
+  "source_dtype": "BF16",
+  "runtime_dtype": "F32",
+  "environment": {
+    "python": "3.12.10",
+    "torch": "2.12.1+cpu",
+    "transformers": "5.12.1",
+    "safetensors": "0.8.0"
+  },
+  "determinism": {
+    "seed": 0,
+    "torch_deterministic_algorithms": true,
+    "torch_threads": 1,
+    "torch_interop_threads": 1,
+    "module_mode": "eval",
+    "attention_implementation": "eager",
+    "gradient_tracking": false,
+    "device": "cpu"
+  },
+  "tolerances": {
+    "embedding_output": {"absolute": 0.0, "relative": 0.0},
+    "input_rmsnorm": {"absolute": 0.008, "relative": 0.008},
+    "attention_output": {"absolute": 0.03, "relative": 0.03},
+    "residual_output": {"absolute": 0.03, "relative": 0.03},
+    "post_attention_rmsnorm": {"absolute": 0.015, "relative": 0.015},
+    "router_logits": {"absolute": 0.015625, "relative": 0.0},
+    "routing_weights": {"absolute": 0.01, "relative": 0.03}
+  },
+  "numerical_validation": {
+    "status": "provisional_for_m4.2",
+    "re_evaluate_after_layers": [1, 24, 47],
+    "internal_deterministic": {
+      "reference": "ordered scalar F32 with the Rust operation and storage order",
+      "scalar_intermediates": "bit_exact",
+      "outputs": "bit_exact",
+      "ids_shapes_indices_and_names": "exact"
+    },
+    "cross_runtime": {
+      "reduction_order": "runtime-specific and not a stable PyTorch public contract",
+      "isolated_rmsnorm": {
+        "observed_maximum_ulp": 5,
+        "provisional_maximum_ulp": 8,
+        "observed_maximum_absolute_error": 3.5762786865234375e-7,
+        "provisional_maximum_absolute_error": 5.0e-7
+      },
+      "post_attention_rmsnorm_propagated_budget": {
+        "incoming_checkpoint": "residual_output",
+        "observed_incoming_maximum_absolute_error": 1.2516975402832031e-6,
+        "incoming_error_safety_factor": 3.0,
+        "isolated_rmsnorm_absolute_guard": 5.0e-7,
+        "formula": "incoming_error_safety_factor * observed_incoming_maximum_absolute_error + isolated_rmsnorm_absolute_guard",
+        "provisional_maximum_absolute_error": 4.255092620849609e-6,
+        "observed_maximum_absolute_error": 3.993511199951172e-6
+      }
+    },
+    "adr": "docs/adr/0020-m4.2-numerical-validation-budgets.md"
+  },
+  "safe_margin_error_multiplier": 2.0,
+  "tie_policy_adr": "docs/adr/0019-deterministic-router-tie-policy.md"
+}
