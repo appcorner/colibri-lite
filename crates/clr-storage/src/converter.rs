@@ -10,8 +10,8 @@ use std::{
 use clr_core::{DataType, TensorShape};
 
 use crate::{
-    ARTIFACT_FORMAT_VERSION, ArtifactManifest, ByteOrder, StorageError, TensorLocation,
-    TensorMetadata, hash::Sha256,
+    ARTIFACT_FORMAT_VERSION, ArtifactManifest, ByteOrder, Sha256Hasher, StorageError,
+    TensorLocation, TensorMetadata,
 };
 
 /// Default source chunk size used by the unoptimized correctness converter.
@@ -412,7 +412,7 @@ fn write_payload(
     let mut writer = BufWriter::new(file);
     let mut source_buffer = vec![0_u8; spec.source_chunk_bytes];
     let mut output_buffer = vec![0_u8; spec.source_chunk_bytes * 2];
-    let mut payload_hasher = Sha256::new();
+    let mut payload_hasher = Sha256Hasher::new();
     let mut artifact_tensors = Vec::with_capacity(tensors.len());
     let mut artifact_offset = 0_u64;
     for source_tensor in tensors {
@@ -453,12 +453,12 @@ fn write_tensor(
     writer: &mut impl Write,
     source_buffer: &mut [u8],
     output_buffer: &mut [u8],
-    payload_hasher: &mut Sha256,
+    payload_hasher: &mut Sha256Hasher,
     payload_path: &Path,
 ) -> Result<(TensorMetadata, u64), DenseConversionError> {
     let mut source = open_source_tensor(spec, source_tensor)?;
     let mut remaining = source_tensor.length;
-    let mut tensor_hasher = Sha256::new();
+    let mut tensor_hasher = Sha256Hasher::new();
     while remaining != 0 {
         let read_length = usize::try_from(remaining.min(spec.source_chunk_bytes as u64))
             .map_err(|_| overflow("source chunk length"))?;
@@ -640,7 +640,7 @@ fn verify_source_shards(
         let file = File::open(&shard.path)
             .map_err(|source| io_error("open source shard", shard.path.clone(), source))?;
         let mut reader = BufReader::new(file);
-        let mut hasher = Sha256::new();
+        let mut hasher = Sha256Hasher::new();
         loop {
             let read = reader
                 .read(&mut buffer)
@@ -878,7 +878,7 @@ fn hex(hash: &[u8; 32]) -> String {
 }
 
 fn hash_bytes(bytes: &[u8]) -> [u8; 32] {
-    let mut hasher = Sha256::new();
+    let mut hasher = Sha256Hasher::new();
     hasher.update(bytes);
     hasher.finalize()
 }

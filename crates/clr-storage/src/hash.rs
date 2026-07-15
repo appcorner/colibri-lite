@@ -76,16 +76,19 @@ const ROUND_CONSTANTS: [u32; 64] = [
     0xc671_78f2,
 ];
 
+/// Incremental dependency-free SHA-256 state for bounded artifact I/O.
 #[derive(Debug, Clone)]
-pub(crate) struct Sha256 {
+pub struct Sha256Hasher {
     state: [u32; 8],
     buffer: [u8; 64],
     buffer_length: usize,
     total_bytes: u64,
 }
 
-impl Sha256 {
-    pub(crate) const fn new() -> Self {
+impl Sha256Hasher {
+    /// Creates an empty SHA-256 state.
+    #[must_use]
+    pub const fn new() -> Self {
         Self {
             state: INITIAL_STATE,
             buffer: [0; 64],
@@ -94,7 +97,8 @@ impl Sha256 {
         }
     }
 
-    pub(crate) fn update(&mut self, mut input: &[u8]) {
+    /// Appends bytes to the digest state.
+    pub fn update(&mut self, mut input: &[u8]) {
         self.total_bytes = self.total_bytes.wrapping_add(input.len() as u64);
         if self.buffer_length != 0 {
             let copied = (64 - self.buffer_length).min(input.len());
@@ -116,7 +120,9 @@ impl Sha256 {
         self.buffer_length = input.len();
     }
 
-    pub(crate) fn finalize(mut self) -> [u8; 32] {
+    /// Finalizes and returns the 32-byte SHA-256 digest.
+    #[must_use]
+    pub fn finalize(mut self) -> [u8; 32] {
         let bit_length = self.total_bytes.wrapping_mul(8);
         self.buffer[self.buffer_length] = 0x80;
         self.buffer_length += 1;
@@ -133,8 +139,14 @@ impl Sha256 {
     }
 }
 
+impl Default for Sha256Hasher {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub(crate) fn sha256(input: &[u8]) -> [u8; 32] {
-    let mut hasher = Sha256::new();
+    let mut hasher = Sha256Hasher::new();
     hasher.update(input);
     hasher.finalize()
 }
@@ -225,7 +237,7 @@ mod tests {
         let expected = sha256(&input);
 
         for chunk_size in [1, 3, 63, 64, 65, 1_024] {
-            let mut hasher = Sha256::new();
+            let mut hasher = Sha256Hasher::new();
             for chunk in input.chunks(chunk_size) {
                 hasher.update(chunk);
             }

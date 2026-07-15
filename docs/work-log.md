@@ -732,3 +732,57 @@ tokenizer parsing, quantization, mmap, SIMD, FFI, and optimized kernels remain
 unimplemented.
 
 Next task: M4.1-06 - convert experts for independent on-demand access.
+
+## 2026-07-15 - M4.1-06 independently accessible expert conversion
+
+Date: 2026-07-15
+
+Starting task: M4.1-06 - convert experts for independent on-demand access.
+
+Completed task: M4.1-06. Added pinned expert source-plan parsing and validation,
+safe chunked BF16-to-F32 conversion, one deterministic container per selected
+layer, versioned arbitrary-shard expert mappings, exact preflight accounting,
+complete source hash verification, manifest-last transaction cleanup, and
+streaming exact round-trip verification. The existing `ArtifactReader`,
+`ExpertStore`, packed gate/up/down layout, leases, views, and shared numerical
+path remain unchanged. ADR 0016, the 18,432-tensor source plan, report, and
+compact evidence record the design and real conversion results.
+
+Real evidence: The vertical slice converted experts `0:0`, `0:127`, and
+`47:127` across two layer containers. The complete conversion accounted for all
+6,144 experts and 18,432 expert tensors, bringing cumulative pinned inventory
+coverage to all 18,867 tensors. It wrote 115,964,116,992 F32 bytes across 48
+2,415,919,104-byte layer containers plus a 3,130,926-byte manifest. Maximum
+explicit buffers were 327,680 bytes. Loading expert `23:64` through the existing
+store read exactly its 18,874,368-byte logical payload.
+
+Determinism: Two independent complete runs produced byte-identical manifests
+with SHA-256
+`9c581c6c46ecf830e7d0dd0e380d26b17803784f009b37ef2657ae34d06b2939`
+and identical ordered shard-set SHA-256
+`b90d537f5c0c202b2bf5db0e74b8bf8b9ba9ea5378d788733d2bf9e11d36bf91`.
+All 48 shard records and 6,144 expert records matched. External hashes of first,
+middle, and last physical layer files matched both manifests.
+
+Commands executed: source-plan count/order/range/hash audits; two real
+vertical-slice runs; two complete release-profile conversion runs; independent
+manifest, record, file-length, and representative physical hash comparisons;
+focused expert conversion and plan parser tests; `cargo fmt --all --check`,
+`cargo check --workspace`, `cargo test --workspace`,
+`cargo clippy --workspace --all-targets -- -D warnings`, and
+`cargo run -p clr-cli`.
+
+Tests: All 118 workspace tests passed with zero failures or ignored tests, plus
+the focused conversion-plan parser test. Failure coverage includes corruption,
+truncation, invalid offsets, wrong shard, wrong layer/expert identity, wrong
+shape, incomplete inventory, duplicate experts, invalid projection order,
+invalid chunk size, insufficient disk space, one-layer slices, and incomplete
+output cleanup. Clippy passed with warnings denied and the CLI smoke passed.
+
+Known issues: The 16 source shards and 232 GB of independently repeated expert
+artifacts remain local evidence and are not committed. BF16 is decoded to F32;
+quantization, BF16 kernels, mmap, async prefetch, SIMD, FFI, tokenizer parsing,
+optimized kernels, and full-model generation remain unimplemented.
+
+Next task: M4.1-07 - include tokenizer assets required for the first full-model
+test.

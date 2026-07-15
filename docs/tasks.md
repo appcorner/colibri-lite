@@ -268,7 +268,7 @@ Acceptance:
 - [x] M4.1-03 Map required Hugging Face configuration fields.
 - [x] M4.1-04 Map and validate required tensor names and shapes.
 - [x] M4.1-05 Convert dense tensors for resident access.
-- [ ] M4.1-06 Convert experts for independent on-demand access.
+- [x] M4.1-06 Convert experts for independent on-demand access.
 - [ ] M4.1-07 Include tokenizer assets required for the first full-model test.
 - [ ] M4.1-08 Generate hashes and a reproducible conversion manifest.
 

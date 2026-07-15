@@ -16,6 +16,7 @@ pub use error::StorageError;
 pub use expert::{
     CacheMetrics, ExpertCache, ExpertId, ExpertKey, ExpertLease, ExpertRegistration, ExpertStore,
 };
+pub use hash::Sha256Hasher;
 pub use manifest::{
     ARTIFACT_FORMAT_VERSION, ArtifactManifest, ByteOrder, TensorLocation, TensorMetadata,
 };
