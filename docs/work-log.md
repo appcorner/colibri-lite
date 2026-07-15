@@ -894,3 +894,37 @@ tokenization, chat rendering, quantization, mmap, SIMD, GPU work, performance
 optimization, and full-model numerical inference remain unimplemented.
 
 Next task: M4.2-01 - validate selected tensor values against Safetensors.
+
+## 2026-07-15 - pre-M4.2 temporary storage audit
+
+Date: 2026-07-15
+
+M4.2-01 remains paused and unstarted. Audited all project-owned
+`D:\tmp\colibri-m4.1-*` directories without deleting or creating model
+payloads. Recorded full path, recursive bytes/file count, creation/modification
+times, duplicate relationships, hard-link identities, classifications, and
+preflight/post-dry-run disk accounting in the storage audit report.
+
+Canonical artifact root:
+`D:\tmp\colibri-m4.1-08-moved\relocated-model-artifact-v1`. The 17 pinned
+source files under `D:\tmp\colibri-m4.1-05` remain separately protected and
+required for M4.2-01.
+
+Evidence: 244,392,722,124 logical bytes are proposed cleanup entries. Exact
+last-link reclaimable file bytes are 122,264,231,628; 122,128,490,496 bytes are
+shared dense/expert hard-link names that remain through canonical paths. Dense,
+expert, vertical-slice, tokenizer, and source classifications were established
+from hashes, component manifests, file IDs, and hard-link lists. No incomplete
+or orphaned payload was found.
+
+Added `docs/temp-artifact-policy.md`, a reviewed machine cleanup plan,
+dry-run-first `scripts/cleanup_temp_artifacts.py`, and five safety tests. The
+real dry run passed with 11 candidates, 117 files, no deletion, and zero
+free-space delta. Cleanup apply mode was not invoked.
+
+Standard verification passed: formatting, workspace check, all 118 Rust tests,
+warning-free clippy, CLI bootstrap, all 5 cleanup safety tests, and
+`git diff --check`.
+
+Next: review the classification and cleanup decision. Do not resume M4.2-01
+until cleanup approval is recorded.
