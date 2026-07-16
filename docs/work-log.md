@@ -1163,3 +1163,40 @@ artifact and pinned source stayed read-only.
 
 Next task after review: M4.2-06 - document failures or tolerance differences
 before optimization. It was not started in this session.
+
+## 2026-07-16 - M4.2-06 correctness and variance closure
+
+Date: 2026-07-16
+
+Closed M4.2 with the verdict `completed with documented numerical variance`.
+The closure classifies every observed issue, keeps performance limitations
+separate from correctness failures, records remaining coverage risks, and adds
+an authoritative machine-readable tolerance registry plus optimization
+invariants.
+
+No Rust runtime implementation defect remains in the validated F32 path. The
+initial post-RMSNorm stop was PyTorch reduction-order variance; ordered Python
+F32 and Rust remain bit-exact. The Layer-1 scalar stop was accumulated incoming
+drift, and the selected-intermediate discrepancy was a reference occurrence-
+batching issue. Router ties retain higher-score/lower-ID ordering. BF16 remains
+an independent model-behavior reference.
+
+The registry covers 24 checkpoint/selection contracts and preserves their
+distinct scopes: exact internal, provisional cross-runtime, layer-specific,
+fixture-specific, diagnostic-only, and semantic-margin. Four focused tests
+validate checkpoint completeness, scope rules, supporting documents, frozen
+fixture invariants, and 12 content-addressed evidence references.
+
+The frozen optimized M4.2-04 regression regenerated exact reference hashes,
+passed all budgets and KV invariants, generated `[1096, 374]`, and retained the
+existing Rust evidence byte-for-byte. Policy cleanup removed the four temporary
+full-logit files and retained no M4.2-06 run.
+
+Verification passed all five standard Cargo commands, 123 workspace tests,
+warning-free workspace and feature Clippy, Python compilation, all 24 Python
+tests, registry consistency, evidence-reference validation, and the frozen
+generation regression.
+
+Next ordered task after review: M4.3-01 - establish an unquantized or higher-
+precision correctness baseline. No optimization or M4.3 implementation began
+in this session.

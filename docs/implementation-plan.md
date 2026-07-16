@@ -361,7 +361,7 @@ Scope:
 
 #### M4.2 - Full-model correctness checkpoint
 
-Status: in progress. M4.2-01 through M4.2-05 are complete.
+Status: complete. M4.2 is completed with documented numerical variance.
 
 Scope:
 

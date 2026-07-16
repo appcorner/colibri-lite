@@ -279,7 +279,7 @@ Acceptance:
 - [x] M4.2-03 Validate selected intermediate outputs.
 - [x] M4.2-04 Run a short deterministic token sequence.
 - [x] M4.2-05 Record peak resident bytes, bytes read, and cache metrics.
-- [ ] M4.2-06 Document failures or tolerance differences before optimization.
+- [x] M4.2-06 Document failures or tolerance differences before optimization.
 
 ## M4.3 - Evidence-driven quantization
 

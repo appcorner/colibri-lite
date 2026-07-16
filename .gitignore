@@ -90,6 +90,7 @@
 !/models/qwen3-30b-a3b/m4.2-05-baseline-run-b-v1.json
 !/models/qwen3-30b-a3b/m4.2-05-baseline-run-c-v1.json
 !/models/qwen3-30b-a3b/m4.2-05-baseline-summary-v1.json
+!/models/qwen3-30b-a3b/m4.2-tolerance-contract-registry-v1.json
 /.idea/
 /.vscode/
 *.pdb
