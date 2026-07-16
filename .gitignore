@@ -77,6 +77,15 @@
 !/models/qwen3-30b-a3b/m4.2-03-transformers-f32-intermediate-evidence-v1.json
 !/models/qwen3-30b-a3b/m4.2-03-transformers-f32-intermediate-plan-v1.tsv
 !/models/qwen3-30b-a3b/m4.2-03-transformers-f32-intermediate-v1.safetensors
+!/models/qwen3-30b-a3b/m4.2-04-final-dense-runtime-plan-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-04-layer47-expert-runtime-plan-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-04-rust-short-generation-evidence-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-04-transformers-bf16-generation-evidence-v1.json
+!/models/qwen3-30b-a3b/m4.2-04-transformers-bf16-generation-plan-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-04-transformers-bf16-generation-v1.safetensors
+!/models/qwen3-30b-a3b/m4.2-04-transformers-f32-generation-evidence-v1.json
+!/models/qwen3-30b-a3b/m4.2-04-transformers-f32-generation-plan-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-04-transformers-f32-generation-v1.safetensors
 /.idea/
 /.vscode/
 *.pdb

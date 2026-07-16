@@ -277,7 +277,7 @@ Acceptance:
 - [x] M4.2-01 Validate selected tensor values against Safetensors.
 - [x] M4.2-02 Validate selected layer router IDs against Transformers.
 - [x] M4.2-03 Validate selected intermediate outputs.
-- [ ] M4.2-04 Run a short deterministic token sequence.
+- [x] M4.2-04 Run a short deterministic token sequence.
 - [ ] M4.2-05 Record peak resident bytes, bytes read, and cache metrics.
 - [ ] M4.2-06 Document failures or tolerance differences before optimization.
 

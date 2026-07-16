@@ -1,0 +1,7 @@
+format_version	1
+model_id	Qwen/Qwen3-30B-A3B
+revision	ad44e777bcd18fa416d9da3bd8f70d33ebb85d39
+root_manifest_sha256	f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2
+payload	dense/dense-f32.bin	6164373504	bfad7fdc0f8611537ca5751f8e7140c35cf72bb4e67934b02d99711c89640893
+tensor	model.norm.weight	6164365312	8192	2048
+tensor	lm_head.weight	0	1244659712	151936,2048

@@ -17,8 +17,13 @@ use clr_storage::{
 };
 
 use crate::{
-    PINNED_QWEN3_30B_A3B_CONFIG,
-    block::{ExpertMlpTrace, PreRouterOutput, pre_router_with_weights, route_tokens},
+    KvCache, PINNED_QWEN3_30B_A3B_CONFIG,
+    block::{
+        ExpertMlpTrace, PreRouterOutput, cached_attention_with_weights, pre_router_with_weights,
+        rms_norm, route_tokens,
+    },
+    cache::LayerKvUpdate,
+    generation::greedy_token,
     streaming::{
         PackedExpertLayout, streaming_routed_experts_with_observer,
         streaming_routed_experts_with_trace_observer,
@@ -141,6 +146,32 @@ const LAYER47_SELECTED_EXPERT_RUNTIME_PLAN: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../../models/qwen3-30b-a3b/m4.2-03-layer47-selected-expert-runtime-plan-v1.tsv"
 ));
+const GENERATION_FINAL_DENSE_RUNTIME_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-04-final-dense-runtime-plan-v1.tsv"
+));
+const GENERATION_LAYER47_EXPERT_RUNTIME_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-04-layer47-expert-runtime-plan-v1.tsv"
+));
+const GENERATION_BF16_CHECKPOINT_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-04-transformers-bf16-generation-plan-v1.tsv"
+));
+const GENERATION_BF16_CHECKPOINTS: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-04-transformers-bf16-generation-v1.safetensors"
+));
+const GENERATION_F32_CHECKPOINT_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-04-transformers-f32-generation-plan-v1.tsv"
+));
+const GENERATION_F32_CHECKPOINTS: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-04-transformers-f32-generation-v1.safetensors"
+));
+const GENERATION_INPUT_TOKENS: [usize; 6] = [9707, 11, 1879, 0, 1096, 374];
+const GENERATION_GUARD_LAYERS: [usize; 3] = [0, 24, 47];
 const INTERMEDIATE_CASES: [(usize, usize, usize, usize); 8] = [
     (0, 0, 0, 62),
     (0, 0, 7, 91),
@@ -665,6 +696,61 @@ fn selected_intermediate_budget(layer: usize, checkpoint: &str) -> f32 {
     }
 }
 
+fn short_generation_budget(step: usize, checkpoint: &str) -> f32 {
+    assert!(step < 6, "short-generation budget step");
+    match checkpoint {
+        "expert_outputs" => [
+            1.980_828e-3,
+            5.417_333_4e-4,
+            2.069_936_5e-4,
+            3.686_414_5e-4,
+            2.527_700_2e-4,
+            2.985_464e-4,
+        ][step],
+        "routing_weights" => [
+            2.759_857_3e-6,
+            2.424_581e-6,
+            1.709_325_4e-6,
+            1.843_435_9e-6,
+            1.284_642_3e-6,
+            1.575_215e-6,
+        ][step],
+        "moe_output" => [
+            1.328_514_6e-3,
+            2.642_141e-4,
+            6.680_353e-5,
+            2.642_141e-4,
+            8.647_306e-5,
+            1.383_291e-4,
+        ][step],
+        "block_output" => [
+            1.557_396_5e-3,
+            3.443_227_5e-4,
+            5.732_046e-4,
+            5.045_400_4e-4,
+            3.900_991_2e-4,
+            1.841_054_7e-4,
+        ][step],
+        "final_norm" => [
+            1.556_896_5e-3,
+            3.438_227_5e-4,
+            5.727_046e-4,
+            5.040_400_4e-4,
+            3.895_991_2e-4,
+            1.836_054_7e-4,
+        ][step],
+        "logits" => [
+            2.051_326_3e-4,
+            1.564_952_4e-4,
+            1.336_070_6e-4,
+            1.021_358e-4,
+            1.164_409_2e-4,
+            1.364_680_8e-4,
+        ][step],
+        _ => panic!("missing M4.2-04 {checkpoint} budget"),
+    }
+}
+
 fn maximum_magnitude(tensor: &Tensor) -> f32 {
     tensor
         .data()
@@ -823,6 +909,72 @@ fn embedding_rows(file: &mut File, plan: &RuntimePlan, bytes_read: &mut u64) -> 
         data.extend(f32_tensor(&read_exact_range(file, &row, bytes_read), &[2048]).into_data());
     }
     Tensor::new(TensorShape::new([4, 2048]), data).expect("embedding rows")
+}
+
+fn embedding_row(
+    file: &mut File,
+    plan: &RuntimePlan,
+    token_id: usize,
+    bytes_read: &mut u64,
+) -> Tensor {
+    let record = &plan.tensors["model.embed_tokens.weight"];
+    assert_eq!(record.shape, [151_936, 2048]);
+    let row_bytes = 2048 * 4;
+    let row = RangeRecord {
+        offset: record.offset + u64::try_from(token_id * row_bytes).expect("embedding offset"),
+        length: row_bytes,
+        shape: vec![1, 2048],
+    };
+    f32_tensor(&read_exact_range(file, &row, bytes_read), &[1, 2048])
+}
+
+fn streaming_language_model_head(
+    file: &mut File,
+    plan: &RuntimePlan,
+    hidden: &Tensor,
+    bytes_read: &mut u64,
+) -> Tensor {
+    const ROWS_PER_CHUNK: usize = 256;
+    const HIDDEN: usize = 2048;
+    let record = &plan.tensors["lm_head.weight"];
+    assert_eq!(record.shape, [151_936, 2048]);
+    assert_eq!(hidden.shape().dimensions(), [1, 2048]);
+    let mut logits = Vec::with_capacity(151_936);
+    let row_bytes = HIDDEN * 4;
+    for row_start in (0..151_936).step_by(ROWS_PER_CHUNK) {
+        let row_count = ROWS_PER_CHUNK.min(151_936 - row_start);
+        let chunk = RangeRecord {
+            offset: record.offset
+                + u64::try_from(row_start * row_bytes).expect("LM-head chunk offset"),
+            length: row_count * row_bytes,
+            shape: vec![row_count, HIDDEN],
+        };
+        let weights = f32_tensor(
+            &read_exact_range(file, &chunk, bytes_read),
+            &[row_count, HIDDEN],
+        );
+        logits.extend(weights.data().chunks_exact(HIDDEN).map(|row| {
+            hidden
+                .data()
+                .iter()
+                .zip(row)
+                .map(|(left, right)| left * right)
+                .sum::<f32>()
+        }));
+    }
+    Tensor::new(TensorShape::new([1, 151_936]), logits).expect("LM-head logits")
+}
+
+fn deterministic_top_ids(logits: &Tensor, count: usize) -> Vec<usize> {
+    assert_eq!(logits.shape().dimensions(), [1, 151_936]);
+    let mut ids: Vec<_> = (0..151_936).collect();
+    ids.sort_by(|left, right| {
+        logits.data()[*right]
+            .total_cmp(&logits.data()[*left])
+            .then_with(|| left.cmp(right))
+    });
+    ids.truncate(count);
+    ids
 }
 
 struct LayerWeights {
@@ -1218,6 +1370,51 @@ fn record_intermediate_checkpoint(
     )
     .expect("write intermediate evidence");
     metrics
+}
+
+fn record_generation_checkpoint(
+    evidence: &mut String,
+    step: usize,
+    checkpoint: &str,
+    actual: &Tensor,
+    bf16: &Tensor,
+    f32_control: &Tensor,
+    budget: Option<f32>,
+) -> StageMetrics {
+    let metrics = record_three_paths(checkpoint, actual, bf16, f32_control);
+    let bf16_metrics = measure_stage(actual, bf16);
+    if let Some(budget) = budget {
+        assert_stage(checkpoint, actual, f32_control, budget, 0.0);
+    }
+    writeln!(
+        evidence,
+        "checkpoint\t{step}\t{checkpoint}\t{:.17e}\t{}\t{:.17e}\t{:.17e}",
+        metrics.maximum_absolute_difference,
+        budget.map_or_else(
+            || "CHARACTERIZE".to_owned(),
+            |value| format!("{value:.17e}")
+        ),
+        metrics.maximum_relative_difference,
+        bf16_metrics.maximum_absolute_difference,
+    )
+    .expect("write generation checkpoint evidence");
+    metrics
+}
+
+fn token_selection_classification(
+    actual_id: usize,
+    reference_id: usize,
+    margin: f32,
+    maximum_error: f32,
+) -> &'static str {
+    let safe = margin > 2.0 * maximum_error;
+    if actual_id == reference_id && safe {
+        "exact_match_safe"
+    } else if actual_id != reference_id && safe {
+        "true_mismatch"
+    } else {
+        "numerically_ambiguous"
+    }
 }
 
 fn atomic_diagnostic(path: &PathBuf, payload: &[u8]) {
@@ -3347,5 +3544,453 @@ fn selected_expert_intermediates_match_transformers() {
         "selected_intermediate_validation elapsed_seconds={} dense_bytes_read={dense_bytes_read} expert_bytes_read={} modeled_peak_explicit_bytes={modeled_peak_explicit_bytes}",
         started.elapsed().as_secs_f64(),
         cache_metrics.bytes_read,
+    );
+}
+
+#[test]
+fn short_cached_generation_matches_transformers() {
+    let artifact_root = env::var_os("COLIBRI_ARTIFACT_ROOT")
+        .map(PathBuf::from)
+        .expect("COLIBRI_ARTIFACT_ROOT must name the stable canonical artifact");
+    assert!(
+        artifact_root.is_absolute(),
+        "artifact root must be absolute"
+    );
+    let diagnostic_root = env::var_os("COLIBRI_RMS_DIAGNOSTIC_ROOT")
+        .map(PathBuf::from)
+        .expect("diagnostic root for short generation evidence");
+    assert!(
+        diagnostic_root.is_absolute(),
+        "diagnostic root must be absolute"
+    );
+    let full_logits_root = env::var_os("COLIBRI_FULL_LOGITS_ROOT")
+        .map(PathBuf::from)
+        .expect("temporary full-logit root");
+    assert!(
+        full_logits_root.is_absolute(),
+        "full-logit root must be absolute"
+    );
+
+    let plan = runtime_plan(LAYER47_RUNTIME_PLAN);
+    let final_plan = runtime_plan(GENERATION_FINAL_DENSE_RUNTIME_PLAN);
+    assert_eq!(plan.payload, final_plan.payload, "dense payload identity");
+    assert_eq!(
+        plan.payload_length, final_plan.payload_length,
+        "dense payload length"
+    );
+    let mut payload = File::open(artifact_root.join(&plan.payload)).expect("open dense payload");
+    assert_eq!(
+        payload.metadata().expect("dense payload metadata").len(),
+        plan.payload_length,
+    );
+    let bf16_plan = checkpoint_plan(GENERATION_BF16_CHECKPOINT_PLAN);
+    let f32_plan = checkpoint_plan(GENERATION_F32_CHECKPOINT_PLAN);
+    let bf16_full_bytes = fs::read(full_logits_root.join("bf16-full-logits.safetensors"))
+        .expect("read temporary BF16 full logits");
+    let f32_full_bytes = fs::read(full_logits_root.join("f32-full-logits.safetensors"))
+        .expect("read temporary F32 full logits");
+    let bf16_full_plan = checkpoint_plan(
+        &fs::read_to_string(full_logits_root.join("bf16-full-logits-plan.tsv"))
+            .expect("read BF16 full-logit plan"),
+    );
+    let f32_full_plan = checkpoint_plan(
+        &fs::read_to_string(full_logits_root.join("f32-full-logits-plan.tsv"))
+            .expect("read F32 full-logit plan"),
+    );
+
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("pinned runtime config")
+        .runtime_config();
+    let expert_layout = PackedExpertLayout::for_config(config);
+    let mut store = expert_store_from_plans(
+        &[
+            LAYER47_EXPERT_RUNTIME_PLAN,
+            GENERATION_LAYER47_EXPERT_RUNTIME_PLAN,
+        ],
+        &artifact_root,
+        48 * 128,
+    );
+    let mut dense_bytes_read = 0_u64;
+    let final_norm_weight = artifact_tensor(
+        &mut payload,
+        &final_plan,
+        "model.norm.weight",
+        &mut dense_bytes_read,
+    );
+    let mut cache =
+        KvCache::new(48, GENERATION_INPUT_TOKENS.len(), 4, 128).expect("fixed full-model KV cache");
+    let allocation_capacities = cache.allocation_capacities();
+    assert_eq!(allocation_capacities.len(), 48, "KV cache layer count");
+    assert!(
+        allocation_capacities
+            .iter()
+            .all(|&(key, value)| key == 6 * 4 * 128 && value == 6 * 4 * 128),
+        "fixed KV allocation shapes"
+    );
+    assert_eq!(cache.byte_size(), 1_179_648, "KV cache byte size");
+
+    let mut evidence = String::from(
+        "record\tstep\tcheckpoint\tmaximum_f32_vs_rust_absolute_error\tabsolute_budget\tmaximum_f32_vs_rust_relative_error\tmaximum_bf16_vs_rust_absolute_error\n",
+    );
+    let mut selection_evidence = String::from(
+        "step\tinput_token\tposition\tselected_token\tf32_argmax\tbf16_argmax\tf32_argmax_logit\tf32_second_logit\tf32_margin\tf32_required_margin\tf32_classification\tbf16_margin\tbf16_required_margin\tbf16_classification\ttop20_rank_agreement\tcache_length\tdense_bytes_read\texpert_bytes_read\tloads\tevictions\tguard_router_ids\n",
+    );
+    let mut maximum_dense_layer_bytes = 0_u64;
+    let mut maximum_runtime_elements = 0_usize;
+    let started = Instant::now();
+    let mut generated = Vec::new();
+
+    for (step, &token_id) in GENERATION_INPUT_TOKENS.iter().enumerate() {
+        let step_started = Instant::now();
+        assert_eq!(cache.len(), step, "decode position before append");
+        let dense_before = dense_bytes_read;
+        let expert_before = store.metrics();
+        let cache_prefix: Vec<_> = (0..48)
+            .map(|layer| {
+                let view = cache.layer(layer).expect("KV layer before append");
+                (view.key.to_vec(), view.value.to_vec())
+            })
+            .collect();
+        let mut current = embedding_row(&mut payload, &plan, token_id, &mut dense_bytes_read);
+        let mut updates = Vec::with_capacity(48);
+        let mut guard_ids = Vec::with_capacity(24);
+
+        for layer in 0..48 {
+            let layer_dense_before = dense_bytes_read;
+            let weights = layer_weights(&mut payload, &plan, layer, &mut dense_bytes_read);
+            maximum_dense_layer_bytes =
+                maximum_dense_layer_bytes.max(dense_bytes_read - layer_dense_before);
+            let input_norm = rms_norm(
+                current.view(),
+                weights.input_norm.view(),
+                config.rms_norm_epsilon(),
+            )
+            .unwrap_or_else(|error| panic!("step-{step} Layer-{layer} input norm: {error}"));
+            let attention = cached_attention_with_weights(
+                input_norm.view(),
+                config,
+                weights.query.view(),
+                weights.key.view(),
+                weights.value.view(),
+                weights.output.view(),
+                weights.query_norm.view(),
+                weights.key_norm.view(),
+                cache.layer(layer).expect("KV layer view"),
+            )
+            .unwrap_or_else(|error| panic!("step-{step} Layer-{layer} attention: {error}"));
+            let residual =
+                elementwise_add(current.view(), attention.output.view()).unwrap_or_else(|error| {
+                    panic!("step-{step} Layer-{layer} attention residual: {error}")
+                });
+            let post_norm = rms_norm(
+                residual.view(),
+                weights.post_norm.view(),
+                config.rms_norm_epsilon(),
+            )
+            .unwrap_or_else(|error| panic!("step-{step} Layer-{layer} post norm: {error}"));
+            let router = route_tokens(post_norm.view(), weights.router.view(), config)
+                .unwrap_or_else(|error| panic!("step-{step} Layer-{layer} router: {error}"));
+            if GENERATION_GUARD_LAYERS.contains(&layer) {
+                guard_ids.extend_from_slice(&router.selected_experts);
+            }
+            let mut layer47_outputs = vec![0.0_f32; 8 * 2048];
+            let moe = streaming_routed_experts_with_observer(
+                post_norm.view(),
+                &router,
+                config,
+                layer,
+                &mut store,
+                expert_layout,
+                |_, token, position, output| {
+                    assert_eq!(token, 0, "single-token expert occurrence");
+                    if layer == 47 {
+                        layer47_outputs[position * 2048..(position + 1) * 2048]
+                            .copy_from_slice(output);
+                    }
+                },
+            )
+            .unwrap_or_else(|error| panic!("step-{step} Layer-{layer} experts: {error}"));
+            let block = elementwise_add(residual.view(), moe.view())
+                .unwrap_or_else(|error| panic!("step-{step} Layer-{layer} block: {error}"));
+            if layer == 47 {
+                let prefix = format!("step{step}_layer47");
+                let actual_experts = Tensor::new(TensorShape::new([8, 2048]), layer47_outputs)
+                    .expect("Layer-47 expert output tensor");
+                let actual_routing =
+                    Tensor::new(TensorShape::new([8]), router.weights.data().to_vec())
+                        .expect("Layer-47 routing tensor");
+                for (checkpoint, actual) in [
+                    ("expert_outputs", actual_experts),
+                    ("routing_weights", actual_routing),
+                    ("moe_output", tensor_row(&moe, 0)),
+                    ("block_output", tensor_row(&block, 0)),
+                ] {
+                    let name = format!("{prefix}_{checkpoint}");
+                    let bf16 = checkpoint_f32(GENERATION_BF16_CHECKPOINTS, &bf16_plan, &name);
+                    let f32_control = checkpoint_f32(GENERATION_F32_CHECKPOINTS, &f32_plan, &name);
+                    let budget = Some(short_generation_budget(step, checkpoint));
+                    record_generation_checkpoint(
+                        &mut evidence,
+                        step,
+                        checkpoint,
+                        &actual,
+                        &bf16,
+                        &f32_control,
+                        budget,
+                    );
+                }
+            }
+            maximum_runtime_elements = maximum_runtime_elements.max(
+                current.data().len()
+                    + input_norm.data().len()
+                    + attention.output.data().len()
+                    + residual.data().len()
+                    + post_norm.data().len()
+                    + router.logits.data().len()
+                    + router.weights.data().len()
+                    + moe.data().len()
+                    + block.data().len(),
+            );
+            updates.push((attention.key, attention.value));
+            current = block;
+            drop(weights);
+        }
+
+        let expected_guard_ids = checkpoint_ids(
+            GENERATION_F32_CHECKPOINTS,
+            &f32_plan,
+            &format!("step{step}_guard_router_ids"),
+        );
+        assert_eq!(
+            guard_ids, expected_guard_ids,
+            "step-{step} guard router IDs"
+        );
+        assert_eq!(
+            checkpoint_ids(
+                GENERATION_F32_CHECKPOINTS,
+                &f32_plan,
+                &format!("step{step}_input_token"),
+            ),
+            [token_id],
+            "frozen input token"
+        );
+        let normalized = rms_norm(
+            current.view(),
+            final_norm_weight.view(),
+            config.rms_norm_epsilon(),
+        )
+        .unwrap_or_else(|error| panic!("step-{step} final RMSNorm: {error}"));
+        let bf16_norm = checkpoint_f32(
+            GENERATION_BF16_CHECKPOINTS,
+            &bf16_plan,
+            &format!("step{step}_final_norm"),
+        );
+        let f32_norm = checkpoint_f32(
+            GENERATION_F32_CHECKPOINTS,
+            &f32_plan,
+            &format!("step{step}_final_norm"),
+        );
+        let norm_budget = Some(short_generation_budget(step, "final_norm"));
+        record_generation_checkpoint(
+            &mut evidence,
+            step,
+            "final_norm",
+            &tensor_row(&normalized, 0),
+            &bf16_norm,
+            &f32_norm,
+            norm_budget,
+        );
+        let logits = streaming_language_model_head(
+            &mut payload,
+            &final_plan,
+            &normalized,
+            &mut dense_bytes_read,
+        );
+        let bf16_logits_flat = checkpoint_f32(
+            &bf16_full_bytes,
+            &bf16_full_plan,
+            &format!("step{step}_logits"),
+        );
+        let f32_logits_flat = checkpoint_f32(
+            &f32_full_bytes,
+            &f32_full_plan,
+            &format!("step{step}_logits"),
+        );
+        let bf16_logits = Tensor::new(TensorShape::new([1, 151_936]), bf16_logits_flat.into_data())
+            .expect("BF16 logit row");
+        let f32_logits = Tensor::new(TensorShape::new([1, 151_936]), f32_logits_flat.into_data())
+            .expect("F32 logit row");
+        let logits_budget = Some(short_generation_budget(step, "logits"));
+        let logit_metrics = record_generation_checkpoint(
+            &mut evidence,
+            step,
+            "logits",
+            &logits,
+            &bf16_logits,
+            &f32_logits,
+            logits_budget,
+        );
+        assert_eq!(
+            logits.data().iter().filter(|value| value.is_nan()).count(),
+            0,
+            "step-{step} NaN logits"
+        );
+        assert_eq!(
+            logits
+                .data()
+                .iter()
+                .filter(|value| value.is_infinite())
+                .count(),
+            0,
+            "step-{step} infinite logits"
+        );
+
+        let rust_top = deterministic_top_ids(&logits, 20);
+        let f32_top = deterministic_top_ids(&f32_logits, 20);
+        let bf16_top = deterministic_top_ids(&bf16_logits, 20);
+        let frozen_top = checkpoint_ids(
+            GENERATION_F32_CHECKPOINTS,
+            &f32_plan,
+            &format!("step{step}_top20_ids"),
+        );
+        assert_eq!(f32_top, frozen_top, "frozen F32 top-20 IDs");
+        let selected = greedy_token(logits.view()).expect("finite greedy logits");
+        let f32_argmax = f32_top[0];
+        let bf16_argmax = bf16_top[0];
+        let f32_margin = f32_logits.data()[f32_top[0]] - f32_logits.data()[f32_top[1]];
+        let bf16_margin = bf16_logits.data()[bf16_top[0]] - bf16_logits.data()[bf16_top[1]];
+        let bf16_metrics = measure_stage(&logits, &bf16_logits);
+        let f32_classification = token_selection_classification(
+            selected,
+            f32_argmax,
+            f32_margin,
+            logit_metrics.maximum_absolute_difference,
+        );
+        let bf16_classification = token_selection_classification(
+            selected,
+            bf16_argmax,
+            bf16_margin,
+            bf16_metrics.maximum_absolute_difference,
+        );
+        assert_ne!(
+            f32_classification, "true_mismatch",
+            "step-{step} true token mismatch"
+        );
+        assert_eq!(selected, f32_argmax, "step-{step} selected F32 token");
+        if step == 3 || step == 4 {
+            generated.push(selected);
+            assert_eq!(
+                selected,
+                GENERATION_INPUT_TOKENS[step + 1],
+                "generated token must drive next cached input"
+            );
+            let recompute = checkpoint_ids(
+                GENERATION_F32_CHECKPOINTS,
+                &f32_plan,
+                &format!("step{step}_recompute_argmax"),
+            );
+            assert_eq!(recompute, [selected], "cached versus recomputed argmax");
+        }
+
+        let updates_view: Vec<_> = updates
+            .iter()
+            .map(|(key, value)| LayerKvUpdate { key, value })
+            .collect();
+        cache
+            .append_token(&updates_view)
+            .expect("transactional KV append");
+        assert_eq!(cache.len(), step + 1, "KV cache length after append");
+        assert_eq!(cache.allocation_capacities(), allocation_capacities);
+        for (layer, (prior_key, prior_value)) in cache_prefix.iter().enumerate() {
+            let view = cache.layer(layer).expect("KV layer after append");
+            assert_eq!(view.len, step + 1, "KV layer logical length");
+            assert_eq!(view.key.len(), (step + 1) * 4 * 128, "KV key shape");
+            assert_eq!(view.value.len(), (step + 1) * 4 * 128, "KV value shape");
+            assert_eq!(
+                &view.key[..prior_key.len()],
+                prior_key,
+                "KV key prefix overwrite"
+            );
+            assert_eq!(
+                &view.value[..prior_value.len()],
+                prior_value,
+                "KV value prefix overwrite"
+            );
+        }
+
+        let metrics = store.metrics();
+        writeln!(
+            selection_evidence,
+            "{step}\t{token_id}\t{step}\t{selected}\t{f32_argmax}\t{bf16_argmax}\t{:.17e}\t{:.17e}\t{f32_margin:.17e}\t{:.17e}\t{f32_classification}\t{bf16_margin:.17e}\t{:.17e}\t{bf16_classification}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+            f32_logits.data()[f32_top[0]],
+            f32_logits.data()[f32_top[1]],
+            2.0 * logit_metrics.maximum_absolute_difference,
+            2.0 * bf16_metrics.maximum_absolute_difference,
+            rust_top == f32_top,
+            cache.len(),
+            dense_bytes_read - dense_before,
+            metrics.bytes_read - expert_before.bytes_read,
+            metrics.loads - expert_before.loads,
+            metrics.evictions - expert_before.evictions,
+            comma_separated(&guard_ids),
+        )
+        .expect("write generation selection evidence");
+        maximum_runtime_elements = maximum_runtime_elements.max(
+            current.data().len()
+                + normalized.data().len()
+                + logits.data().len()
+                + bf16_logits.data().len()
+                + f32_logits.data().len(),
+        );
+        println!(
+            "short_generation step={step} input={token_id} selected={selected} elapsed_seconds={} cache_len={} f32_max_abs={} f32_margin={} classification={f32_classification}",
+            step_started.elapsed().as_secs_f64(),
+            cache.len(),
+            logit_metrics.maximum_absolute_difference,
+            f32_margin,
+        );
+    }
+
+    assert_eq!(generated, [1096, 374], "short greedy sequence");
+    let metrics = store.metrics();
+    assert_eq!(metrics.hits, 0, "one-expert cache expected zero hits");
+    assert_eq!(metrics.misses, 6 * 48 * 8);
+    assert_eq!(metrics.loads, 6 * 48 * 8);
+    assert_eq!(metrics.evictions, metrics.loads - 1);
+    let checkpoint_static_bytes = GENERATION_BF16_CHECKPOINTS.len()
+        + GENERATION_F32_CHECKPOINTS.len()
+        + bf16_full_bytes.len()
+        + f32_full_bytes.len();
+    let modeled_peak_explicit_bytes = usize::try_from(maximum_dense_layer_bytes)
+        .expect("dense layer bytes fit usize")
+        + expert_layout.total_byte_length
+        + metrics.peak_resident_bytes
+        + cache.byte_size()
+        + maximum_runtime_elements * 4
+        + checkpoint_static_bytes
+        + 256 * 2048 * 4;
+    evidence.push_str(&selection_evidence);
+    writeln!(
+        evidence,
+        "resources\tNA\tdense_bytes_read={dense_bytes_read}\texpert_bytes_read={}\ttotal_artifact_bytes_read={}\thits={}\tmisses={}\tloads={}\tevictions={}\tpeak_expert_resident_bytes={}\tkv_cache_bytes={}\tmodeled_peak_explicit_bytes={modeled_peak_explicit_bytes}",
+        metrics.bytes_read,
+        dense_bytes_read + metrics.bytes_read,
+        metrics.hits,
+        metrics.misses,
+        metrics.loads,
+        metrics.evictions,
+        metrics.peak_resident_bytes,
+        cache.byte_size(),
+    )
+    .expect("write generation resource evidence");
+    atomic_diagnostic(
+        &diagnostic_root.join("m4.2-04-rust-short-generation-evidence-v1.tsv"),
+        evidence.as_bytes(),
+    );
+    println!(
+        "short_generation_complete elapsed_seconds={} generated={generated:?} dense_bytes_read={dense_bytes_read} expert_metrics={metrics:?} kv_cache_bytes={} modeled_peak_explicit_bytes={modeled_peak_explicit_bytes}",
+        started.elapsed().as_secs_f64(),
+        cache.byte_size(),
     );
 }

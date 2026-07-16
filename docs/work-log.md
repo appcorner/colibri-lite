@@ -1100,3 +1100,32 @@ single 10,457-byte characterization run was removed; no temporary run remains.
 
 Next task after review: M4.2-04 - run a short deterministic token sequence. It
 was not started in this session.
+
+## 2026-07-16 - M4.2-04 short deterministic cached sequence
+
+Date: 2026-07-16
+
+Completed the full unquantized path through final RMSNorm, streamed LM head,
+vocabulary logits, deterministic greedy selection, and two genuine cached
+decode steps. Prompt `[9707, 11, 1879, 0]` generated `[1096, 374]`; both F32
+selections are `exact_match_safe` and all top-20 ranks agree.
+
+The fixed 48-layer KV cache reached length 6 with `1,179,648` payload bytes.
+All previous K/V prefixes remained byte-identical after append and allocation
+capacities never changed. Transformers incremental and full recomputation also
+agree on argmax through the processed final token.
+
+Rust read `29,518,290,944` dense and `43,486,543,872` expert bytes. The 2,304
+selected-expert loads produced zero hits and 2,303 evictions with `18,874,368`
+peak expert residency. Modeled peak explicit memory was `127,823,000` bytes.
+
+Two final reference passes and two final Rust passes were byte-identical. The
+two successful temporary directories, including both full vocabulary-row
+files, were removed. No canonical or pinned source artifact changed.
+
+Verification passed: formatting, workspace check, all 123 workspace tests,
+warning-free workspace and feature Clippy, CLI bootstrap, Python compilation,
+11 focused Python tests, and both optimized generation evidence runs.
+
+Next task after review: M4.2-05 - record peak resident bytes, bytes read, and
+cache metrics. It was not started in this session.
