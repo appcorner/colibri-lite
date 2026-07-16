@@ -672,6 +672,54 @@ pub(crate) fn expert_mlp(
         .collect()
 }
 
+#[cfg(all(test, feature = "full-model-validation"))]
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) struct ExpertMlpTrace {
+    pub gate_projection: Vec<f32>,
+    pub up_projection: Vec<f32>,
+    pub activated_gate: Vec<f32>,
+    pub activated_product: Vec<f32>,
+    pub down_projection: Vec<f32>,
+}
+
+#[cfg(all(test, feature = "full-model-validation"))]
+pub(crate) fn expert_mlp_trace(
+    input: &[f32],
+    gate: &[f32],
+    up: &[f32],
+    down: &[f32],
+    hidden_size: usize,
+    intermediate_size: usize,
+) -> ExpertMlpTrace {
+    let mut gate_projection = Vec::with_capacity(intermediate_size);
+    let mut up_projection = Vec::with_capacity(intermediate_size);
+    let mut activated_gate = Vec::with_capacity(intermediate_size);
+    let mut activated_product = Vec::with_capacity(intermediate_size);
+    for intermediate_index in 0..intermediate_size {
+        let start = intermediate_index * hidden_size;
+        let gate_value = dot(input, &gate[start..start + hidden_size]);
+        let up_value = dot(input, &up[start..start + hidden_size]);
+        let activated_gate_value = gate_value / (1.0 + (-gate_value).exp());
+        gate_projection.push(gate_value);
+        up_projection.push(up_value);
+        activated_gate.push(activated_gate_value);
+        activated_product.push(activated_gate_value * up_value);
+    }
+    let down_projection = (0..hidden_size)
+        .map(|hidden_index| {
+            let start = hidden_index * intermediate_size;
+            dot(&activated_product, &down[start..start + intermediate_size])
+        })
+        .collect();
+    ExpertMlpTrace {
+        gate_projection,
+        up_projection,
+        activated_gate,
+        activated_product,
+        down_projection,
+    }
+}
+
 pub(crate) fn linear(
     input: TensorView<'_>,
     weight: TensorView<'_>,

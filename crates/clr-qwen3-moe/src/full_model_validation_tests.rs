@@ -18,8 +18,11 @@ use clr_storage::{
 
 use crate::{
     PINNED_QWEN3_30B_A3B_CONFIG,
-    block::{PreRouterOutput, pre_router_with_weights, route_tokens},
-    streaming::{PackedExpertLayout, streaming_routed_experts_with_observer},
+    block::{ExpertMlpTrace, PreRouterOutput, pre_router_with_weights, route_tokens},
+    streaming::{
+        PackedExpertLayout, streaming_routed_experts_with_observer,
+        streaming_routed_experts_with_trace_observer,
+    },
 };
 
 const RUNTIME_PLAN: &str = include_str!(concat!(
@@ -114,6 +117,40 @@ const LAYER47_F32_CHECKPOINTS: &[u8] = include_bytes!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../../models/qwen3-30b-a3b/m4.2-02-layer47-transformers-f32-v1.safetensors"
 ));
+const INTERMEDIATE_BF16_CHECKPOINT_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-03-transformers-bf16-intermediate-plan-v1.tsv"
+));
+const INTERMEDIATE_BF16_CHECKPOINTS: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-03-transformers-bf16-intermediate-v1.safetensors"
+));
+const INTERMEDIATE_F32_CHECKPOINT_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-03-transformers-f32-intermediate-plan-v1.tsv"
+));
+const INTERMEDIATE_F32_CHECKPOINTS: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-03-transformers-f32-intermediate-v1.safetensors"
+));
+const INTERMEDIATE_STRUCTURE: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-03-intermediate-structure-v1.tsv"
+));
+const LAYER47_SELECTED_EXPERT_RUNTIME_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-03-layer47-selected-expert-runtime-plan-v1.tsv"
+));
+const INTERMEDIATE_CASES: [(usize, usize, usize, usize); 8] = [
+    (0, 0, 0, 62),
+    (0, 0, 7, 91),
+    (1, 0, 0, 68),
+    (1, 0, 7, 127),
+    (24, 1, 0, 85),
+    (24, 1, 7, 8),
+    (47, 0, 0, 54),
+    (47, 0, 7, 36),
+];
 const INPUT_IDS: [usize; 4] = [9707, 11, 1879, 0];
 const POSITION_IDS: [usize; 4] = [0, 1, 2, 3];
 const POST_NORM_PROPAGATED_ABSOLUTE_BUDGET: f32 = 4.255_093e-6;
@@ -579,6 +616,55 @@ fn layer47_propagated_budgets(layer: usize) -> Layer24PropagatedBudgets {
     }
 }
 
+fn selected_intermediate_budget(layer: usize, checkpoint: &str) -> f32 {
+    if checkpoint == "routing_weight" {
+        return layer47_propagated_budgets(layer).routing;
+    }
+    match (layer, checkpoint) {
+        (0, "expert_input") => 7.116_116e-6,
+        (0, "gate_projection") => 7.006_790_2e-6,
+        (0, "up_projection") => 7.722_046e-6,
+        (0, "activated_gate") => 3.092_802e-6,
+        (0, "activated_product") => 6.722_046e-6,
+        (0, "down_projection") => 2.296_401e-6,
+        (0, "weighted_expert_output") => 1.625_848_8e-6,
+        (0, "aggregated_moe_output") => 2.117_587e-6,
+        (0, "moe_residual_addition" | "final_block_output") => 3.503_395e-6,
+        (1, "expert_input") => 8.367_813e-6,
+        (1, "gate_projection") => 3.633_227_5e-5,
+        (1, "up_projection") => 2.488_818_4e-5,
+        (1, "activated_gate") => 3.483_227_5e-5,
+        (1, "activated_product") => 8.249_746e-4,
+        (1, "down_projection") => 1.648_949_2e-3,
+        (
+            1,
+            "weighted_expert_output"
+            | "aggregated_moe_output"
+            | "moe_residual_addition"
+            | "final_block_output",
+        ) => 1.053_856_4e-3,
+        (24, "expert_input") => 1.265_934_8e-5,
+        (24, "gate_projection") => 1.988_139_3e-5,
+        (24, "up_projection") => 1.558_986e-5,
+        (24, "activated_gate") => 9.440_697e-6,
+        (24, "activated_product") => 9.225_441e-6,
+        (24, "down_projection") => 4.017_485e-6,
+        (24, "weighted_expert_output") => 2.788_139_3e-6,
+        (24, "aggregated_moe_output") => 3.145_767e-6,
+        (24, "moe_residual_addition" | "final_block_output") => 3.390_176_4e-5,
+        (47, "expert_input") => 2.293_818_4e-4,
+        (47, "gate_projection") => 1.193_019_4e-4,
+        (47, "up_projection") => 7.638_66e-5,
+        (47, "activated_gate") => 1.178_019_4e-4,
+        (47, "activated_product") => 6.604_658e-4,
+        (47, "down_projection") => 1.408_623_3e-3,
+        (47, "weighted_expert_output") => 2.985_464e-4,
+        (47, "aggregated_moe_output") => 1.030_968_3e-3,
+        (47, "moe_residual_addition" | "final_block_output") => 2.106_713e-3,
+        _ => panic!("missing Layer-{layer} {checkpoint} intermediate budget"),
+    }
+}
+
 fn maximum_magnitude(tensor: &Tensor) -> f32 {
     tensor
         .data()
@@ -792,39 +878,49 @@ fn expert_store_from_plan(
     artifact_root: &std::path::Path,
     expected_registrations: usize,
 ) -> ExpertStore {
+    expert_store_from_plans(&[plan], artifact_root, expected_registrations)
+}
+
+fn expert_store_from_plans(
+    plans: &[&str],
+    artifact_root: &std::path::Path,
+    expected_registrations: usize,
+) -> ExpertStore {
     let mut metadata = Vec::new();
     let mut registrations = Vec::new();
-    for line in plan.lines() {
-        let fields: Vec<_> = line.split('\t').collect();
-        if fields[0] != "expert" {
-            continue;
+    for plan in plans {
+        for line in plan.lines() {
+            let fields: Vec<_> = line.split('\t').collect();
+            if fields[0] != "expert" {
+                continue;
+            }
+            assert_eq!(fields.len(), 8, "invalid selected-expert plan record");
+            let layer_index: u32 = fields[1].parse().expect("expert layer");
+            let expert_id: u32 = fields[2].parse().expect("expert ID");
+            let name = fields[3].to_owned();
+            let length: u64 = fields[6].parse().expect("expert payload length");
+            assert_eq!(length, 18_874_368, "packed expert payload length");
+            metadata.push(TensorMetadata {
+                name: name.clone(),
+                shape: TensorShape::new([
+                    usize::try_from(length / 4).expect("expert F32 element count")
+                ]),
+                data_type: DataType::F32,
+                location: TensorLocation {
+                    path: fields[4].into(),
+                    offset: fields[5].parse().expect("expert payload offset"),
+                    length,
+                },
+                sha256: decode_sha256(fields[7]),
+            });
+            registrations.push(ExpertRegistration {
+                key: ExpertKey {
+                    layer_index,
+                    expert_id: ExpertId(expert_id),
+                },
+                tensor_name: name,
+            });
         }
-        assert_eq!(fields.len(), 8, "invalid selected-expert plan record");
-        let layer_index: u32 = fields[1].parse().expect("expert layer");
-        let expert_id: u32 = fields[2].parse().expect("expert ID");
-        let name = fields[3].to_owned();
-        let length: u64 = fields[6].parse().expect("expert payload length");
-        assert_eq!(length, 18_874_368, "packed expert payload length");
-        metadata.push(TensorMetadata {
-            name: name.clone(),
-            shape: TensorShape::new([
-                usize::try_from(length / 4).expect("expert F32 element count")
-            ]),
-            data_type: DataType::F32,
-            location: TensorLocation {
-                path: fields[4].into(),
-                offset: fields[5].parse().expect("expert payload offset"),
-                length,
-            },
-            sha256: decode_sha256(fields[7]),
-        });
-        registrations.push(ExpertRegistration {
-            key: ExpertKey {
-                layer_index,
-                expert_id: ExpertId(expert_id),
-            },
-            tensor_name: name,
-        });
     }
     assert_eq!(
         registrations.len(),
@@ -864,6 +960,103 @@ fn checkpoint_ids(
             .expect("non-negative checkpoint ID")
         })
         .collect()
+}
+
+fn tensor_row(tensor: &Tensor, row: usize) -> Tensor {
+    let width = tensor.shape().dimensions()[1];
+    Tensor::new(
+        TensorShape::new([width]),
+        tensor.data()[row * width..(row + 1) * width].to_vec(),
+    )
+    .expect("valid tensor row")
+}
+
+fn intermediate_case_name(
+    layer: usize,
+    token: usize,
+    position: usize,
+    expert: usize,
+    checkpoint: &str,
+) -> String {
+    format!("layer{layer}_token{token}_position{position}_expert{expert}_{checkpoint}")
+}
+
+fn intermediate_layer_name(layer: usize, token: usize, checkpoint: &str) -> String {
+    format!("layer{layer}_token{token}_{checkpoint}")
+}
+
+fn validate_intermediate_structure(layout: PackedExpertLayout) {
+    let aggregation = [
+        "62,21,75,87,36,126,34,91",
+        "68,114,55,90,0,9,30,127",
+        "85,65,28,50,24,105,78,8",
+        "54,32,73,34,85,111,117,36",
+    ];
+    let mut records = INTERMEDIATE_STRUCTURE.lines();
+    assert_eq!(
+        records.next(),
+        Some(
+            "record\tlayer\ttoken\tposition\texpert\trole\tshape\torientation\tsource_name\tsource_shard\tsource_offset\tsource_length\tartifact_path\tartifact_payload_offset\tartifact_projection_offset\tartifact_projection_length\taggregation_experts"
+        )
+    );
+    for (case_index, &(layer, token, position, expert)) in INTERMEDIATE_CASES.iter().enumerate() {
+        for role in ["gate", "up", "down"] {
+            let fields: Vec<_> = records
+                .next()
+                .expect("missing intermediate structure record")
+                .split('\t')
+                .collect();
+            assert_eq!(fields.len(), 17, "intermediate structure field count");
+            assert_eq!(fields[0], "projection");
+            assert_eq!(fields[1].parse::<usize>().unwrap(), layer);
+            assert_eq!(fields[2].parse::<usize>().unwrap(), token);
+            assert_eq!(fields[3].parse::<usize>().unwrap(), position);
+            assert_eq!(fields[4].parse::<usize>().unwrap(), expert);
+            assert_eq!(fields[5], role, "gate/up/down ordering");
+            let (shape, orientation, projection_offset, projection_length) = match role {
+                "gate" => (
+                    "768,2048",
+                    "output_by_input",
+                    layout.gate_offset,
+                    layout.gate_length,
+                ),
+                "up" => (
+                    "768,2048",
+                    "output_by_input",
+                    layout.up_offset,
+                    layout.up_length,
+                ),
+                "down" => (
+                    "2048,768",
+                    "output_by_intermediate",
+                    layout.down_offset,
+                    layout.down_length,
+                ),
+                _ => unreachable!(),
+            };
+            assert_eq!(fields[6], shape);
+            assert_eq!(fields[7], orientation);
+            assert_eq!(
+                fields[8],
+                format!("model.layers.{layer}.mlp.experts.{expert}.{role}_proj.weight")
+            );
+            assert!(fields[9].parse::<usize>().is_ok(), "source shard ID");
+            assert!(fields[10].parse::<u64>().is_ok(), "source offset");
+            assert_eq!(fields[11].parse::<usize>().unwrap(), 3_145_728);
+            assert_eq!(
+                fields[12],
+                format!("experts/experts-layer-{layer:05}-of-00048.bin")
+            );
+            assert_eq!(
+                fields[13].parse::<usize>().unwrap(),
+                expert * layout.total_byte_length
+            );
+            assert_eq!(fields[14].parse::<usize>().unwrap(), projection_offset);
+            assert_eq!(fields[15].parse::<usize>().unwrap(), projection_length);
+            assert_eq!(fields[16], aggregation[case_index / 2]);
+        }
+    }
+    assert!(records.next().is_none(), "unexpected structure record");
 }
 
 fn assert_stage(
@@ -989,6 +1182,42 @@ fn record_three_paths(
         );
     }
     primary
+}
+
+#[allow(clippy::too_many_arguments)]
+fn record_intermediate_checkpoint(
+    evidence: &mut String,
+    layer: usize,
+    token: usize,
+    position: Option<usize>,
+    expert: Option<usize>,
+    checkpoint: &str,
+    actual: &Tensor,
+    bf16: &Tensor,
+    f32_control: &Tensor,
+    budget: Option<f32>,
+) -> StageMetrics {
+    let metrics = record_three_paths(checkpoint, actual, bf16, f32_control);
+    let bf16_metrics = measure_stage(actual, bf16);
+    if let Some(budget) = budget {
+        assert_stage(checkpoint, actual, f32_control, budget, 0.0);
+    }
+    writeln!(
+        evidence,
+        "{layer}\t{token}\t{}\t{}\t{checkpoint}\t{:.17e}\t{}\t{:.17e}\t{:.17e}\t{:.17e}",
+        position.map_or_else(|| "NA".to_owned(), |value| value.to_string()),
+        expert.map_or_else(|| "NA".to_owned(), |value| value.to_string()),
+        metrics.maximum_absolute_difference,
+        budget.map_or_else(
+            || "CHARACTERIZE".to_owned(),
+            |value| format!("{value:.17e}")
+        ),
+        metrics.maximum_relative_difference,
+        bf16_metrics.maximum_absolute_difference,
+        bf16_metrics.maximum_relative_difference,
+    )
+    .expect("write intermediate evidence");
+    metrics
 }
 
 fn atomic_diagnostic(path: &PathBuf, payload: &[u8]) {
@@ -2736,5 +2965,387 @@ fn pinned_layer_forty_seven_router_uses_genuine_streaming_prefix() {
     println!(
         "layer47_end_to_end dense_bytes_read={dense_bytes_read} expert_metrics={cache_metrics:?} total_unique_experts={total_unique_experts} total_expert_occurrences={total_expert_occurrences} modeled_peak_explicit_bytes={modeled_peak_explicit_bytes} elapsed_seconds={} classifications={layer47_classifications:?}",
         started.elapsed().as_secs_f64(),
+    );
+}
+
+#[test]
+fn selected_expert_intermediates_match_transformers() {
+    let artifact_root = env::var_os("COLIBRI_ARTIFACT_ROOT")
+        .map(PathBuf::from)
+        .expect("COLIBRI_ARTIFACT_ROOT must name the stable canonical artifact");
+    assert!(
+        artifact_root.is_absolute(),
+        "artifact root must be absolute"
+    );
+    let diagnostic_root = env::var_os("COLIBRI_RMS_DIAGNOSTIC_ROOT")
+        .map(PathBuf::from)
+        .expect("diagnostic root for intermediate evidence");
+    assert!(
+        diagnostic_root.is_absolute(),
+        "intermediate diagnostic root must be absolute"
+    );
+    let plan = runtime_plan(LAYER47_RUNTIME_PLAN);
+    let mut payload = File::open(artifact_root.join(&plan.payload)).expect("open dense payload");
+    assert_eq!(
+        payload.metadata().expect("dense payload metadata").len(),
+        plan.payload_length,
+        "dense payload length"
+    );
+    let full_f32_plan = checkpoint_plan(LAYER47_F32_CHECKPOINT_PLAN);
+    let intermediate_bf16_plan = checkpoint_plan(INTERMEDIATE_BF16_CHECKPOINT_PLAN);
+    let intermediate_f32_plan = checkpoint_plan(INTERMEDIATE_F32_CHECKPOINT_PLAN);
+    assert_eq!(
+        intermediate_bf16_plan.keys().collect::<HashSet<_>>(),
+        intermediate_f32_plan.keys().collect::<HashSet<_>>(),
+        "intermediate checkpoint names"
+    );
+
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("pinned runtime config")
+        .runtime_config();
+    let expert_layout = PackedExpertLayout::for_config(config);
+    validate_intermediate_structure(expert_layout);
+    let layer47_selected_count = LAYER47_SELECTED_EXPERT_RUNTIME_PLAN
+        .lines()
+        .filter(|line| line.starts_with("expert\t"))
+        .count();
+    assert_eq!(layer47_selected_count, 21, "Layer-47 selected expert count");
+    let mut store = expert_store_from_plans(
+        &[
+            LAYER47_EXPERT_RUNTIME_PLAN,
+            LAYER47_SELECTED_EXPERT_RUNTIME_PLAN,
+        ],
+        &artifact_root,
+        47 * 128 + layer47_selected_count,
+    );
+    let mut dense_bytes_read = 0_u64;
+    let mut current = embedding_rows(&mut payload, &plan, &mut dense_bytes_read);
+    let mut traces: HashMap<(usize, usize, usize, usize), ExpertMlpTrace> = HashMap::new();
+    let mut evidence = String::from(
+        "layer\ttoken\tposition\texpert\tcheckpoint\tmaximum_f32_vs_rust_absolute_error\tabsolute_budget\tmaximum_f32_vs_rust_relative_error\tmaximum_bf16_vs_rust_absolute_error\tmaximum_bf16_vs_rust_relative_error\n",
+    );
+    let mut total_unique_experts = 0_usize;
+    let mut total_expert_occurrences = 0_usize;
+    let mut maximum_dense_layer_bytes = 0_u64;
+    let mut maximum_runtime_elements = current.data().len();
+    let started = Instant::now();
+
+    for layer in 0..=47 {
+        let dense_before = dense_bytes_read;
+        let weights = layer_weights(&mut payload, &plan, layer, &mut dense_bytes_read);
+        maximum_dense_layer_bytes = maximum_dense_layer_bytes.max(dense_bytes_read - dense_before);
+        let pre_router = pre_router_with_weights(
+            current.view(),
+            weights.input_norm.view(),
+            weights.query.view(),
+            weights.key.view(),
+            weights.value.view(),
+            weights.output.view(),
+            weights.query_norm.view(),
+            weights.key_norm.view(),
+            weights.post_norm.view(),
+            weights.router.view(),
+            config,
+        )
+        .unwrap_or_else(|error| panic!("Layer-{layer} pre-router execution failed: {error}"));
+        drop(weights);
+        let prefix = format!("layer{layer}");
+        let budgets = layer47_propagated_budgets(layer);
+        let f32_input = checkpoint_f32(
+            LAYER47_F32_CHECKPOINTS,
+            &full_f32_plan,
+            &format!("{prefix}_input"),
+        );
+        assert_stage(
+            &format!("{prefix}_input"),
+            &current,
+            &f32_input,
+            budgets.input,
+            0.0,
+        );
+        for (suffix, actual, budget) in [
+            ("input_rmsnorm", &pre_router.input_norm, budgets.input_norm),
+            (
+                "attention_output",
+                &pre_router.attention_output,
+                budgets.attention,
+            ),
+            (
+                "residual_output",
+                &pre_router.residual_output,
+                budgets.residual,
+            ),
+            (
+                "post_attention_rmsnorm",
+                &pre_router.post_attention_norm,
+                budgets.post_norm,
+            ),
+            ("router_logits", &pre_router.router.logits, budgets.router),
+            (
+                "routing_weights",
+                &pre_router.router.weights,
+                budgets.routing,
+            ),
+        ] {
+            let name = format!("{prefix}_{suffix}");
+            let reference = checkpoint_f32(LAYER47_F32_CHECKPOINTS, &full_f32_plan, &name);
+            assert_stage(&name, actual, &reference, budget, 0.0);
+        }
+        let f32_ids = checkpoint_ids(
+            LAYER47_F32_CHECKPOINTS,
+            &full_f32_plan,
+            &format!("{prefix}_selected_expert_ids"),
+        );
+        assert_eq!(
+            pre_router.router.selected_experts, f32_ids,
+            "Layer-{layer} selected expert IDs"
+        );
+        let unique_experts = pre_router
+            .router
+            .selected_experts
+            .iter()
+            .copied()
+            .collect::<HashSet<_>>()
+            .len();
+        let expert_occurrences = pre_router.router.selected_experts.len();
+        let trace_layer = INTERMEDIATE_CASES
+            .iter()
+            .any(|&(case_layer, _, _, _)| case_layer == layer);
+        let moe_output = if trace_layer {
+            streaming_routed_experts_with_trace_observer(
+                pre_router.post_attention_norm.view(),
+                &pre_router.router,
+                config,
+                layer,
+                &mut store,
+                expert_layout,
+                |expert, token, position| {
+                    INTERMEDIATE_CASES.contains(&(layer, token, position, expert))
+                },
+                |expert, token, position, output, trace| {
+                    assert_eq!(
+                        output, trace.down_projection,
+                        "traced and normal expert output differ"
+                    );
+                    assert!(
+                        traces
+                            .insert((layer, token, position, expert), trace.clone())
+                            .is_none(),
+                        "duplicate intermediate trace"
+                    );
+                },
+            )
+        } else {
+            streaming_routed_experts_with_observer(
+                pre_router.post_attention_norm.view(),
+                &pre_router.router,
+                config,
+                layer,
+                &mut store,
+                expert_layout,
+                |_, _, _, _| {},
+            )
+        }
+        .unwrap_or_else(|error| panic!("Layer-{layer} expert execution failed: {error}"));
+        let block_output = elementwise_add(pre_router.residual_output.view(), moe_output.view())
+            .unwrap_or_else(|error| panic!("Layer-{layer} final residual failed: {error}"));
+
+        if layer < 47 {
+            let f32_moe = checkpoint_f32(
+                LAYER47_F32_CHECKPOINTS,
+                &full_f32_plan,
+                &format!("{prefix}_moe_output"),
+            );
+            assert_stage(
+                &format!("{prefix}_moe_output"),
+                &moe_output,
+                &f32_moe,
+                budgets.moe.expect("completed-layer MoE budget"),
+                0.0,
+            );
+            let f32_block = checkpoint_f32(
+                LAYER47_F32_CHECKPOINTS,
+                &full_f32_plan,
+                &format!("{prefix}_block_output"),
+            );
+            assert_stage(
+                &format!("{prefix}_block_output"),
+                &block_output,
+                &f32_block,
+                budgets.block.expect("completed-layer block budget")
+                    + f32::EPSILON * maximum_magnitude(&f32_block),
+                0.0,
+            );
+        }
+
+        for &(case_layer, token, position, expert) in &INTERMEDIATE_CASES {
+            if case_layer != layer {
+                continue;
+            }
+            let trace = &traces[&(layer, token, position, expert)];
+            let expert_input = tensor_row(&pre_router.post_attention_norm, token);
+            let routing_weight = Tensor::new(
+                TensorShape::new([1]),
+                vec![pre_router.router.weights.data()[token * 8 + position]],
+            )
+            .expect("routing weight tensor");
+            let weighted_output = Tensor::new(
+                TensorShape::new([2048]),
+                trace
+                    .down_projection
+                    .iter()
+                    .map(|value| value * routing_weight.data()[0])
+                    .collect(),
+            )
+            .expect("weighted expert output tensor");
+            let checkpoint_tensors = [
+                ("expert_input", expert_input),
+                (
+                    "gate_projection",
+                    Tensor::new(TensorShape::new([768]), trace.gate_projection.clone()).unwrap(),
+                ),
+                (
+                    "up_projection",
+                    Tensor::new(TensorShape::new([768]), trace.up_projection.clone()).unwrap(),
+                ),
+                (
+                    "activated_gate",
+                    Tensor::new(TensorShape::new([768]), trace.activated_gate.clone()).unwrap(),
+                ),
+                (
+                    "activated_product",
+                    Tensor::new(TensorShape::new([768]), trace.activated_product.clone()).unwrap(),
+                ),
+                (
+                    "down_projection",
+                    Tensor::new(TensorShape::new([2048]), trace.down_projection.clone()).unwrap(),
+                ),
+                ("routing_weight", routing_weight),
+                ("weighted_expert_output", weighted_output),
+            ];
+            for (checkpoint, actual) in checkpoint_tensors {
+                let name = intermediate_case_name(layer, token, position, expert, checkpoint);
+                let bf16 = checkpoint_f32(
+                    INTERMEDIATE_BF16_CHECKPOINTS,
+                    &intermediate_bf16_plan,
+                    &name,
+                );
+                let f32_control =
+                    checkpoint_f32(INTERMEDIATE_F32_CHECKPOINTS, &intermediate_f32_plan, &name);
+                record_intermediate_checkpoint(
+                    &mut evidence,
+                    layer,
+                    token,
+                    Some(position),
+                    Some(expert),
+                    checkpoint,
+                    &actual,
+                    &bf16,
+                    &f32_control,
+                    Some(selected_intermediate_budget(layer, checkpoint)),
+                );
+            }
+        }
+
+        if let Some(&(_, token, _, _)) = INTERMEDIATE_CASES
+            .iter()
+            .find(|&&(case_layer, _, _, _)| case_layer == layer)
+        {
+            let aggregate = tensor_row(&moe_output, token);
+            let residual_addition = tensor_row(&block_output, token);
+            for (checkpoint, actual) in [
+                ("aggregated_moe_output", aggregate),
+                ("moe_residual_addition", residual_addition.clone()),
+                ("final_block_output", residual_addition),
+            ] {
+                let name = intermediate_layer_name(layer, token, checkpoint);
+                let bf16 = checkpoint_f32(
+                    INTERMEDIATE_BF16_CHECKPOINTS,
+                    &intermediate_bf16_plan,
+                    &name,
+                );
+                let f32_control =
+                    checkpoint_f32(INTERMEDIATE_F32_CHECKPOINTS, &intermediate_f32_plan, &name);
+                record_intermediate_checkpoint(
+                    &mut evidence,
+                    layer,
+                    token,
+                    None,
+                    None,
+                    checkpoint,
+                    &actual,
+                    &bf16,
+                    &f32_control,
+                    Some(selected_intermediate_budget(layer, checkpoint)),
+                );
+            }
+        }
+
+        total_unique_experts += unique_experts;
+        total_expert_occurrences += expert_occurrences;
+        maximum_runtime_elements = maximum_runtime_elements.max(
+            current.data().len()
+                + pre_router.input_norm.data().len()
+                + pre_router.attention_output.data().len()
+                + pre_router.residual_output.data().len()
+                + pre_router.post_attention_norm.data().len()
+                + pre_router.router.logits.data().len()
+                + pre_router.router.weights.data().len()
+                + moe_output.data().len()
+                + block_output.data().len(),
+        );
+        current = block_output;
+    }
+
+    assert_eq!(traces.len(), INTERMEDIATE_CASES.len());
+    assert_eq!(total_expert_occurrences, 48 * 32);
+    let cache_metrics = store.metrics();
+    assert_eq!(cache_metrics.loads, total_unique_experts as u64);
+    assert_eq!(cache_metrics.misses, total_unique_experts as u64);
+    assert_eq!(cache_metrics.hits, 0);
+    assert_eq!(cache_metrics.evictions, cache_metrics.loads - 1);
+    let retained_trace_elements: usize = traces
+        .values()
+        .map(|trace| {
+            trace.gate_projection.len()
+                + trace.up_projection.len()
+                + trace.activated_gate.len()
+                + trace.activated_product.len()
+                + trace.down_projection.len()
+        })
+        .sum();
+    let checkpoint_static_bytes = LAYER47_F32_CHECKPOINTS.len()
+        + LAYER47_F32_CHECKPOINT_PLAN.len()
+        + INTERMEDIATE_BF16_CHECKPOINTS.len()
+        + INTERMEDIATE_BF16_CHECKPOINT_PLAN.len()
+        + INTERMEDIATE_F32_CHECKPOINTS.len()
+        + INTERMEDIATE_F32_CHECKPOINT_PLAN.len();
+    let modeled_peak_explicit_bytes = usize::try_from(maximum_dense_layer_bytes)
+        .expect("dense layer bytes fit usize")
+        + cache_metrics.peak_resident_bytes
+        + expert_layout.total_byte_length
+        + (maximum_runtime_elements + retained_trace_elements) * 4
+        + checkpoint_static_bytes;
+    writeln!(
+        evidence,
+        "resources\tNA\tNA\tNA\tdense_bytes_read={dense_bytes_read}\texpert_bytes_read={}\ttotal_artifact_bytes_read={}\ttotal_unique_experts={total_unique_experts}\ttotal_expert_occurrences={total_expert_occurrences}\thits={}\tmisses={}\tloads={}\tevictions={}\tpeak_expert_resident_bytes={}\tmodeled_peak_explicit_bytes={modeled_peak_explicit_bytes}",
+        cache_metrics.bytes_read,
+        dense_bytes_read + cache_metrics.bytes_read,
+        cache_metrics.hits,
+        cache_metrics.misses,
+        cache_metrics.loads,
+        cache_metrics.evictions,
+        cache_metrics.peak_resident_bytes,
+    )
+    .expect("write intermediate resources");
+    atomic_diagnostic(
+        &diagnostic_root.join("m4.2-03-rust-intermediate-evidence-v1.tsv"),
+        evidence.as_bytes(),
+    );
+    println!(
+        "selected_intermediate_validation elapsed_seconds={} dense_bytes_read={dense_bytes_read} expert_bytes_read={} modeled_peak_explicit_bytes={modeled_peak_explicit_bytes}",
+        started.elapsed().as_secs_f64(),
+        cache_metrics.bytes_read,
     );
 }

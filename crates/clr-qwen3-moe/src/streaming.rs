@@ -3,6 +3,8 @@ use std::fmt;
 use clr_core::{DataType, RuntimeError, Tensor, TensorView, ops::elementwise_add};
 use clr_storage::{ByteOrder, ExpertKey, ExpertStore, StorageError};
 
+#[cfg(all(test, feature = "full-model-validation"))]
+use crate::block::{ExpertMlpTrace, expert_mlp_trace};
 use crate::{
     Qwen3MoeBlockOutput, Qwen3MoeConfig, Qwen3MoeModelOutput,
     block::{combine_routed_experts, expert_mlp, linear, pre_router_with_weights, rms_norm},
@@ -268,6 +270,64 @@ where
                     intermediate,
                 );
                 observe(expert_id, token, position, &output);
+                outputs.push(output);
+            }
+            Ok(outputs)
+        },
+    )
+}
+
+#[cfg(all(test, feature = "full-model-validation"))]
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn streaming_routed_experts_with_trace_observer<P, F>(
+    hidden_states: TensorView<'_>,
+    router: &crate::block::RouterOutput,
+    config: Qwen3MoeConfig,
+    layer_index: usize,
+    store: &mut ExpertStore,
+    layout: PackedExpertLayout,
+    mut trace_requested: P,
+    mut observe: F,
+) -> Result<Tensor, StreamingModelError>
+where
+    P: FnMut(usize, usize, usize) -> bool,
+    F: FnMut(usize, usize, usize, &[f32], &ExpertMlpTrace),
+{
+    let hidden_size = config.model().hidden_size();
+    let intermediate = config.moe_intermediate_size();
+    combine_routed_experts(
+        hidden_states,
+        router,
+        config,
+        |expert_id, occurrences| -> Result<Vec<Vec<f32>>, StreamingModelError> {
+            let key = ExpertKey {
+                layer_index: u32::try_from(layer_index).unwrap_or(u32::MAX),
+                expert_id: clr_storage::ExpertId(u32::try_from(expert_id).unwrap_or(u32::MAX)),
+            };
+            let lease = store.load(key)?;
+            let decoded = decode_payload(key, lease.bytes(), layout)?;
+            let mut outputs = Vec::with_capacity(occurrences.len());
+            for &(token, position) in occurrences {
+                let input = &hidden_states.data()[token * hidden_size..(token + 1) * hidden_size];
+                let output = expert_mlp(
+                    input,
+                    &decoded.gate,
+                    &decoded.up,
+                    &decoded.down,
+                    hidden_size,
+                    intermediate,
+                );
+                if trace_requested(expert_id, token, position) {
+                    let trace = expert_mlp_trace(
+                        input,
+                        &decoded.gate,
+                        &decoded.up,
+                        &decoded.down,
+                        hidden_size,
+                        intermediate,
+                    );
+                    observe(expert_id, token, position, &output, &trace);
+                }
                 outputs.push(output);
             }
             Ok(outputs)

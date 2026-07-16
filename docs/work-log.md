@@ -1065,3 +1065,38 @@ Layer-47 feature runs.
 
 Next task after review: M4.2-03 - validate selected intermediate outputs. It was
 not started in this session.
+
+## 2026-07-16 - M4.2-03 selected intermediate validation
+
+Date: 2026-07-16
+
+Completed M4.2-03 with eight deterministic expert cases at Layers 0, 1, 24,
+and 47. The genuine Rust path completed all 48 blocks through the normal
+storage-aware expert path and stopped before final model normalization. Gate,
+up, SiLU, product, down, routing-weighted output, aggregation, residual, and
+block checkpoints all passed the per-stage ADR 0024 budgets.
+
+The reference exporter preserves Transformers occurrence batching. Its initial
+single-row Layer-0 recomputation stopped; a same-input diagnostic proved
+separate and concatenated gate/up calls bit-identical, and restoring genuine
+occurrence batching reproduced the frozen aggregate exactly. The Rust trace's
+down output is bit-identical to the unchanged normal expert output in every
+case, so no compensating arithmetic or local implementation defect appeared.
+
+Rust executed 1,536 expert occurrences and loaded 1,066 unique layer/expert
+keys with zero hits, 1,066 misses/loads, 1,065 evictions, and `18,874,368`
+peak resident expert bytes. Dense, expert, and total artifact reads were
+`3,675,078,656`, `20,120,076,288`, and `23,795,154,944` bytes. Modeled peak
+explicit memory was `126,685,121` bytes; Python peaked at `761,298,944` bytes.
+
+Two reference exports and two final Rust evidence runs were byte-identical.
+The canonical artifact and pinned source remained read-only. RMSNorm, routing,
+activation, expert layout, dtype, and cache contracts were unchanged.
+
+Verification passed: formatting, workspace check, all 123 workspace tests,
+warning-free workspace and feature Clippy, CLI bootstrap, Python compilation,
+11 focused Python tests, and both optimized intermediate evidence runs. The
+single 10,457-byte characterization run was removed; no temporary run remains.
+
+Next task after review: M4.2-04 - run a short deterministic token sequence. It
+was not started in this session.
