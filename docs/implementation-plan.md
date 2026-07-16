@@ -376,6 +376,10 @@ The unoptimized storage-aware path is numerically credible and debuggable.
 
 #### M4.3 - Evidence-driven quantization
 
+Status: in progress. M4.3-01 is complete; the ordered Rust F32 path is frozen
+as the authoritative baseline. No quantization or optimization implementation
+has begun.
+
 Scope:
 
 - Select a first expert quantization only after measuring memory and I/O.

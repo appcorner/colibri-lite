@@ -1,0 +1,530 @@
+{
+  "coverage": {
+    "decode_modes": [
+      "prefill",
+      "cached_decode"
+    ],
+    "expert_ids": "low_and_high_ids_in_guard_and_selected_intermediate_evidence",
+    "high_token_ids": [
+      125451,
+      151643
+    ],
+    "languages": [
+      "English",
+      "Thai"
+    ],
+    "low_token_id": 0,
+    "margins": "F32_safe_and_independent_BF16_ambiguous_cases_referenced_from_M4.2",
+    "structures": [
+      "one_token",
+      "newline",
+      "code_like",
+      "repeated",
+      "special_token"
+    ]
+  },
+  "schema_version": 1,
+  "status": "frozen",
+  "task": "M4.3-01",
+  "tiers": {
+    "A": {
+      "evidence": "models/qwen3-30b-a3b/m4.2-04-rust-short-generation-evidence-v1.tsv",
+      "expected_cost": "394_to_438_process_seconds_on_recorded_host",
+      "generated_token_ids": [
+        1096,
+        374
+      ],
+      "input_token_ids": [
+        9707,
+        11,
+        1879,
+        0
+      ],
+      "processed_positions": 6,
+      "purpose": "authoritative_end_to_end_generation_regression"
+    },
+    "B": {
+      "fixture_count": 6,
+      "fixtures": [
+        {
+          "classification": "exact_match_safe_compact",
+          "coverage": [
+            "one_token",
+            "low_token_id"
+          ],
+          "execution": "complete_f32_forward_with_genuine_kv_cache_no_generation",
+          "expected_argmax": 50994,
+          "final_position": 0,
+          "guard_router_ids": {
+            "0": [
+              114,
+              45,
+              99,
+              46,
+              98,
+              74,
+              102,
+              65
+            ],
+            "24": [
+              10,
+              105,
+              24,
+              111,
+              101,
+              98,
+              108,
+              113
+            ],
+            "47": [
+              125,
+              46,
+              2,
+              101,
+              73,
+              74,
+              87,
+              20
+            ]
+          },
+          "kv_cache_bytes": 196608,
+          "name": "single_low_token",
+          "reference_final_norm_sha256": "4a118bc6d1c8ce45010878cb62a5b41c72fd9efb3677f2b645935eefd3a9a635",
+          "rust_final_norm_sha256": "4424be631206734eb1966d19042554a748d607db95bba25c0f701a831d8a2662",
+          "text": "!",
+          "token_ids": [
+            0
+          ],
+          "top1_margin": 1.901662826538086,
+          "top20_token_ids": [
+            50994,
+            0,
+            608,
+            220,
+            353,
+            1096,
+            320,
+            314,
+            1688,
+            481,
+            334,
+            358,
+            16,
+            284,
+            9,
+            576,
+            1294,
+            279,
+            3,
+            90
+          ]
+        },
+        {
+          "classification": "exact_match_safe_compact",
+          "coverage": [
+            "english"
+          ],
+          "execution": "complete_f32_forward_with_genuine_kv_cache_no_generation",
+          "expected_argmax": 0,
+          "final_position": 1,
+          "guard_router_ids": {
+            "0": [
+              87,
+              110,
+              105,
+              91,
+              122,
+              41,
+              125,
+              30
+            ],
+            "24": [
+              85,
+              28,
+              65,
+              112,
+              46,
+              127,
+              24,
+              50
+            ],
+            "47": [
+              44,
+              15,
+              127,
+              21,
+              126,
+              74,
+              82,
+              57
+            ]
+          },
+          "kv_cache_bytes": 393216,
+          "name": "short_english",
+          "reference_final_norm_sha256": "244fca73c594ca39e357156c487cba0c4575de739619e57019dfe2e124222059",
+          "rust_final_norm_sha256": "fe19187ce83dbcbe5b3e7b04b5d4332ad932f8ae0a64a5ba82403164b96b25e8",
+          "text": "Hello world",
+          "token_ids": [
+            9707,
+            1879
+          ],
+          "top1_margin": 0.20189857482910156,
+          "top20_token_ids": [
+            0,
+            11,
+            271,
+            198,
+            2219,
+            4894,
+            304,
+            25,
+            13,
+            504,
+            1,
+            481,
+            374,
+            448,
+            8958,
+            497,
+            6313,
+            382,
+            220,
+            369
+          ]
+        },
+        {
+          "classification": "exact_match_safe_compact",
+          "coverage": [
+            "thai",
+            "high_token_id"
+          ],
+          "execution": "complete_f32_forward_with_genuine_kv_cache_no_generation",
+          "expected_argmax": 7360,
+          "final_position": 0,
+          "guard_router_ids": {
+            "0": [
+              91,
+              39,
+              82,
+              64,
+              90,
+              122,
+              75,
+              55
+            ],
+            "24": [
+              10,
+              105,
+              24,
+              111,
+              101,
+              98,
+              108,
+              113
+            ],
+            "47": [
+              118,
+              107,
+              28,
+              49,
+              7,
+              41,
+              87,
+              33
+            ]
+          },
+          "kv_cache_bytes": 196608,
+          "name": "short_thai",
+          "reference_final_norm_sha256": "d4d5166b18a446a21bcf0b40671f467d28554724196b1143820998275ea0112c",
+          "rust_final_norm_sha256": "a13ab58ebc129020a579e8a54765f55fa59e16aa7397031bba98d3fca514738c",
+          "text": "\u0e44\u0e17\u0e22",
+          "token_ids": [
+            125451
+          ],
+          "top1_margin": 0.20480728149414062,
+          "top20_token_ids": [
+            7360,
+            16222,
+            19360,
+            94482,
+            69440,
+            143737,
+            16064,
+            11,
+            9248,
+            126675,
+            91,
+            124758,
+            30372,
+            760,
+            35648,
+            27891,
+            3693,
+            52388,
+            129075,
+            25
+          ]
+        },
+        {
+          "classification": "exact_match_safe_compact",
+          "coverage": [
+            "code",
+            "newline"
+          ],
+          "execution": "complete_f32_forward_with_genuine_kv_cache_no_generation",
+          "expected_argmax": 3472,
+          "final_position": 3,
+          "guard_router_ids": {
+            "0": [
+              16,
+              114,
+              1,
+              98,
+              84,
+              100,
+              52,
+              53
+            ],
+            "24": [
+              64,
+              82,
+              72,
+              91,
+              10,
+              33,
+              88,
+              20
+            ],
+            "47": [
+              62,
+              125,
+              2,
+              77,
+              101,
+              1,
+              115,
+              60
+            ]
+          },
+          "kv_cache_bytes": 786432,
+          "name": "code_newline",
+          "reference_final_norm_sha256": "7a991240fe418327da4ae4bc96f7aca0c89a995fad373d7d3e9a4958f18ed50b",
+          "rust_final_norm_sha256": "8a0cfe7df18652a744fd8615acf24d23fcf3aac01a525ce80bdf682841aea1d3",
+          "text": "x=1\n",
+          "token_ids": [
+            87,
+            28,
+            16,
+            198
+          ],
+          "top1_margin": 0.6090641021728516,
+          "top20_token_ids": [
+            3472,
+            88,
+            1958,
+            1350,
+            2,
+            77,
+            87,
+            82,
+            333,
+            1242,
+            5035,
+            64,
+            750,
+            1830,
+            198,
+            2413,
+            772,
+            72,
+            1607,
+            2810
+          ]
+        },
+        {
+          "classification": "exact_match_safe_compact",
+          "coverage": [
+            "repeated_text"
+          ],
+          "execution": "complete_f32_forward_with_genuine_kv_cache_no_generation",
+          "expected_argmax": 6386,
+          "final_position": 1,
+          "guard_router_ids": {
+            "0": [
+              2,
+              39,
+              32,
+              33,
+              50,
+              120,
+              122,
+              74
+            ],
+            "24": [
+              28,
+              92,
+              65,
+              75,
+              46,
+              97,
+              85,
+              111
+            ],
+            "47": [
+              44,
+              23,
+              73,
+              97,
+              74,
+              18,
+              86,
+              33
+            ]
+          },
+          "kv_cache_bytes": 393216,
+          "name": "repeated_pattern",
+          "reference_final_norm_sha256": "7516a98eb7db29ed09a007afc353d950a1e9904a811c7dc095eb40ef1a5d3156",
+          "rust_final_norm_sha256": "fb742c10e1a9e82bfa0f3f314d7cf919eb96aaa6d899b9947bf1e70d89f412bb",
+          "text": "ha ha",
+          "token_ids": [
+            4223,
+            6386
+          ],
+          "top1_margin": 1.6174240112304688,
+          "top20_token_ids": [
+            6386,
+            11,
+            0,
+            220,
+            271,
+            13,
+            600,
+            1112,
+            358,
+            498,
+            198,
+            21639,
+            305,
+            3837,
+            432,
+            279,
+            902,
+            419,
+            264,
+            429
+          ]
+        },
+        {
+          "classification": "exact_match_safe_compact",
+          "coverage": [
+            "special_token",
+            "high_token_id"
+          ],
+          "execution": "complete_f32_forward_with_genuine_kv_cache_no_generation",
+          "expected_argmax": 3838,
+          "final_position": 0,
+          "guard_router_ids": {
+            "0": [
+              84,
+              53,
+              1,
+              119,
+              68,
+              16,
+              14,
+              114
+            ],
+            "24": [
+              10,
+              105,
+              24,
+              111,
+              101,
+              98,
+              108,
+              50
+            ],
+            "47": [
+              77,
+              125,
+              46,
+              28,
+              116,
+              101,
+              83,
+              74
+            ]
+          },
+          "kv_cache_bytes": 196608,
+          "name": "special_token",
+          "reference_final_norm_sha256": "1b90d1ce733b96e6520e532b4465541d4632e68d14652af4d857e532f59a7521",
+          "rust_final_norm_sha256": "b7cb7fd1d80c35addc337b01ff9bf3aa1d1b094ec30b57b5c32c694628ec6854",
+          "text": "<|endoftext|>",
+          "token_ids": [
+            151643
+          ],
+          "top1_margin": 0.31983280181884766,
+          "top20_token_ids": [
+            3838,
+            33975,
+            785,
+            334,
+            4340,
+            2,
+            474,
+            27,
+            641,
+            32,
+            256,
+            10061,
+            14582,
+            12,
+            14374,
+            322,
+            50,
+            2679,
+            34,
+            10234
+          ]
+        }
+      ],
+      "processed_positions": 11,
+      "purpose": "representative_complete_forward_coverage",
+      "reference_evidence": "models/qwen3-30b-a3b/m4.3-01-tier-b-transformers-f32-v1.json",
+      "rust_evidence": "models/qwen3-30b-a3b/m4.3-01-rust-tier-b-evidence-v1.tsv"
+    },
+    "C": {
+      "fixtures": [
+        {
+          "evidence": "models/qwen3-30b-a3b/m4.2-02-transformers-f32-layer0-evidence-v1.json",
+          "operation": "embedding"
+        },
+        {
+          "evidence": "models/qwen3-30b-a3b/m4.2-02-rms-scalar-diagnostics-v1.json",
+          "operation": "rmsnorm"
+        },
+        {
+          "evidence": "models/qwen3-30b-a3b/m4.2-02-rust-layer1-checkpoint-evidence-v1.tsv",
+          "operation": "attention"
+        },
+        {
+          "evidence": "models/qwen3-30b-a3b/m4.2-02-rust-layer47-router-evidence-v1.tsv",
+          "operation": "router"
+        },
+        {
+          "evidence": "models/qwen3-30b-a3b/m4.2-03-rust-intermediate-evidence-v1.tsv",
+          "operation": "selected_expert_mlp"
+        },
+        {
+          "evidence": "models/qwen3-30b-a3b/m4.2-04-rust-short-generation-evidence-v1.tsv",
+          "operation": "final_norm_and_lm_head"
+        },
+        {
+          "evidence": "models/qwen3-30b-a3b/m4.2-05-baseline-summary-v1.json",
+          "operation": "kv_cache_update"
+        }
+      ],
+      "purpose": "fast_focused_guard_regressions_without_unnecessary_full_model_execution"
+    }
+  }
+}

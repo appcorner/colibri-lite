@@ -1,0 +1,319 @@
+{
+  "contract_decision": "diagnostic_only; do not change Rust arithmetic from F64 proximity",
+  "diagnosis": "local_same_input_difference_is_separated_from_incoming_state_effect",
+  "f64_diagnostics": [
+    {
+      "closer_f32_path": "transformers_f32",
+      "contract_impact": "diagnostic_only_no_change",
+      "f64": 15.094965733522919,
+      "operation": "selected_lm_head_dot_product_with_rust_final_norm_input",
+      "rust_f32": 15.094968795776367,
+      "rust_f32_absolute_difference": 3.0622534481494768e-06,
+      "transformers_f32": 15.094964981079102,
+      "transformers_f32_absolute_difference": 7.524438174755232e-07,
+      "vocabulary_index": 0
+    },
+    {
+      "closer_f32_path": "transformers_f32",
+      "contract_impact": "diagnostic_only_no_change",
+      "f64": 16.99656574093666,
+      "operation": "selected_lm_head_dot_product_with_rust_final_norm_input",
+      "rust_f32": 16.996551513671875,
+      "rust_f32_absolute_difference": 1.4227264784949512e-05,
+      "transformers_f32": 16.996566772460938,
+      "transformers_f32_absolute_difference": 1.0315242775504885e-06,
+      "vocabulary_index": 50994
+    },
+    {
+      "closer_f32_path": "rust_f32",
+      "contract_impact": "diagnostic_only_no_change",
+      "f64": -3.200439879750384,
+      "operation": "selected_lm_head_dot_product_with_rust_final_norm_input",
+      "rust_f32": -3.200439929962158,
+      "rust_f32_absolute_difference": 5.021177429398449e-08,
+      "transformers_f32": -3.200439691543579,
+      "transformers_f32_absolute_difference": 1.88206804807578e-07,
+      "vocabulary_index": 151935
+    }
+  ],
+  "fixture": "single_low_token",
+  "inputs": {
+    "dense_plan_sha256": "23c165cfddb8e1b516ed6cf181fef573f8025e22e857457a2d1c81aeef645d0d",
+    "reference_json_sha256": "5ca68e70d2c3d7a9d09f77a36eeb0dc0854abfccdd7034acd493a5fb58b4f6c5",
+    "rust_final_norm_sha256": "4424be631206734eb1966d19042554a748d607db95bba25c0f701a831d8a2662",
+    "rust_logits_sha256": "0e4636456f82549cf1f6a5bb3c9a40743767f1fcbe513d40ac8a765c158c01c7"
+  },
+  "same_input_all_logits": {
+    "maximum_absolute_difference": 1.9073486328125e-05,
+    "maximum_index": 6313,
+    "nan_count": 0,
+    "negative_infinity_count": 0,
+    "positive_infinity_count": 0
+  },
+  "schema_version": 1,
+  "selected_normal_vs_same_input": [
+    {
+      "incoming_state_effect": 0.0002079010009765625,
+      "normal_end_to_end_difference": 0.0002040863037109375,
+      "normal_transformers_f32": 15.095172882080078,
+      "rust_f32": 15.094968795776367,
+      "same_input_local_difference": 3.814697265625e-06,
+      "same_input_transformers_f32": 15.094964981079102,
+      "vocabulary_index": 0
+    },
+    {
+      "incoming_state_effect": 0.00012683868408203125,
+      "normal_end_to_end_difference": 0.000118255615234375,
+      "normal_transformers_f32": 9.402782440185547,
+      "rust_f32": 9.402664184570312,
+      "same_input_local_difference": 8.58306884765625e-06,
+      "same_input_transformers_f32": 9.402655601501465,
+      "vocabulary_index": 1
+    },
+    {
+      "incoming_state_effect": 0.00017547607421875,
+      "normal_end_to_end_difference": 0.0001678466796875,
+      "normal_transformers_f32": 10.018939018249512,
+      "rust_f32": 10.018771171569824,
+      "same_input_local_difference": 7.62939453125e-06,
+      "same_input_transformers_f32": 10.018763542175293,
+      "vocabulary_index": 2
+    },
+    {
+      "incoming_state_effect": 0.000186920166015625,
+      "normal_end_to_end_difference": 0.0001983642578125,
+      "normal_transformers_f32": 11.198810577392578,
+      "rust_f32": 11.198612213134766,
+      "same_input_local_difference": 1.1444091796875e-05,
+      "same_input_transformers_f32": 11.198623657226562,
+      "vocabulary_index": 3
+    },
+    {
+      "incoming_state_effect": 0.0001239776611328125,
+      "normal_end_to_end_difference": 0.0001392364501953125,
+      "normal_transformers_f32": 11.544973373413086,
+      "rust_f32": 11.54483413696289,
+      "same_input_local_difference": 1.52587890625e-05,
+      "same_input_transformers_f32": 11.544849395751953,
+      "vocabulary_index": 9
+    },
+    {
+      "incoming_state_effect": 0.00011348724365234375,
+      "normal_end_to_end_difference": 0.00010395050048828125,
+      "normal_transformers_f32": 8.361827850341797,
+      "rust_f32": 8.361723899841309,
+      "same_input_local_difference": 9.5367431640625e-06,
+      "same_input_transformers_f32": 8.361714363098145,
+      "vocabulary_index": 11
+    },
+    {
+      "incoming_state_effect": 0.0001850128173828125,
+      "normal_end_to_end_difference": 0.0001850128173828125,
+      "normal_transformers_f32": 11.78950309753418,
+      "rust_f32": 11.789318084716797,
+      "same_input_local_difference": 0.0,
+      "same_input_transformers_f32": 11.789318084716797,
+      "vocabulary_index": 16
+    },
+    {
+      "incoming_state_effect": 0.000171661376953125,
+      "normal_end_to_end_difference": 0.0001697540283203125,
+      "normal_transformers_f32": 11.171566009521484,
+      "rust_f32": 11.171396255493164,
+      "same_input_local_difference": 1.9073486328125e-06,
+      "same_input_transformers_f32": 11.171394348144531,
+      "vocabulary_index": 90
+    },
+    {
+      "incoming_state_effect": 0.00021266937255859375,
+      "normal_end_to_end_difference": 0.00020313262939453125,
+      "normal_transformers_f32": 13.29090404510498,
+      "rust_f32": 13.290700912475586,
+      "same_input_local_difference": 9.5367431640625e-06,
+      "same_input_transformers_f32": 13.290691375732422,
+      "vocabulary_index": 220
+    },
+    {
+      "incoming_state_effect": 0.00014495849609375,
+      "normal_end_to_end_difference": 0.00015354156494140625,
+      "normal_transformers_f32": 11.23123550415039,
+      "rust_f32": 11.23108196258545,
+      "same_input_local_difference": 8.58306884765625e-06,
+      "same_input_transformers_f32": 11.231090545654297,
+      "vocabulary_index": 279
+    },
+    {
+      "incoming_state_effect": 0.00019741058349609375,
+      "normal_end_to_end_difference": 0.0001964569091796875,
+      "normal_transformers_f32": 11.588667869567871,
+      "rust_f32": 11.588471412658691,
+      "same_input_local_difference": 9.5367431640625e-07,
+      "same_input_transformers_f32": 11.588470458984375,
+      "vocabulary_index": 284
+    },
+    {
+      "incoming_state_effect": 0.00020694732666015625,
+      "normal_end_to_end_difference": 0.00019741058349609375,
+      "normal_transformers_f32": 12.115116119384766,
+      "rust_f32": 12.11491870880127,
+      "same_input_local_difference": 9.5367431640625e-06,
+      "same_input_transformers_f32": 12.114909172058105,
+      "vocabulary_index": 314
+    },
+    {
+      "incoming_state_effect": 0.0002155303955078125,
+      "normal_end_to_end_difference": 0.0002040863037109375,
+      "normal_transformers_f32": 12.422487258911133,
+      "rust_f32": 12.422283172607422,
+      "same_input_local_difference": 1.1444091796875e-05,
+      "same_input_transformers_f32": 12.422271728515625,
+      "vocabulary_index": 320
+    },
+    {
+      "incoming_state_effect": 0.0001678466796875,
+      "normal_end_to_end_difference": 0.00017452239990234375,
+      "normal_transformers_f32": 11.895267486572266,
+      "rust_f32": 11.895092964172363,
+      "same_input_local_difference": 6.67572021484375e-06,
+      "same_input_transformers_f32": 11.895099639892578,
+      "vocabulary_index": 334
+    },
+    {
+      "incoming_state_effect": 0.0001506805419921875,
+      "normal_end_to_end_difference": 0.0001430511474609375,
+      "normal_transformers_f32": 13.136209487915039,
+      "rust_f32": 13.136066436767578,
+      "same_input_local_difference": 7.62939453125e-06,
+      "same_input_transformers_f32": 13.136058807373047,
+      "vocabulary_index": 353
+    },
+    {
+      "incoming_state_effect": 0.00022411346435546875,
+      "normal_end_to_end_difference": 0.00022220611572265625,
+      "normal_transformers_f32": 11.863574028015137,
+      "rust_f32": 11.863351821899414,
+      "same_input_local_difference": 1.9073486328125e-06,
+      "same_input_transformers_f32": 11.863349914550781,
+      "vocabulary_index": 358
+    },
+    {
+      "incoming_state_effect": 0.000186920166015625,
+      "normal_end_to_end_difference": 0.0001850128173828125,
+      "normal_transformers_f32": 11.90450668334961,
+      "rust_f32": 11.904321670532227,
+      "same_input_local_difference": 1.9073486328125e-06,
+      "same_input_transformers_f32": 11.904319763183594,
+      "vocabulary_index": 481
+    },
+    {
+      "incoming_state_effect": 0.0002307891845703125,
+      "normal_end_to_end_difference": 0.000244140625,
+      "normal_transformers_f32": 11.435972213745117,
+      "rust_f32": 11.435728073120117,
+      "same_input_local_difference": 1.33514404296875e-05,
+      "same_input_transformers_f32": 11.435741424560547,
+      "vocabulary_index": 576
+    },
+    {
+      "incoming_state_effect": 0.00020885467529296875,
+      "normal_end_to_end_difference": 0.0002040863037109375,
+      "normal_transformers_f32": 13.368040084838867,
+      "rust_f32": 13.367835998535156,
+      "same_input_local_difference": 4.76837158203125e-06,
+      "same_input_transformers_f32": 13.367831230163574,
+      "vocabulary_index": 608
+    },
+    {
+      "incoming_state_effect": 0.0002727508544921875,
+      "normal_end_to_end_difference": 0.00027561187744140625,
+      "normal_transformers_f32": 13.026098251342773,
+      "rust_f32": 13.025822639465332,
+      "same_input_local_difference": 2.86102294921875e-06,
+      "same_input_transformers_f32": 13.025825500488281,
+      "vocabulary_index": 1096
+    },
+    {
+      "incoming_state_effect": 0.00027370452880859375,
+      "normal_end_to_end_difference": 0.000278472900390625,
+      "normal_transformers_f32": 11.409984588623047,
+      "rust_f32": 11.409706115722656,
+      "same_input_local_difference": 4.76837158203125e-06,
+      "same_input_transformers_f32": 11.409710884094238,
+      "vocabulary_index": 1294
+    },
+    {
+      "incoming_state_effect": 0.00026035308837890625,
+      "normal_end_to_end_difference": 0.00024700164794921875,
+      "normal_transformers_f32": 12.054302215576172,
+      "rust_f32": 12.054055213928223,
+      "same_input_local_difference": 1.33514404296875e-05,
+      "same_input_transformers_f32": 12.054041862487793,
+      "vocabulary_index": 1688
+    },
+    {
+      "incoming_state_effect": 0.00011873245239257812,
+      "normal_end_to_end_difference": 0.00012159347534179688,
+      "normal_transformers_f32": 6.477259635925293,
+      "rust_f32": 6.477138042449951,
+      "same_input_local_difference": 2.86102294921875e-06,
+      "same_input_transformers_f32": 6.4771409034729,
+      "vocabulary_index": 1879
+    },
+    {
+      "incoming_state_effect": 0.00013828277587890625,
+      "normal_end_to_end_difference": 0.00014495849609375,
+      "normal_transformers_f32": 8.556096076965332,
+      "rust_f32": 8.555951118469238,
+      "same_input_local_difference": 6.67572021484375e-06,
+      "same_input_transformers_f32": 8.555957794189453,
+      "vocabulary_index": 9707
+    },
+    {
+      "incoming_state_effect": 4.5299530029296875e-05,
+      "normal_end_to_end_difference": 4.589557647705078e-05,
+      "normal_transformers_f32": -1.9758409261703491,
+      "rust_f32": -1.9758868217468262,
+      "same_input_local_difference": 5.960464477539062e-07,
+      "same_input_transformers_f32": -1.9758862257003784,
+      "vocabulary_index": 32768
+    },
+    {
+      "incoming_state_effect": 0.0002689361572265625,
+      "normal_end_to_end_difference": 0.0002841949462890625,
+      "normal_transformers_f32": 16.996835708618164,
+      "rust_f32": 16.996551513671875,
+      "same_input_local_difference": 1.52587890625e-05,
+      "same_input_transformers_f32": 16.996566772460938,
+      "vocabulary_index": 50994
+    },
+    {
+      "incoming_state_effect": 5.5789947509765625e-05,
+      "normal_end_to_end_difference": 5.6743621826171875e-05,
+      "normal_transformers_f32": -3.706514835357666,
+      "rust_f32": -3.706571578979492,
+      "same_input_local_difference": 9.5367431640625e-07,
+      "same_input_transformers_f32": -3.706570625305176,
+      "vocabulary_index": 65535
+    },
+    {
+      "incoming_state_effect": 7.05718994140625e-05,
+      "normal_end_to_end_difference": 7.212162017822266e-05,
+      "normal_transformers_f32": 1.1371922492980957,
+      "rust_f32": 1.1371201276779175,
+      "same_input_local_difference": 1.5497207641601562e-06,
+      "same_input_transformers_f32": 1.1371216773986816,
+      "vocabulary_index": 100000
+    },
+    {
+      "incoming_state_effect": 2.5510787963867188e-05,
+      "normal_end_to_end_difference": 2.574920654296875e-05,
+      "normal_transformers_f32": -3.2004141807556152,
+      "rust_f32": -3.200439929962158,
+      "same_input_local_difference": 2.384185791015625e-07,
+      "same_input_transformers_f32": -3.200439691543579,
+      "vocabulary_index": 151935
+    }
+  ],
+  "status": "same_input_lm_head_diagnostic_complete",
+  "task": "M4.3-01"
+}

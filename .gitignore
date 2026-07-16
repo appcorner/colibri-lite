@@ -91,6 +91,15 @@
 !/models/qwen3-30b-a3b/m4.2-05-baseline-run-c-v1.json
 !/models/qwen3-30b-a3b/m4.2-05-baseline-summary-v1.json
 !/models/qwen3-30b-a3b/m4.2-tolerance-contract-registry-v1.json
+!/models/qwen3-30b-a3b/m4.3-01-tier-b-transformers-f32-v1.json
+!/models/qwen3-30b-a3b/m4.3-01-tier-b-transformers-f32-v1.tsv
+!/models/qwen3-30b-a3b/m4.3-01-rust-tier-b-characterization-v1.tsv
+!/models/qwen3-30b-a3b/m4.3-01-rust-tier-b-evidence-v1.tsv
+!/models/qwen3-30b-a3b/m4.3-01-single-low-token-lm-head-diagnostic-v1.json
+!/models/qwen3-30b-a3b/m4.3-01-fixtures-v1.json
+!/models/qwen3-30b-a3b/m4.3-01-f64-diagnostics-v1.json
+!/models/qwen3-30b-a3b/m4.3-01-comparison-schema-v1.json
+!/models/qwen3-30b-a3b/m4.3-01-f32-baseline-manifest-v1.json
 /.idea/
 /.vscode/
 *.pdb

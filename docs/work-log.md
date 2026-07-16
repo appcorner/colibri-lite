@@ -1200,3 +1200,46 @@ generation regression.
 Next ordered task after review: M4.3-01 - establish an unquantized or higher-
 precision correctness baseline. No optimization or M4.3 implementation began
 in this session.
+
+## 2026-07-16 - M4.3-01 frozen F32 reference baseline
+
+Date: 2026-07-16
+
+Froze the existing ordered scalar Rust F32 full-model path as the authoritative
+baseline for future M4.3 variants. Added a canonical baseline manifest,
+Tier A/B/C fixture hierarchy, selected diagnostic-only F64 records, a stable
+future-comparison schema, ADR 0028, and an optimization-invariants checklist.
+No runtime arithmetic, artifact, cache, I/O, dtype, or execution policy changed.
+
+Tier A reuses the approved prompt `[9707, 11, 1879, 0]` and generated IDs
+`[1096, 374]`. Tier B executed six complete-forward fixtures totaling 11
+positions and covering low/high token IDs, English, Thai, code/newline,
+repeated text, and the end-of-text special token. All guard router IDs,
+top-20 ranks, argmax IDs, finite-output checks, KV allocations, and cache
+counters passed. Tier C references the existing focused M4.2 operation evidence.
+
+The `single_low_token` compact logit difference (`2.8419495e-4`) exceeded the
+largest prior M4.2 fixture-specific observation. A required same-input
+diagnostic measured only `1.9073486e-5` all-logit local LM-head difference and
+showed incoming-state effects up to `2.7370453e-4`; this is accumulated drift,
+not a local LM-head defect. New budgets are scoped per Tier B fixture using the
+existing `3 * observed + guard` model and do not change the M4.2 registry.
+
+The clean final Rust Tier B regression passed in 926.71 seconds. Its TSV was
+byte-identical to the generated tracked evidence with SHA-256
+`5632f63acd29b4af09709904d0ffcef12336628a9af51c1b4a8514c857d976f2`.
+The canonical baseline manifest SHA-256 is
+`5e36071de4f4385f8d4ea3310b3beef138ab65ac4627ea53a575ab5e627b71b4`.
+
+Verification passed all five standard Cargo commands, all 123 workspace tests,
+warning-free workspace and feature Clippy, the feature-gated Tier B schema
+test, Python compilation, all 29 Python tests, two byte-identical bundle
+generations, evidence-reference checks, and the final full Tier B regression.
+The M4.2-05 performance baseline remains frozen and was not rerun.
+
+Cleanup dry-run and apply validated and removed two flat run directories with
+seven files and 663,661 logical bytes. No M4.3-01 temporary run remains, and
+the canonical artifact and pinned source roots remained protected.
+
+Next ordered task after review: M4.3-02 - define the first candidate expert
+quantization format. No quantization or performance implementation began.

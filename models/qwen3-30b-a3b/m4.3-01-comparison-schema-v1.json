@@ -1,0 +1,61 @@
+{
+  "acceptance_rule": "performance_gain_alone_is_never_sufficient",
+  "classifications": {
+    "correctness failure": "a mandatory invariant, safe discrete selection, finite-output rule, or scoped numerical contract fails",
+    "exact-equivalent": "all applicable exact evidence and numerical values match the frozen baseline",
+    "numerically equivalent within contract": "exact structural invariants pass and every numerical delta stays within its scoped contract",
+    "quality-risk": "semantic output is currently retained but margins, errors, finite counts, or coverage indicate material risk",
+    "semantically equivalent": "required IDs and outputs agree but at least one numerical value is outside the F32-equivalent contract without quality-risk evidence"
+  },
+  "mandatory_deltas": [
+    "correctness",
+    "numerical_contract",
+    "memory",
+    "io",
+    "latency_and_throughput",
+    "artifact_size",
+    "platform_and_dependency_requirements"
+  ],
+  "mandatory_invariants": [
+    "canonical_model_identity_and_source_provenance",
+    "deterministic_router_tie_policy",
+    "frozen_fixture_generated_ids",
+    "safe_F32_router_and_token_classifications",
+    "selected_intermediate_structure_and_membership",
+    "finite_guarded_outputs",
+    "KV_cache_no_overwrite_and_bounded_allocation",
+    "bounded_expert_residency",
+    "evidence_schema_compatibility_or_explicit_versioning"
+  ],
+  "required_measurements": [
+    "correctness_status",
+    "generated_token_agreement",
+    "router_id_agreement",
+    "top_k_rank_agreement",
+    "top_1_safe_margin_status",
+    "maximum_error_by_checkpoint",
+    "nan_count",
+    "positive_infinity_count",
+    "negative_infinity_count",
+    "peak_working_set_bytes",
+    "modeled_explicit_memory_bytes",
+    "artifact_size_bytes",
+    "logical_bytes_read_per_token",
+    "prefill_tokens_per_second",
+    "decode_tokens_per_second",
+    "expert_cache_hit_rate",
+    "startup_seconds"
+  ],
+  "schema_version": 1,
+  "status": "frozen_future_variant_comparison_schema",
+  "task": "M4.3-01",
+  "tradeable_metrics": [
+    "working_set_within_declared_budget",
+    "artifact_size",
+    "logical_bytes_read",
+    "startup_latency",
+    "prefill_throughput",
+    "decode_throughput",
+    "cache_hit_rate"
+  ]
+}

@@ -1,0 +1,198 @@
+{
+  "documentation": [
+    "docs/reports/m4.3-01-f32-baseline.md",
+    "docs/adr/0028-f32-baseline-bundle-and-fixtures.md",
+    "docs/m4.3-f32-baseline-invariants.md",
+    "docs/m4.2-optimization-invariants.md"
+  ],
+  "fixtures": "models/qwen3-30b-a3b/m4.3-01-fixtures-v1.json",
+  "frozen_end_to_end": {
+    "f32_classifications": [
+      "exact_match_safe",
+      "exact_match_safe"
+    ],
+    "final_norm_lm_head_top_k": "referenced Tier A and Tier B evidence",
+    "generated_token_ids": [
+      1096,
+      374
+    ],
+    "guard_router_ids": "referenced Tier A and Tier B evidence",
+    "input_token_ids": [
+      9707,
+      11,
+      1879,
+      0
+    ],
+    "selected_intermediates": "referenced M4.2-03 evidence"
+  },
+  "future_comparison_schema": "models/qwen3-30b-a3b/m4.3-01-comparison-schema-v1.json",
+  "kv_cache": {
+    "allocated_bytes": 1179648,
+    "allocation_growth": false,
+    "key_and_value_shape_per_layer": [
+      6,
+      4,
+      128
+    ],
+    "layers": 48,
+    "previous_position_overwrite": false,
+    "tier_a_capacity_and_final_length": 6
+  },
+  "model": {
+    "architecture": "Qwen3MoeForCausalLM",
+    "canonical_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "model_id": "Qwen/Qwen3-30B-A3B",
+    "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+    "source_dtype": "BF16",
+    "storage_and_compute_dtype": "F32"
+  },
+  "numerical_contract_registry": "models/qwen3-30b-a3b/m4.2-tolerance-contract-registry-v1.json",
+  "optimization_gate": "every future variant reports correctness, numerical, memory, I/O, performance, artifact-size, and platform/dependency deltas; speed alone cannot pass",
+  "performance_reference": {
+    "decode_seconds_by_token": [
+      [
+        70.03,
+        78.466
+      ],
+      [
+        62.406,
+        61.952
+      ],
+      [
+        65.269,
+        71.416
+      ]
+    ],
+    "expert_cache_hit_rate": 0.0,
+    "filesystem_cache_assumption": "uncontrolled; run C potentially warm; no cold-cache claim",
+    "host": "Windows 11 Enterprise 10.0.26200; Intel Core i7-1165G7; 8 logical processors; 51,249,209,344 RAM bytes",
+    "initialization_seconds": [
+      2.459,
+      2.463,
+      2.364
+    ],
+    "kv_cache_bytes": 1179648,
+    "logical_bytes_per_cached_decode_token": 12167471104,
+    "logical_dense_bytes": 29518290944,
+    "logical_expert_bytes": 43486543872,
+    "logical_not_physical_io": true,
+    "logical_total_bytes": 73004834816,
+    "modeled_explicit_memory_bytes": 127823000,
+    "prefill_seconds": [
+      286.068,
+      272.686,
+      254.771
+    ],
+    "process_peak_private_bytes_range": [
+      143036416,
+      143269888
+    ],
+    "process_peak_working_set_bytes_range": [
+      145424384,
+      148066304
+    ],
+    "source": "models/qwen3-30b-a3b/m4.2-05-baseline-summary-v1.json",
+    "total_read_amplification": 2.428603196361342
+  },
+  "precision_hierarchy": [
+    "selected_F64_diagnostics",
+    "Transformers_F32_from_pinned_BF16_weights",
+    "Rust_ordered_F32_runtime",
+    "future_lower_precision_or_optimized_variants_not_implemented"
+  ],
+  "runtime": {
+    "arithmetic": "safe_scalar_ordered_F32",
+    "build_mode": "release",
+    "expert_cache_budget_bytes": 18874368,
+    "last_runtime_implementation_commit": "4c02b611ebe77e4a0daca3afc16dddcfeccaba74",
+    "m4_2_closure_commit": "7321c46ae62543f9aa8c6025130d9b142e31a455",
+    "name": "colibri-lite-rs",
+    "rust_version": "1.96.1",
+    "target": "x86_64-pc-windows-msvc"
+  },
+  "schema_version": 1,
+  "status": "authoritative_unquantized_f32_baseline_frozen",
+  "supporting_evidence": [
+    {
+      "bytes": 11189,
+      "path": "models/qwen3-30b-a3b/m4.2-03-rust-intermediate-evidence-v1.tsv",
+      "sha256": "c09853525a2747e137d6cbec0d15fb41a839694f31f6860d8c09071f286a33b0"
+    },
+    {
+      "bytes": 6723,
+      "path": "models/qwen3-30b-a3b/m4.2-04-rust-short-generation-evidence-v1.tsv",
+      "sha256": "8b8bbffa3931af311cd5af7bbed3270e047fbc91e9a8efecf2a61ce78312ba24"
+    },
+    {
+      "bytes": 32287,
+      "path": "models/qwen3-30b-a3b/m4.2-04-transformers-bf16-generation-evidence-v1.json",
+      "sha256": "c3261f915a9d16c78890543388ab61bde084b1d362c605192797d19147be1dd5"
+    },
+    {
+      "bytes": 32286,
+      "path": "models/qwen3-30b-a3b/m4.2-04-transformers-f32-generation-evidence-v1.json",
+      "sha256": "1f14ac9a852ca34a9aa514c6e92204717beda8e3fd42f873e30f4ba5fee23b09"
+    },
+    {
+      "bytes": 5158,
+      "path": "models/qwen3-30b-a3b/m4.2-05-baseline-summary-v1.json",
+      "sha256": "87783671900fa1735e824fe1e2bc19b9da29244d0c9f6f8e4f47f4e9744821bf"
+    },
+    {
+      "bytes": 21273,
+      "path": "models/qwen3-30b-a3b/m4.2-tolerance-contract-registry-v1.json",
+      "sha256": "e5b5e76294489b4bdb24bf85139659844b91e7a8ab5307c9fe964a57296e2b8b"
+    },
+    {
+      "bytes": 2257,
+      "path": "models/qwen3-30b-a3b/m4.3-01-comparison-schema-v1.json",
+      "sha256": "58a6b741dcbff9a07d489b852b0abc25077f1de98a4e07a7366511168be26973"
+    },
+    {
+      "bytes": 3463,
+      "path": "models/qwen3-30b-a3b/m4.3-01-f64-diagnostics-v1.json",
+      "sha256": "70db4d413af5ef60a045508b9d8c1873473a65b867167e35938a20ccad3e36eb"
+    },
+    {
+      "bytes": 12764,
+      "path": "models/qwen3-30b-a3b/m4.3-01-fixtures-v1.json",
+      "sha256": "adf2fe3f16876a780e9ed1d5c4c6270dc05dbc8d17ab3f2b589e91a49310a287"
+    },
+    {
+      "bytes": 3681,
+      "path": "models/qwen3-30b-a3b/m4.3-01-rust-tier-b-characterization-v1.tsv",
+      "sha256": "44892f894b9f8cfd9e043ced5226f58bc6d3a5e4ae700ab6d955bc93708fd002"
+    },
+    {
+      "bytes": 3661,
+      "path": "models/qwen3-30b-a3b/m4.3-01-rust-tier-b-evidence-v1.tsv",
+      "sha256": "5632f63acd29b4af09709904d0ffcef12336628a9af51c1b4a8514c857d976f2"
+    },
+    {
+      "bytes": 12912,
+      "path": "models/qwen3-30b-a3b/m4.3-01-single-low-token-lm-head-diagnostic-v1.json",
+      "sha256": "49be22237bf2248b14c8d44d599185d6b48eaf8ee7c8a1c397b79c8cfc895dac"
+    },
+    {
+      "bytes": 19191,
+      "path": "models/qwen3-30b-a3b/m4.3-01-tier-b-transformers-f32-v1.json",
+      "sha256": "5ca68e70d2c3d7a9d09f77a36eeb0dc0854abfccdd7034acd493a5fb58b4f6c5"
+    },
+    {
+      "bytes": 8280,
+      "path": "models/qwen3-30b-a3b/m4.3-01-tier-b-transformers-f32-v1.tsv",
+      "sha256": "50e17ad6953e0953ec3a919d4f7f9e7c19ca3416395627b62d1313a48a746e97"
+    },
+    {
+      "bytes": 11395,
+      "path": "models/qwen3-30b-a3b/model-manifest-v1.json",
+      "sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2"
+    },
+    {
+      "bytes": 12786,
+      "path": "models/qwen3-30b-a3b/source-manifest-v1.json",
+      "sha256": "2d4980567f1875e5ea6d38dbbc2523bed8ef78d2ed61bd1d57b583dcb8f1f443"
+    }
+  ],
+  "task": "M4.3-01"
+}

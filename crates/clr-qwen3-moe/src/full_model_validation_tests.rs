@@ -13,7 +13,7 @@ use std::{
 use clr_core::{DataType, Tensor, TensorShape, ops::elementwise_add};
 use clr_storage::{
     ARTIFACT_FORMAT_VERSION, ArtifactManifest, ArtifactReader, ByteOrder, ExpertId, ExpertKey,
-    ExpertRegistration, ExpertStore, TensorLocation, TensorMetadata,
+    ExpertRegistration, ExpertStore, Sha256Hasher, TensorLocation, TensorMetadata,
 };
 
 use crate::{
@@ -169,6 +169,10 @@ const GENERATION_F32_CHECKPOINT_PLAN: &str = include_str!(concat!(
 const GENERATION_F32_CHECKPOINTS: &[u8] = include_bytes!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../../models/qwen3-30b-a3b/m4.2-04-transformers-f32-generation-v1.safetensors"
+));
+const TIER_B_F32_REFERENCE: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.3-01-tier-b-transformers-f32-v1.tsv"
 ));
 const GENERATION_INPUT_TOKENS: [usize; 6] = [9707, 11, 1879, 0, 1096, 374];
 const GENERATION_GUARD_LAYERS: [usize; 3] = [0, 24, 47];
@@ -750,6 +754,28 @@ fn short_generation_budget(step: usize, checkpoint: &str) -> f32 {
             1.364_680_8e-4,
         ][step],
         _ => panic!("missing M4.2-04 {checkpoint} budget"),
+    }
+}
+
+fn tier_b_fixture_budget(fixture: &str, checkpoint: &str) -> f32 {
+    let observed = match (fixture, checkpoint) {
+        ("single_low_token", "final_norm") => 3.208_22e-5,
+        ("short_english", "final_norm") => 4.172_325e-6,
+        ("short_thai", "final_norm") => 1.144_409_2e-5,
+        ("code_newline", "final_norm") => 3.695_488e-6,
+        ("repeated_pattern", "final_norm") => 2.920_627_6e-6,
+        ("special_token", "final_norm") => 7.271_766_7e-6,
+        ("single_low_token", "logits") => 2.841_949_5e-4,
+        ("short_english", "logits") => 4.768_371_6e-5,
+        ("short_thai", "logits") => 4.386_902e-5,
+        ("code_newline", "logits") => 3.051_757_8e-5,
+        ("repeated_pattern" | "special_token", "logits") => 2.098_083_5e-5,
+        _ => panic!("missing Tier B {fixture} {checkpoint} budget observation"),
+    };
+    match checkpoint {
+        "final_norm" => 3.0 * observed + 5.0e-7,
+        "logits" => 3.0 * observed + 2.0e-6,
+        _ => unreachable!(),
     }
 }
 
@@ -4752,5 +4778,485 @@ fn short_cached_generation_matches_transformers() {
         "short_generation_complete elapsed_seconds={} generated={generated:?} dense_bytes_read={dense_bytes_read} expert_metrics={metrics:?} kv_cache_bytes={} modeled_peak_explicit_bytes={modeled_peak_explicit_bytes}",
         started.elapsed().as_secs_f64(),
         cache.byte_size(),
+    );
+}
+
+#[derive(Debug, Default)]
+struct TierBReference {
+    name: String,
+    token_ids: Vec<usize>,
+    final_norm_indices: Vec<usize>,
+    final_norm_values: Vec<f32>,
+    final_norm_sha256: String,
+    guard_ids: HashMap<usize, Vec<usize>>,
+    fixed_logit_indices: Vec<usize>,
+    fixed_logits: Vec<f32>,
+    top20_ids: Vec<usize>,
+    top20_logits: Vec<f32>,
+    argmax: usize,
+    argmax_logit: f32,
+    second_logit: f32,
+    margin: f32,
+    nan_count: usize,
+    positive_infinity_count: usize,
+    negative_infinity_count: usize,
+}
+
+fn parse_usize_list(value: &str) -> Vec<usize> {
+    value
+        .split(',')
+        .map(|item| item.parse().expect("Tier B integer"))
+        .collect()
+}
+
+fn parse_f32_list(value: &str) -> Vec<f32> {
+    value
+        .split(',')
+        .map(|item| item.parse().expect("Tier B F32"))
+        .collect()
+}
+
+fn tier_b_references() -> Vec<TierBReference> {
+    let mut fixtures = Vec::<TierBReference>::new();
+    for line in TIER_B_F32_REFERENCE.lines().skip(1) {
+        let fields: Vec<_> = line.split('\t').collect();
+        assert_eq!(fields.len(), 3, "Tier B TSV field count");
+        if fields[0] == "fixture" {
+            fixtures.push(TierBReference {
+                name: fields[1].to_owned(),
+                token_ids: parse_usize_list(fields[2]),
+                ..TierBReference::default()
+            });
+            continue;
+        }
+        let fixture = fixtures
+            .iter_mut()
+            .find(|fixture| fixture.name == fields[1])
+            .expect("Tier B record follows fixture");
+        let values: Vec<_> = fields[2].split(';').collect();
+        match fields[0] {
+            "final_norm" => {
+                assert_eq!(values.len(), 3);
+                fixture.final_norm_indices = parse_usize_list(values[0]);
+                fixture.final_norm_values = parse_f32_list(values[1]);
+                values[2].clone_into(&mut fixture.final_norm_sha256);
+            }
+            guard if guard.starts_with("guard_ids_") => {
+                let layer = guard["guard_ids_".len()..]
+                    .parse()
+                    .expect("Tier B guard layer");
+                assert!(
+                    fixture
+                        .guard_ids
+                        .insert(layer, parse_usize_list(values[0]))
+                        .is_none(),
+                    "duplicate Tier B guard layer"
+                );
+            }
+            "logits" => {
+                assert_eq!(values.len(), 11);
+                fixture.fixed_logit_indices = parse_usize_list(values[0]);
+                fixture.fixed_logits = parse_f32_list(values[1]);
+                fixture.top20_ids = parse_usize_list(values[2]);
+                fixture.top20_logits = parse_f32_list(values[3]);
+                fixture.argmax = values[4].parse().expect("Tier B argmax");
+                fixture.argmax_logit = values[5].parse().expect("Tier B argmax logit");
+                fixture.second_logit = values[6].parse().expect("Tier B second logit");
+                fixture.margin = values[7].parse().expect("Tier B top-1 margin");
+                fixture.nan_count = values[8].parse().expect("Tier B NaN count");
+                fixture.positive_infinity_count =
+                    values[9].parse().expect("Tier B positive infinity count");
+                fixture.negative_infinity_count =
+                    values[10].parse().expect("Tier B negative infinity count");
+            }
+            record => panic!("unsupported Tier B record {record}"),
+        }
+    }
+    assert_eq!(fixtures.len(), 6, "Tier B fixture count");
+    for fixture in &fixtures {
+        assert_eq!(fixture.final_norm_indices.len(), 5);
+        assert_eq!(fixture.final_norm_values.len(), 5);
+        assert_eq!(fixture.final_norm_sha256.len(), 64);
+        assert_eq!(fixture.guard_ids.len(), 3);
+        assert_eq!(fixture.fixed_logit_indices.len(), 10);
+        assert_eq!(fixture.fixed_logits.len(), 10);
+        assert_eq!(fixture.top20_ids.len(), 20);
+        assert_eq!(fixture.top20_logits.len(), 20);
+        assert_eq!(fixture.argmax, fixture.top20_ids[0]);
+        assert_eq!(fixture.argmax_logit, fixture.top20_logits[0]);
+        assert_eq!(fixture.second_logit, fixture.top20_logits[1]);
+        assert_eq!(fixture.margin, fixture.argmax_logit - fixture.second_logit);
+        assert_eq!(fixture.nan_count, 0);
+        assert_eq!(fixture.positive_infinity_count, 0);
+        assert_eq!(fixture.negative_infinity_count, 0);
+    }
+    fixtures
+}
+
+#[test]
+fn m4_3_01_tier_b_reference_schema_and_budgets_are_frozen() {
+    let fixtures = tier_b_references();
+    assert_eq!(
+        fixtures
+            .iter()
+            .map(|fixture| fixture.name.as_str())
+            .collect::<Vec<_>>(),
+        [
+            "single_low_token",
+            "short_english",
+            "short_thai",
+            "code_newline",
+            "repeated_pattern",
+            "special_token",
+        ]
+    );
+    assert_eq!(
+        fixtures
+            .iter()
+            .map(|fixture| fixture.token_ids.len())
+            .sum::<usize>(),
+        11
+    );
+    for fixture in fixtures {
+        assert!(tier_b_fixture_budget(&fixture.name, "final_norm") > 0.0);
+        assert!(tier_b_fixture_budget(&fixture.name, "logits") > 0.0);
+        assert!(fixture.margin > 0.0);
+        assert_eq!(fixture.top20_ids[0], fixture.argmax);
+        assert_eq!(
+            fixture.guard_ids.keys().copied().collect::<HashSet<_>>(),
+            [0, 24, 47].into()
+        );
+    }
+}
+
+fn maximum_indexed_difference(actual: &[f32], indices: &[usize], expected: &[f32]) -> f32 {
+    assert_eq!(indices.len(), expected.len());
+    indices
+        .iter()
+        .zip(expected)
+        .map(|(&index, &expected)| (actual[index] - expected).abs())
+        .fold(0.0_f32, f32::max)
+}
+
+fn f32_little_endian_sha256(values: &[f32]) -> String {
+    let mut hasher = Sha256Hasher::new();
+    for value in values {
+        hasher.update(&value.to_le_bytes());
+    }
+    hasher
+        .finalize()
+        .iter()
+        .fold(String::with_capacity(64), |mut output, byte| {
+            write!(output, "{byte:02x}").expect("write SHA-256 hex");
+            output
+        })
+}
+
+fn f32_little_endian_bytes(values: &[f32]) -> Vec<u8> {
+    values
+        .iter()
+        .flat_map(|value| value.to_le_bytes())
+        .collect()
+}
+
+#[test]
+fn m4_3_01_tier_b_full_forward_matches_transformers_f32() {
+    let fixture_filter = env::var("COLIBRI_TIER_B_FIXTURE").ok();
+    let retain_diagnostic = env::var_os("COLIBRI_TIER_B_RETAIN_DIAGNOSTIC").is_some();
+    let artifact_root = env::var_os("COLIBRI_ARTIFACT_ROOT")
+        .map(PathBuf::from)
+        .expect("COLIBRI_ARTIFACT_ROOT must name the stable canonical artifact");
+    assert!(
+        artifact_root.is_absolute(),
+        "artifact root must be absolute"
+    );
+    let diagnostic_root = env::var_os("COLIBRI_RMS_DIAGNOSTIC_ROOT")
+        .map(PathBuf::from)
+        .expect("diagnostic root for Tier B evidence");
+    assert!(
+        diagnostic_root.is_absolute(),
+        "diagnostic root must be absolute"
+    );
+
+    let plan = runtime_plan(LAYER47_RUNTIME_PLAN);
+    let final_plan = runtime_plan(GENERATION_FINAL_DENSE_RUNTIME_PLAN);
+    assert_eq!(plan.payload, final_plan.payload, "dense payload identity");
+    assert_eq!(
+        plan.payload_length, final_plan.payload_length,
+        "dense payload length"
+    );
+    let mut payload = File::open(artifact_root.join(&plan.payload)).expect("open dense payload");
+    assert_eq!(
+        payload.metadata().expect("dense payload metadata").len(),
+        plan.payload_length
+    );
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("pinned runtime config")
+        .runtime_config();
+    let expert_layout = PackedExpertLayout::for_config(config);
+    let mut dense_bytes_read = 0_u64;
+    let final_norm_weight = artifact_tensor(
+        &mut payload,
+        &final_plan,
+        "model.norm.weight",
+        &mut dense_bytes_read,
+    );
+    let mut evidence = String::from(
+        "fixture\ttoken_ids\tfinal_norm_reference_sha256\tfinal_norm_rust_sha256\tmaximum_fixed_final_norm_error\tfinal_norm_fixture_budget\tmaximum_fixed_logit_error\tmaximum_top20_logit_error\tlogit_fixture_budget\targmax\ttop1_margin\trequired_safe_margin\tclassification\ttop20_ids\tguard_layer0_ids\tguard_layer24_ids\tguard_layer47_ids\tkv_cache_bytes\tdense_bytes_read\texpert_bytes_read\texpert_loads\texpert_evictions\n",
+    );
+
+    for fixture in tier_b_references().into_iter().filter(|fixture| {
+        fixture_filter
+            .as_ref()
+            .is_none_or(|filter| filter == &fixture.name)
+    }) {
+        let fixture_dense_before = dense_bytes_read;
+        let mut store = expert_store_from_plans(
+            &[
+                LAYER47_EXPERT_RUNTIME_PLAN,
+                GENERATION_LAYER47_EXPERT_RUNTIME_PLAN,
+            ],
+            &artifact_root,
+            48 * 128,
+        );
+        let mut cache =
+            KvCache::new(48, fixture.token_ids.len(), 4, 128).expect("fixed Tier B KV cache");
+        let allocation_capacities = cache.allocation_capacities();
+        let mut final_guards = HashMap::<usize, Vec<usize>>::new();
+        let mut current = None;
+
+        for (position, &token_id) in fixture.token_ids.iter().enumerate() {
+            assert_eq!(cache.len(), position, "Tier B cache position");
+            let mut hidden = embedding_row(&mut payload, &plan, token_id, &mut dense_bytes_read);
+            let mut updates = Vec::with_capacity(48);
+            for layer in 0..48 {
+                let weights = layer_weights(&mut payload, &plan, layer, &mut dense_bytes_read);
+                let input_norm = rms_norm(
+                    hidden.view(),
+                    weights.input_norm.view(),
+                    config.rms_norm_epsilon(),
+                )
+                .unwrap_or_else(|error| {
+                    panic!(
+                        "{} position-{position} Layer-{layer} input norm: {error}",
+                        fixture.name
+                    )
+                });
+                let attention = cached_attention_with_weights(
+                    input_norm.view(),
+                    config,
+                    weights.query.view(),
+                    weights.key.view(),
+                    weights.value.view(),
+                    weights.output.view(),
+                    weights.query_norm.view(),
+                    weights.key_norm.view(),
+                    cache.layer(layer).expect("Tier B KV layer view"),
+                )
+                .unwrap_or_else(|error| {
+                    panic!(
+                        "{} position-{position} Layer-{layer} attention: {error}",
+                        fixture.name
+                    )
+                });
+                let residual = elementwise_add(hidden.view(), attention.output.view())
+                    .unwrap_or_else(|error| {
+                        panic!(
+                            "{} position-{position} Layer-{layer} attention residual: {error}",
+                            fixture.name
+                        )
+                    });
+                let post_norm = rms_norm(
+                    residual.view(),
+                    weights.post_norm.view(),
+                    config.rms_norm_epsilon(),
+                )
+                .unwrap_or_else(|error| {
+                    panic!(
+                        "{} position-{position} Layer-{layer} post norm: {error}",
+                        fixture.name
+                    )
+                });
+                let router = route_tokens(post_norm.view(), weights.router.view(), config)
+                    .unwrap_or_else(|error| {
+                        panic!(
+                            "{} position-{position} Layer-{layer} router: {error}",
+                            fixture.name
+                        )
+                    });
+                if position + 1 == fixture.token_ids.len()
+                    && GENERATION_GUARD_LAYERS.contains(&layer)
+                {
+                    final_guards.insert(layer, router.selected_experts.clone());
+                }
+                let moe = streaming_routed_experts_with_observer(
+                    post_norm.view(),
+                    &router,
+                    config,
+                    layer,
+                    &mut store,
+                    expert_layout,
+                    |_, _, _, _| {},
+                )
+                .unwrap_or_else(|error| {
+                    panic!(
+                        "{} position-{position} Layer-{layer} experts: {error}",
+                        fixture.name
+                    )
+                });
+                hidden = elementwise_add(residual.view(), moe.view()).unwrap_or_else(|error| {
+                    panic!(
+                        "{} position-{position} Layer-{layer} block: {error}",
+                        fixture.name
+                    )
+                });
+                updates.push((attention.key, attention.value));
+            }
+            let updates_view: Vec<_> = updates
+                .iter()
+                .map(|(key, value)| LayerKvUpdate { key, value })
+                .collect();
+            cache
+                .append_token(&updates_view)
+                .expect("transactional Tier B KV append");
+            assert_eq!(cache.allocation_capacities(), allocation_capacities);
+            current = Some(hidden);
+        }
+
+        let normalized = rms_norm(
+            current.expect("non-empty Tier B fixture").view(),
+            final_norm_weight.view(),
+            config.rms_norm_epsilon(),
+        )
+        .unwrap_or_else(|error| panic!("{} final RMSNorm: {error}", fixture.name));
+        let logits = streaming_language_model_head(
+            &mut payload,
+            &final_plan,
+            &normalized,
+            &mut dense_bytes_read,
+        );
+        let rust_top20 = deterministic_top_ids(&logits, 20);
+        assert_eq!(rust_top20, fixture.top20_ids, "{} top-20 IDs", fixture.name);
+        let rust_argmax = greedy_token(logits.view()).expect("finite Tier B logits");
+        assert_eq!(rust_argmax, fixture.argmax, "{} argmax", fixture.name);
+        for layer in GENERATION_GUARD_LAYERS {
+            assert_eq!(
+                final_guards[&layer], fixture.guard_ids[&layer],
+                "{} Layer-{layer} guard IDs",
+                fixture.name
+            );
+        }
+
+        let norm_error = maximum_indexed_difference(
+            normalized.data(),
+            &fixture.final_norm_indices,
+            &fixture.final_norm_values,
+        );
+        let norm_budget = tier_b_fixture_budget(&fixture.name, "final_norm");
+        assert!(
+            norm_error <= norm_budget,
+            "{} fixed final-norm error {norm_error} exceeds fixture budget {norm_budget}",
+            fixture.name
+        );
+        let fixed_logit_error = maximum_indexed_difference(
+            logits.data(),
+            &fixture.fixed_logit_indices,
+            &fixture.fixed_logits,
+        );
+        let top20_logit_error =
+            maximum_indexed_difference(logits.data(), &fixture.top20_ids, &fixture.top20_logits);
+        let observed_logit_error = fixed_logit_error.max(top20_logit_error);
+        let logit_budget = tier_b_fixture_budget(&fixture.name, "logits");
+        if retain_diagnostic {
+            atomic_diagnostic(
+                &diagnostic_root.join(format!("{}-rust-final-norm-f32.bin", fixture.name)),
+                &f32_little_endian_bytes(normalized.data()),
+            );
+            atomic_diagnostic(
+                &diagnostic_root.join(format!("{}-rust-logits-f32.bin", fixture.name)),
+                &f32_little_endian_bytes(logits.data()),
+            );
+        }
+        assert!(
+            observed_logit_error <= logit_budget,
+            "{} compact logit error {observed_logit_error} exceeds fixture budget {logit_budget}",
+            fixture.name
+        );
+        let required_margin = 2.0 * observed_logit_error;
+        assert!(
+            fixture.margin > required_margin,
+            "{} top-1 margin is not safe for compact compared logits",
+            fixture.name
+        );
+        assert_eq!(
+            logits.data().iter().filter(|value| value.is_nan()).count(),
+            fixture.nan_count,
+            "{} NaN count",
+            fixture.name
+        );
+        assert_eq!(
+            logits
+                .data()
+                .iter()
+                .filter(|value| value.is_infinite() && value.is_sign_positive())
+                .count(),
+            fixture.positive_infinity_count,
+            "{} positive infinity count",
+            fixture.name
+        );
+        assert_eq!(
+            logits
+                .data()
+                .iter()
+                .filter(|value| value.is_infinite() && value.is_sign_negative())
+                .count(),
+            fixture.negative_infinity_count,
+            "{} negative infinity count",
+            fixture.name
+        );
+        assert_eq!(cache.len(), fixture.token_ids.len());
+        assert_eq!(cache.allocation_capacities(), allocation_capacities);
+        let metrics = store.metrics();
+        let expected_expert_occurrences = (fixture.token_ids.len() * 48 * 8) as u64;
+        assert_eq!(metrics.hits, 0);
+        assert_eq!(metrics.misses, expected_expert_occurrences);
+        assert_eq!(metrics.loads, expected_expert_occurrences);
+        assert_eq!(metrics.evictions, expected_expert_occurrences - 1);
+        assert_eq!(metrics.peak_resident_bytes, 18_874_368);
+
+        writeln!(
+            evidence,
+            "{}\t{}\t{}\t{}\t{norm_error:.17e}\t{norm_budget:.17e}\t{fixed_logit_error:.17e}\t{top20_logit_error:.17e}\t{logit_budget:.17e}\t{rust_argmax}\t{:.17e}\t{required_margin:.17e}\texact_match_safe_compact\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+            fixture.name,
+            comma_separated(&fixture.token_ids),
+            fixture.final_norm_sha256,
+            f32_little_endian_sha256(normalized.data()),
+            fixture.margin,
+            comma_separated(&rust_top20),
+            comma_separated(&final_guards[&0]),
+            comma_separated(&final_guards[&24]),
+            comma_separated(&final_guards[&47]),
+            cache.byte_size(),
+            dense_bytes_read - fixture_dense_before,
+            metrics.bytes_read,
+            metrics.loads,
+            metrics.evictions,
+        )
+        .expect("write Tier B evidence");
+        println!(
+            "tier_b fixture={} tokens={} argmax={} margin={} required_margin={} norm_error={} compact_logit_error={}",
+            fixture.name,
+            fixture.token_ids.len(),
+            rust_argmax,
+            fixture.margin,
+            required_margin,
+            norm_error,
+            observed_logit_error,
+        );
+    }
+    atomic_diagnostic(
+        &diagnostic_root.join("m4.3-01-rust-tier-b-evidence-v1.tsv"),
+        evidence.as_bytes(),
     );
 }
