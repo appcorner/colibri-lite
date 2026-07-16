@@ -1,0 +1,796 @@
+{
+    "schema_version":  1,
+    "task":  "M4.2-05",
+    "run_label":  "run_a",
+    "filesystem_cache_assumption":  "fresh_process_uncontrolled_os_cache",
+    "timing_scope":  {
+                         "rust_phase_clock":  "monotonic high-resolution System.Diagnostics.Instant equivalent",
+                         "process_wall_includes":  "test harness and validation comparisons",
+                         "rust_inference_wall_excludes":  "reference preparation and validation comparisons"
+                     },
+    "process":  {
+                    "exit_code":  0,
+                    "external_wall_seconds":  437.5832231,
+                    "cpu_seconds":  402.71875,
+                    "peak_working_set_bytes":  148066304,
+                    "peak_sampled_private_bytes":  143212544,
+                    "final_sampled_working_set_bytes":  41766912,
+                    "final_sampled_private_bytes":  36618240,
+                    "memory_sample_count":  3747,
+                    "sample_interval_milliseconds":  100
+                },
+    "system":  {
+                   "available_memory_before_bytes":  21091180544,
+                   "available_memory_after_bytes":  21046833152,
+                   "run_volume_free_before_bytes":  324552089600,
+                   "run_volume_free_after_bytes":  324552048640
+               },
+    "correctness":  {
+                        "input_token_ids":  [
+                                                9707,
+                                                11,
+                                                1879,
+                                                0
+                                            ],
+                        "generated_token_ids":  [
+                                                    1096,
+                                                    374
+                                                ],
+                        "f32_classifications":  [
+                                                    "exact_match_safe",
+                                                    "exact_match_safe"
+                                                ],
+                        "kv_cache_valid":  true
+                    },
+    "rust_metrics":  [
+                         {
+                             "record":  "schema",
+                             "phase":  "total",
+                             "metric":  "schema_version",
+                             "value":  "1",
+                             "unit":  "integer"
+                         },
+                         {
+                             "record":  "configuration",
+                             "phase":  "total",
+                             "metric":  "filesystem_cache_assumption",
+                             "value":  "fresh_process_uncontrolled_os_cache",
+                             "unit":  "label"
+                         },
+                         {
+                             "record":  "configuration",
+                             "phase":  "total",
+                             "metric":  "input_token_ids",
+                             "value":  "9707,11,1879,0",
+                             "unit":  "token_ids"
+                         },
+                         {
+                             "record":  "correctness",
+                             "phase":  "total",
+                             "metric":  "generated_token_ids",
+                             "value":  "1096,374",
+                             "unit":  "token_ids"
+                         },
+                         {
+                             "record":  "correctness",
+                             "phase":  "total",
+                             "metric":  "f32_classifications",
+                             "value":  "exact_match_safe,exact_match_safe",
+                             "unit":  "labels"
+                         },
+                         {
+                             "record":  "timing",
+                             "phase":  "initialization",
+                             "metric":  "wall_seconds",
+                             "value":  "2.45919310000000024e0",
+                             "unit":  "seconds"
+                         },
+                         {
+                             "record":  "timing",
+                             "phase":  "prefill",
+                             "metric":  "wall_seconds",
+                             "value":  "2.86067854099999977e2",
+                             "unit":  "seconds"
+                         },
+                         {
+                             "record":  "timing",
+                             "phase":  "decode_1",
+                             "metric":  "wall_seconds",
+                             "value":  "7.00295030999999994e1",
+                             "unit":  "seconds"
+                         },
+                         {
+                             "record":  "timing",
+                             "phase":  "decode_2",
+                             "metric":  "wall_seconds",
+                             "value":  "7.84661973000000046e1",
+                             "unit":  "seconds"
+                         },
+                         {
+                             "record":  "timing",
+                             "phase":  "decode",
+                             "metric":  "average_seconds_per_token",
+                             "value":  "7.42478502000000020e1",
+                             "unit":  "seconds_per_token"
+                         },
+                         {
+                             "record":  "timing",
+                             "phase":  "prefill",
+                             "metric":  "tokens_per_second",
+                             "value":  "1.39826965619203429e-2",
+                             "unit":  "tokens_per_second"
+                         },
+                         {
+                             "record":  "timing",
+                             "phase":  "decode",
+                             "metric":  "tokens_per_second",
+                             "value":  "1.34684034259082153e-2",
+                             "unit":  "tokens_per_second"
+                         },
+                         {
+                             "record":  "timing",
+                             "phase":  "total",
+                             "metric":  "inference_wall_seconds",
+                             "value":  "4.37022747600000002e2",
+                             "unit":  "seconds"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "initialization",
+                             "metric":  "dense_bytes_requested_read",
+                             "value":  "8192",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "initialization",
+                             "metric":  "expert_bytes_requested_read",
+                             "value":  "0",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "initialization",
+                             "metric":  "total_artifact_bytes_read",
+                             "value":  "8192",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "initialization",
+                             "metric":  "dense_read_operations",
+                             "value":  "1",
+                             "unit":  "operations"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "initialization",
+                             "metric":  "expert_read_operations",
+                             "value":  "0",
+                             "unit":  "operations"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "initialization",
+                             "metric":  "artifact_read_operations",
+                             "value":  "1",
+                             "unit":  "operations"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "initialization",
+                             "metric":  "file_open_count",
+                             "value":  "1",
+                             "unit":  "opens"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "initialization",
+                             "metric":  "unique_files_accessed",
+                             "value":  "1",
+                             "unit":  "files"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "initialization",
+                             "metric":  "artifact_manifest_metadata_bytes",
+                             "value":  "0",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "prefill",
+                             "metric":  "dense_bytes_requested_read",
+                             "value":  "19678855168",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "prefill",
+                             "metric":  "expert_bytes_requested_read",
+                             "value":  "28991029248",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "prefill",
+                             "metric":  "total_artifact_bytes_read",
+                             "value":  "48669884416",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "prefill",
+                             "metric":  "dense_read_operations",
+                             "value":  "4108",
+                             "unit":  "operations"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "prefill",
+                             "metric":  "expert_read_operations",
+                             "value":  "1536",
+                             "unit":  "operations"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "prefill",
+                             "metric":  "artifact_read_operations",
+                             "value":  "5644",
+                             "unit":  "operations"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "prefill",
+                             "metric":  "file_open_count",
+                             "value":  "1536",
+                             "unit":  "opens"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "prefill",
+                             "metric":  "unique_files_accessed",
+                             "value":  "49",
+                             "unit":  "files"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "prefill",
+                             "metric":  "artifact_manifest_metadata_bytes",
+                             "value":  "0",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_1",
+                             "metric":  "dense_bytes_requested_read",
+                             "value":  "4919713792",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_1",
+                             "metric":  "expert_bytes_requested_read",
+                             "value":  "7247757312",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_1",
+                             "metric":  "total_artifact_bytes_read",
+                             "value":  "12167471104",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_1",
+                             "metric":  "dense_read_operations",
+                             "value":  "1027",
+                             "unit":  "operations"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_1",
+                             "metric":  "expert_read_operations",
+                             "value":  "384",
+                             "unit":  "operations"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_1",
+                             "metric":  "artifact_read_operations",
+                             "value":  "1411",
+                             "unit":  "operations"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_1",
+                             "metric":  "file_open_count",
+                             "value":  "384",
+                             "unit":  "opens"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_1",
+                             "metric":  "unique_files_accessed",
+                             "value":  "49",
+                             "unit":  "files"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_1",
+                             "metric":  "artifact_manifest_metadata_bytes",
+                             "value":  "0",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_2",
+                             "metric":  "dense_bytes_requested_read",
+                             "value":  "4919713792",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_2",
+                             "metric":  "expert_bytes_requested_read",
+                             "value":  "7247757312",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_2",
+                             "metric":  "total_artifact_bytes_read",
+                             "value":  "12167471104",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_2",
+                             "metric":  "dense_read_operations",
+                             "value":  "1027",
+                             "unit":  "operations"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_2",
+                             "metric":  "expert_read_operations",
+                             "value":  "384",
+                             "unit":  "operations"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_2",
+                             "metric":  "artifact_read_operations",
+                             "value":  "1411",
+                             "unit":  "operations"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_2",
+                             "metric":  "file_open_count",
+                             "value":  "384",
+                             "unit":  "opens"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_2",
+                             "metric":  "unique_files_accessed",
+                             "value":  "49",
+                             "unit":  "files"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_2",
+                             "metric":  "artifact_manifest_metadata_bytes",
+                             "value":  "0",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "total",
+                             "metric":  "dense_bytes_requested_read",
+                             "value":  "29518290944",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "total",
+                             "metric":  "expert_bytes_requested_read",
+                             "value":  "43486543872",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "total",
+                             "metric":  "total_artifact_bytes_read",
+                             "value":  "73004834816",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "total",
+                             "metric":  "dense_read_operations",
+                             "value":  "6163",
+                             "unit":  "operations"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "total",
+                             "metric":  "expert_read_operations",
+                             "value":  "2304",
+                             "unit":  "operations"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "total",
+                             "metric":  "artifact_read_operations",
+                             "value":  "8467",
+                             "unit":  "operations"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "total",
+                             "metric":  "file_open_count",
+                             "value":  "2305",
+                             "unit":  "opens"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "total",
+                             "metric":  "unique_files_accessed",
+                             "value":  "49",
+                             "unit":  "files"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "total",
+                             "metric":  "artifact_manifest_metadata_bytes",
+                             "value":  "0",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_1",
+                             "metric":  "bytes_per_generated_token",
+                             "value":  "12167471104",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "decode_2",
+                             "metric":  "bytes_per_generated_token",
+                             "value":  "12167471104",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "total",
+                             "metric":  "end_to_end_bytes_per_generated_token",
+                             "value":  "36502417408",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "total",
+                             "metric":  "unique_dense_payload_bytes",
+                             "value":  "4919762944",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "total",
+                             "metric":  "unique_expert_payload_bytes",
+                             "value":  "25140658176",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "total",
+                             "metric":  "useful_unique_payload_bytes",
+                             "value":  "30060421120",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "total",
+                             "metric":  "repeated_dense_bytes",
+                             "value":  "24598528000",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "total",
+                             "metric":  "repeated_expert_bytes",
+                             "value":  "18345885696",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "total",
+                             "metric":  "repeated_artifact_bytes",
+                             "value":  "42944413696",
+                             "unit":  "logical_bytes"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "total",
+                             "metric":  "read_amplification",
+                             "value":  "2.42860319636134214e0",
+                             "unit":  "ratio"
+                         },
+                         {
+                             "record":  "io",
+                             "phase":  "total",
+                             "metric":  "expert_read_amplification",
+                             "value":  "1.72972972972972983e0",
+                             "unit":  "ratio"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "configured_byte_budget",
+                             "value":  "18874368",
+                             "unit":  "bytes"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "expert_payload_bytes",
+                             "value":  "18874368",
+                             "unit":  "bytes"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "theoretical_expert_capacity",
+                             "value":  "1",
+                             "unit":  "experts"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "peak_resident_expert_count",
+                             "value":  "1",
+                             "unit":  "experts"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "expert_occurrences",
+                             "value":  "2304",
+                             "unit":  "requests"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "prefill",
+                             "metric":  "unique_layer_expert_requests",
+                             "value":  "1066",
+                             "unit":  "keys"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "decode_1",
+                             "metric":  "unique_layer_expert_requests",
+                             "value":  "384",
+                             "unit":  "keys"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "decode_2",
+                             "metric":  "unique_layer_expert_requests",
+                             "value":  "384",
+                             "unit":  "keys"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "unique_layer_expert_requests",
+                             "value":  "1332",
+                             "unit":  "keys"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "hits",
+                             "value":  "0",
+                             "unit":  "requests"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "misses",
+                             "value":  "2304",
+                             "unit":  "requests"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "loads",
+                             "value":  "2304",
+                             "unit":  "loads"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "evictions",
+                             "value":  "2303",
+                             "unit":  "evictions"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "hit_rate",
+                             "value":  "0.00000000000000000e0",
+                             "unit":  "ratio"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "repeated_requests_within_token",
+                             "value":  "0",
+                             "unit":  "requests"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "repeated_requests_across_tokens",
+                             "value":  "972",
+                             "unit":  "requests"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "reuse_distance_minimum",
+                             "value":  "379",
+                             "unit":  "requests"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "reuse_distance_median",
+                             "value":  "384",
+                             "unit":  "requests"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "reuse_distance_maximum",
+                             "value":  "1924",
+                             "unit":  "requests"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "reuse_distance_at_most_384",
+                             "value":  "525",
+                             "unit":  "reuses"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "reuse_distance_385_through_768",
+                             "value":  "298",
+                             "unit":  "reuses"
+                         },
+                         {
+                             "record":  "cache",
+                             "phase":  "total",
+                             "metric":  "reuse_distance_above_768",
+                             "value":  "149",
+                             "unit":  "reuses"
+                         },
+                         {
+                             "record":  "memory",
+                             "phase":  "total",
+                             "metric":  "modeled_explicit_tensor_bytes",
+                             "value":  "127823000",
+                             "unit":  "bytes"
+                         },
+                         {
+                             "record":  "memory",
+                             "phase":  "total",
+                             "metric":  "dense_buffer_bytes",
+                             "value":  "78660608",
+                             "unit":  "bytes"
+                         },
+                         {
+                             "record":  "memory",
+                             "phase":  "total",
+                             "metric":  "decoded_expert_buffer_bytes",
+                             "value":  "18874368",
+                             "unit":  "bytes"
+                         },
+                         {
+                             "record":  "memory",
+                             "phase":  "total",
+                             "metric":  "expert_cache_resident_bytes",
+                             "value":  "18874368",
+                             "unit":  "bytes"
+                         },
+                         {
+                             "record":  "memory",
+                             "phase":  "total",
+                             "metric":  "kv_cache_bytes",
+                             "value":  "1179648",
+                             "unit":  "bytes"
+                         },
+                         {
+                             "record":  "memory",
+                             "phase":  "total",
+                             "metric":  "inference_tensor_bytes",
+                             "value":  "624128",
+                             "unit":  "bytes"
+                         },
+                         {
+                             "record":  "memory",
+                             "phase":  "total",
+                             "metric":  "temporary_validation_buffer_bytes",
+                             "value":  "9609880",
+                             "unit":  "bytes"
+                         },
+                         {
+                             "record":  "kv_cache",
+                             "phase":  "total",
+                             "metric":  "layer_count",
+                             "value":  "48",
+                             "unit":  "layers"
+                         },
+                         {
+                             "record":  "kv_cache",
+                             "phase":  "total",
+                             "metric":  "configured_capacity",
+                             "value":  "6",
+                             "unit":  "tokens"
+                         },
+                         {
+                             "record":  "kv_cache",
+                             "phase":  "total",
+                             "metric":  "final_sequence_length",
+                             "value":  "6",
+                             "unit":  "tokens"
+                         },
+                         {
+                             "record":  "kv_cache",
+                             "phase":  "total",
+                             "metric":  "key_shape_per_layer",
+                             "value":  "6,4,128",
+                             "unit":  "dimensions"
+                         },
+                         {
+                             "record":  "kv_cache",
+                             "phase":  "total",
+                             "metric":  "value_shape_per_layer",
+                             "value":  "6,4,128",
+                             "unit":  "dimensions"
+                         },
+                         {
+                             "record":  "kv_cache",
+                             "phase":  "total",
+                             "metric":  "allocated_bytes",
+                             "value":  "1179648",
+                             "unit":  "bytes"
+                         },
+                         {
+                             "record":  "kv_cache",
+                             "phase":  "total",
+                             "metric":  "payload_allocation_count",
+                             "value":  "96",
+                             "unit":  "allocations"
+                         },
+                         {
+                             "record":  "kv_cache",
+                             "phase":  "total",
+                             "metric":  "allocation_growth_during_decode",
+                             "value":  "false",
+                             "unit":  "boolean"
+                         },
+                         {
+                             "record":  "kv_cache",
+                             "phase":  "total",
+                             "metric":  "previous_position_overwrite",
+                             "value":  "false",
+                             "unit":  "boolean"
+                         }
+                     ]
+}

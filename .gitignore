@@ -86,6 +86,10 @@
 !/models/qwen3-30b-a3b/m4.2-04-transformers-f32-generation-evidence-v1.json
 !/models/qwen3-30b-a3b/m4.2-04-transformers-f32-generation-plan-v1.tsv
 !/models/qwen3-30b-a3b/m4.2-04-transformers-f32-generation-v1.safetensors
+!/models/qwen3-30b-a3b/m4.2-05-baseline-run-a-v1.json
+!/models/qwen3-30b-a3b/m4.2-05-baseline-run-b-v1.json
+!/models/qwen3-30b-a3b/m4.2-05-baseline-run-c-v1.json
+!/models/qwen3-30b-a3b/m4.2-05-baseline-summary-v1.json
 /.idea/
 /.vscode/
 *.pdb

@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "task": "M4.2-05",
+  "artifact": {
+    "canonical_root": "D:\\models\\colibri-lite\\qwen3-30b-a3b\\artifact-v1",
+    "root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "access": "read-only"
+  },
+  "fixture": {
+    "input_token_ids": [9707, 11, 1879, 0],
+    "generated_token_ids": [1096, 374],
+    "f32_classifications": ["exact_match_safe", "exact_match_safe"]
+  },
+  "io_semantics": {
+    "kind": "logical application-level requested/read bytes",
+    "physical_device_io": false,
+    "controlled_cold_cache": false,
+    "artifact_manifest_metadata_bytes": 0
+  },
+  "phases": [
+    {
+      "phase": "initialization",
+      "dense_bytes": 8192,
+      "expert_bytes": 0,
+      "total_bytes": 8192,
+      "unique_dense_bytes": 8192,
+      "unique_expert_bytes": 0,
+      "useful_unique_bytes": 8192,
+      "repeated_bytes": 0,
+      "read_operations": 1,
+      "file_opens": 1,
+      "read_amplification": 1.0
+    },
+    {
+      "phase": "prefill",
+      "dense_bytes": 19678855168,
+      "expert_bytes": 28991029248,
+      "total_bytes": 48669884416,
+      "unique_dense_bytes": 4919738368,
+      "unique_expert_bytes": 20120076288,
+      "useful_unique_bytes": 25039814656,
+      "repeated_dense_bytes": 14759116800,
+      "repeated_expert_bytes": 8870952960,
+      "repeated_bytes": 23630069760,
+      "unique_layer_expert_requests": 1066,
+      "read_operations": 5644,
+      "file_opens": 1536,
+      "read_amplification": 1.94369986697716,
+      "expert_read_amplification": 1.44090056285178
+    },
+    {
+      "phase": "decode_1",
+      "dense_bytes": 4919713792,
+      "expert_bytes": 7247757312,
+      "total_bytes": 12167471104,
+      "unique_dense_bytes": 4919713792,
+      "unique_expert_bytes": 7247757312,
+      "useful_unique_bytes": 12167471104,
+      "repeated_bytes": 0,
+      "unique_layer_expert_requests": 384,
+      "read_operations": 1411,
+      "file_opens": 384,
+      "read_amplification": 1.0,
+      "expert_read_amplification": 1.0
+    },
+    {
+      "phase": "decode_2",
+      "dense_bytes": 4919713792,
+      "expert_bytes": 7247757312,
+      "total_bytes": 12167471104,
+      "unique_dense_bytes": 4919713792,
+      "unique_expert_bytes": 7247757312,
+      "useful_unique_bytes": 12167471104,
+      "repeated_bytes": 0,
+      "unique_layer_expert_requests": 384,
+      "read_operations": 1411,
+      "file_opens": 384,
+      "read_amplification": 1.0,
+      "expert_read_amplification": 1.0
+    },
+    {
+      "phase": "total",
+      "dense_bytes": 29518290944,
+      "expert_bytes": 43486543872,
+      "total_bytes": 73004834816,
+      "unique_dense_bytes": 4919762944,
+      "unique_expert_bytes": 25140658176,
+      "useful_unique_bytes": 30060421120,
+      "repeated_dense_bytes": 24598528000,
+      "repeated_expert_bytes": 18345885696,
+      "repeated_bytes": 42944413696,
+      "unique_layer_expert_requests": 1332,
+      "read_operations": 8467,
+      "file_opens": 2305,
+      "unique_files": 49,
+      "read_amplification": 2.428603196361342,
+      "expert_read_amplification": 1.7297297297297298,
+      "end_to_end_bytes_per_generated_token": 36502417408
+    }
+  ],
+  "expert_cache": {
+    "configured_budget_bytes": 18874368,
+    "expert_payload_bytes": 18874368,
+    "theoretical_capacity": 1,
+    "peak_resident_count": 1,
+    "peak_resident_bytes": 18874368,
+    "occurrences": 2304,
+    "unique_layer_expert_requests": 1332,
+    "hits": 0,
+    "misses": 2304,
+    "loads": 2304,
+    "evictions": 2303,
+    "repeated_within_token": 0,
+    "repeated_across_tokens": 972,
+    "reuse_distance": {
+      "minimum": 379,
+      "median": 384,
+      "maximum": 1924,
+      "at_most_384": 525,
+      "from_385_through_768": 298,
+      "above_768": 149
+    }
+  },
+  "modeled_memory": {
+    "dense_buffer_bytes": 78660608,
+    "decoded_expert_buffer_bytes": 18874368,
+    "expert_cache_resident_bytes": 18874368,
+    "kv_cache_bytes": 1179648,
+    "inference_tensor_bytes": 624128,
+    "temporary_validation_buffer_bytes": 9609880,
+    "explicit_total_bytes": 127823000
+  },
+  "kv_cache": {
+    "layers": 48,
+    "capacity": 6,
+    "final_length": 6,
+    "key_shape_per_layer": [6, 4, 128],
+    "value_shape_per_layer": [6, 4, 128],
+    "allocated_bytes": 1179648,
+    "payload_allocations": 96,
+    "allocation_growth_during_decode": false,
+    "previous_position_overwrite": false
+  },
+  "reconciliation": {
+    "requests_equal_hits_plus_misses": true,
+    "misses_equal_loads": true,
+    "evictions_explained_by_capacity": true,
+    "expert_bytes_equal_loads_times_payload": true,
+    "artifact_bytes_equal_dense_plus_expert": true,
+    "repeated_bytes_equal_total_minus_useful_unique": true,
+    "cache_budget_respected": true,
+    "stable_fields_equal_across_runs": true,
+    "stable_fields_sha256": "1ebb233368116a84c68069dce973dcefc1129d46b2acb6193a2f339704fe893d"
+  },
+  "run_evidence_sha256": {
+    "run_a": "6cde95fa21dc5232377967747fb67da8c57572701fc1f7da226b1d63e1c4d4d8",
+    "run_b": "17c4ab6bc39e674600068817761d0f55285bac410db00c2163ea0c7f106db584",
+    "run_c": "e52d7d55bb1795126bef902d9323be189118db65a04fc9cb399ac2217f0da788"
+  }
+}

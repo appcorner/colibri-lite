@@ -1129,3 +1129,37 @@ warning-free workspace and feature Clippy, CLI bootstrap, Python compilation,
 
 Next task after review: M4.2-05 - record peak resident bytes, bytes read, and
 cache metrics. It was not started in this session.
+
+## 2026-07-16 - M4.2-05 resource and I/O baseline
+
+Date: 2026-07-16
+
+Completed three fresh-process measurements of the unchanged M4.2-04 scalar
+full-model fixture. Every run preserved prompt `[9707, 11, 1879, 0]`, generated
+`[1096, 374]`, both F32 `exact_match_safe` classifications, and the fixed
+48-layer KV cache with 1,179,648 bytes and no allocation growth or overwrite.
+
+Rust inference-only wall time ranged from 393.820 to 437.023 seconds. Process
+peak working set ranged from 145,424,384 to 148,066,304 bytes, while modeled
+explicit memory remained 127,823,000 bytes. The three runs read
+29,518,290,944 logical dense bytes and 43,486,543,872 logical expert bytes for
+73,004,834,816 total logical artifact bytes. These are application range reads,
+not physical disk I/O; no cold-cache claim was made.
+
+The one-expert 18,874,368-byte cache handled 2,304 occurrences across 1,332
+unique layer/expert keys. It recorded zero hits, 2,304 misses/loads, 2,303
+evictions, and 972 cross-token reuses. Overall read amplification was 2.428603x
+and expert amplification was 1.729730x. Zero hits did not trigger optimization.
+
+All non-timing deterministic metrics matched across the three processes.
+Verification passed all five standard Cargo commands, 123 workspace tests,
+warning-free workspace and feature Clippy, Python compilation, 20 Python unit
+tests, the focused reconciliation test, and the M4.2-04 correctness regression
+in every measured run.
+
+Policy cleanup removed five flat run directories, 18 files, and 7,511,832
+logical bytes after a matching dry run. No temporary run remains. The canonical
+artifact and pinned source stayed read-only.
+
+Next task after review: M4.2-06 - document failures or tolerance differences
+before optimization. It was not started in this session.

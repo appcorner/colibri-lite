@@ -172,6 +172,8 @@ const GENERATION_F32_CHECKPOINTS: &[u8] = include_bytes!(concat!(
 ));
 const GENERATION_INPUT_TOKENS: [usize; 6] = [9707, 11, 1879, 0, 1096, 374];
 const GENERATION_GUARD_LAYERS: [usize; 3] = [0, 24, 47];
+const GENERATION_DENSE_READS_PER_TOKEN: u64 = 1 + 48 * 9 + 594;
+const GENERATION_EXPERT_READS_PER_TOKEN: u64 = 48 * 8;
 const INTERMEDIATE_CASES: [(usize, usize, usize, usize); 8] = [
     (0, 0, 0, 62),
     (0, 0, 7, 91),
@@ -783,6 +785,70 @@ struct CheckpointRecord {
 struct StageMetrics {
     maximum_absolute_difference: f32,
     maximum_relative_difference: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct ReuseSummary {
+    unique_requests: usize,
+    repeated_requests: usize,
+    minimum_distance: usize,
+    median_distance: usize,
+    maximum_distance: usize,
+    distance_at_most_384: usize,
+    distance_385_through_768: usize,
+    distance_above_768: usize,
+}
+
+fn summarize_reuse_distances(requests: &[usize]) -> ReuseSummary {
+    let mut last_seen = HashMap::new();
+    let mut distances = Vec::new();
+    for (index, &key) in requests.iter().enumerate() {
+        if let Some(previous) = last_seen.insert(key, index) {
+            distances.push(index - previous);
+        }
+    }
+    distances.sort_unstable();
+    let repeated_requests = distances.len();
+    ReuseSummary {
+        unique_requests: last_seen.len(),
+        repeated_requests,
+        minimum_distance: distances.first().copied().unwrap_or(0),
+        median_distance: distances
+            .get(repeated_requests.saturating_sub(1) / 2)
+            .copied()
+            .unwrap_or(0),
+        maximum_distance: distances.last().copied().unwrap_or(0),
+        distance_at_most_384: distances.iter().filter(|&&value| value <= 384).count(),
+        distance_385_through_768: distances
+            .iter()
+            .filter(|&&value| (385..=768).contains(&value))
+            .count(),
+        distance_above_768: distances.iter().filter(|&&value| value > 768).count(),
+    }
+}
+
+#[allow(clippy::cast_precision_loss)]
+fn reporting_ratio(numerator: u64, denominator: u64) -> f64 {
+    numerator as f64 / denominator as f64
+}
+
+#[test]
+fn m4_2_05_counter_reconciliation_and_reuse_summary_are_exact() {
+    let summary = summarize_reuse_distances(&[1, 2, 1, 3, 1, 2, 4]);
+    assert_eq!(summary.unique_requests, 4);
+    assert_eq!(summary.repeated_requests, 3);
+    assert_eq!(summary.minimum_distance, 2);
+    assert_eq!(summary.median_distance, 2);
+    assert_eq!(summary.maximum_distance, 4);
+    assert_eq!(summary.distance_at_most_384, 3);
+    assert_eq!(summary.distance_385_through_768, 0);
+    assert_eq!(summary.distance_above_768, 0);
+    let misses = 7_u64;
+    let loads = 7_u64;
+    let capacity = 1_u64;
+    let evictions = 6_u64;
+    assert_eq!(misses, loads);
+    assert_eq!(evictions, loads - capacity);
 }
 
 fn parse_shape(value: &str) -> Vec<usize> {
@@ -3549,6 +3615,9 @@ fn selected_expert_intermediates_match_transformers() {
 
 #[test]
 fn short_cached_generation_matches_transformers() {
+    let metrics_output = env::var_os("COLIBRI_METRICS_OUTPUT").map(PathBuf::from);
+    let filesystem_cache_assumption =
+        env::var("COLIBRI_FS_CACHE_ASSUMPTION").unwrap_or_else(|_| "not_recorded".to_owned());
     let artifact_root = env::var_os("COLIBRI_ARTIFACT_ROOT")
         .map(PathBuf::from)
         .expect("COLIBRI_ARTIFACT_ROOT must name the stable canonical artifact");
@@ -3571,18 +3640,6 @@ fn short_cached_generation_matches_transformers() {
         "full-logit root must be absolute"
     );
 
-    let plan = runtime_plan(LAYER47_RUNTIME_PLAN);
-    let final_plan = runtime_plan(GENERATION_FINAL_DENSE_RUNTIME_PLAN);
-    assert_eq!(plan.payload, final_plan.payload, "dense payload identity");
-    assert_eq!(
-        plan.payload_length, final_plan.payload_length,
-        "dense payload length"
-    );
-    let mut payload = File::open(artifact_root.join(&plan.payload)).expect("open dense payload");
-    assert_eq!(
-        payload.metadata().expect("dense payload metadata").len(),
-        plan.payload_length,
-    );
     let bf16_plan = checkpoint_plan(GENERATION_BF16_CHECKPOINT_PLAN);
     let f32_plan = checkpoint_plan(GENERATION_F32_CHECKPOINT_PLAN);
     let bf16_full_bytes = fs::read(full_logits_root.join("bf16-full-logits.safetensors"))
@@ -3598,6 +3655,21 @@ fn short_cached_generation_matches_transformers() {
             .expect("read F32 full-logit plan"),
     );
 
+    // Reference evidence is prepared before this boundary and is excluded from
+    // the storage-aware Rust runtime timings below.
+    let runtime_started = Instant::now();
+    let plan = runtime_plan(LAYER47_RUNTIME_PLAN);
+    let final_plan = runtime_plan(GENERATION_FINAL_DENSE_RUNTIME_PLAN);
+    assert_eq!(plan.payload, final_plan.payload, "dense payload identity");
+    assert_eq!(
+        plan.payload_length, final_plan.payload_length,
+        "dense payload length"
+    );
+    let mut payload = File::open(artifact_root.join(&plan.payload)).expect("open dense payload");
+    assert_eq!(
+        payload.metadata().expect("dense payload metadata").len(),
+        plan.payload_length,
+    );
     let config = PINNED_QWEN3_30B_A3B_CONFIG
         .map_to_f32_runtime()
         .expect("pinned runtime config")
@@ -3637,9 +3709,19 @@ fn short_cached_generation_matches_transformers() {
         "step\tinput_token\tposition\tselected_token\tf32_argmax\tbf16_argmax\tf32_argmax_logit\tf32_second_logit\tf32_margin\tf32_required_margin\tf32_classification\tbf16_margin\tbf16_required_margin\tbf16_classification\ttop20_rank_agreement\tcache_length\tdense_bytes_read\texpert_bytes_read\tloads\tevictions\tguard_router_ids\n",
     );
     let mut maximum_dense_layer_bytes = 0_u64;
-    let mut maximum_runtime_elements = 0_usize;
+    let mut maximum_inference_runtime_elements = 0_usize;
     let started = Instant::now();
     let mut generated = Vec::new();
+    let initialization_seconds = runtime_started.elapsed().as_secs_f64();
+    let mut step_seconds = Vec::with_capacity(6);
+    let mut step_dense_bytes = Vec::with_capacity(6);
+    let mut step_expert_bytes = Vec::with_capacity(6);
+    let mut step_hits = Vec::with_capacity(6);
+    let mut step_misses = Vec::with_capacity(6);
+    let mut step_loads = Vec::with_capacity(6);
+    let mut step_evictions = Vec::with_capacity(6);
+    let mut expert_request_sequence = Vec::with_capacity(6 * 48 * 8);
+    let mut repeated_requests_within_token = 0_usize;
 
     for (step, &token_id) in GENERATION_INPUT_TOKENS.iter().enumerate() {
         let step_started = Instant::now();
@@ -3655,6 +3737,8 @@ fn short_cached_generation_matches_transformers() {
         let mut current = embedding_row(&mut payload, &plan, token_id, &mut dense_bytes_read);
         let mut updates = Vec::with_capacity(48);
         let mut guard_ids = Vec::with_capacity(24);
+        let mut layer47_checkpoints = None;
+        let token_request_start = expert_request_sequence.len();
 
         for layer in 0..48 {
             let layer_dense_before = dense_bytes_read;
@@ -3691,6 +3775,10 @@ fn short_cached_generation_matches_transformers() {
             .unwrap_or_else(|error| panic!("step-{step} Layer-{layer} post norm: {error}"));
             let router = route_tokens(post_norm.view(), weights.router.view(), config)
                 .unwrap_or_else(|error| panic!("step-{step} Layer-{layer} router: {error}"));
+            let mut requested_experts = router.selected_experts.clone();
+            requested_experts.sort_unstable();
+            expert_request_sequence
+                .extend(requested_experts.iter().map(|expert| layer * 128 + expert));
             if GENERATION_GUARD_LAYERS.contains(&layer) {
                 guard_ids.extend_from_slice(&router.selected_experts);
             }
@@ -3714,34 +3802,19 @@ fn short_cached_generation_matches_transformers() {
             let block = elementwise_add(residual.view(), moe.view())
                 .unwrap_or_else(|error| panic!("step-{step} Layer-{layer} block: {error}"));
             if layer == 47 {
-                let prefix = format!("step{step}_layer47");
                 let actual_experts = Tensor::new(TensorShape::new([8, 2048]), layer47_outputs)
                     .expect("Layer-47 expert output tensor");
                 let actual_routing =
                     Tensor::new(TensorShape::new([8]), router.weights.data().to_vec())
                         .expect("Layer-47 routing tensor");
-                for (checkpoint, actual) in [
-                    ("expert_outputs", actual_experts),
-                    ("routing_weights", actual_routing),
-                    ("moe_output", tensor_row(&moe, 0)),
-                    ("block_output", tensor_row(&block, 0)),
-                ] {
-                    let name = format!("{prefix}_{checkpoint}");
-                    let bf16 = checkpoint_f32(GENERATION_BF16_CHECKPOINTS, &bf16_plan, &name);
-                    let f32_control = checkpoint_f32(GENERATION_F32_CHECKPOINTS, &f32_plan, &name);
-                    let budget = Some(short_generation_budget(step, checkpoint));
-                    record_generation_checkpoint(
-                        &mut evidence,
-                        step,
-                        checkpoint,
-                        &actual,
-                        &bf16,
-                        &f32_control,
-                        budget,
-                    );
-                }
+                layer47_checkpoints = Some((
+                    actual_experts,
+                    actual_routing,
+                    tensor_row(&moe, 0),
+                    tensor_row(&block, 0),
+                ));
             }
-            maximum_runtime_elements = maximum_runtime_elements.max(
+            maximum_inference_runtime_elements = maximum_inference_runtime_elements.max(
                 current.data().len()
                     + input_norm.data().len()
                     + attention.output.data().len()
@@ -3755,6 +3828,58 @@ fn short_cached_generation_matches_transformers() {
             updates.push((attention.key, attention.value));
             current = block;
             drop(weights);
+        }
+        let token_requests = &expert_request_sequence[token_request_start..];
+        repeated_requests_within_token +=
+            token_requests.len() - token_requests.iter().copied().collect::<HashSet<_>>().len();
+
+        let normalized = rms_norm(
+            current.view(),
+            final_norm_weight.view(),
+            config.rms_norm_epsilon(),
+        )
+        .unwrap_or_else(|error| panic!("step-{step} final RMSNorm: {error}"));
+        let logits = streaming_language_model_head(
+            &mut payload,
+            &final_plan,
+            &normalized,
+            &mut dense_bytes_read,
+        );
+        let selected = greedy_token(logits.view()).expect("finite greedy logits");
+        let updates_view: Vec<_> = updates
+            .iter()
+            .map(|(key, value)| LayerKvUpdate { key, value })
+            .collect();
+        cache
+            .append_token(&updates_view)
+            .expect("transactional KV append");
+        let inference_seconds = step_started.elapsed().as_secs_f64();
+        let inference_metrics = store.metrics();
+        step_seconds.push(inference_seconds);
+        step_dense_bytes.push(dense_bytes_read - dense_before);
+        step_expert_bytes.push(inference_metrics.bytes_read - expert_before.bytes_read);
+        step_hits.push(inference_metrics.hits - expert_before.hits);
+        step_misses.push(inference_metrics.misses - expert_before.misses);
+        step_loads.push(inference_metrics.loads - expert_before.loads);
+        step_evictions.push(inference_metrics.evictions - expert_before.evictions);
+
+        assert_eq!(cache.len(), step + 1, "KV cache length after append");
+        assert_eq!(cache.allocation_capacities(), allocation_capacities);
+        for (layer, (prior_key, prior_value)) in cache_prefix.iter().enumerate() {
+            let view = cache.layer(layer).expect("KV layer after append");
+            assert_eq!(view.len, step + 1, "KV layer logical length");
+            assert_eq!(view.key.len(), (step + 1) * 4 * 128, "KV key shape");
+            assert_eq!(view.value.len(), (step + 1) * 4 * 128, "KV value shape");
+            assert_eq!(
+                &view.key[..prior_key.len()],
+                prior_key,
+                "KV key prefix overwrite"
+            );
+            assert_eq!(
+                &view.value[..prior_value.len()],
+                prior_value,
+                "KV value prefix overwrite"
+            );
         }
 
         let expected_guard_ids = checkpoint_ids(
@@ -3775,12 +3900,29 @@ fn short_cached_generation_matches_transformers() {
             [token_id],
             "frozen input token"
         );
-        let normalized = rms_norm(
-            current.view(),
-            final_norm_weight.view(),
-            config.rms_norm_epsilon(),
-        )
-        .unwrap_or_else(|error| panic!("step-{step} final RMSNorm: {error}"));
+        let (actual_experts, actual_routing, actual_moe, actual_block) =
+            layer47_checkpoints.expect("Layer-47 checkpoints");
+        let prefix = format!("step{step}_layer47");
+        for (checkpoint, actual) in [
+            ("expert_outputs", actual_experts),
+            ("routing_weights", actual_routing),
+            ("moe_output", actual_moe),
+            ("block_output", actual_block),
+        ] {
+            let name = format!("{prefix}_{checkpoint}");
+            let bf16 = checkpoint_f32(GENERATION_BF16_CHECKPOINTS, &bf16_plan, &name);
+            let f32_control = checkpoint_f32(GENERATION_F32_CHECKPOINTS, &f32_plan, &name);
+            let budget = Some(short_generation_budget(step, checkpoint));
+            record_generation_checkpoint(
+                &mut evidence,
+                step,
+                checkpoint,
+                &actual,
+                &bf16,
+                &f32_control,
+                budget,
+            );
+        }
         let bf16_norm = checkpoint_f32(
             GENERATION_BF16_CHECKPOINTS,
             &bf16_plan,
@@ -3800,12 +3942,6 @@ fn short_cached_generation_matches_transformers() {
             &bf16_norm,
             &f32_norm,
             norm_budget,
-        );
-        let logits = streaming_language_model_head(
-            &mut payload,
-            &final_plan,
-            &normalized,
-            &mut dense_bytes_read,
         );
         let bf16_logits_flat = checkpoint_f32(
             &bf16_full_bytes,
@@ -3855,7 +3991,6 @@ fn short_cached_generation_matches_transformers() {
             &format!("step{step}_top20_ids"),
         );
         assert_eq!(f32_top, frozen_top, "frozen F32 top-20 IDs");
-        let selected = greedy_token(logits.view()).expect("finite greedy logits");
         let f32_argmax = f32_top[0];
         let bf16_argmax = bf16_top[0];
         let f32_margin = f32_logits.data()[f32_top[0]] - f32_logits.data()[f32_top[1]];
@@ -3893,32 +4028,6 @@ fn short_cached_generation_matches_transformers() {
             assert_eq!(recompute, [selected], "cached versus recomputed argmax");
         }
 
-        let updates_view: Vec<_> = updates
-            .iter()
-            .map(|(key, value)| LayerKvUpdate { key, value })
-            .collect();
-        cache
-            .append_token(&updates_view)
-            .expect("transactional KV append");
-        assert_eq!(cache.len(), step + 1, "KV cache length after append");
-        assert_eq!(cache.allocation_capacities(), allocation_capacities);
-        for (layer, (prior_key, prior_value)) in cache_prefix.iter().enumerate() {
-            let view = cache.layer(layer).expect("KV layer after append");
-            assert_eq!(view.len, step + 1, "KV layer logical length");
-            assert_eq!(view.key.len(), (step + 1) * 4 * 128, "KV key shape");
-            assert_eq!(view.value.len(), (step + 1) * 4 * 128, "KV value shape");
-            assert_eq!(
-                &view.key[..prior_key.len()],
-                prior_key,
-                "KV key prefix overwrite"
-            );
-            assert_eq!(
-                &view.value[..prior_value.len()],
-                prior_value,
-                "KV value prefix overwrite"
-            );
-        }
-
         let metrics = store.metrics();
         writeln!(
             selection_evidence,
@@ -3936,16 +4045,11 @@ fn short_cached_generation_matches_transformers() {
             comma_separated(&guard_ids),
         )
         .expect("write generation selection evidence");
-        maximum_runtime_elements = maximum_runtime_elements.max(
-            current.data().len()
-                + normalized.data().len()
-                + logits.data().len()
-                + bf16_logits.data().len()
-                + f32_logits.data().len(),
-        );
+        maximum_inference_runtime_elements = maximum_inference_runtime_elements
+            .max(current.data().len() + normalized.data().len() + logits.data().len());
         println!(
             "short_generation step={step} input={token_id} selected={selected} elapsed_seconds={} cache_len={} f32_max_abs={} f32_margin={} classification={f32_classification}",
-            step_started.elapsed().as_secs_f64(),
+            inference_seconds,
             cache.len(),
             logit_metrics.maximum_absolute_difference,
             f32_margin,
@@ -3958,18 +4062,100 @@ fn short_cached_generation_matches_transformers() {
     assert_eq!(metrics.misses, 6 * 48 * 8);
     assert_eq!(metrics.loads, 6 * 48 * 8);
     assert_eq!(metrics.evictions, metrics.loads - 1);
+    assert_eq!(metrics.misses, metrics.loads, "every miss loads one expert");
+    assert_eq!(metrics.hits + metrics.misses, 6 * 48 * 8);
+    assert_eq!(metrics.resident_bytes, 18_874_368);
+    assert_eq!(metrics.peak_resident_bytes, 18_874_368);
+    assert_eq!(cache.len(), 6);
+    assert_eq!(cache.allocation_capacities(), allocation_capacities);
+    assert_eq!(expert_request_sequence.len(), 6 * 48 * 8);
+    assert_eq!(step_seconds.len(), 6);
+    assert_eq!(step_dense_bytes.len(), 6);
+    assert_eq!(step_expert_bytes.len(), 6);
+    assert_eq!(step_hits.iter().sum::<u64>(), metrics.hits);
+    assert_eq!(step_misses.iter().sum::<u64>(), metrics.misses);
+    assert_eq!(step_loads.iter().sum::<u64>(), metrics.loads);
+    assert_eq!(step_evictions.iter().sum::<u64>(), metrics.evictions);
+
+    let expert_payload_bytes = expert_layout.total_byte_length;
+    assert_eq!(expert_payload_bytes, 18_874_368);
+    assert_eq!(
+        metrics.bytes_read,
+        expert_payload_bytes as u64 * metrics.loads
+    );
+    let reuse = summarize_reuse_distances(&expert_request_sequence);
+    assert_eq!(reuse.unique_requests + reuse.repeated_requests, 6 * 48 * 8);
+    let repeated_requests_across_tokens = reuse
+        .repeated_requests
+        .checked_sub(repeated_requests_within_token)
+        .expect("within-token repeats are included in all repeats");
+    let requests_per_token = 48 * 8;
+    let prompt_requests = &expert_request_sequence[..4 * requests_per_token];
+    let decode_one_requests =
+        &expert_request_sequence[4 * requests_per_token..5 * requests_per_token];
+    let decode_two_requests = &expert_request_sequence[5 * requests_per_token..];
+    let unique_expert_requests =
+        |requests: &[usize]| requests.iter().copied().collect::<HashSet<_>>().len();
+    let prompt_unique_experts = unique_expert_requests(prompt_requests);
+    let decode_one_unique_experts = unique_expert_requests(decode_one_requests);
+    let decode_two_unique_experts = unique_expert_requests(decode_two_requests);
+
+    let embedding_row_bytes = 2048_u64 * 4;
+    let lm_head_bytes = final_plan.tensors["lm_head.weight"].length as u64;
+    let final_norm_bytes = final_plan.tensors["model.norm.weight"].length as u64;
+    let layer_dense_bytes = step_dense_bytes[0] - embedding_row_bytes - lm_head_bytes;
+    assert!(
+        step_dense_bytes
+            .iter()
+            .all(|&value| value == layer_dense_bytes + embedding_row_bytes + lm_head_bytes)
+    );
+    assert_eq!(final_norm_bytes, 8_192);
+    assert_eq!(
+        dense_bytes_read,
+        final_norm_bytes + step_dense_bytes.iter().sum::<u64>()
+    );
+    let unique_embedding_tokens = GENERATION_INPUT_TOKENS
+        .iter()
+        .copied()
+        .collect::<HashSet<_>>()
+        .len() as u64;
+    let unique_dense_bytes = final_norm_bytes
+        + layer_dense_bytes
+        + lm_head_bytes
+        + unique_embedding_tokens * embedding_row_bytes;
+    let unique_expert_bytes = reuse.unique_requests as u64 * expert_payload_bytes as u64;
+    let total_artifact_bytes = dense_bytes_read + metrics.bytes_read;
+    let useful_unique_bytes = unique_dense_bytes + unique_expert_bytes;
+    let repeated_dense_bytes = dense_bytes_read - unique_dense_bytes;
+    let repeated_expert_bytes = metrics.bytes_read - unique_expert_bytes;
+    let repeated_artifact_bytes = total_artifact_bytes - useful_unique_bytes;
+
+    assert_eq!(GENERATION_DENSE_READS_PER_TOKEN, 1_027);
+    let dense_read_operations = 1 + 6 * GENERATION_DENSE_READS_PER_TOKEN;
+    let expert_read_operations = metrics.loads;
+    let artifact_read_operations = dense_read_operations + expert_read_operations;
+    let artifact_file_opens = 1 + metrics.loads;
+    assert_eq!(dense_read_operations, 6_163);
+    assert_eq!(artifact_read_operations, 8_467);
+    assert_eq!(artifact_file_opens, 2_305);
+
     let checkpoint_static_bytes = GENERATION_BF16_CHECKPOINTS.len()
         + GENERATION_F32_CHECKPOINTS.len()
         + bf16_full_bytes.len()
         + f32_full_bytes.len();
-    let modeled_peak_explicit_bytes = usize::try_from(maximum_dense_layer_bytes)
+    let dense_buffer_bytes = usize::try_from(maximum_dense_layer_bytes)
         .expect("dense layer bytes fit usize")
-        + expert_layout.total_byte_length
+        + 256 * 2048 * 4;
+    let decoded_expert_buffer_bytes = expert_layout.total_byte_length;
+    let inference_tensor_bytes = maximum_inference_runtime_elements * 4;
+    let temporary_validation_buffer_bytes = checkpoint_static_bytes + 2 * 151_936 * 4;
+    let modeled_peak_explicit_bytes = dense_buffer_bytes
+        + decoded_expert_buffer_bytes
         + metrics.peak_resident_bytes
         + cache.byte_size()
-        + maximum_runtime_elements * 4
-        + checkpoint_static_bytes
-        + 256 * 2048 * 4;
+        + inference_tensor_bytes
+        + temporary_validation_buffer_bytes;
+    assert_eq!(modeled_peak_explicit_bytes, 127_823_000);
     evidence.push_str(&selection_evidence);
     writeln!(
         evidence,
@@ -3988,6 +4174,580 @@ fn short_cached_generation_matches_transformers() {
         &diagnostic_root.join("m4.2-04-rust-short-generation-evidence-v1.tsv"),
         evidence.as_bytes(),
     );
+    if let Some(metrics_path) = metrics_output {
+        let prefill_seconds = step_seconds[..4].iter().sum::<f64>();
+        let decode_one_seconds = step_seconds[4];
+        let decode_two_seconds = step_seconds[5];
+        let decode_seconds = decode_one_seconds + decode_two_seconds;
+        let inference_seconds = initialization_seconds + step_seconds.iter().sum::<f64>();
+        let prefill_dense_bytes = step_dense_bytes[..4].iter().sum::<u64>();
+        let prefill_expert_bytes = step_expert_bytes[..4].iter().sum::<u64>();
+        let mut baseline = String::from("record\tphase\tmetric\tvalue\tunit\n");
+        let mut record = |kind: &str, phase: &str, metric: &str, value: String, unit: &str| {
+            writeln!(baseline, "{kind}\t{phase}\t{metric}\t{value}\t{unit}")
+                .expect("write baseline metric");
+        };
+
+        record(
+            "schema",
+            "total",
+            "schema_version",
+            "1".to_owned(),
+            "integer",
+        );
+        record(
+            "configuration",
+            "total",
+            "filesystem_cache_assumption",
+            filesystem_cache_assumption,
+            "label",
+        );
+        record(
+            "configuration",
+            "total",
+            "input_token_ids",
+            "9707,11,1879,0".to_owned(),
+            "token_ids",
+        );
+        record(
+            "correctness",
+            "total",
+            "generated_token_ids",
+            "1096,374".to_owned(),
+            "token_ids",
+        );
+        record(
+            "correctness",
+            "total",
+            "f32_classifications",
+            "exact_match_safe,exact_match_safe".to_owned(),
+            "labels",
+        );
+        record(
+            "timing",
+            "initialization",
+            "wall_seconds",
+            format!("{initialization_seconds:.17e}"),
+            "seconds",
+        );
+        record(
+            "timing",
+            "prefill",
+            "wall_seconds",
+            format!("{prefill_seconds:.17e}"),
+            "seconds",
+        );
+        record(
+            "timing",
+            "decode_1",
+            "wall_seconds",
+            format!("{decode_one_seconds:.17e}"),
+            "seconds",
+        );
+        record(
+            "timing",
+            "decode_2",
+            "wall_seconds",
+            format!("{decode_two_seconds:.17e}"),
+            "seconds",
+        );
+        record(
+            "timing",
+            "decode",
+            "average_seconds_per_token",
+            format!("{:.17e}", decode_seconds / 2.0),
+            "seconds_per_token",
+        );
+        record(
+            "timing",
+            "prefill",
+            "tokens_per_second",
+            format!("{:.17e}", 4.0 / prefill_seconds),
+            "tokens_per_second",
+        );
+        record(
+            "timing",
+            "decode",
+            "tokens_per_second",
+            format!("{:.17e}", 2.0 / decode_seconds),
+            "tokens_per_second",
+        );
+        record(
+            "timing",
+            "total",
+            "inference_wall_seconds",
+            format!("{inference_seconds:.17e}"),
+            "seconds",
+        );
+
+        let phases = [
+            (
+                "initialization",
+                final_norm_bytes,
+                0_u64,
+                1_u64,
+                0_u64,
+                1_u64,
+                1_u64,
+            ),
+            (
+                "prefill",
+                prefill_dense_bytes,
+                prefill_expert_bytes,
+                4 * GENERATION_DENSE_READS_PER_TOKEN,
+                4 * GENERATION_EXPERT_READS_PER_TOKEN,
+                4 * GENERATION_EXPERT_READS_PER_TOKEN,
+                49_u64,
+            ),
+            (
+                "decode_1",
+                step_dense_bytes[4],
+                step_expert_bytes[4],
+                GENERATION_DENSE_READS_PER_TOKEN,
+                GENERATION_EXPERT_READS_PER_TOKEN,
+                GENERATION_EXPERT_READS_PER_TOKEN,
+                49_u64,
+            ),
+            (
+                "decode_2",
+                step_dense_bytes[5],
+                step_expert_bytes[5],
+                GENERATION_DENSE_READS_PER_TOKEN,
+                GENERATION_EXPERT_READS_PER_TOKEN,
+                GENERATION_EXPERT_READS_PER_TOKEN,
+                49_u64,
+            ),
+            (
+                "total",
+                dense_bytes_read,
+                metrics.bytes_read,
+                dense_read_operations,
+                expert_read_operations,
+                artifact_file_opens,
+                49_u64,
+            ),
+        ];
+        for (phase, dense, expert, dense_reads, expert_reads, file_opens, unique_files) in phases {
+            record(
+                "io",
+                phase,
+                "dense_bytes_requested_read",
+                dense.to_string(),
+                "logical_bytes",
+            );
+            record(
+                "io",
+                phase,
+                "expert_bytes_requested_read",
+                expert.to_string(),
+                "logical_bytes",
+            );
+            record(
+                "io",
+                phase,
+                "total_artifact_bytes_read",
+                (dense + expert).to_string(),
+                "logical_bytes",
+            );
+            record(
+                "io",
+                phase,
+                "dense_read_operations",
+                dense_reads.to_string(),
+                "operations",
+            );
+            record(
+                "io",
+                phase,
+                "expert_read_operations",
+                expert_reads.to_string(),
+                "operations",
+            );
+            record(
+                "io",
+                phase,
+                "artifact_read_operations",
+                (dense_reads + expert_reads).to_string(),
+                "operations",
+            );
+            record(
+                "io",
+                phase,
+                "file_open_count",
+                file_opens.to_string(),
+                "opens",
+            );
+            record(
+                "io",
+                phase,
+                "unique_files_accessed",
+                unique_files.to_string(),
+                "files",
+            );
+            record(
+                "io",
+                phase,
+                "artifact_manifest_metadata_bytes",
+                "0".to_owned(),
+                "logical_bytes",
+            );
+        }
+        record(
+            "io",
+            "decode_1",
+            "bytes_per_generated_token",
+            (step_dense_bytes[4] + step_expert_bytes[4]).to_string(),
+            "logical_bytes",
+        );
+        record(
+            "io",
+            "decode_2",
+            "bytes_per_generated_token",
+            (step_dense_bytes[5] + step_expert_bytes[5]).to_string(),
+            "logical_bytes",
+        );
+        record(
+            "io",
+            "total",
+            "end_to_end_bytes_per_generated_token",
+            (total_artifact_bytes / 2).to_string(),
+            "logical_bytes",
+        );
+        record(
+            "io",
+            "total",
+            "unique_dense_payload_bytes",
+            unique_dense_bytes.to_string(),
+            "logical_bytes",
+        );
+        record(
+            "io",
+            "total",
+            "unique_expert_payload_bytes",
+            unique_expert_bytes.to_string(),
+            "logical_bytes",
+        );
+        record(
+            "io",
+            "total",
+            "useful_unique_payload_bytes",
+            useful_unique_bytes.to_string(),
+            "logical_bytes",
+        );
+        record(
+            "io",
+            "total",
+            "repeated_dense_bytes",
+            repeated_dense_bytes.to_string(),
+            "logical_bytes",
+        );
+        record(
+            "io",
+            "total",
+            "repeated_expert_bytes",
+            repeated_expert_bytes.to_string(),
+            "logical_bytes",
+        );
+        record(
+            "io",
+            "total",
+            "repeated_artifact_bytes",
+            repeated_artifact_bytes.to_string(),
+            "logical_bytes",
+        );
+        record(
+            "io",
+            "total",
+            "read_amplification",
+            format!(
+                "{:.17e}",
+                reporting_ratio(total_artifact_bytes, useful_unique_bytes)
+            ),
+            "ratio",
+        );
+        record(
+            "io",
+            "total",
+            "expert_read_amplification",
+            format!(
+                "{:.17e}",
+                reporting_ratio(metrics.bytes_read, unique_expert_bytes)
+            ),
+            "ratio",
+        );
+
+        record(
+            "cache",
+            "total",
+            "configured_byte_budget",
+            expert_payload_bytes.to_string(),
+            "bytes",
+        );
+        record(
+            "cache",
+            "total",
+            "expert_payload_bytes",
+            expert_payload_bytes.to_string(),
+            "bytes",
+        );
+        record(
+            "cache",
+            "total",
+            "theoretical_expert_capacity",
+            "1".to_owned(),
+            "experts",
+        );
+        record(
+            "cache",
+            "total",
+            "peak_resident_expert_count",
+            "1".to_owned(),
+            "experts",
+        );
+        record(
+            "cache",
+            "total",
+            "expert_occurrences",
+            expert_request_sequence.len().to_string(),
+            "requests",
+        );
+        record(
+            "cache",
+            "prefill",
+            "unique_layer_expert_requests",
+            prompt_unique_experts.to_string(),
+            "keys",
+        );
+        record(
+            "cache",
+            "decode_1",
+            "unique_layer_expert_requests",
+            decode_one_unique_experts.to_string(),
+            "keys",
+        );
+        record(
+            "cache",
+            "decode_2",
+            "unique_layer_expert_requests",
+            decode_two_unique_experts.to_string(),
+            "keys",
+        );
+        record(
+            "cache",
+            "total",
+            "unique_layer_expert_requests",
+            reuse.unique_requests.to_string(),
+            "keys",
+        );
+        record(
+            "cache",
+            "total",
+            "hits",
+            metrics.hits.to_string(),
+            "requests",
+        );
+        record(
+            "cache",
+            "total",
+            "misses",
+            metrics.misses.to_string(),
+            "requests",
+        );
+        record(
+            "cache",
+            "total",
+            "loads",
+            metrics.loads.to_string(),
+            "loads",
+        );
+        record(
+            "cache",
+            "total",
+            "evictions",
+            metrics.evictions.to_string(),
+            "evictions",
+        );
+        record(
+            "cache",
+            "total",
+            "hit_rate",
+            format!(
+                "{:.17e}",
+                reporting_ratio(metrics.hits, metrics.hits + metrics.misses)
+            ),
+            "ratio",
+        );
+        record(
+            "cache",
+            "total",
+            "repeated_requests_within_token",
+            repeated_requests_within_token.to_string(),
+            "requests",
+        );
+        record(
+            "cache",
+            "total",
+            "repeated_requests_across_tokens",
+            repeated_requests_across_tokens.to_string(),
+            "requests",
+        );
+        record(
+            "cache",
+            "total",
+            "reuse_distance_minimum",
+            reuse.minimum_distance.to_string(),
+            "requests",
+        );
+        record(
+            "cache",
+            "total",
+            "reuse_distance_median",
+            reuse.median_distance.to_string(),
+            "requests",
+        );
+        record(
+            "cache",
+            "total",
+            "reuse_distance_maximum",
+            reuse.maximum_distance.to_string(),
+            "requests",
+        );
+        record(
+            "cache",
+            "total",
+            "reuse_distance_at_most_384",
+            reuse.distance_at_most_384.to_string(),
+            "reuses",
+        );
+        record(
+            "cache",
+            "total",
+            "reuse_distance_385_through_768",
+            reuse.distance_385_through_768.to_string(),
+            "reuses",
+        );
+        record(
+            "cache",
+            "total",
+            "reuse_distance_above_768",
+            reuse.distance_above_768.to_string(),
+            "reuses",
+        );
+
+        record(
+            "memory",
+            "total",
+            "modeled_explicit_tensor_bytes",
+            modeled_peak_explicit_bytes.to_string(),
+            "bytes",
+        );
+        record(
+            "memory",
+            "total",
+            "dense_buffer_bytes",
+            dense_buffer_bytes.to_string(),
+            "bytes",
+        );
+        record(
+            "memory",
+            "total",
+            "decoded_expert_buffer_bytes",
+            decoded_expert_buffer_bytes.to_string(),
+            "bytes",
+        );
+        record(
+            "memory",
+            "total",
+            "expert_cache_resident_bytes",
+            metrics.peak_resident_bytes.to_string(),
+            "bytes",
+        );
+        record(
+            "memory",
+            "total",
+            "kv_cache_bytes",
+            cache.byte_size().to_string(),
+            "bytes",
+        );
+        record(
+            "memory",
+            "total",
+            "inference_tensor_bytes",
+            inference_tensor_bytes.to_string(),
+            "bytes",
+        );
+        record(
+            "memory",
+            "total",
+            "temporary_validation_buffer_bytes",
+            temporary_validation_buffer_bytes.to_string(),
+            "bytes",
+        );
+        record(
+            "kv_cache",
+            "total",
+            "layer_count",
+            "48".to_owned(),
+            "layers",
+        );
+        record(
+            "kv_cache",
+            "total",
+            "configured_capacity",
+            "6".to_owned(),
+            "tokens",
+        );
+        record(
+            "kv_cache",
+            "total",
+            "final_sequence_length",
+            cache.len().to_string(),
+            "tokens",
+        );
+        record(
+            "kv_cache",
+            "total",
+            "key_shape_per_layer",
+            "6,4,128".to_owned(),
+            "dimensions",
+        );
+        record(
+            "kv_cache",
+            "total",
+            "value_shape_per_layer",
+            "6,4,128".to_owned(),
+            "dimensions",
+        );
+        record(
+            "kv_cache",
+            "total",
+            "allocated_bytes",
+            cache.byte_size().to_string(),
+            "bytes",
+        );
+        record(
+            "kv_cache",
+            "total",
+            "payload_allocation_count",
+            "96".to_owned(),
+            "allocations",
+        );
+        record(
+            "kv_cache",
+            "total",
+            "allocation_growth_during_decode",
+            "false".to_owned(),
+            "boolean",
+        );
+        record(
+            "kv_cache",
+            "total",
+            "previous_position_overwrite",
+            "false".to_owned(),
+            "boolean",
+        );
+        atomic_diagnostic(&metrics_path, baseline.as_bytes());
+    }
     println!(
         "short_generation_complete elapsed_seconds={} generated={generated:?} dense_bytes_read={dense_bytes_read} expert_metrics={metrics:?} kv_cache_bytes={} modeled_peak_explicit_bytes={modeled_peak_explicit_bytes}",
         started.elapsed().as_secs_f64(),
