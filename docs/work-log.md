@@ -977,3 +977,49 @@ Two real runs produced identical 34,479-byte evidence with SHA-256
 the second run left the existing evidence unchanged.
 
 Next task: M4.2-02 - validate selected layer router IDs against Transformers.
+
+## 2026-07-16 - M4.2-02 Layer-24 router validation
+
+Date: 2026-07-16
+
+Completed the reviewed Layer-24 subtask of M4.2-02. The genuine Rust path now
+executes the embedding and complete streaming Layers 0-23, then executes Layer
+24 only through router selection. It loads only selected experts through the
+normal `ExpertStore`; Layer-24 experts and later operations remain unreachable.
+
+Transformers F32 and Rust selected identical experts for every layer 0-24. All
+four Layer-24 F32 classifications are `exact_match_safe`; all four independent
+BF16 classifications are `numerically_ambiguous`. The Layer-24 router maximum
+error is `3.719329833984375e-5`, and the minimum F32 boundary margin is
+`0.01013946533203125`, safely above its `0.0000743865966796875` required
+margin.
+
+The first scalar-only combined-MoE guard stopped at Layer 1. A focused
+same-Rust-input diagnostic reduced the maximum from `3.509521484375e-4` to
+`8.392333984375e-5` and produced zero scalar-contract failures, classifying the
+original one-element failure as accumulated incoming drift rather than a local
+expert implementation mismatch. ADR 0022 freezes per-layer propagated budgets;
+RMSNorm, router ordering, expert arithmetic, and global tolerances are
+unchanged.
+
+Rust loaded 546 unique layer/expert keys for 768 occurrences, with 0 hits, 546
+misses/loads, 545 evictions, and `18,874,368` peak expert-resident bytes. Dense,
+expert, and total artifact reads were `1,914,119,168`, `10,305,404,928`, and
+`12,219,524,096` bytes. Modeled peak explicit Rust memory was `126,140,262`
+bytes; maximum Python peak working set was `660,402,176` bytes.
+
+Evidence: two reference runs and two final Rust runs were byte-identical. All
+temporary validation runs were removed. The canonical artifact and pinned
+source remained read-only, and no model payload was copied.
+
+Verification: `cargo fmt --all --check`, `cargo check --workspace`, all 123
+workspace tests, workspace Clippy with warnings denied, CLI bootstrap,
+feature-gated Clippy, Python compilation, four router-policy tests, and the
+focused optimized Layer-24 validation all passed. The focused test reported 1
+passed, 0 failed, and 73 filtered tests.
+
+Open issue: ADR 0022 budgets are provisional for this frozen Layer-24 path and
+must not be reused for Layer 47.
+
+Next subtask after review: M4.2-02 Layer-47 router validation. Do not begin it
+without the requested review.

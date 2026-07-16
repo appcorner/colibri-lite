@@ -6,7 +6,7 @@ use std::{
     fmt::Write as _,
     fs::{self, File},
     io::{Read, Seek, SeekFrom, Write},
-    path::PathBuf,
+    path::{Path, PathBuf},
     time::Instant,
 };
 
@@ -66,6 +66,30 @@ const LAYER1_F32_CHECKPOINTS: &[u8] = include_bytes!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../../models/qwen3-30b-a3b/m4.2-02-layer1-transformers-f32-v1.safetensors"
 ));
+const LAYER24_RUNTIME_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-02-layer24-dense-runtime-plan-v1.tsv"
+));
+const LAYER24_EXPERT_RUNTIME_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-02-layer24-expert-runtime-plan-v1.tsv"
+));
+const LAYER24_BF16_CHECKPOINT_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-02-layer24-transformers-bf16-checkpoint-plan-v1.tsv"
+));
+const LAYER24_BF16_CHECKPOINTS: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-02-layer24-transformers-bf16-v1.safetensors"
+));
+const LAYER24_F32_CHECKPOINT_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-02-layer24-transformers-f32-checkpoint-plan-v1.tsv"
+));
+const LAYER24_F32_CHECKPOINTS: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-02-layer24-transformers-f32-v1.safetensors"
+));
 const INPUT_IDS: [usize; 4] = [9707, 11, 1879, 0];
 const POSITION_IDS: [usize; 4] = [0, 1, 2, 3];
 const POST_NORM_PROPAGATED_ABSOLUTE_BUDGET: f32 = 4.255_093e-6;
@@ -76,6 +100,253 @@ const LAYER1_RESIDUAL_BUDGET: f32 = 4.030_764e-6;
 const LAYER1_POST_NORM_BUDGET: f32 = 6.222_046e-6;
 const LAYER1_ROUTER_LOGIT_BUDGET: f32 = 2.217_292_8e-5;
 const LAYER1_ROUTING_WEIGHT_BUDGET: f32 = 1.0e-6;
+const LAYER24_FROZEN_INPUT_ERRORS: [f32; 25] = [
+    0.0,
+    1.907_348_6e-6,
+    3.509_521_5e-4,
+    7.934_570_3e-4,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+];
+const LAYER24_FROZEN_INPUT_NORM_ERRORS: [f32; 25] = [
+    2.086_162_6e-7,
+    2.905_726_4e-7,
+    5.364_418e-7,
+    1.549_720_8e-6,
+    9.536_743e-7,
+    9.238_72e-7,
+    1.192_092_9e-6,
+    1.132_488_3e-6,
+    1.192_092_9e-6,
+    1.370_906_8e-6,
+    1.251_697_5e-6,
+    1.311_302_2e-6,
+    1.788_139_3e-6,
+    1.609_325_4e-6,
+    2.026_558e-6,
+    1.668_93e-6,
+    1.907_348_6e-6,
+    2.264_976_5e-6,
+    2.384_185_8e-6,
+    2.741_813_7e-6,
+    2.980_232_2e-6,
+    2.980_232_2e-6,
+    2.741_813_7e-6,
+    3.457_069_4e-6,
+    3.457_069_4e-6,
+];
+const LAYER24_FROZEN_ATTENTION_ERRORS: [f32; 25] = [
+    1.251_697_5e-6,
+    5.755_573_5e-7,
+    8.642_673_5e-7,
+    7.748_604e-7,
+    4.470_348_4e-7,
+    1.430_511_5e-6,
+    1.996_755_6e-6,
+    3.039_836_9e-6,
+    6.854_534e-6,
+    1.966_953_3e-6,
+    2.175_569_5e-6,
+    1.171_603_8e-6,
+    1.505_017_3e-6,
+    1.728_534_7e-6,
+    1.311_302_2e-6,
+    1.110_136_5e-6,
+    1.341_104_5e-6,
+    1.549_720_8e-6,
+    6.496_906_3e-6,
+    6.020_069e-6,
+    4.544_854e-6,
+    3.159_046_2e-6,
+    2.622_604_4e-6,
+    1.713_633_5e-6,
+    1.847_744e-6,
+];
+const LAYER24_FROZEN_RESIDUAL_ERRORS: [f32; 25] = [
+    1.251_697_5e-6,
+    1.907_348_6e-6,
+    3.509_521_5e-4,
+    7.934_570_3e-4,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+    2.319_336e-3,
+];
+const LAYER24_FROZEN_POST_NORM_ERRORS: [f32; 25] = [
+    3.993_511e-6,
+    2.622_604_4e-6,
+    4.410_743_7e-6,
+    2.136_230_5e-4,
+    8.392_334e-5,
+    9.918_213e-5,
+    1.106_262_2e-4,
+    9.536_743e-5,
+    9.536_743e-5,
+    1.029_968_3e-4,
+    1.029_968_3e-4,
+    1.029_968_3e-4,
+    1.106_262_2e-4,
+    1.335_144e-4,
+    1.258_850_1e-4,
+    1.373_291e-4,
+    1.220_703_1e-4,
+    1.068_115_2e-4,
+    1.373_291e-4,
+    1.602_172_9e-4,
+    1.449_585e-4,
+    1.296_997e-4,
+    1.373_291e-4,
+    1.602_172_9e-4,
+    1.487_732e-4,
+];
+const LAYER24_FROZEN_ROUTER_ERRORS: [f32; 25] = [
+    1.144_409_2e-5,
+    1.239_776_6e-5,
+    1.716_613_8e-5,
+    2.622_604_4e-5,
+    3.242_492_7e-5,
+    2.861_023e-5,
+    2.431_869_5e-5,
+    2.241_134_6e-5,
+    2.574_920_7e-5,
+    2.288_818_4e-5,
+    2.956_390_4e-5,
+    2.193_451e-5,
+    2.813_339_2e-5,
+    3.242_492_7e-5,
+    2.765_655_5e-5,
+    3.719_33e-5,
+    2.288_818_4e-5,
+    2.098_083_5e-5,
+    3.623_962_4e-5,
+    3.051_757_8e-5,
+    3.004_074_1e-5,
+    2.908_706_7e-5,
+    3.242_492_7e-5,
+    3.242_492_7e-5,
+    3.719_33e-5,
+];
+const LAYER24_FROZEN_MOE_ERRORS: [f32; 24] = [
+    7.152_557_4e-7,
+    3.509_521_5e-4,
+    4.272_461e-4,
+    1.495_361_3e-3,
+    1.132_488_3e-6,
+    8.642_673_5e-7,
+    7.450_580_6e-7,
+    2.712_011_3e-6,
+    3.337_86e-6,
+    7.450_580_6e-7,
+    7.599_592e-7,
+    6.854_534e-7,
+    1.102_685_9e-6,
+    2.086_162_6e-6,
+    1.251_697_5e-6,
+    9.089_708_3e-7,
+    2.980_232_2e-6,
+    8.791_685e-7,
+    9.238_72e-7,
+    1.735_985_3e-6,
+    5.006_79e-6,
+    1.370_906_8e-6,
+    1.847_744e-6,
+    1.281_499_9e-6,
+];
+
+#[derive(Debug, Clone, Copy)]
+struct Layer24PropagatedBudgets {
+    input: f32,
+    input_norm: f32,
+    attention: f32,
+    residual: f32,
+    post_norm: f32,
+    router: f32,
+    routing: f32,
+    moe: Option<f32>,
+    block: Option<f32>,
+}
+
+fn layer24_propagated_budgets(layer: usize) -> Layer24PropagatedBudgets {
+    let completed_layer_budgets = |completed_layer: usize| {
+        let moe = 3.0 * LAYER24_FROZEN_POST_NORM_ERRORS[completed_layer]
+            + LAYER24_FROZEN_MOE_ERRORS[completed_layer];
+        let block = LAYER24_FROZEN_RESIDUAL_ERRORS[completed_layer] + moe;
+        (moe, block)
+    };
+    let input = if layer == 0 {
+        0.0
+    } else {
+        3.0 * LAYER24_FROZEN_INPUT_ERRORS[layer] + 5.0e-7
+    };
+    let input_norm = 3.0 * LAYER24_FROZEN_INPUT_ERRORS[layer] + 5.0e-7;
+    let attention =
+        3.0 * LAYER24_FROZEN_INPUT_NORM_ERRORS[layer] + LAYER24_FROZEN_ATTENTION_ERRORS[layer];
+    let residual = LAYER24_FROZEN_INPUT_ERRORS[layer] + attention;
+    let post_norm = 3.0 * LAYER24_FROZEN_RESIDUAL_ERRORS[layer] + 5.0e-7;
+    let router = 3.0 * LAYER24_FROZEN_POST_NORM_ERRORS[layer] + 1.430_511_5e-5;
+    let routing = 0.5 * LAYER24_FROZEN_ROUTER_ERRORS[layer] + 1.0e-7;
+    let (moe, block) = if layer < 24 {
+        let (moe, block) = completed_layer_budgets(layer);
+        (Some(moe), Some(block))
+    } else {
+        (None, None)
+    };
+    Layer24PropagatedBudgets {
+        input,
+        input_norm,
+        attention,
+        residual,
+        post_norm,
+        router,
+        routing,
+        moe,
+        block,
+    }
+}
+
+fn maximum_magnitude(tensor: &Tensor) -> f32 {
+    tensor
+        .data()
+        .iter()
+        .map(|value| value.abs())
+        .fold(0.0_f32, f32::max)
+}
 
 #[derive(Debug, Clone)]
 struct RangeRecord {
@@ -274,9 +545,17 @@ fn decode_sha256(value: &str) -> [u8; 32] {
 }
 
 fn selected_expert_store(artifact_root: &std::path::Path) -> ExpertStore {
+    expert_store_from_plan(LAYER0_EXPERT_RUNTIME_PLAN, artifact_root, 27)
+}
+
+fn expert_store_from_plan(
+    plan: &str,
+    artifact_root: &std::path::Path,
+    expected_registrations: usize,
+) -> ExpertStore {
     let mut metadata = Vec::new();
     let mut registrations = Vec::new();
-    for line in LAYER0_EXPERT_RUNTIME_PLAN.lines() {
+    for line in plan.lines() {
         let fields: Vec<_> = line.split('\t').collect();
         if fields[0] != "expert" {
             continue;
@@ -286,7 +565,6 @@ fn selected_expert_store(artifact_root: &std::path::Path) -> ExpertStore {
         let expert_id: u32 = fields[2].parse().expect("expert ID");
         let name = fields[3].to_owned();
         let length: u64 = fields[6].parse().expect("expert payload length");
-        assert_eq!(layer_index, 0, "only Layer-0 experts may be registered");
         assert_eq!(length, 18_874_368, "packed expert payload length");
         metadata.push(TensorMetadata {
             name: name.clone(),
@@ -309,7 +587,11 @@ fn selected_expert_store(artifact_root: &std::path::Path) -> ExpertStore {
             tensor_name: name,
         });
     }
-    assert_eq!(registrations.len(), 27, "selected Layer-0 expert count");
+    assert_eq!(
+        registrations.len(),
+        expected_registrations,
+        "expert registration count"
+    );
     let manifest = ArtifactManifest::new(ARTIFACT_FORMAT_VERSION, ByteOrder::Little, metadata)
         .expect("selected expert artifact manifest");
     let reader = ArtifactReader::open(artifact_root.join("experts"), manifest)
@@ -456,15 +738,17 @@ fn record_three_paths(
     let bf16_vs_rust = measure_stage(rust, bf16);
     let bf16_vs_f32 = measure_stage(f32_control, bf16);
     let primary = measure_stage(rust, f32_control);
-    println!(
-        "three_path_tokens checkpoint={stage} f32_vs_rust={:?} bf16_vs_rust={:?} bf16_vs_f32={:?}",
-        per_token(f32_control, rust),
-        per_token(bf16, rust),
-        per_token(bf16, f32_control),
-    );
-    println!(
-        "three_path checkpoint={stage} f32_vs_rust={primary:?} bf16_vs_rust={bf16_vs_rust:?} bf16_vs_f32={bf16_vs_f32:?}"
-    );
+    if env::var_os("COLIBRI_COMPACT_VALIDATION").is_none() {
+        println!(
+            "three_path_tokens checkpoint={stage} f32_vs_rust={:?} bf16_vs_rust={:?} bf16_vs_f32={:?}",
+            per_token(f32_control, rust),
+            per_token(bf16, rust),
+            per_token(bf16, f32_control),
+        );
+        println!(
+            "three_path checkpoint={stage} f32_vs_rust={primary:?} bf16_vs_rust={bf16_vs_rust:?} bf16_vs_f32={bf16_vs_f32:?}"
+        );
+    }
     primary
 }
 
@@ -480,6 +764,60 @@ fn atomic_diagnostic(path: &PathBuf, payload: &[u8]) {
     output.sync_all().expect("sync diagnostic");
     drop(output);
     fs::rename(temporary, path).expect("promote diagnostic");
+}
+
+fn f32_bytes(tensor: &Tensor) -> Vec<u8> {
+    tensor
+        .data()
+        .iter()
+        .flat_map(|value| value.to_le_bytes())
+        .collect()
+}
+
+fn export_layer1_moe_diagnostic(
+    root: &Path,
+    pre_router: &PreRouterOutput,
+    moe_output: &Tensor,
+    expert_outputs: &HashMap<String, Tensor>,
+) {
+    assert!(
+        root.is_absolute(),
+        "Layer-1 diagnostic root must be absolute"
+    );
+    atomic_diagnostic(
+        &root.join("layer1-expert-input-f32.bin"),
+        &f32_bytes(&pre_router.post_attention_norm),
+    );
+    atomic_diagnostic(
+        &root.join("layer1-routing-weights-f32.bin"),
+        &f32_bytes(&pre_router.router.weights),
+    );
+    atomic_diagnostic(
+        &root.join("layer1-moe-output-f32.bin"),
+        &f32_bytes(moe_output),
+    );
+    let mut plan = String::from("token\tposition\texpert\toffset\tlength\n");
+    let mut payload = Vec::with_capacity(32 * 2048 * 4);
+    for token in 0..4 {
+        for position in 0..8 {
+            let expert = pre_router.router.selected_experts[token * 8 + position];
+            let name = format!("layer1_expert_output_t{token}_p{position}_e{expert}");
+            let output = &expert_outputs[&name];
+            writeln!(
+                plan,
+                "{token}\t{position}\t{expert}\t{}\t{}",
+                payload.len(),
+                output.data().len() * 4,
+            )
+            .expect("write Layer-1 diagnostic plan");
+            payload.extend(f32_bytes(output));
+        }
+    }
+    atomic_diagnostic(
+        &root.join("layer1-expert-output-plan-v1.tsv"),
+        plan.as_bytes(),
+    );
+    atomic_diagnostic(&root.join("layer1-expert-outputs-f32.bin"), &payload);
 }
 
 fn export_rms_diagnostics(residual: &Tensor, post_norm: &Tensor, epsilon: f32) {
@@ -1315,6 +1653,428 @@ fn pinned_layer_one_router_uses_genuine_streaming_layer_zero_output() {
     );
     println!(
         "layer1_end_to_end dense_bytes_read={dense_bytes_read} expert_metrics={cache_metrics:?} peak_explicit_bytes={peak_explicit_bytes} elapsed_seconds={} layer0_moe={layer0_moe_metrics:?} layer0_block={layer0_block_metrics:?} layer1_input={layer1_input_metrics:?} layer1_input_norm={layer1_input_norm_metrics:?} layer1_attention={layer1_attention_metrics:?} layer1_residual={layer1_residual_metrics:?} layer1_post_norm={layer1_post_norm_metrics:?} layer1_router={layer1_router_metrics:?} layer1_routing={layer1_routing_metrics:?} classifications={classifications:?}",
+        started.elapsed().as_secs_f64(),
+    );
+}
+
+#[test]
+fn pinned_layer_twenty_four_router_uses_genuine_streaming_prefix() {
+    let artifact_root = env::var_os("COLIBRI_ARTIFACT_ROOT")
+        .map(PathBuf::from)
+        .expect("COLIBRI_ARTIFACT_ROOT must name the stable canonical artifact");
+    assert!(
+        artifact_root.is_absolute(),
+        "artifact root must be absolute"
+    );
+    let diagnostic_root = env::var_os("COLIBRI_RMS_DIAGNOSTIC_ROOT")
+        .map(PathBuf::from)
+        .expect("diagnostic root for Layer-24 evidence");
+    assert!(
+        diagnostic_root.is_absolute(),
+        "diagnostic root must be absolute"
+    );
+    let plan = runtime_plan(LAYER24_RUNTIME_PLAN);
+    let mut payload = File::open(artifact_root.join(&plan.payload)).expect("open dense payload");
+    assert_eq!(
+        payload.metadata().expect("dense payload metadata").len(),
+        plan.payload_length,
+        "dense payload length"
+    );
+    let bf16_plan = checkpoint_plan(LAYER24_BF16_CHECKPOINT_PLAN);
+    let f32_plan = checkpoint_plan(LAYER24_F32_CHECKPOINT_PLAN);
+    assert_eq!(
+        checkpoint_ids(LAYER24_F32_CHECKPOINTS, &f32_plan, "input_ids"),
+        INPUT_IDS
+    );
+    assert_eq!(
+        checkpoint_ids(LAYER24_F32_CHECKPOINTS, &f32_plan, "position_ids"),
+        POSITION_IDS
+    );
+
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("pinned runtime config")
+        .runtime_config();
+    let expert_layout = PackedExpertLayout::for_config(config);
+    let mut store = expert_store_from_plan(LAYER24_EXPERT_RUNTIME_PLAN, &artifact_root, 24 * 128);
+    let mut dense_bytes_read = 0_u64;
+    let mut current = embedding_rows(&mut payload, &plan, &mut dense_bytes_read);
+    let embedding_metrics = record_three_paths(
+        "layer24_embedding_output",
+        &current,
+        &checkpoint_f32(LAYER24_BF16_CHECKPOINTS, &bf16_plan, "embedding_output"),
+        &checkpoint_f32(LAYER24_F32_CHECKPOINTS, &f32_plan, "embedding_output"),
+    );
+    assert_eq!(
+        embedding_metrics.maximum_absolute_difference, 0.0,
+        "embedding must remain exact"
+    );
+
+    let mut layer_evidence = String::from(
+        "layer\tinput_max_abs\tinput_budget\trouter_max_abs\trouter_budget\trouting_max_abs\trouting_budget\tunique_experts\texpert_occurrences\tmoe_max_abs\tmoe_budget\tblock_max_abs\tblock_budget\ttransformers_f32_ids\ttransformers_bf16_ids\trust_ids\n",
+    );
+    let mut checkpoint_evidence = String::from(
+        "layer\tcheckpoint\tmaximum_f32_vs_rust_absolute_error\tabsolute_budget\tmaximum_f32_vs_rust_relative_error\n",
+    );
+    let mut total_unique_experts = 0_usize;
+    let mut total_expert_occurrences = 0_usize;
+    let mut maximum_dense_layer_bytes = 0_u64;
+    let mut maximum_runtime_elements = current.data().len();
+    let started = Instant::now();
+    let mut layer24_classifications = Vec::new();
+
+    for layer in 0..=24 {
+        let layer_started = Instant::now();
+        let dense_before = dense_bytes_read;
+        let weights = layer_weights(&mut payload, &plan, layer, &mut dense_bytes_read);
+        maximum_dense_layer_bytes = maximum_dense_layer_bytes.max(dense_bytes_read - dense_before);
+        let pre_router = pre_router_with_weights(
+            current.view(),
+            weights.input_norm.view(),
+            weights.query.view(),
+            weights.key.view(),
+            weights.value.view(),
+            weights.output.view(),
+            weights.query_norm.view(),
+            weights.key_norm.view(),
+            weights.post_norm.view(),
+            weights.router.view(),
+            config,
+        )
+        .unwrap_or_else(|error| panic!("Layer-{layer} pre-router execution failed: {error}"));
+        drop(weights);
+        let prefix = format!("layer{layer}");
+        let propagated_budgets = layer24_propagated_budgets(layer);
+        let bf16_input = checkpoint_f32(
+            LAYER24_BF16_CHECKPOINTS,
+            &bf16_plan,
+            &format!("{prefix}_input"),
+        );
+        let f32_input = checkpoint_f32(
+            LAYER24_F32_CHECKPOINTS,
+            &f32_plan,
+            &format!("{prefix}_input"),
+        );
+        let input_metrics = record_three_paths(
+            &format!("{prefix}_input"),
+            &current,
+            &bf16_input,
+            &f32_input,
+        );
+        let input_budget = propagated_budgets.input;
+        assert_stage(
+            &format!("{prefix}_input"),
+            &current,
+            &f32_input,
+            input_budget,
+            0.0,
+        );
+        let bf16_logits = checkpoint_f32(
+            LAYER24_BF16_CHECKPOINTS,
+            &bf16_plan,
+            &format!("{prefix}_router_logits"),
+        );
+        let f32_logits = checkpoint_f32(
+            LAYER24_F32_CHECKPOINTS,
+            &f32_plan,
+            &format!("{prefix}_router_logits"),
+        );
+        let router_metrics = record_three_paths(
+            &format!("{prefix}_router_logits"),
+            &pre_router.router.logits,
+            &bf16_logits,
+            &f32_logits,
+        );
+        assert_stage(
+            &format!("{prefix}_router_logits"),
+            &pre_router.router.logits,
+            &f32_logits,
+            propagated_budgets.router,
+            0.0,
+        );
+        let bf16_routing = checkpoint_f32(
+            LAYER24_BF16_CHECKPOINTS,
+            &bf16_plan,
+            &format!("{prefix}_routing_weights"),
+        );
+        let f32_routing = checkpoint_f32(
+            LAYER24_F32_CHECKPOINTS,
+            &f32_plan,
+            &format!("{prefix}_routing_weights"),
+        );
+        let routing_metrics = record_three_paths(
+            &format!("{prefix}_routing_weights"),
+            &pre_router.router.weights,
+            &bf16_routing,
+            &f32_routing,
+        );
+        assert_stage(
+            &format!("{prefix}_routing_weights"),
+            &pre_router.router.weights,
+            &f32_routing,
+            propagated_budgets.routing,
+            0.0,
+        );
+        let bf16_ids = checkpoint_ids(
+            LAYER24_BF16_CHECKPOINTS,
+            &bf16_plan,
+            &format!("{prefix}_selected_expert_ids"),
+        );
+        let f32_ids = checkpoint_ids(
+            LAYER24_F32_CHECKPOINTS,
+            &f32_plan,
+            &format!("{prefix}_selected_expert_ids"),
+        );
+        assert_eq!(
+            pre_router.router.selected_experts, f32_ids,
+            "Layer-{layer} Rust and Transformers F32 expert IDs differ"
+        );
+
+        for (suffix, actual) in [
+            ("input_rmsnorm", &pre_router.input_norm),
+            ("attention_output", &pre_router.attention_output),
+            ("residual_output", &pre_router.residual_output),
+            ("post_attention_rmsnorm", &pre_router.post_attention_norm),
+        ] {
+            let name = format!("{prefix}_{suffix}");
+            let bf16_reference = checkpoint_f32(LAYER24_BF16_CHECKPOINTS, &bf16_plan, &name);
+            let f32_reference = checkpoint_f32(LAYER24_F32_CHECKPOINTS, &f32_plan, &name);
+            let metrics = record_three_paths(&name, actual, &bf16_reference, &f32_reference);
+            let budget = match suffix {
+                "input_rmsnorm" => propagated_budgets.input_norm,
+                "attention_output" => propagated_budgets.attention,
+                "residual_output" => propagated_budgets.residual,
+                "post_attention_rmsnorm" => propagated_budgets.post_norm,
+                _ => unreachable!("known pre-router checkpoint"),
+            };
+            assert_stage(&name, actual, &f32_reference, budget, 0.0);
+            writeln!(
+                checkpoint_evidence,
+                "{layer}\t{suffix}\t{:.17e}\t{budget:.17e}\t{:.17e}",
+                metrics.maximum_absolute_difference, metrics.maximum_relative_difference,
+            )
+            .expect("write checkpoint evidence");
+        }
+
+        maximum_runtime_elements = maximum_runtime_elements.max(
+            current.data().len()
+                + pre_router.input_norm.data().len()
+                + pre_router.attention_output.data().len()
+                + pre_router.residual_output.data().len()
+                + pre_router.post_attention_norm.data().len()
+                + pre_router.router.logits.data().len()
+                + pre_router.router.weights.data().len()
+                + bf16_logits.data().len()
+                + f32_logits.data().len(),
+        );
+        if layer == 24 {
+            layer24_classifications = validate_router_boundaries(
+                &pre_router,
+                &bf16_logits,
+                &f32_logits,
+                &bf16_ids,
+                &f32_ids,
+                "m4.2-02-rust-layer24-router-evidence-v1.tsv",
+            );
+            writeln!(
+                layer_evidence,
+                "{layer}\t{:.17e}\t{input_budget:.17e}\t{:.17e}\t{:.17e}\t{:.17e}\t{:.17e}\t0\t0\tNA\tNA\tNA\tNA\t{}\t{}\t{}",
+                input_metrics.maximum_absolute_difference,
+                router_metrics.maximum_absolute_difference,
+                propagated_budgets.router,
+                routing_metrics.maximum_absolute_difference,
+                propagated_budgets.routing,
+                comma_separated(&f32_ids),
+                comma_separated(&bf16_ids),
+                comma_separated(&pre_router.router.selected_experts),
+            )
+            .expect("write Layer-24 evidence");
+            println!(
+                "layer_execution layer={layer} elapsed_seconds={} input_max_abs={} router_max_abs={} routing_max_abs={} stop=router",
+                layer_started.elapsed().as_secs_f64(),
+                input_metrics.maximum_absolute_difference,
+                router_metrics.maximum_absolute_difference,
+                routing_metrics.maximum_absolute_difference,
+            );
+            break;
+        }
+
+        let unique_experts = pre_router
+            .router
+            .selected_experts
+            .iter()
+            .copied()
+            .collect::<HashSet<_>>()
+            .len();
+        let expert_occurrences = pre_router.router.selected_experts.len();
+        let mut diagnostic_expert_outputs = HashMap::new();
+        let moe_output = streaming_routed_experts_with_observer(
+            pre_router.post_attention_norm.view(),
+            &pre_router.router,
+            config,
+            layer,
+            &mut store,
+            expert_layout,
+            |expert, token, position, values| {
+                if layer == 1 {
+                    let name = format!("layer1_expert_output_t{token}_p{position}_e{expert}");
+                    let output = Tensor::new(TensorShape::new([2048]), values.to_vec())
+                        .expect("Layer-1 diagnostic expert output");
+                    assert!(
+                        diagnostic_expert_outputs.insert(name, output).is_none(),
+                        "duplicate Layer-1 diagnostic expert output"
+                    );
+                }
+            },
+        )
+        .unwrap_or_else(|error| panic!("Layer-{layer} expert execution failed: {error}"));
+        let bf16_moe = checkpoint_f32(
+            LAYER24_BF16_CHECKPOINTS,
+            &bf16_plan,
+            &format!("{prefix}_moe_output"),
+        );
+        let f32_moe = checkpoint_f32(
+            LAYER24_F32_CHECKPOINTS,
+            &f32_plan,
+            &format!("{prefix}_moe_output"),
+        );
+        let moe_metrics = record_three_paths(
+            &format!("{prefix}_moe_output"),
+            &moe_output,
+            &bf16_moe,
+            &f32_moe,
+        );
+        let moe_budget = propagated_budgets.moe.expect("completed layer MoE budget");
+        if layer == 1
+            && let Some(root) = env::var_os("COLIBRI_LAYER1_MOE_DIAGNOSTIC_ROOT")
+        {
+            assert_eq!(
+                diagnostic_expert_outputs.len(),
+                32,
+                "Layer-1 diagnostic occurrence count"
+            );
+            export_layer1_moe_diagnostic(
+                &PathBuf::from(root),
+                &pre_router,
+                &moe_output,
+                &diagnostic_expert_outputs,
+            );
+        }
+        assert_stage(
+            &format!("{prefix}_moe_output"),
+            &moe_output,
+            &f32_moe,
+            moe_budget,
+            0.0,
+        );
+        let block_output = elementwise_add(pre_router.residual_output.view(), moe_output.view())
+            .unwrap_or_else(|error| panic!("Layer-{layer} final residual failed: {error}"));
+        let bf16_block = checkpoint_f32(
+            LAYER24_BF16_CHECKPOINTS,
+            &bf16_plan,
+            &format!("{prefix}_block_output"),
+        );
+        let f32_block = checkpoint_f32(
+            LAYER24_F32_CHECKPOINTS,
+            &f32_plan,
+            &format!("{prefix}_block_output"),
+        );
+        let block_metrics = record_three_paths(
+            &format!("{prefix}_block_output"),
+            &block_output,
+            &bf16_block,
+            &f32_block,
+        );
+        let block_budget = propagated_budgets
+            .block
+            .expect("completed layer block budget")
+            + f32::EPSILON * maximum_magnitude(&f32_block);
+        assert_stage(
+            &format!("{prefix}_block_output"),
+            &block_output,
+            &f32_block,
+            block_budget,
+            0.0,
+        );
+        writeln!(
+            layer_evidence,
+            "{layer}\t{:.17e}\t{input_budget:.17e}\t{:.17e}\t{:.17e}\t{:.17e}\t{:.17e}\t{unique_experts}\t{expert_occurrences}\t{:.17e}\t{moe_budget:.17e}\t{:.17e}\t{block_budget:.17e}\t{}\t{}\t{}",
+            input_metrics.maximum_absolute_difference,
+            router_metrics.maximum_absolute_difference,
+            propagated_budgets.router,
+            routing_metrics.maximum_absolute_difference,
+            propagated_budgets.routing,
+            moe_metrics.maximum_absolute_difference,
+            block_metrics.maximum_absolute_difference,
+            comma_separated(&f32_ids),
+            comma_separated(&bf16_ids),
+            comma_separated(&pre_router.router.selected_experts),
+        )
+        .expect("write completed-layer evidence");
+        total_unique_experts += unique_experts;
+        total_expert_occurrences += expert_occurrences;
+        maximum_runtime_elements = maximum_runtime_elements.max(
+            current.data().len()
+                + pre_router.input_norm.data().len()
+                + pre_router.attention_output.data().len()
+                + pre_router.residual_output.data().len()
+                + pre_router.post_attention_norm.data().len()
+                + pre_router.router.logits.data().len()
+                + pre_router.router.weights.data().len()
+                + moe_output.data().len()
+                + block_output.data().len(),
+        );
+        println!(
+            "layer_execution layer={layer} elapsed_seconds={} input_max_abs={} router_max_abs={} routing_max_abs={} unique_experts={unique_experts} expert_occurrences={expert_occurrences} moe_max_abs={} block_max_abs={}",
+            layer_started.elapsed().as_secs_f64(),
+            input_metrics.maximum_absolute_difference,
+            router_metrics.maximum_absolute_difference,
+            routing_metrics.maximum_absolute_difference,
+            moe_metrics.maximum_absolute_difference,
+            block_metrics.maximum_absolute_difference,
+        );
+        current = block_output;
+    }
+
+    let cache_metrics = store.metrics();
+    assert_eq!(cache_metrics.loads, total_unique_experts as u64);
+    assert_eq!(cache_metrics.misses, total_unique_experts as u64);
+    assert_eq!(cache_metrics.hits, 0);
+    assert_eq!(cache_metrics.evictions, cache_metrics.loads - 1);
+    assert_eq!(total_expert_occurrences, 24 * 32);
+    let checkpoint_static_bytes = LAYER24_BF16_CHECKPOINTS.len()
+        + LAYER24_F32_CHECKPOINTS.len()
+        + LAYER24_BF16_CHECKPOINT_PLAN.len()
+        + LAYER24_F32_CHECKPOINT_PLAN.len();
+    let modeled_peak_explicit_bytes = usize::try_from(maximum_dense_layer_bytes)
+        .expect("dense layer bytes fit usize")
+        + cache_metrics.peak_resident_bytes
+        + expert_layout.total_byte_length
+        + maximum_runtime_elements * 4
+        + checkpoint_static_bytes;
+    writeln!(
+        checkpoint_evidence,
+        "resources\tdense_bytes_read\t{dense_bytes_read}\texpert_bytes_read={}\ttotal_artifact_bytes_read={}\ttotal_unique_experts={total_unique_experts}\ttotal_expert_occurrences={total_expert_occurrences}\thits={}\tmisses={}\tloads={}\tevictions={}\tresident_bytes={}\tpeak_expert_resident_bytes={}\tmodeled_peak_explicit_bytes={modeled_peak_explicit_bytes}",
+        cache_metrics.bytes_read,
+        dense_bytes_read + cache_metrics.bytes_read,
+        cache_metrics.hits,
+        cache_metrics.misses,
+        cache_metrics.loads,
+        cache_metrics.evictions,
+        cache_metrics.resident_bytes,
+        cache_metrics.peak_resident_bytes,
+    )
+    .expect("write Layer-24 resource evidence");
+    atomic_diagnostic(
+        &diagnostic_root.join("m4.2-02-rust-layer24-layer-evidence-v1.tsv"),
+        layer_evidence.as_bytes(),
+    );
+    atomic_diagnostic(
+        &diagnostic_root.join("m4.2-02-rust-layer24-checkpoint-evidence-v1.tsv"),
+        checkpoint_evidence.as_bytes(),
+    );
+    println!(
+        "layer24_end_to_end dense_bytes_read={dense_bytes_read} expert_metrics={cache_metrics:?} total_unique_experts={total_unique_experts} total_expert_occurrences={total_expert_occurrences} modeled_peak_explicit_bytes={modeled_peak_explicit_bytes} elapsed_seconds={} classifications={layer24_classifications:?}",
         started.elapsed().as_secs_f64(),
     );
 }

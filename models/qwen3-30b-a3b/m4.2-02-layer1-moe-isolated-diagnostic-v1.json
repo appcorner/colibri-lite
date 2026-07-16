@@ -1,0 +1,566 @@
+{
+  "classification": "accumulated_incoming_drift",
+  "input_f32_vs_reference": {
+    "first_scalar_contract_failure": {
+      "absolute_error": 1.2712553143501282e-06,
+      "actual": 0.003278963267803192,
+      "element": 104,
+      "expected": 0.0032802345231175423,
+      "scalar_budget": 1.032802288136736e-06,
+      "token": 3
+    },
+    "maximum_absolute_difference": 2.6226043701171875e-06,
+    "maximum_location": {
+      "element": 1170,
+      "token": 0
+    },
+    "maximum_relative_difference": 0.007972940802574158,
+    "scalar_contract_failure_count": 9
+  },
+  "original_path_rust_vs_transformers_f32": {
+    "first_scalar_contract_failure": {
+      "absolute_error": 1.2293457984924316e-06,
+      "actual": -0.01903100311756134,
+      "element": 475,
+      "expected": -0.019032232463359833,
+      "scalar_budget": 1.190322336697136e-06,
+      "token": 0
+    },
+    "maximum_absolute_difference": 0.0003509521484375,
+    "maximum_location": {
+      "element": 940,
+      "token": 0
+    },
+    "maximum_relative_difference": 0.5454545617103577,
+    "scalar_contract_failure_count": 1
+  },
+  "per_occurrence_same_input_comparisons": [
+    {
+      "expert": 0,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 3.2186508178710938e-06,
+      "maximum_location": {
+        "element": 567,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0071405041962862015,
+      "position": 4,
+      "scalar_contract_failure_count": 0,
+      "token": 0
+    },
+    {
+      "expert": 4,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 2.2351741790771484e-07,
+      "maximum_location": {
+        "element": 1992,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0002893009805120528,
+      "position": 2,
+      "scalar_contract_failure_count": 0,
+      "token": 2
+    },
+    {
+      "expert": 6,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 3.427267074584961e-07,
+      "maximum_location": {
+        "element": 1330,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.00043169831042177975,
+      "position": 1,
+      "scalar_contract_failure_count": 0,
+      "token": 2
+    },
+    {
+      "expert": 8,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 3.5762786865234375e-07,
+      "maximum_location": {
+        "element": 1070,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0009982908377423882,
+      "position": 0,
+      "scalar_contract_failure_count": 0,
+      "token": 2
+    },
+    {
+      "expert": 9,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 9.387731552124023e-07,
+      "maximum_location": {
+        "element": 1734,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.002116936491802335,
+      "position": 5,
+      "scalar_contract_failure_count": 0,
+      "token": 0
+    },
+    {
+      "expert": 18,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 2.384185791015625e-07,
+      "maximum_location": {
+        "element": 1992,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0003884744946844876,
+      "position": 3,
+      "scalar_contract_failure_count": 0,
+      "token": 3
+    },
+    {
+      "expert": 22,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 1.2665987014770508e-07,
+      "maximum_location": {
+        "element": 1878,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.001091320882551372,
+      "position": 6,
+      "scalar_contract_failure_count": 0,
+      "token": 2
+    },
+    {
+      "expert": 23,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 1.341104507446289e-07,
+      "maximum_location": {
+        "element": 363,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0017698112642392516,
+      "position": 4,
+      "scalar_contract_failure_count": 0,
+      "token": 1
+    },
+    {
+      "expert": 23,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 1.564621925354004e-07,
+      "maximum_location": {
+        "element": 1907,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0004048468836117536,
+      "position": 5,
+      "scalar_contract_failure_count": 0,
+      "token": 2
+    },
+    {
+      "expert": 30,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 1.7881393432617188e-07,
+      "maximum_location": {
+        "element": 1052,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.03756708279252052,
+      "position": 2,
+      "scalar_contract_failure_count": 0,
+      "token": 1
+    },
+    {
+      "expert": 30,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 1.7881393432617188e-07,
+      "maximum_location": {
+        "element": 1992,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.2283204346895218,
+      "position": 3,
+      "scalar_contract_failure_count": 0,
+      "token": 2
+    },
+    {
+      "expert": 30,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 2.1979212760925293e-07,
+      "maximum_location": {
+        "element": 1539,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0008080193656496704,
+      "position": 6,
+      "scalar_contract_failure_count": 0,
+      "token": 0
+    },
+    {
+      "expert": 38,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 2.1606683731079102e-07,
+      "maximum_location": {
+        "element": 91,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.001772753312252462,
+      "position": 4,
+      "scalar_contract_failure_count": 0,
+      "token": 2
+    },
+    {
+      "expert": 38,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 8.195638656616211e-08,
+      "maximum_location": {
+        "element": 583,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0010153426555916667,
+      "position": 7,
+      "scalar_contract_failure_count": 0,
+      "token": 3
+    },
+    {
+      "expert": 50,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 4.76837158203125e-07,
+      "maximum_location": {
+        "element": 1964,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0008852939354255795,
+      "position": 0,
+      "scalar_contract_failure_count": 0,
+      "token": 1
+    },
+    {
+      "expert": 55,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 9.238719940185547e-07,
+      "maximum_location": {
+        "element": 1618,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0017912964103743434,
+      "position": 2,
+      "scalar_contract_failure_count": 0,
+      "token": 0
+    },
+    {
+      "expert": 58,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 1.4901161193847656e-07,
+      "maximum_location": {
+        "element": 1992,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0008131829672493041,
+      "position": 6,
+      "scalar_contract_failure_count": 0,
+      "token": 1
+    },
+    {
+      "expert": 61,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 1.3783574104309082e-07,
+      "maximum_location": {
+        "element": 515,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.003480461658909917,
+      "position": 6,
+      "scalar_contract_failure_count": 0,
+      "token": 3
+    },
+    {
+      "expert": 61,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 2.5331974029541016e-07,
+      "maximum_location": {
+        "element": 475,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0012595576699823141,
+      "position": 7,
+      "scalar_contract_failure_count": 0,
+      "token": 2
+    },
+    {
+      "expert": 62,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 1.4901161193847656e-07,
+      "maximum_location": {
+        "element": 70,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0026284181512892246,
+      "position": 5,
+      "scalar_contract_failure_count": 0,
+      "token": 1
+    },
+    {
+      "expert": 68,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 0.000274658203125,
+      "maximum_location": {
+        "element": 940,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0005895259091630578,
+      "position": 0,
+      "scalar_contract_failure_count": 0,
+      "token": 0
+    },
+    {
+      "expert": 70,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 3.5762786865234375e-07,
+      "maximum_location": {
+        "element": 1992,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0067749107256531715,
+      "position": 1,
+      "scalar_contract_failure_count": 0,
+      "token": 3
+    },
+    {
+      "expert": 80,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 1.1920928955078125e-07,
+      "maximum_location": {
+        "element": 451,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0005539761623367667,
+      "position": 7,
+      "scalar_contract_failure_count": 0,
+      "token": 1
+    },
+    {
+      "expert": 90,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 7.748603820800781e-07,
+      "maximum_location": {
+        "element": 1434,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.017784051597118378,
+      "position": 3,
+      "scalar_contract_failure_count": 0,
+      "token": 0
+    },
+    {
+      "expert": 94,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 1.564621925354004e-07,
+      "maximum_location": {
+        "element": 1028,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.00037880029412917793,
+      "position": 4,
+      "scalar_contract_failure_count": 0,
+      "token": 3
+    },
+    {
+      "expert": 108,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 1.4156103134155273e-07,
+      "maximum_location": {
+        "element": 1093,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0016160333761945367,
+      "position": 5,
+      "scalar_contract_failure_count": 0,
+      "token": 3
+    },
+    {
+      "expert": 114,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 9.238719940185547e-07,
+      "maximum_location": {
+        "element": 1153,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.00413091853260994,
+      "position": 1,
+      "scalar_contract_failure_count": 0,
+      "token": 0
+    },
+    {
+      "expert": 119,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 1.4901161193847656e-07,
+      "maximum_location": {
+        "element": 1459,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0010364126646891236,
+      "position": 2,
+      "scalar_contract_failure_count": 0,
+      "token": 3
+    },
+    {
+      "expert": 119,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 2.5331974029541016e-07,
+      "maximum_location": {
+        "element": 244,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.000554337864741683,
+      "position": 3,
+      "scalar_contract_failure_count": 0,
+      "token": 1
+    },
+    {
+      "expert": 127,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 3.427267074584961e-07,
+      "maximum_location": {
+        "element": 616,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.011668680235743523,
+      "position": 0,
+      "scalar_contract_failure_count": 0,
+      "token": 3
+    },
+    {
+      "expert": 127,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 3.5762786865234375e-07,
+      "maximum_location": {
+        "element": 1021,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.000725827703718096,
+      "position": 1,
+      "scalar_contract_failure_count": 0,
+      "token": 1
+    },
+    {
+      "expert": 127,
+      "first_scalar_contract_failure": null,
+      "maximum_absolute_difference": 2.5331974029541016e-07,
+      "maximum_location": {
+        "element": 131,
+        "token": 0
+      },
+      "maximum_relative_difference": 0.0003617784532252699,
+      "position": 7,
+      "scalar_contract_failure_count": 0,
+      "token": 0
+    }
+  ],
+  "routing_f32_vs_reference": {
+    "first_scalar_contract_failure": null,
+    "maximum_absolute_difference": 5.066394805908203e-07,
+    "maximum_location": {
+      "element": 0,
+      "token": 0
+    },
+    "maximum_relative_difference": 4.095490567124216e-06,
+    "scalar_contract_failure_count": 0
+  },
+  "runtime_arithmetic_changed": false,
+  "same_input_error_at_original_first_failure": {
+    "absolute_error": 3.948807716369629e-07,
+    "actual": -0.01903100311756134,
+    "element": 475,
+    "expected": -0.019031397998332977,
+    "scalar_budget": 1.1903139238711447e-06,
+    "token": 0
+  },
+  "same_rust_input_rust_vs_transformers_f32": {
+    "first_scalar_contract_failure": null,
+    "maximum_absolute_difference": 8.392333984375e-05,
+    "maximum_location": {
+      "element": 940,
+      "token": 0
+    },
+    "maximum_relative_difference": 0.12408759444952011,
+    "scalar_contract_failure_count": 0
+  },
+  "schema_version": 1,
+  "selected_expert_ids": [
+    [
+      68,
+      114,
+      55,
+      90,
+      0,
+      9,
+      30,
+      127
+    ],
+    [
+      50,
+      127,
+      30,
+      119,
+      23,
+      62,
+      58,
+      80
+    ],
+    [
+      8,
+      6,
+      4,
+      30,
+      38,
+      23,
+      22,
+      61
+    ],
+    [
+      127,
+      70,
+      119,
+      18,
+      94,
+      108,
+      61,
+      38
+    ]
+  ],
+  "selected_occurrences": 32,
+  "selected_unique_experts": [
+    0,
+    4,
+    6,
+    8,
+    9,
+    18,
+    22,
+    23,
+    30,
+    38,
+    50,
+    55,
+    58,
+    61,
+    62,
+    68,
+    70,
+    80,
+    90,
+    94,
+    108,
+    114,
+    119,
+    127
+  ],
+  "source_hash_bytes_read": 3999417504,
+  "source_payload_bytes_read": 226492416,
+  "source_shards_verified": [
+    {
+      "bytes": 3999417504,
+      "path": "model-00001-of-00016.safetensors",
+      "sha256": "454e77b346a61bfb201d54df60e15158838cf930617ee135113556204f2802b5",
+      "shard_id": 0
+    }
+  ],
+  "status": "layer1_moe_isolated_diagnostic_complete",
+  "tolerance_changed": false
+}
