@@ -1023,3 +1023,45 @@ must not be reused for Layer 47.
 
 Next subtask after review: M4.2-02 Layer-47 router validation. Do not begin it
 without the requested review.
+
+## 2026-07-16 - M4.2-02 Layer-47 router validation and task closure
+
+Date: 2026-07-16
+
+Completed Layer-47 router validation and M4.2-02. The genuine Rust F32 path
+executed embedding and complete streaming Layers 0-46, then Layer 47 only
+through pre-router and router selection. Layer-47 experts, the Layer-47 block,
+final norm, LM head, logits, sampling, and generation remained unreachable.
+
+Transformers F32 and Rust selected identical experts for all four tokens at
+every layer 0-47. All Layer-47 F32 classifications are `exact_match_safe`; all
+independent BF16 classifications are `numerically_ambiguous`. The smallest F32
+margin is `0.04711651802062988`, safely above its `0.00001811981201171875`
+required margin.
+
+ADR 0023 freezes a new Layer-47 propagated budget from the measured Layers
+24-47 components. The largest block drift is `2.3193359375e-3`, first reached
+at Layer 3. Layers 4-45 remain flat, and Layer 46 reduces the error to
+`9.765625e-4`; no anomalous late increase or out-of-budget checkpoint occurred.
+No isolated diagnostic was required and no arithmetic or numerical contract
+changed.
+
+Rust executed 1,504 expert occurrences and loaded 1,045 unique layer/expert
+keys. Cache metrics were 0 hits, 1,045 misses/loads, 1,044 evictions, and
+`18,874,368` peak resident expert bytes. Dense, expert, and total artifact reads
+were `3,675,078,656`, `19,723,714,560`, and `23,398,793,216` bytes. Modeled
+peak explicit Rust memory was `136,869,670` bytes; maximum Python peak working
+set was `693,604,352` bytes.
+
+Two reference exports and two final Rust evidence runs were byte-identical. All
+Layer-47 run directories were removed; the canonical artifact and pinned source
+remained read-only. Eleven compact files totaling `24,009,529` logical bytes
+were promoted.
+
+Verification passed: formatting, workspace check, all 123 workspace tests,
+warning-free workspace and feature Clippy, CLI bootstrap, Python compilation,
+four router-policy tests, the Layer-24 feature regression, and both final
+Layer-47 feature runs.
+
+Next task after review: M4.2-03 - validate selected intermediate outputs. It was
+not started in this session.

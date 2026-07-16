@@ -361,7 +361,7 @@ Scope:
 
 #### M4.2 - Full-model correctness checkpoint
 
-Status: in progress. M4.2-01 is complete.
+Status: in progress. M4.2-01 and M4.2-02 are complete.
 
 Scope:
 

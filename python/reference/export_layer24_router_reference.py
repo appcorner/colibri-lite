@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export genuine Layers 0-23 and Layer-24 router reference checkpoints."""
+"""Export a genuine bounded full-model prefix and stop at a selected router."""
 
 from __future__ import annotations
 
@@ -40,8 +40,6 @@ from python.reference.export_layer1_router_reference import (
 from python.reference.validate_full_model_tensor_values import parse_plan, read_json, sha256_file
 
 
-COMPLETED_LAYERS = range(24)
-GUARD_LAYERS = {0, 1, 8, 16, 23, 24}
 EXPERT_SHAPE_BY_ROLE = {
     "gate": [768, 2048],
     "up": [768, 2048],
@@ -200,10 +198,11 @@ def dense_runtime_plan(
     registry: dict[str, Any],
     root_manifest: dict[str, Any],
     dense_manifest: dict[str, Any],
+    stop_layer: int,
 ) -> bytes:
     records = {record["name"]: record for record in dense_manifest["tensors"]}
     names = ["model.embed_tokens.weight"]
-    for layer in range(25):
+    for layer in range(stop_layer + 1):
         names.extend(dense_names(layer))
     lines = [
         "format_version\t1",
@@ -223,6 +222,7 @@ def expert_runtime_plan(
     contract: dict[str, Any],
     registry: dict[str, Any],
     expert_manifest: dict[str, Any],
+    stop_layer: int,
 ) -> bytes:
     shards = {record["shard_id"]: record for record in expert_manifest["shards"]}
     experts = {
@@ -236,7 +236,7 @@ def expert_runtime_plan(
         f"root_manifest_sha256\t{registry['root_manifest_sha256']}",
         "artifact_component\texperts",
     ]
-    for layer in COMPLETED_LAYERS:
+    for layer in range(stop_layer):
         shard = shards[layer]
         lines.append(
             f"shard\t{layer}\t{shard['path']}\t{shard['byte_length']}\t{shard['sha256']}"
@@ -252,6 +252,13 @@ def expert_runtime_plan(
 
 
 def export(args: argparse.Namespace) -> dict[str, Any]:
+    stop_layer = args.stop_layer
+    completed_layers = range(stop_layer)
+    guard_layers = (
+        {0, 1, 8, 16, 23, 24}
+        if stop_layer == 24
+        else {0, 1, 8, 16, 24, 32, 40, 46, 47}
+    )
     contract = read_json(args.contract)
     registry = read_json(args.registry)
     source_manifest = read_json(args.source_manifest)
@@ -279,14 +286,14 @@ def export(args: argparse.Namespace) -> dict[str, Any]:
     require(source_shards == expert_shards, "dense and expert source shard identities differ")
 
     required_dense_names = ["model.embed_tokens.weight"]
-    for layer in range(25):
+    for layer in range(stop_layer + 1):
         required_dense_names.extend(dense_names(layer))
     require(all(name in dense_plan for name in required_dense_names), "required dense source tensor missing")
     required_source_shards = {dense_plan[name]["shard_id"] for name in required_dense_names}
     required_source_shards.update(
         record["shard_id"]
         for key, record in projections.items()
-        if key[0] in COMPLETED_LAYERS
+        if key[0] in completed_layers
     )
     verified_shards = []
     source_hash_bytes = 0
@@ -330,7 +337,7 @@ def export(args: argparse.Namespace) -> dict[str, Any]:
     layer_experts: list[dict[str, Any]] = []
     layer_seconds: list[dict[str, Any]] = []
 
-    for layer in range(25):
+    for layer in range(stop_layer + 1):
         loaded, dense_bytes = load_dense_layer(args.source_root, source_shards, dense_plan, layer)
         source_payload_bytes += dense_bytes
         bf16_run, bf16_seconds = execute_pre_router(
@@ -344,7 +351,7 @@ def export(args: argparse.Namespace) -> dict[str, Any]:
         bf16_boundaries[str(layer)] = router_boundaries(bf16_run)
         f32_boundaries[str(layer)] = router_boundaries(f32_run)
         timing = {"layer": layer, "bf16_pre_router": bf16_seconds, "f32_pre_router": f32_seconds}
-        if layer == 24:
+        if layer == stop_layer:
             layer_seconds.append(timing)
             break
         (
@@ -383,8 +390,12 @@ def export(args: argparse.Namespace) -> dict[str, Any]:
     atomic_bytes(args.checkpoint_plan, checkpoint_plan(args.checkpoints))
     atomic_safetensors(args.f32_checkpoints, f32_checkpoints)
     atomic_bytes(args.f32_checkpoint_plan, checkpoint_plan(args.f32_checkpoints))
-    runtime_payload = dense_runtime_plan(contract, registry, root_manifest, dense_manifest)
-    expert_runtime_payload = expert_runtime_plan(contract, registry, expert_manifest)
+    runtime_payload = dense_runtime_plan(
+        contract, registry, root_manifest, dense_manifest, stop_layer
+    )
+    expert_runtime_payload = expert_runtime_plan(
+        contract, registry, expert_manifest, stop_layer
+    )
     atomic_bytes(args.runtime_plan, runtime_payload)
     atomic_bytes(args.expert_runtime_plan, expert_runtime_payload)
 
@@ -399,17 +410,17 @@ def export(args: argparse.Namespace) -> dict[str, Any]:
         "schema_version": 1,
         "model_id": contract["model_id"],
         "revision": contract["revision"],
-        "validated_path": "embedding_complete_layers_0_through_23_layer_24_router_stop",
+        "validated_path": f"embedding_complete_layers_0_through_{stop_layer - 1}_layer_{stop_layer}_router_stop",
         "input_token_ids": contract["input_token_ids"],
         "position_ids": contract["position_ids"],
         "environment": versions,
         "determinism": contract["determinism"],
-        "guard_layers": sorted(GUARD_LAYERS),
+        "guard_layers": sorted(guard_layers),
         "source_shards_verified": verified_shards,
         "source_hash_bytes_read": source_hash_bytes,
         "source_payload_bytes_read": source_payload_bytes,
         "layer_experts": layer_experts,
-        "layer24_expert_execution": False,
+        f"layer{stop_layer}_expert_execution": False,
         "bf16_vs_f32": pairwise,
         "runtime_plan": {"bytes": len(runtime_payload), "sha256": hashlib.sha256(runtime_payload).hexdigest()},
         "expert_runtime_plan": {"bytes": len(expert_runtime_payload), "sha256": hashlib.sha256(expert_runtime_payload).hexdigest()},
@@ -467,13 +478,15 @@ def main(arguments: Iterable[str] | None = None) -> int:
         "f32_evidence",
     ):
         parser.add_argument(f"--{name.replace('_', '-')}", type=Path, required=True)
+    parser.add_argument("--stop-layer", type=int, choices=(24, 47), default=24)
     args = parser.parse_args(arguments)
     for name, value in vars(args).items():
-        setattr(args, name, value.resolve())
+        if isinstance(value, Path):
+            setattr(args, name, value.resolve())
     try:
         result = export(args)
     except (RouterReferenceError, OSError, KeyError, ValueError) as error:
-        print(f"Layer-24 reference error: {error}", file=sys.stderr)
+        print(f"Layer-{args.stop_layer} reference error: {error}", file=sys.stderr)
         return 1
     print(json.dumps(result, sort_keys=True))
     return 0

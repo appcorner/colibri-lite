@@ -90,6 +90,30 @@ const LAYER24_F32_CHECKPOINTS: &[u8] = include_bytes!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../../models/qwen3-30b-a3b/m4.2-02-layer24-transformers-f32-v1.safetensors"
 ));
+const LAYER47_RUNTIME_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-02-layer47-dense-runtime-plan-v1.tsv"
+));
+const LAYER47_EXPERT_RUNTIME_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-02-layer47-expert-runtime-plan-v1.tsv"
+));
+const LAYER47_BF16_CHECKPOINT_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-02-layer47-transformers-bf16-checkpoint-plan-v1.tsv"
+));
+const LAYER47_BF16_CHECKPOINTS: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-02-layer47-transformers-bf16-v1.safetensors"
+));
+const LAYER47_F32_CHECKPOINT_PLAN: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-02-layer47-transformers-f32-checkpoint-plan-v1.tsv"
+));
+const LAYER47_F32_CHECKPOINTS: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m4.2-02-layer47-transformers-f32-v1.safetensors"
+));
 const INPUT_IDS: [usize; 4] = [9707, 11, 1879, 0];
 const POSITION_IDS: [usize; 4] = [0, 1, 2, 3];
 const POST_NORM_PROPAGATED_ABSOLUTE_BUDGET: f32 = 4.255_093e-6;
@@ -324,6 +348,221 @@ fn layer24_propagated_budgets(layer: usize) -> Layer24PropagatedBudgets {
     let (moe, block) = if layer < 24 {
         let (moe, block) = completed_layer_budgets(layer);
         (Some(moe), Some(block))
+    } else {
+        (None, None)
+    };
+    Layer24PropagatedBudgets {
+        input,
+        input_norm,
+        attention,
+        residual,
+        post_norm,
+        router,
+        routing,
+        moe,
+        block,
+    }
+}
+
+const LAYER47_FROZEN_INPUT_NORM_SUFFIX: [f32; 23] = [
+    3.576_278_7e-6,
+    5.006_79e-6,
+    4.291_534_4e-6,
+    9.059_906e-6,
+    5.722_046e-6,
+    5.006_79e-6,
+    9.298_325e-6,
+    8.344_65e-6,
+    6.675_72e-6,
+    5.722_046e-6,
+    7.390_976e-6,
+    5.245_208_7e-6,
+    5.245_208_7e-6,
+    1.096_725_5e-5,
+    8.106_232e-6,
+    2.098_083_5e-5,
+    1.478_195_2e-5,
+    1.478_195_2e-5,
+    1.239_776_6e-5,
+    1.478_195_2e-5,
+    2.574_920_7e-5,
+    2.288_818_4e-5,
+    3.051_757_8e-5,
+];
+const LAYER47_FROZEN_ATTENTION_SUFFIX: [f32; 23] = [
+    3.606_081e-6,
+    1.370_906_8e-6,
+    3.039_836_9e-6,
+    2.548_098_6e-6,
+    1.221_895_2e-6,
+    2.503_395e-6,
+    6.318_092_3e-6,
+    5.706_213_4e-6,
+    6.563_961_5e-6,
+    3.218_650_8e-6,
+    4.082_918e-6,
+    1.527_369e-6,
+    6.169_080_7e-6,
+    6.675_72e-6,
+    3.814_697_3e-6,
+    1.335_144e-5,
+    1.049_041_75e-5,
+    2.050_399_8e-5,
+    1.335_144e-5,
+    2.765_655_5e-5,
+    8.821_487e-6,
+    4.291_534_4e-5,
+    1.373_291e-4,
+];
+const LAYER47_FROZEN_POST_NORM_SUFFIX: [f32; 23] = [
+    1.525_878_9e-4,
+    1.678_466_8e-4,
+    2.136_230_5e-4,
+    1.449_585e-4,
+    2.059_936_5e-4,
+    2.136_230_5e-4,
+    1.983_642_6e-4,
+    1.907_348_6e-4,
+    1.602_172_9e-4,
+    1.602_172_9e-4,
+    1.449_585e-4,
+    1.602_172_9e-4,
+    1.907_348_6e-4,
+    1.602_172_9e-4,
+    2.136_230_5e-4,
+    2.136_230_5e-4,
+    1.983_642_6e-4,
+    2.365_112_3e-4,
+    1.831_054_7e-4,
+    1.907_348_6e-4,
+    1.754_760_7e-4,
+    2.441_406_3e-4,
+    7.629_394_5e-5,
+];
+const LAYER47_FROZEN_ROUTER_SUFFIX: [f32; 23] = [
+    3.242_492_7e-5,
+    3.433_227_5e-5,
+    4.673_004e-5,
+    2.288_818_4e-5,
+    3.147_125_2e-5,
+    3.051_757_8e-5,
+    2.622_604_4e-5,
+    3.910_064_7e-5,
+    3.242_492_7e-5,
+    3.528_595e-5,
+    2.717_971_8e-5,
+    3.623_962_4e-5,
+    4.482_269_3e-5,
+    4.005_432e-5,
+    3.814_697_3e-5,
+    2.670_288e-5,
+    2.431_869_5e-5,
+    2.813_339_2e-5,
+    2.384_185_8e-5,
+    2.479_553_2e-5,
+    2.479_553_2e-5,
+    2.574_920_7e-5,
+    3.004_074_1e-5,
+];
+const LAYER47_FROZEN_MOE_SUFFIX: [f32; 23] = [
+    5.364_418e-6,
+    3.337_86e-6,
+    1.144_409_2e-5,
+    1.259_148_1e-6,
+    8.106_232e-6,
+    1.192_092_9e-6,
+    1.169_741_2e-6,
+    1.292_675_7e-6,
+    7.867_813e-6,
+    2.771_616e-6,
+    1.817_941_7e-6,
+    2.682_209e-6,
+    2.861_023e-6,
+    5.364_418e-6,
+    1.966_953_3e-6,
+    3.457_069_4e-6,
+    9.059_906e-6,
+    5.722_046e-6,
+    1.025_199_9e-5,
+    3.242_492_7e-5,
+    1.668_93e-5,
+    1.239_776_6e-5,
+    1.342_773_4e-3,
+];
+
+fn layer47_frozen_input_error(layer: usize) -> f32 {
+    if layer <= 24 {
+        LAYER24_FROZEN_INPUT_ERRORS[layer]
+    } else if layer < 47 {
+        2.319_336e-3
+    } else {
+        9.765_625e-4
+    }
+}
+
+fn layer47_frozen_residual_error(layer: usize) -> f32 {
+    if layer <= 24 {
+        LAYER24_FROZEN_RESIDUAL_ERRORS[layer]
+    } else if layer < 47 {
+        2.319_336e-3
+    } else {
+        9.155_273_4e-4
+    }
+}
+
+fn layer47_suffix_value(layer: usize, prefix: &[f32; 25], suffix: &[f32; 23]) -> f32 {
+    if layer <= 24 {
+        prefix[layer]
+    } else {
+        suffix[layer - 25]
+    }
+}
+
+fn layer47_moe_error(layer: usize) -> f32 {
+    if layer < 24 {
+        LAYER24_FROZEN_MOE_ERRORS[layer]
+    } else {
+        LAYER47_FROZEN_MOE_SUFFIX[layer - 24]
+    }
+}
+
+fn layer47_propagated_budgets(layer: usize) -> Layer24PropagatedBudgets {
+    let input_error = layer47_frozen_input_error(layer);
+    let input_norm_error = layer47_suffix_value(
+        layer,
+        &LAYER24_FROZEN_INPUT_NORM_ERRORS,
+        &LAYER47_FROZEN_INPUT_NORM_SUFFIX,
+    );
+    let attention_error = layer47_suffix_value(
+        layer,
+        &LAYER24_FROZEN_ATTENTION_ERRORS,
+        &LAYER47_FROZEN_ATTENTION_SUFFIX,
+    );
+    let residual_error = layer47_frozen_residual_error(layer);
+    let post_norm_error = layer47_suffix_value(
+        layer,
+        &LAYER24_FROZEN_POST_NORM_ERRORS,
+        &LAYER47_FROZEN_POST_NORM_SUFFIX,
+    );
+    let router_error = layer47_suffix_value(
+        layer,
+        &LAYER24_FROZEN_ROUTER_ERRORS,
+        &LAYER47_FROZEN_ROUTER_SUFFIX,
+    );
+    let input = if layer == 0 {
+        0.0
+    } else {
+        3.0 * input_error + 5.0e-7
+    };
+    let input_norm = 3.0 * input_error + 5.0e-7;
+    let attention = 3.0 * input_norm_error + attention_error;
+    let residual = input_error + attention;
+    let post_norm = 3.0 * residual_error + 5.0e-7;
+    let router = 3.0 * post_norm_error + 1.430_511_5e-5;
+    let routing = 0.5 * router_error + 1.0e-7;
+    let (moe, block) = if layer < 47 {
+        let moe = 3.0 * post_norm_error + layer47_moe_error(layer);
+        (Some(moe), Some(residual_error + moe))
     } else {
         (None, None)
     };
@@ -2075,6 +2314,427 @@ fn pinned_layer_twenty_four_router_uses_genuine_streaming_prefix() {
     );
     println!(
         "layer24_end_to_end dense_bytes_read={dense_bytes_read} expert_metrics={cache_metrics:?} total_unique_experts={total_unique_experts} total_expert_occurrences={total_expert_occurrences} modeled_peak_explicit_bytes={modeled_peak_explicit_bytes} elapsed_seconds={} classifications={layer24_classifications:?}",
+        started.elapsed().as_secs_f64(),
+    );
+}
+
+#[test]
+fn pinned_layer_forty_seven_router_uses_genuine_streaming_prefix() {
+    let artifact_root = env::var_os("COLIBRI_ARTIFACT_ROOT")
+        .map(PathBuf::from)
+        .expect("COLIBRI_ARTIFACT_ROOT must name the stable canonical artifact");
+    assert!(
+        artifact_root.is_absolute(),
+        "artifact root must be absolute"
+    );
+    let diagnostic_root = env::var_os("COLIBRI_RMS_DIAGNOSTIC_ROOT")
+        .map(PathBuf::from)
+        .expect("diagnostic root for Layer-47 evidence");
+    assert!(
+        diagnostic_root.is_absolute(),
+        "diagnostic root must be absolute"
+    );
+    let plan = runtime_plan(LAYER47_RUNTIME_PLAN);
+    let mut payload = File::open(artifact_root.join(&plan.payload)).expect("open dense payload");
+    assert_eq!(
+        payload.metadata().expect("dense payload metadata").len(),
+        plan.payload_length,
+        "dense payload length"
+    );
+    let bf16_plan = checkpoint_plan(LAYER47_BF16_CHECKPOINT_PLAN);
+    let f32_plan = checkpoint_plan(LAYER47_F32_CHECKPOINT_PLAN);
+    assert_eq!(
+        checkpoint_ids(LAYER47_F32_CHECKPOINTS, &f32_plan, "input_ids"),
+        INPUT_IDS
+    );
+    assert_eq!(
+        checkpoint_ids(LAYER47_F32_CHECKPOINTS, &f32_plan, "position_ids"),
+        POSITION_IDS
+    );
+
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("pinned runtime config")
+        .runtime_config();
+    let expert_layout = PackedExpertLayout::for_config(config);
+    let mut store = expert_store_from_plan(LAYER47_EXPERT_RUNTIME_PLAN, &artifact_root, 47 * 128);
+    let mut dense_bytes_read = 0_u64;
+    let mut current = embedding_rows(&mut payload, &plan, &mut dense_bytes_read);
+    let embedding_metrics = record_three_paths(
+        "layer47_embedding_output",
+        &current,
+        &checkpoint_f32(LAYER47_BF16_CHECKPOINTS, &bf16_plan, "embedding_output"),
+        &checkpoint_f32(LAYER47_F32_CHECKPOINTS, &f32_plan, "embedding_output"),
+    );
+    assert_eq!(
+        embedding_metrics.maximum_absolute_difference, 0.0,
+        "embedding must remain exact"
+    );
+
+    let mut layer_evidence = String::from(
+        "layer\tinput_max_abs\tinput_budget\trouter_max_abs\trouter_budget\trouting_max_abs\trouting_budget\tunique_experts\texpert_occurrences\tmoe_max_abs\tmoe_budget\tblock_max_abs\tblock_budget\ttransformers_f32_ids\ttransformers_bf16_ids\trust_ids\n",
+    );
+    let mut checkpoint_evidence = String::from(
+        "layer\tcheckpoint\tmaximum_f32_vs_rust_absolute_error\tabsolute_budget\tmaximum_f32_vs_rust_relative_error\n",
+    );
+    let budget_text = |budget: Option<f32>| {
+        budget.map_or_else(|| "NA".to_owned(), |value| format!("{value:.17e}"))
+    };
+    let mut total_unique_experts = 0_usize;
+    let mut total_expert_occurrences = 0_usize;
+    let mut maximum_dense_layer_bytes = 0_u64;
+    let mut maximum_runtime_elements = current.data().len();
+    let started = Instant::now();
+    let mut layer47_classifications = Vec::new();
+
+    for layer in 0..=47 {
+        let layer_started = Instant::now();
+        let dense_before = dense_bytes_read;
+        let weights = layer_weights(&mut payload, &plan, layer, &mut dense_bytes_read);
+        maximum_dense_layer_bytes = maximum_dense_layer_bytes.max(dense_bytes_read - dense_before);
+        let pre_router = pre_router_with_weights(
+            current.view(),
+            weights.input_norm.view(),
+            weights.query.view(),
+            weights.key.view(),
+            weights.value.view(),
+            weights.output.view(),
+            weights.query_norm.view(),
+            weights.key_norm.view(),
+            weights.post_norm.view(),
+            weights.router.view(),
+            config,
+        )
+        .unwrap_or_else(|error| panic!("Layer-{layer} pre-router execution failed: {error}"));
+        drop(weights);
+        let prefix = format!("layer{layer}");
+        let approved_budgets = Some(layer47_propagated_budgets(layer));
+        let bf16_input = checkpoint_f32(
+            LAYER47_BF16_CHECKPOINTS,
+            &bf16_plan,
+            &format!("{prefix}_input"),
+        );
+        let f32_input = checkpoint_f32(
+            LAYER47_F32_CHECKPOINTS,
+            &f32_plan,
+            &format!("{prefix}_input"),
+        );
+        let input_metrics = record_three_paths(
+            &format!("{prefix}_input"),
+            &current,
+            &bf16_input,
+            &f32_input,
+        );
+        let input_budget = approved_budgets.map(|budgets| budgets.input);
+        if let Some(budget) = input_budget {
+            assert_stage(
+                &format!("{prefix}_input"),
+                &current,
+                &f32_input,
+                budget,
+                0.0,
+            );
+        }
+
+        let bf16_logits = checkpoint_f32(
+            LAYER47_BF16_CHECKPOINTS,
+            &bf16_plan,
+            &format!("{prefix}_router_logits"),
+        );
+        let f32_logits = checkpoint_f32(
+            LAYER47_F32_CHECKPOINTS,
+            &f32_plan,
+            &format!("{prefix}_router_logits"),
+        );
+        let router_metrics = record_three_paths(
+            &format!("{prefix}_router_logits"),
+            &pre_router.router.logits,
+            &bf16_logits,
+            &f32_logits,
+        );
+        let router_budget = approved_budgets.map(|budgets| budgets.router);
+        if let Some(budget) = router_budget {
+            assert_stage(
+                &format!("{prefix}_router_logits"),
+                &pre_router.router.logits,
+                &f32_logits,
+                budget,
+                0.0,
+            );
+        }
+        let bf16_routing = checkpoint_f32(
+            LAYER47_BF16_CHECKPOINTS,
+            &bf16_plan,
+            &format!("{prefix}_routing_weights"),
+        );
+        let f32_routing = checkpoint_f32(
+            LAYER47_F32_CHECKPOINTS,
+            &f32_plan,
+            &format!("{prefix}_routing_weights"),
+        );
+        let routing_metrics = record_three_paths(
+            &format!("{prefix}_routing_weights"),
+            &pre_router.router.weights,
+            &bf16_routing,
+            &f32_routing,
+        );
+        let routing_budget = approved_budgets.map(|budgets| budgets.routing);
+        if let Some(budget) = routing_budget {
+            assert_stage(
+                &format!("{prefix}_routing_weights"),
+                &pre_router.router.weights,
+                &f32_routing,
+                budget,
+                0.0,
+            );
+        }
+        let bf16_ids = checkpoint_ids(
+            LAYER47_BF16_CHECKPOINTS,
+            &bf16_plan,
+            &format!("{prefix}_selected_expert_ids"),
+        );
+        let f32_ids = checkpoint_ids(
+            LAYER47_F32_CHECKPOINTS,
+            &f32_plan,
+            &format!("{prefix}_selected_expert_ids"),
+        );
+        assert_eq!(
+            pre_router.router.selected_experts, f32_ids,
+            "Layer-{layer} Rust and Transformers F32 expert IDs differ"
+        );
+
+        for (suffix, actual) in [
+            ("input_rmsnorm", &pre_router.input_norm),
+            ("attention_output", &pre_router.attention_output),
+            ("residual_output", &pre_router.residual_output),
+            ("post_attention_rmsnorm", &pre_router.post_attention_norm),
+        ] {
+            let name = format!("{prefix}_{suffix}");
+            let bf16_reference = checkpoint_f32(LAYER47_BF16_CHECKPOINTS, &bf16_plan, &name);
+            let f32_reference = checkpoint_f32(LAYER47_F32_CHECKPOINTS, &f32_plan, &name);
+            let metrics = record_three_paths(&name, actual, &bf16_reference, &f32_reference);
+            let budget = approved_budgets.map(|budgets| match suffix {
+                "input_rmsnorm" => budgets.input_norm,
+                "attention_output" => budgets.attention,
+                "residual_output" => budgets.residual,
+                "post_attention_rmsnorm" => budgets.post_norm,
+                _ => unreachable!("known pre-router checkpoint"),
+            });
+            if let Some(budget) = budget {
+                assert_stage(&name, actual, &f32_reference, budget, 0.0);
+            }
+            writeln!(
+                checkpoint_evidence,
+                "{layer}\t{suffix}\t{:.17e}\t{}\t{:.17e}",
+                metrics.maximum_absolute_difference,
+                budget_text(budget),
+                metrics.maximum_relative_difference,
+            )
+            .expect("write Layer-47 checkpoint evidence");
+        }
+
+        maximum_runtime_elements = maximum_runtime_elements.max(
+            current.data().len()
+                + pre_router.input_norm.data().len()
+                + pre_router.attention_output.data().len()
+                + pre_router.residual_output.data().len()
+                + pre_router.post_attention_norm.data().len()
+                + pre_router.router.logits.data().len()
+                + pre_router.router.weights.data().len()
+                + bf16_logits.data().len()
+                + f32_logits.data().len(),
+        );
+        if layer == 47 {
+            layer47_classifications = validate_router_boundaries(
+                &pre_router,
+                &bf16_logits,
+                &f32_logits,
+                &bf16_ids,
+                &f32_ids,
+                "m4.2-02-rust-layer47-router-evidence-v1.tsv",
+            );
+            writeln!(
+                layer_evidence,
+                "{layer}\t{:.17e}\t{}\t{:.17e}\t{}\t{:.17e}\t{}\t0\t0\tNA\tNA\tNA\tNA\t{}\t{}\t{}",
+                input_metrics.maximum_absolute_difference,
+                budget_text(input_budget),
+                router_metrics.maximum_absolute_difference,
+                budget_text(router_budget),
+                routing_metrics.maximum_absolute_difference,
+                budget_text(routing_budget),
+                comma_separated(&f32_ids),
+                comma_separated(&bf16_ids),
+                comma_separated(&pre_router.router.selected_experts),
+            )
+            .expect("write Layer-47 stop evidence");
+            println!(
+                "layer47_execution layer={layer} elapsed_seconds={} input_max_abs={} router_max_abs={} routing_max_abs={} stop=router",
+                layer_started.elapsed().as_secs_f64(),
+                input_metrics.maximum_absolute_difference,
+                router_metrics.maximum_absolute_difference,
+                routing_metrics.maximum_absolute_difference,
+            );
+            break;
+        }
+
+        let unique_experts = pre_router
+            .router
+            .selected_experts
+            .iter()
+            .copied()
+            .collect::<HashSet<_>>()
+            .len();
+        let expert_occurrences = pre_router.router.selected_experts.len();
+        let moe_output = streaming_routed_experts_with_observer(
+            pre_router.post_attention_norm.view(),
+            &pre_router.router,
+            config,
+            layer,
+            &mut store,
+            expert_layout,
+            |_, _, _, _| {},
+        )
+        .unwrap_or_else(|error| panic!("Layer-{layer} expert execution failed: {error}"));
+        let bf16_moe = checkpoint_f32(
+            LAYER47_BF16_CHECKPOINTS,
+            &bf16_plan,
+            &format!("{prefix}_moe_output"),
+        );
+        let f32_moe = checkpoint_f32(
+            LAYER47_F32_CHECKPOINTS,
+            &f32_plan,
+            &format!("{prefix}_moe_output"),
+        );
+        let moe_metrics = record_three_paths(
+            &format!("{prefix}_moe_output"),
+            &moe_output,
+            &bf16_moe,
+            &f32_moe,
+        );
+        let moe_budget = approved_budgets.and_then(|budgets| budgets.moe);
+        if let Some(budget) = moe_budget {
+            assert_stage(
+                &format!("{prefix}_moe_output"),
+                &moe_output,
+                &f32_moe,
+                budget,
+                0.0,
+            );
+        }
+        let block_output = elementwise_add(pre_router.residual_output.view(), moe_output.view())
+            .unwrap_or_else(|error| panic!("Layer-{layer} final residual failed: {error}"));
+        let bf16_block = checkpoint_f32(
+            LAYER47_BF16_CHECKPOINTS,
+            &bf16_plan,
+            &format!("{prefix}_block_output"),
+        );
+        let f32_block = checkpoint_f32(
+            LAYER47_F32_CHECKPOINTS,
+            &f32_plan,
+            &format!("{prefix}_block_output"),
+        );
+        let block_metrics = record_three_paths(
+            &format!("{prefix}_block_output"),
+            &block_output,
+            &bf16_block,
+            &f32_block,
+        );
+        let block_budget = approved_budgets.and_then(|budgets| {
+            budgets
+                .block
+                .map(|value| value + f32::EPSILON * maximum_magnitude(&f32_block))
+        });
+        if let Some(budget) = block_budget {
+            assert_stage(
+                &format!("{prefix}_block_output"),
+                &block_output,
+                &f32_block,
+                budget,
+                0.0,
+            );
+        }
+        writeln!(
+            layer_evidence,
+            "{layer}\t{:.17e}\t{}\t{:.17e}\t{}\t{:.17e}\t{}\t{unique_experts}\t{expert_occurrences}\t{:.17e}\t{}\t{:.17e}\t{}\t{}\t{}\t{}",
+            input_metrics.maximum_absolute_difference,
+            budget_text(input_budget),
+            router_metrics.maximum_absolute_difference,
+            budget_text(router_budget),
+            routing_metrics.maximum_absolute_difference,
+            budget_text(routing_budget),
+            moe_metrics.maximum_absolute_difference,
+            budget_text(moe_budget),
+            block_metrics.maximum_absolute_difference,
+            budget_text(block_budget),
+            comma_separated(&f32_ids),
+            comma_separated(&bf16_ids),
+            comma_separated(&pre_router.router.selected_experts),
+        )
+        .expect("write Layer-47 completed-layer evidence");
+        total_unique_experts += unique_experts;
+        total_expert_occurrences += expert_occurrences;
+        maximum_runtime_elements = maximum_runtime_elements.max(
+            current.data().len()
+                + pre_router.input_norm.data().len()
+                + pre_router.attention_output.data().len()
+                + pre_router.residual_output.data().len()
+                + pre_router.post_attention_norm.data().len()
+                + pre_router.router.logits.data().len()
+                + pre_router.router.weights.data().len()
+                + moe_output.data().len()
+                + block_output.data().len(),
+        );
+        println!(
+            "layer47_execution layer={layer} elapsed_seconds={} input_max_abs={} router_max_abs={} routing_max_abs={} unique_experts={unique_experts} expert_occurrences={expert_occurrences} moe_max_abs={} block_max_abs={}",
+            layer_started.elapsed().as_secs_f64(),
+            input_metrics.maximum_absolute_difference,
+            router_metrics.maximum_absolute_difference,
+            routing_metrics.maximum_absolute_difference,
+            moe_metrics.maximum_absolute_difference,
+            block_metrics.maximum_absolute_difference,
+        );
+        current = block_output;
+    }
+
+    let cache_metrics = store.metrics();
+    assert_eq!(cache_metrics.loads, total_unique_experts as u64);
+    assert_eq!(cache_metrics.misses, total_unique_experts as u64);
+    assert_eq!(cache_metrics.hits, 0);
+    assert_eq!(cache_metrics.evictions, cache_metrics.loads - 1);
+    assert_eq!(total_expert_occurrences, 47 * 32);
+    let checkpoint_static_bytes = LAYER47_BF16_CHECKPOINTS.len()
+        + LAYER47_F32_CHECKPOINTS.len()
+        + LAYER47_BF16_CHECKPOINT_PLAN.len()
+        + LAYER47_F32_CHECKPOINT_PLAN.len();
+    let modeled_peak_explicit_bytes = usize::try_from(maximum_dense_layer_bytes)
+        .expect("dense layer bytes fit usize")
+        + cache_metrics.peak_resident_bytes
+        + expert_layout.total_byte_length
+        + maximum_runtime_elements * 4
+        + checkpoint_static_bytes;
+    writeln!(
+        checkpoint_evidence,
+        "resources\tdense_bytes_read\t{dense_bytes_read}\texpert_bytes_read={}\ttotal_artifact_bytes_read={}\ttotal_unique_experts={total_unique_experts}\ttotal_expert_occurrences={total_expert_occurrences}\thits={}\tmisses={}\tloads={}\tevictions={}\tresident_bytes={}\tpeak_expert_resident_bytes={}\tmodeled_peak_explicit_bytes={modeled_peak_explicit_bytes}",
+        cache_metrics.bytes_read,
+        dense_bytes_read + cache_metrics.bytes_read,
+        cache_metrics.hits,
+        cache_metrics.misses,
+        cache_metrics.loads,
+        cache_metrics.evictions,
+        cache_metrics.resident_bytes,
+        cache_metrics.peak_resident_bytes,
+    )
+    .expect("write Layer-47 resource evidence");
+    atomic_diagnostic(
+        &diagnostic_root.join("m4.2-02-rust-layer47-layer-evidence-v1.tsv"),
+        layer_evidence.as_bytes(),
+    );
+    atomic_diagnostic(
+        &diagnostic_root.join("m4.2-02-rust-layer47-checkpoint-evidence-v1.tsv"),
+        checkpoint_evidence.as_bytes(),
+    );
+    println!(
+        "layer47_end_to_end dense_bytes_read={dense_bytes_read} expert_metrics={cache_metrics:?} total_unique_experts={total_unique_experts} total_expert_occurrences={total_expert_occurrences} modeled_peak_explicit_bytes={modeled_peak_explicit_bytes} elapsed_seconds={} classifications={layer47_classifications:?}",
         started.elapsed().as_secs_f64(),
     );
 }

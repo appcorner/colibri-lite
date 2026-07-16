@@ -57,6 +57,17 @@
 !/models/qwen3-30b-a3b/m4.2-02-rust-layer24-checkpoint-evidence-v1.tsv
 !/models/qwen3-30b-a3b/m4.2-02-rust-layer24-router-evidence-v1.tsv
 !/models/qwen3-30b-a3b/m4.2-02-layer1-moe-isolated-diagnostic-v1.json
+!/models/qwen3-30b-a3b/m4.2-02-layer47-dense-runtime-plan-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-02-layer47-expert-runtime-plan-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-02-layer47-transformers-bf16-checkpoint-plan-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-02-layer47-transformers-bf16-evidence-v1.json
+!/models/qwen3-30b-a3b/m4.2-02-layer47-transformers-bf16-v1.safetensors
+!/models/qwen3-30b-a3b/m4.2-02-layer47-transformers-f32-checkpoint-plan-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-02-layer47-transformers-f32-evidence-v1.json
+!/models/qwen3-30b-a3b/m4.2-02-layer47-transformers-f32-v1.safetensors
+!/models/qwen3-30b-a3b/m4.2-02-rust-layer47-checkpoint-evidence-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-02-rust-layer47-layer-evidence-v1.tsv
+!/models/qwen3-30b-a3b/m4.2-02-rust-layer47-router-evidence-v1.tsv
 /.idea/
 /.vscode/
 *.pdb
