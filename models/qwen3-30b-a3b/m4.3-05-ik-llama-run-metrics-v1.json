@@ -1,0 +1,48 @@
+{
+  "schema": "m4.3-05-ik-llama-run-metrics-v1",
+  "fixture": {
+    "prompt_text": "Hello, world!",
+    "prompt_token_ids": [9707, 11, 1879, 0],
+    "requested_generated_tokens": 2,
+    "threads": 8,
+    "context_size": 128,
+    "filesystem_cache": "uncontrolled"
+  },
+  "short_runs": [
+    {"label":"final-fresh-a","wall_seconds":6.224,"cpu_seconds":11.781,"prompt_eval_ms":1268.51,"decode_eval_ms":379.11,"prompt_tokens_per_second":3.153,"decode_tokens_per_second":5.276,"peak_working_set_bytes":4410576896,"peak_private_bytes":338415616,"generated_text":"This is","exit_status":0},
+    {"label":"final-fresh-b","wall_seconds":5.904,"cpu_seconds":11.562,"prompt_eval_ms":1242.44,"decode_eval_ms":347.90,"prompt_tokens_per_second":3.219,"decode_tokens_per_second":5.749,"peak_working_set_bytes":4410396672,"peak_private_bytes":338690048,"generated_text":"This is","exit_status":0},
+    {"label":"final-fresh-c","wall_seconds":5.641,"cpu_seconds":11.531,"prompt_eval_ms":1215.42,"decode_eval_ms":365.41,"prompt_tokens_per_second":3.291,"decode_tokens_per_second":5.473,"peak_working_set_bytes":4410531840,"peak_private_bytes":338837504,"generated_text":"This is","exit_status":0},
+    {"label":"final-warm-repeat","wall_seconds":5.927,"cpu_seconds":10.938,"prompt_eval_ms":1350.13,"decode_eval_ms":341.10,"prompt_tokens_per_second":2.963,"decode_tokens_per_second":5.863,"peak_working_set_bytes":4362231808,"peak_private_bytes":338460672,"generated_text":"This is","exit_status":0}
+  ],
+  "long_decode": {
+    "label":"final-long-decode",
+    "requested_generated_tokens":32,
+    "wall_seconds":15.767,
+    "cpu_seconds":51.234,
+    "prompt_eval_ms":1249.36,
+    "decode_eval_ms":9113.84,
+    "prompt_tokens_per_second":3.202,
+    "decode_tokens_per_second":3.511,
+    "peak_working_set_bytes":9031630848,
+    "peak_private_bytes":338714624,
+    "generated_text_suffix":"es and different types of punctuation. Are you there? Let me know if you receive",
+    "exit_status":0
+  },
+  "llama_bench": {
+    "repetitions":3,
+    "prompt_4_tokens": {"samples_tokens_per_second":[2.97391,4.31002,4.62102],"mean_tokens_per_second":3.968317,"stddev_tokens_per_second":0.875105},
+    "decode_2_tokens": {"samples_tokens_per_second":[2.71563,2.91235,2.82785],"mean_tokens_per_second":2.818608,"stddev_tokens_per_second":0.098685},
+    "build_commit":"1fddd12b",
+    "model_payload_bytes":18550716416,
+    "mmap":true,
+    "flash_attention":true,
+    "fused_moe":true,
+    "raw_output":"D:/tmp/colibri-lite-runs/m4.3-05-q4-20260717/llama-bench-p4-n2.txt"
+  },
+  "limitations": [
+    "ik_llama CLI does not expose model-load milliseconds in this build; process wall time is startup plus inference",
+    "logical or physical artifact read bytes were not exposed; model file size is not a physical I/O measurement",
+    "CPU utilization and exact storage-device metadata were unavailable under the sandbox",
+    "Q4_K_M differs from the colibri F32 artifact and is a directional optimized-runtime reference"
+  ]
+}

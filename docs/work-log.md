@@ -1334,3 +1334,27 @@ run before the review commit.
 
 Next ordered task after review: M4.3-05 - compare memory/I/O and speed against
 ik_llama.cpp where formats and hardware permit.
+
+## 2026-07-17 - M4.3-05 ik_llama comparison
+
+Pinned `ik_llama.cpp` at `1fddd12ba861c4815a8633f14d9c5670692099cc` with a
+clean external checkout and CPU-only Release build. The exact Qwen3-30B-A3B
+Q4_K_M artifact was downloaded read-only into one flat temporary run, verified
+at 18,556,685,824 bytes and SHA-256
+`0d003f6662faee786ed5da3e31b29c978de5ae5d275c8794c606a7f3c01aa8f5`.
+
+Four fresh-process short runs and one 32-token decode completed with the exact
+fixture `Hello, world!` -> `[9707, 11, 1879, 0]`. Short CLI decode was
+`5.276-5.863` tok/s with 4.36-4.41 GB peak working set; the long decode was
+`3.511` tok/s with 9.03 GB peak working set. Three `llama-bench` repetitions
+reported `3.968 +/- 0.875` prompt tok/s and `2.819 +/- 0.099` decode tok/s.
+The result is directional because Q4_K_M, mmap, fused MoE, SIMD, graph reuse,
+and optimized kernels differ from colibri's F32 scalar path. Physical I/O was
+not claimed and no runtime code changed.
+
+Added the environment manifest, compact run metrics, comparison report, ADR
+0032, and the reproducible external benchmark script. Successful temporary
+model files are removed after evidence review.
+
+Next ordered task after review: M4.3-06 - select or reject the candidate based
+on recorded evidence.

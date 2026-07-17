@@ -287,7 +287,7 @@ Acceptance:
 - [x] M4.3-02 Define the first candidate expert quantization format.
 - [x] M4.3-03 Keep router and sensitive dense tensors at measured safe precision.
 - [x] M4.3-04 Compare output degradation against the baseline.
-- [ ] M4.3-05 Compare memory/I/O and speed against ik_llama.cpp where formats
+- [x] M4.3-05 Compare memory/I/O and speed against ik_llama.cpp where formats
   and hardware permit.
 - [ ] M4.3-06 Select or reject the candidate based on recorded evidence.
 
