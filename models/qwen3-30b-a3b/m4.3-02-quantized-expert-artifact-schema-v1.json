@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "format_id": "colibri-qwen3-moe-expert-int8-v1",
+  "status": "draft_additive_artifact_contract",
+  "canonical_f32_artifact_unchanged": true,
+  "source_identity": {
+    "model_id": "Qwen/Qwen3-30B-A3B",
+    "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+    "root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "source_format": "canonical F32 packed gate/up/down expert artifact"
+  },
+  "file_layout": {
+    "header_bytes": 128,
+    "header_alignment": 64,
+    "expert_order": "ascending layer_id then ascending expert_id",
+    "expert_record_bytes": 64,
+    "projection_descriptor_bytes": 48,
+    "projection_order": ["gate", "up", "down"],
+    "payload_alignment": 64,
+    "scale_alignment": 64,
+    "external_manifest": "required; stores file hash, byte length, format ID, and source identity"
+  },
+  "expert_record": {
+    "fields": ["layer_id", "expert_id", "gate_descriptor_offset", "up_descriptor_offset", "down_descriptor_offset", "record_sha256"],
+    "layer_range": [0, 47],
+    "expert_range": [0, 127]
+  },
+  "projection_descriptor": {
+    "fields": ["role", "rows", "columns", "quantization_axis", "group_size", "scale_count", "payload_offset", "payload_length", "scale_offset", "scale_length", "component_sha256"],
+    "roles": {
+      "gate": {"shape": [768, 2048], "orientation": "output_by_input"},
+      "up": {"shape": [768, 2048], "orientation": "output_by_input"},
+      "down": {"shape": [2048, 768], "orientation": "output_by_intermediate"}
+    },
+    "selected_quantization": {
+      "dtype": "INT8",
+      "scale_dtype": "F32",
+      "axis": 0,
+      "group_size": null,
+      "rounding": "nearest-even",
+      "clamp": [-127, 127]
+    }
+  },
+  "compatibility": {
+    "requires_f32_accumulation": true,
+    "requires_f32_activations": true,
+    "requires_existing_router_and_routing_weights": true,
+    "requires_explicit_head_dimension": true,
+    "canonical_f32_fallback": "separate implementation choice; never mutate or replace canonical F32 artifact"
+  },
+  "payload_hashing": "SHA-256 over descriptor-defined logical payload bytes; file hash covers header, records, aligned payloads, and scales"
+}

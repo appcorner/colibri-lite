@@ -1243,3 +1243,37 @@ the canonical artifact and pinned source roots remained protected.
 
 Next ordered task after review: M4.3-02 - define the first candidate expert
 quantization format. No quantization or performance implementation began.
+
+## 2026-07-17 - M4.3-02 first expert quantization format
+
+Defined and evaluated three representative INT8 formats without modifying the
+runtime or creating a quantized artifact. The experiment read 24 canonical F32
+projection matrices from Layers 0, 1, 24, and 47 for experts 62, 91, 68, 127,
+85, 8, 54, and 36. It evaluated 72 matrix quantizations and 24 same-input
+gate/up/activation/product/down/weighted chains.
+
+Per-tensor INT8 was rejected. Per-output-channel INT8 was selected for the
+first future implementation: its maximum weighted expert error was 0.1043549,
+modeled expert size 4,733,280 bytes, 4.200218x compression, and 226 experts
+under a 1 GiB binary cache. Input-group-128 was numerically better at 0.0820999
+but costs 2.81% more bytes and remains promising rather than selected.
+
+The selected format is symmetric INT8, F32 per-output-row scales, nearest-even
+rounding, saturation to [-127,127], F32 activations and accumulation, and
+little-endian 64-byte-aligned deterministic serialization. The draft runtime
+contract dequantizes one complete projection to F32 before using the existing
+scalar operation. The additive artifact schema is versioned separately from
+the canonical F32 artifact.
+
+Evidence was generated twice with identical hashes:
+
+- JSON: `fe8b7d06d013227952f6387969d705c433913f4c8a95db56f7abda1324f5ddf1`
+- TSV: `b2bb78d52c96fa8dec4c35cb9d80daabb48576a864b2f8f1689845b77cd2208b`
+
+Added the candidate report, ADR 0029, format specification, additive artifact
+schema, runtime kernel contract, provisional correctness gates, and five
+deterministic schema/evidence tests. No F32 tolerance or runtime behavior was
+changed.
+
+Next ordered task after review: M4.3-03 - keep router and sensitive dense
+tensors at measured safe precision.

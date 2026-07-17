@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "task": "M4.3-02",
+  "status": "draft_correctness_first_contract",
+  "selected_format": "symmetric_int8_per_output_channel_f32_scale",
+  "initial_operation": "dequantize_complete_projection_to_F32_then_existing_F32_matmul",
+  "weight_path": "INT8 payload and F32 row scales are read; each selected projection is reconstructed into a bounded F32 temporary buffer",
+  "activation_dtype": "F32",
+  "accumulation_dtype": "F32",
+  "routing_weight_dtype": "F32",
+  "rmsnorm_and_residual_dtype": "F32",
+  "temporary_buffers": {
+    "maximum_projection_elements": 1572864,
+    "maximum_projection_f32_bytes": 6291456,
+    "simultaneous_projection_buffers": 1,
+    "scale_buffer": "768 or 2048 F32 values depending on projection",
+    "quantized_payload": "streamed/read through selected expert ownership; no complete expert layer resident"
+  },
+  "forbidden_in_initial_implementation": ["INT8_matmul_kernel", "SIMD", "threading", "mmap", "prefetch", "GPU", "FFI", "cache_policy_change"],
+  "validation_order": ["structure", "dequantized_weight_reconstruction", "gate_projection", "up_projection", "activation", "activated_product", "down_projection", "weighted_output", "MoE_aggregation", "F32_router_and_token_regressions"],
+  "reason": "bounded scalar reconstruction is easiest to compare against the frozen F32 baseline and isolates quantization error before kernel optimization"
+}

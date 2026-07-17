@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-17",
+  "temp_root": "D:\\tmp\\colibri-lite-runs",
+  "canonical_artifact_root": "D:\\models\\colibri-lite\\qwen3-30b-a3b\\artifact-v1",
+  "protected_paths": [
+    "D:\\tmp\\colibri-m4.1-05"
+  ],
+  "candidates": [
+    {
+      "path": "D:\\tmp\\colibri-lite-runs\\m4.3-02-quant-format-20260717-a",
+      "kind": "directory",
+      "classification": "completed-task temporary output",
+      "expected_file_count": 2,
+      "expected_logical_bytes": 125211,
+      "expected_reclaimable_bytes": 125211,
+      "expected_shared_hardlink_bytes": 0
+    }
+  ]
+}

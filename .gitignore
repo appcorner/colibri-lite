@@ -100,6 +100,12 @@
 !/models/qwen3-30b-a3b/m4.3-01-f64-diagnostics-v1.json
 !/models/qwen3-30b-a3b/m4.3-01-comparison-schema-v1.json
 !/models/qwen3-30b-a3b/m4.3-01-f32-baseline-manifest-v1.json
+!/models/qwen3-30b-a3b/m4.3-02-quantization-evidence-v1.json
+!/models/qwen3-30b-a3b/m4.3-02-quantization-matrix-summary-v1.tsv
+!/models/qwen3-30b-a3b/m4.3-02-format-spec-v1.json
+!/models/qwen3-30b-a3b/m4.3-02-quantized-expert-artifact-schema-v1.json
+!/models/qwen3-30b-a3b/m4.3-02-runtime-kernel-contract-v1.json
+!/models/qwen3-30b-a3b/m4.3-02-provisional-correctness-gates-v1.json
 /.idea/
 /.vscode/
 *.pdb
