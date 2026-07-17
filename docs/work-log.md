@@ -1307,3 +1307,30 @@ commands are run before the review commit.
 
 Next ordered task after review: M4.3-04 - compare output degradation against
 the frozen F32 baseline.
+
+## 2026-07-17 - M4.3-04 expert INT8 degradation study
+
+Ran the selected symmetric INT8 per-output-channel expert simulation with F32
+scales, F32 expert activations/accumulation, and all non-expert tensors at F32.
+The simulation quantized and dequantized selected projections on demand and
+did not create a quantized artifact or modify production runtime behavior.
+
+Tier C covered eight representative expert cases and passed all provisional
+M4.3-02 gates. Tier B covered all six frozen fixtures. No safe-margin router
+true mismatch occurred, but propagated drift became material at Layer 1 and
+reached a maximum Layer-47 final-block error of `152.1300659`. The Thai fixture
+argmax changed from `7360` to `16222` under a numerically ambiguous margin.
+Tier A retained generated IDs `[1096, 374]`, with several ambiguous vocabulary
+and router classifications.
+
+The candidate is classified `quality_risk`, not accepted for runtime prototype.
+The F32 tolerance registry, canonical artifact, router policy, norms, cache,
+and production runtime remain unchanged. Evidence was generated with SHA-256
+`0a2f5c85087de32a23b975bc206ed98b007e353dbc897fb71317fcef6568e140`.
+
+Verification for this task includes deterministic Tier C/B/A simulation and
+the focused degradation tests; standard Cargo and full Python verification are
+run before the review commit.
+
+Next ordered task after review: M4.3-05 - compare memory/I/O and speed against
+ik_llama.cpp where formats and hardware permit.

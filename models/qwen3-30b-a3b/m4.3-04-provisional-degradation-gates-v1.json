@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "task": "M4.3-04",
+  "status": "provisional_candidate_quality_risk_not_runtime_gate",
+  "candidate": "symmetric_int8_per_output_channel_f32_scale",
+  "evidence": "models/qwen3-30b-a3b/m4.3-04-degradation-evidence-v1.json",
+  "tier_c_representative_gates": {
+    "gate_projection_max": 0.04,
+    "up_projection_max": 0.06,
+    "activated_gate_max": 0.05,
+    "activated_product_max": 0.30,
+    "down_projection_max": 0.40,
+    "weighted_expert_output_max": 0.13
+  },
+  "observed_tier_c_maxima": {
+    "gate_projection": 0.03466939926147461,
+    "up_projection": 0.05010712146759033,
+    "activated_gate": 0.03812575340270996,
+    "activated_product": 0.2740025520324707,
+    "down_projection": 0.336700439453125,
+    "weighted_expert_output": 0.1043548583984375
+  },
+  "semantic_observations": {
+    "tier_b_safe_router_true_mismatches": 0,
+    "tier_b_numerically_ambiguous_router_cases": true,
+    "tier_b_argmax_mismatch": {"fixture": "short_thai", "baseline": 7360, "candidate": 16222, "classification": "numerically_ambiguous"},
+    "tier_a_baseline_generated_ids": [1096, 374],
+    "tier_a_candidate_generated_ids": [1096, 374],
+    "tier_a_safe_router_true_mismatches": 0,
+    "tier_a_numerically_ambiguous_steps": [0, 3, 5]
+  },
+  "decision": "quality_risk",
+  "reason": "local expert gates pass, but propagated hidden-state and vocabulary degradation is too large and includes a Tier-B argmax change under an ambiguous margin",
+  "promotion_requirements": [
+    "do not implement production quantized runtime from this evidence",
+    "broaden quantization evidence or evaluate a lower-error format",
+    "preserve F32 router and all sensitive dense tensors",
+    "rerun Tier C, Tier B, and Tier A after any format change"
+  ],
+  "f32_registry_unchanged": true
+}
