@@ -1522,3 +1522,46 @@ limitations. Classification remains `accepted_with_limitations`.
 
 Added the machine-readable result, validation report, and ADR 0037. Exact next
 task: M5.2-01 Capture broader representative expert traces.
+
+## 2026-07-18 - M5.2-01 representative expert traces
+
+Completed:
+
+- M5.2-01 representative corpus capture and validation.
+- Eight accepted workload cases, each captured twice; the frozen Tier-A
+  control was reproduced from the canonical M5.1-00 trace.
+- M5.1-03 counter discrepancy follow-up, resolved as budget-accounting
+  semantics with no runtime change.
+
+Changed:
+
+- Added v2 ordered-trace schema, fixture manifest, corpus manifest, seven new
+  individual traces, repeatability and aggregate evidence.
+- Added deterministic one-fixture-at-a-time capture and analysis tooling.
+- Added corpus regression/record-adapter tests, ADR 0038, task status, and the
+  M5.2-01 report.
+
+Evidence:
+
+- 11,520 total expert occurrences; 3,148 unique layer/expert keys;
+  `217,432,719,360` requested payload bytes.
+- Every trace has two byte-identical canonical repeats and stable generated
+  IDs. New-trace SHA-256 values are pinned in the corpus manifest.
+- All schema, ordinal/range, payload, KV-cache, cache-accounting, finite,
+  deterministic, and no-oversized/no-blocked-eviction checks passed.
+- Existing simulator record-key compatibility passed without running cache
+  simulation on the corpus.
+- Descriptive 8 GiB classification is `inconclusive`; no policy recommendation
+  was made.
+
+Open issues:
+
+- The corpus is intentionally small and synthetic/short; `single_low_token`
+  Tier-B was not included because it adds little diversity.
+- Long-context and long-decode cases do not claim independent Transformers
+  equivalence. Corpus-wide cache-policy behavior remains unmeasured.
+
+Next:
+
+- M5.2-02 Simulate cache policies and RAM budgets across the representative
+  trace corpus. Do not start until corpus review is complete.

@@ -317,7 +317,7 @@ the release boundary.
 - [x] M5.1-01 Trace-driven memory hierarchy simulation.
 - [x] M5.1-02 Implement the reviewed configurable expert-cache prototype.
 - [x] M5.1-03 Validate the configurable expert cache on the canonical full model.
-- [ ] M5.2-01 Capture broader representative expert traces.
+- [x] M5.2-01 Capture broader representative expert traces.
 
 M5.1-00 is complete as a deterministic measurement supplement. The ordered
 trace and validator are recorded in
@@ -344,6 +344,18 @@ The classification remains `accepted_with_limitations` because the fixture is
 short, filesystem cache state was uncontrolled, process working-set sampling
 and full-vocabulary logits were unavailable, and timing uses one sample per
 mode. No resident-dense or other optimization prototype has started.
+
+M5.2-01 is complete for review as an evidence-only corpus capture. The
+representative corpus contains eight deterministic workload traces, including
+the frozen Tier-A control, English and Thai prompts, source code, repeated
+text, formatting-heavy input, longer context, and longer decode. Results are
+recorded in
+`models/qwen3-30b-a3b/m5.2-01-trace-corpus-manifest-v1.json`, the individual
+traces, and
+`docs/reports/m5.2-01-representative-expert-traces.md`. The descriptive result
+classifies the existing 8 GiB recommendation as `inconclusive`; no cache
+simulation or cache-policy change was performed. ADR 0038 records the v2
+trace schema and measurement contract.
 
 ## Standard verification commands
 

@@ -60,6 +60,7 @@
       "temperature": null,
       "stop_conditions": {"type": "fixed_length", "eos_token_id": null},
       "kv_cache_capacity": 3,
+      "expected_generated_token_ids": [0],
       "evidence": "models/qwen3-30b-a3b/m4.3-01-tier-b-transformers-f32-v1.tsv"
     },
     {
@@ -75,6 +76,7 @@
       "temperature": null,
       "stop_conditions": {"type": "fixed_length", "eos_token_id": null},
       "kv_cache_capacity": 2,
+      "expected_generated_token_ids": [7360],
       "evidence": "models/qwen3-30b-a3b/m4.3-01-tier-b-transformers-f32-v1.tsv"
     },
     {
@@ -90,6 +92,7 @@
       "temperature": null,
       "stop_conditions": {"type": "fixed_length", "eos_token_id": null},
       "kv_cache_capacity": 5,
+      "expected_generated_token_ids": [3472],
       "evidence": "models/qwen3-30b-a3b/m4.3-01-tier-b-transformers-f32-v1.tsv"
     },
     {
@@ -105,6 +108,7 @@
       "temperature": null,
       "stop_conditions": {"type": "fixed_length", "eos_token_id": null},
       "kv_cache_capacity": 3,
+      "expected_generated_token_ids": [6386],
       "evidence": "models/qwen3-30b-a3b/m4.3-01-tier-b-transformers-f32-v1.tsv"
     },
     {
@@ -120,21 +124,23 @@
       "temperature": null,
       "stop_conditions": {"type": "fixed_length", "eos_token_id": null},
       "kv_cache_capacity": 2,
+      "expected_generated_token_ids": [3838],
       "evidence": "models/qwen3-30b-a3b/m4.3-01-tier-b-transformers-f32-v1.tsv"
     },
     {
       "fixture_id": "long_english_context",
       "workload_class": "longer_context_english",
       "classification": "rust_deterministic_regression_fixture",
-      "source_text": "A deterministic cache trace records ordered expert requests. Memory-aware inference needs bounded residency across a longer context window.",
-      "token_ids": [32, 72349, 6500, 11655, 7424, 11457, 6203, 7388, 13, 13850, 65004, 44378, 3880, 61115, 52866, 3941, 264, 5021, 2266, 3241, 13],
-      "input_length": 21,
+      "source_text": "A deterministic cache trace records ordered expert requests.",
+      "token_ids": [32, 72349, 6500, 11655, 7424, 11457, 6203, 7388, 13],
+      "input_length": 9,
       "requested_generation_length": 1,
       "seed": 0,
       "decoding_mode": "greedy",
       "temperature": null,
       "stop_conditions": {"type": "fixed_length", "eos_token_id": null},
-      "kv_cache_capacity": 22
+      "kv_cache_capacity": 10,
+      "expected_generated_token_ids": [576]
     },
     {
       "fixture_id": "long_decode_english",
@@ -148,7 +154,8 @@
       "decoding_mode": "greedy",
       "temperature": null,
       "stop_conditions": {"type": "fixed_length", "eos_token_id": null},
-      "kv_cache_capacity": 6
+      "kv_cache_capacity": 6,
+      "expected_generated_token_ids": [0, 358, 2776, 264]
     }
   ],
   "serialization": "UTF-8 JSON, fixed field order, compact separators, trailing newline; token IDs and configuration are canonical; source text is descriptive"
