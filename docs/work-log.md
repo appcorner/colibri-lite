@@ -1501,3 +1501,24 @@ corpus, recorded in ADR 0036.
 
 Exact next task after review: M5.2-01 Capture broader representative expert
 traces.
+
+## 2026-07-17 - M5.1-03 canonical full-model cache validation
+
+Validated the configurable F32 strict-global-LRU cache against the canonical
+Qwen3-30B-A3B artifact at the one-expert baseline and exact nominal 8 GiB and
+16 GiB payload budgets. The artifact manifest and all 57 payload files matched
+the pinned root hash. Every run preserved generated IDs `[1096, 374]`, retained
+F32 checkpoints, deterministic routing, finite outputs, KV-cache invariants,
+and bounded payload residency.
+
+Exact-budget runtime counters matched independent trace replay: 8 GiB had
+719 hits, 1,585 loads, 1,130 evictions, and 13,570,670,592 bytes avoided; 16
+GiB had 931 hits, 1,373 loads, 463 evictions, and 17,572,036,608 bytes avoided.
+The different M5.1-02 counters are explained by its usable-budget overhead
+accounting. Logical reads fell 18.59% and 24.07% overall. Timing is directional
+because filesystem cache state was uncontrolled and one sample was collected
+per mode. Process working-set sampling and full-vocabulary logits remain open
+limitations. Classification remains `accepted_with_limitations`.
+
+Added the machine-readable result, validation report, and ADR 0037. Exact next
+task: M5.2-01 Capture broader representative expert traces.

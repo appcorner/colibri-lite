@@ -1,0 +1,49 @@
+{
+  "schema": "colibri-qwen3-moe-m5.1-03-full-model-cache-results-v1",
+  "schema_version": 1,
+  "task": "M5.1-03",
+  "baseline_id": "qwen3-30b-a3b-colibri-f32-windows-x64-v1",
+  "artifact": {
+    "model_id": "Qwen/Qwen3-30B-A3B",
+    "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+    "root_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "model_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "payload_file_count": 57,
+    "payload_bytes": 122147666917,
+    "operational_root": "D:\\models\\colibri-lite\\qwen3-30b-a3b\\artifact-v1"
+  },
+  "trace": {
+    "path": "models/qwen3-30b-a3b/m5.1-00-ordered-expert-trace-v1.json",
+    "sha256": "f3f87f05d15424030c9261cdf3e93bd72e9c006a55303bc0c28a92a4fb3ff2d0",
+    "occurrences": 2304,
+    "unique_layer_expert_keys": 1332,
+    "generated_token_ids": [1096, 374]
+  },
+  "fixture": {
+    "input_token_ids": [9707, 11, 1879, 0],
+    "generated_token_ids": [1096, 374],
+    "kv_cache_bytes": 1179648,
+    "cache_policy": "strict_global_lru",
+    "compute_dtype": "F32",
+    "trace_only_checkpoint_mode": true,
+    "filesystem_cache_assumption": "uncontrolled"
+  },
+  "runs": [
+    {"id":"baseline","cache_budget_bytes":18874368,"hits":0,"misses":2304,"loads":2304,"evictions":2303,"expert_bytes_loaded":43486543872,"expert_bytes_served_from_cache":0,"expert_bytes_avoided":0,"dense_bytes_read":29518290944,"total_logical_bytes":73004834816,"logical_bytes_per_generated_token":36502417408,"peak_expert_payload_bytes":18874368,"peak_expert_entries":1,"modeled_peak_explicit_bytes":120529096,"oversized_entry_events":0,"blocked_eviction_events":0,"prefill_seconds":175.4362264,"prefill_tokens_per_second":0.022800308021217217,"decode_seconds_per_token":42.5201054,"decode_tokens_per_second":0.023518286010645685,"inference_wall_seconds":262.4747038,"process_peak_working_set_bytes":null,"process_peak_private_bytes":null,"correctness":"pass"},
+    {"id":"cache-8gib","cache_budget_bytes":8589934592,"hits":719,"misses":1585,"loads":1585,"evictions":1130,"expert_bytes_loaded":29915873280,"expert_bytes_served_from_cache":13570670592,"expert_bytes_avoided":13570670592,"dense_bytes_read":29518290944,"total_logical_bytes":59434164224,"logical_bytes_per_generated_token":29717082112,"peak_expert_payload_bytes":8587837440,"peak_expert_entries":455,"modeled_peak_explicit_bytes":8689492168,"oversized_entry_events":0,"blocked_eviction_events":0,"prefill_seconds":151.0952605,"prefill_tokens_per_second":0.026473365125837287,"decode_seconds_per_token":28.60741475,"decode_tokens_per_second":0.03495597238474612,"inference_wall_seconds":209.742698,"process_peak_working_set_bytes":null,"process_peak_private_bytes":null,"correctness":"pass"},
+    {"id":"cache-16gib","cache_budget_bytes":17179869184,"hits":931,"misses":1373,"loads":1373,"evictions":463,"expert_bytes_loaded":25914507264,"expert_bytes_served_from_cache":17572036608,"expert_bytes_avoided":17572036608,"dense_bytes_read":29518290944,"total_logical_bytes":55432798208,"logical_bytes_per_generated_token":27716399104,"peak_expert_payload_bytes":17175674880,"peak_expert_entries":910,"modeled_peak_explicit_bytes":17277329608,"oversized_entry_events":0,"blocked_eviction_events":0,"prefill_seconds":138.7567267,"prefill_tokens_per_second":0.028827431254185097,"decode_seconds_per_token":23.33282895,"decode_tokens_per_second":0.042858069295536496,"inference_wall_seconds":186.8745648,"process_peak_working_set_bytes":null,"process_peak_private_bytes":null,"correctness":"pass"}
+  ],
+  "comparison": {
+    "exact_nominal_budget_trace_replay": {"8gib":{"hits":719,"loads":1585,"evictions":1130,"bytes_avoided":13570670592},"16gib":{"hits":931,"loads":1373,"evictions":463,"bytes_avoided":17572036608}},
+    "m5_1_02_usable_budget_reference": {"8gib_payload_budget":8212550504,"8gib":{"hits":719,"loads":1585,"evictions":1150,"bytes_avoided":13570670592},"16gib_payload_budget":16802485096,"16gib":{"hits":929,"loads":1375,"evictions":485,"bytes_avoided":17534287872}},
+    "nominal_budget_difference_explanation": "M5.1-02 charged modeled metadata, alignment, and safety overhead before assigning payload bytes; this task validates exact nominal payload budgets. The ordered LRU semantics agree in both comparisons.",
+    "expert_read_reduction_pct": {"8gib":31.20659722222222,"16gib":40.40798611111111},
+    "total_logical_read_reduction_pct": {"8gib":18.588728576954196,"16gib":24.069688880590206},
+    "prefill_speedup_pct": {"8gib":16.109681944656383,"16gib":26.43439390099134},
+    "decode_speedup_pct": {"8gib":48.63316301588942,"16gib":82.23296236867155},
+    "wall_speedup_pct": {"8gib":25.14128324982259,"16gib":40.45501809243544}
+  },
+  "correctness": {"generated_ids_unchanged":true,"router_and_selected_expert_order_unchanged":true,"retained_f32_checkpoints_pass":true,"finite_outputs":true,"kv_cache_invariants":true,"bounded_payload_residency":true,"full_vocabulary_logit_equivalence":"not_retested; trace-only mode uses retained checkpoint evidence"},
+  "decision": {"classification":"accepted_with_limitations","operating_point":"8 GiB is the initial balanced payload-cache mode; 16 GiB is a higher-memory performance mode, not a required preset","next_task":"M5.2-01 Capture broader representative expert traces","limitations":["one frozen short fixture and one timing sample per configuration","process peak working-set/private-byte sampling was not available in the test harness","filesystem cache was uncontrolled","full-vocabulary logits were not retained for this measurement supplement"]},
+  "evidence_hashes": {"trace_sha256":"f3f87f05d15424030c9261cdf3e93bd72e9c006a55303bc0c28a92a4fb3ff2d0","simulation_sha256":"9c9fc8b12ff58f4b8bffa3be13ca83a02922a381b020dffbb9728118e7914601","production_replay_sha256":"a12c3529bdf5699adf9fb27fe3b709469a2bbab549e1a9629a0faf5d2a0164e3","prototype_sha256":"5eecd66ac4aea23f16e85c25326d20733d09352658407f702b047e7caa7eab32"}
+}

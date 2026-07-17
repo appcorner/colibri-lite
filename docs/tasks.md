@@ -316,6 +316,7 @@ the release boundary.
 - [x] M5.1-00 Capture authoritative ordered expert trace.
 - [x] M5.1-01 Trace-driven memory hierarchy simulation.
 - [x] M5.1-02 Implement the reviewed configurable expert-cache prototype.
+- [x] M5.1-03 Validate the configurable expert cache on the canonical full model.
 - [ ] M5.2-01 Capture broader representative expert traces.
 
 M5.1-00 is complete as a deterministic measurement supplement. The ordered
@@ -331,10 +332,18 @@ behavior, cache capacity, artifact, or numerical execution changed.
 
 M5.1-02 is accepted with limitations. The configurable payload-byte LRU cache
 and expanded accounting are implemented in `clr-storage`; ordered trace replay
-matches the M5.1-01 counters at the reviewed operating points. Full-model
-correctness and timing are pending because canonical payload directories and
-`COLIBRI_ARTIFACT_ROOT` are unavailable in this checkout. ADR 0036 records the
-decision. No resident-dense or other optimization prototype has started.
+matches the M5.1-01 counters at the reviewed operating points. ADR 0036 records
+the decision.
+
+M5.1-03 validated the same primitive against the canonical artifact at the
+baseline, exact 8 GiB, and exact 16 GiB payload budgets. Correctness invariants,
+generated IDs, bounded residency, and exact-budget trace counters passed.
+Results are recorded in
+`models/qwen3-30b-a3b/m5.1-03-full-model-cache-results-v1.json` and ADR 0037.
+The classification remains `accepted_with_limitations` because the fixture is
+short, filesystem cache state was uncontrolled, process working-set sampling
+and full-vocabulary logits were unavailable, and timing uses one sample per
+mode. No resident-dense or other optimization prototype has started.
 
 ## Standard verification commands
 

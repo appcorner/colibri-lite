@@ -1191,7 +1191,10 @@ fn expert_store_from_plans(
         .expect("selected expert artifact manifest");
     let reader = ArtifactReader::open(artifact_root.join("experts"), manifest)
         .expect("canonical selected expert reader");
-    ExpertStore::new(reader, registrations, 18_874_368).expect("one-expert cache budget")
+    let budget = env::var("COLIBRI_EXPERT_CACHE_BUDGET_BYTES").map_or(18_874_368, |value| {
+        value.parse::<usize>().expect("valid expert cache budget")
+    });
+    ExpertStore::new(reader, registrations, budget).expect("configured expert cache budget")
 }
 
 fn checkpoint_f32(bytes: &[u8], plan: &HashMap<String, CheckpointRecord>, name: &str) -> Tensor {
@@ -4170,14 +4173,19 @@ fn short_cached_generation_matches_transformers() {
 
     assert_eq!(generated, [1096, 374], "short greedy sequence");
     let metrics = store.metrics();
-    assert_eq!(metrics.hits, 0, "one-expert cache expected zero hits");
-    assert_eq!(metrics.misses, 6 * 48 * 8);
-    assert_eq!(metrics.loads, 6 * 48 * 8);
-    assert_eq!(metrics.evictions, metrics.loads - 1);
-    assert_eq!(metrics.misses, metrics.loads, "every miss loads one expert");
+    let cache_budget = env::var("COLIBRI_EXPERT_CACHE_BUDGET_BYTES").map_or(18_874_368, |value| {
+        value.parse::<usize>().expect("valid expert cache budget")
+    });
+    if cache_budget == 18_874_368 {
+        assert_eq!(metrics.hits, 0, "one-expert cache expected zero hits");
+    } else {
+        assert!(metrics.hits > 0, "larger cache should produce cache hits");
+    }
+    assert_eq!(metrics.loads, metrics.misses, "every miss loads one expert");
     assert_eq!(metrics.hits + metrics.misses, 6 * 48 * 8);
-    assert_eq!(metrics.resident_bytes, 18_874_368);
-    assert_eq!(metrics.peak_resident_bytes, 18_874_368);
+    assert!(metrics.evictions <= metrics.loads);
+    assert!(metrics.resident_bytes <= cache_budget);
+    assert!(metrics.peak_resident_bytes <= cache_budget);
     assert_eq!(cache.len(), 6);
     assert_eq!(cache.allocation_capacities(), allocation_capacities);
     assert_eq!(expert_request_sequence.len(), 6 * 48 * 8);
@@ -4248,8 +4256,11 @@ fn short_cached_generation_matches_transformers() {
     let artifact_read_operations = dense_read_operations + expert_read_operations;
     let artifact_file_opens = 1 + metrics.loads;
     assert_eq!(dense_read_operations, 6_163);
-    assert_eq!(artifact_read_operations, 8_467);
-    assert_eq!(artifact_file_opens, 2_305);
+    assert_eq!(
+        artifact_read_operations,
+        dense_read_operations + metrics.loads
+    );
+    assert_eq!(artifact_file_opens, 1 + metrics.loads);
 
     let checkpoint_static_bytes = GENERATION_BF16_CHECKPOINTS.len()
         + GENERATION_F32_CHECKPOINTS.len()
@@ -4267,9 +4278,9 @@ fn short_cached_generation_matches_transformers() {
         + cache.byte_size()
         + inference_tensor_bytes
         + temporary_validation_buffer_bytes;
-    if trace_only {
+    if trace_only && cache_budget == 18_874_368 {
         assert_eq!(modeled_peak_explicit_bytes, 120_529_096);
-    } else {
+    } else if !trace_only && cache_budget == 18_874_368 {
         assert_eq!(modeled_peak_explicit_bytes, 127_823_000);
     }
     evidence.push_str(&selection_evidence);
@@ -4596,7 +4607,7 @@ fn short_cached_generation_matches_transformers() {
             "cache",
             "total",
             "configured_byte_budget",
-            expert_payload_bytes.to_string(),
+            cache_budget.to_string(),
             "bytes",
         );
         record(
@@ -4610,14 +4621,14 @@ fn short_cached_generation_matches_transformers() {
             "cache",
             "total",
             "theoretical_expert_capacity",
-            "1".to_owned(),
+            (cache_budget / expert_payload_bytes).to_string(),
             "experts",
         );
         record(
             "cache",
             "total",
             "peak_resident_expert_count",
-            "1".to_owned(),
+            metrics.peak_entry_count.to_string(),
             "experts",
         );
         record(
