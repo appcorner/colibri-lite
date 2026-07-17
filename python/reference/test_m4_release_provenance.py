@@ -36,12 +36,16 @@ class M4ReleaseProvenanceTests(unittest.TestCase):
         self.assertEqual(self.document["m4_baseline"]["baseline_id"], BASELINE_ID)
         self.assertEqual(self.document["m4_baseline"]["baseline_schema"], BASELINE_SCHEMA)
         self.assertEqual(self.document["m4_baseline"]["baseline_sha256"], BASELINE_SHA256)
+        self.assertEqual(
+            self.document["m4_baseline"]["f32_manifest"]["path"],
+            "models/qwen3-30b-a3b/m4.3-01-f32-baseline-manifest-v1.json",
+        )
         self.assertEqual(self.document["m4_verdict"]["performance_readiness"], "not_ready")
         self.assertEqual(self.document["m4_verdict"]["first_full_model_int8_candidate"], "rejected")
         self.assertFalse(self.document["m5_gate"]["started"])
 
     def test_all_references_exist_and_match(self) -> None:
-        self.assertGreaterEqual(len(self.document["references"]), 20)
+        self.assertGreaterEqual(len(self.document["references"]), 21)
         roles = set()
         for item in self.document["references"]:
             roles.add(item["role"])

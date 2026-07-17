@@ -24,6 +24,7 @@ BASELINE_SHA256 = "29b2d95fa9eb74c1085cb31d2f63adbaa711fe8739d3051fa04f7b2b1c27c
 
 PATHS = {
     "baseline": "models/qwen3-30b-a3b/m4.4-performance-baseline-v1.json",
+    "f32_baseline_manifest": "models/qwen3-30b-a3b/m4.3-01-f32-baseline-manifest-v1.json",
     "model_manifest": "models/qwen3-30b-a3b/model-manifest-v1.json",
     "source_manifest": "models/qwen3-30b-a3b/source-manifest-v1.json",
     "canonical_root_registry": "models/qwen3-30b-a3b/canonical-root-registry-v1.json",
@@ -106,6 +107,7 @@ def validate_tag(root: Path, expected_commit: str | None) -> None:
 def build(root: Path) -> dict[str, Any]:
     refs = {role: reference(root, role, path) for role, path in PATHS.items()}
     baseline = read_json(root / PATHS["baseline"])
+    f32_baseline = read_json(root / PATHS["f32_baseline_manifest"])
     model = read_json(root / PATHS["model_manifest"])
     source = read_json(root / PATHS["source_manifest"])
     canonical = read_json(root / PATHS["canonical_root_registry"])
@@ -116,6 +118,8 @@ def build(root: Path) -> dict[str, Any]:
 
     if baseline.get("baseline_id") != BASELINE_ID or baseline.get("schema") != BASELINE_SCHEMA:
         raise ValueError("M4.4 baseline identity changed")
+    if f32_baseline.get("status") != "authoritative_unquantized_f32_baseline_frozen":
+        raise ValueError("M4.3 F32 baseline is not authoritative")
     if refs["baseline"]["sha256"] != BASELINE_SHA256:
         raise ValueError("M4.4 baseline hash changed")
     if model.get("revision") != MODEL_REVISION or model.get("model_id") != "Qwen/Qwen3-30B-A3B":
@@ -209,7 +213,7 @@ def build(root: Path) -> dict[str, Any]:
             "baseline_schema": BASELINE_SCHEMA,
             "baseline_sha256": BASELINE_SHA256,
             "performance_baseline": refs["baseline"],
-            "f32_manifest": refs["baseline"],
+            "f32_manifest": refs["f32_baseline_manifest"],
             "tolerance_registry": refs["tolerance_registry"],
             "optimization_invariants": refs["f32_invariants"],
             "generated_token_ids": [1096, 374],
