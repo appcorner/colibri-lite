@@ -228,6 +228,11 @@ Every model-derived artifact must record:
 * Artifact format version
 * Generation date
 
+All model downloads, conversions, validation runs, and cleanup operations must
+follow `docs/temp-artifact-policy.md`, including one flat run directory,
+read-only canonical inputs, preflight/post-task disk accounting, bounded debug
+retention, and dry-run-first cleanup.
+
 Do not commit large upstream model files.
 
 Do not copy code from Colibri, llama.cpp, ik_llama.cpp, or katgpt-rs without:

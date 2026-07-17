@@ -1,0 +1,91 @@
+{
+  "complete_model_f64_executed": false,
+  "decision": "F64 proximity does not change Rust arithmetic or existing contracts",
+  "precision_hierarchy": [
+    "selected_F64_diagnostics",
+    "Transformers_F32_from_pinned_BF16_weights",
+    "Rust_ordered_F32_runtime",
+    "future_lower_precision_or_optimized_variants"
+  ],
+  "records": [
+    {
+      "closer_f32_path": "rust_f32",
+      "contract_impact": "none",
+      "f64": 1.3951061001698273,
+      "operation": "rmsnorm_weighted_output",
+      "rust_f32": 1.3951060771942139,
+      "rust_f32_absolute_difference": 2.2975613411801987e-08,
+      "selected_index": "token=0,element=952",
+      "status": "diagnostic_only",
+      "transformers_f32": 1.3951061964035034,
+      "transformers_f32_absolute_difference": 9.623367613897926e-08
+    },
+    {
+      "closer_f32_path": "transformers_f32",
+      "contract_impact": "none",
+      "f64": -1.7088856424047476,
+      "operation": "rmsnorm_weighted_output",
+      "rust_f32": -1.708885908126831,
+      "rust_f32_absolute_difference": 2.657220834478835e-07,
+      "selected_index": "token=3,element=830",
+      "status": "diagnostic_only",
+      "transformers_f32": -1.7088855504989624,
+      "transformers_f32_absolute_difference": 9.190578520446024e-08
+    },
+    {
+      "closer_f32_path": "transformers_f32",
+      "contract_impact": "none",
+      "f64": 1.748016123184543,
+      "operation": "rmsnorm_sum_of_squares",
+      "rust_f32": 1.7480164766311646,
+      "rust_f32_absolute_difference": 3.5344662152603235e-07,
+      "selected_index": "token=0",
+      "status": "diagnostic_only",
+      "transformers_f32": 1.748016119003296,
+      "transformers_f32_absolute_difference": 4.181247126311405e-09
+    },
+    {
+      "closer_f32_path": "transformers_f32",
+      "contract_impact": "none",
+      "f64": 15.094965733522919,
+      "operation": "selected_lm_head_dot_product_with_rust_final_norm_input",
+      "rust_f32": 15.094968795776367,
+      "rust_f32_absolute_difference": 3.0622534481494768e-06,
+      "selected_index": "vocabulary=0",
+      "status": "diagnostic_only",
+      "transformers_f32": 15.094964981079102,
+      "transformers_f32_absolute_difference": 7.524438174755232e-07
+    },
+    {
+      "closer_f32_path": "transformers_f32",
+      "contract_impact": "none",
+      "f64": 16.99656574093666,
+      "operation": "selected_lm_head_dot_product_with_rust_final_norm_input",
+      "rust_f32": 16.996551513671875,
+      "rust_f32_absolute_difference": 1.4227264784949512e-05,
+      "selected_index": "vocabulary=50994",
+      "status": "diagnostic_only",
+      "transformers_f32": 16.996566772460938,
+      "transformers_f32_absolute_difference": 1.0315242775504885e-06
+    },
+    {
+      "closer_f32_path": "rust_f32",
+      "contract_impact": "none",
+      "f64": -3.200439879750384,
+      "operation": "selected_lm_head_dot_product_with_rust_final_norm_input",
+      "rust_f32": -3.200439929962158,
+      "rust_f32_absolute_difference": 5.021177429398449e-08,
+      "selected_index": "vocabulary=151935",
+      "status": "diagnostic_only",
+      "transformers_f32": -3.200439691543579,
+      "transformers_f32_absolute_difference": 1.88206804807578e-07
+    }
+  ],
+  "schema_version": 1,
+  "status": "diagnostic_only_no_contract_change",
+  "supporting_evidence": [
+    "models/qwen3-30b-a3b/m4.2-02-rms-scalar-diagnostics-v1.json",
+    "models/qwen3-30b-a3b/m4.3-01-single-low-token-lm-head-diagnostic-v1.json"
+  ],
+  "task": "M4.3-01"
+}

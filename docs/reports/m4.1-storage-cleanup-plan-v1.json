@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-15",
+  "temp_root": "D:\\tmp",
+  "canonical_artifact_root": "D:\\models\\colibri-lite\\qwen3-30b-a3b\\artifact-v1",
+  "protected_paths": [
+    "D:\\tmp\\colibri-m4.1-05\\model.safetensors.index.json",
+    "D:\\tmp\\colibri-m4.1-05\\model-00001-of-00016.safetensors",
+    "D:\\tmp\\colibri-m4.1-05\\model-00002-of-00016.safetensors",
+    "D:\\tmp\\colibri-m4.1-05\\model-00003-of-00016.safetensors",
+    "D:\\tmp\\colibri-m4.1-05\\model-00004-of-00016.safetensors",
+    "D:\\tmp\\colibri-m4.1-05\\model-00005-of-00016.safetensors",
+    "D:\\tmp\\colibri-m4.1-05\\model-00006-of-00016.safetensors",
+    "D:\\tmp\\colibri-m4.1-05\\model-00007-of-00016.safetensors",
+    "D:\\tmp\\colibri-m4.1-05\\model-00008-of-00016.safetensors",
+    "D:\\tmp\\colibri-m4.1-05\\model-00009-of-00016.safetensors",
+    "D:\\tmp\\colibri-m4.1-05\\model-00010-of-00016.safetensors",
+    "D:\\tmp\\colibri-m4.1-05\\model-00011-of-00016.safetensors",
+    "D:\\tmp\\colibri-m4.1-05\\model-00012-of-00016.safetensors",
+    "D:\\tmp\\colibri-m4.1-05\\model-00013-of-00016.safetensors",
+    "D:\\tmp\\colibri-m4.1-05\\model-00014-of-00016.safetensors",
+    "D:\\tmp\\colibri-m4.1-05\\model-00015-of-00016.safetensors",
+    "D:\\tmp\\colibri-m4.1-05\\model-00016-of-00016.safetensors"
+  ],
+  "candidates": [
+    {
+      "path": "D:\\tmp\\colibri-m4.1-05\\dense-artifact-v1",
+      "kind": "directory",
+      "classification": "completed-task temporary output",
+      "expected_file_count": 2,
+      "expected_logical_bytes": 6164520354,
+      "expected_reclaimable_bytes": 146850,
+      "expected_shared_hardlink_bytes": 6164373504
+    },
+    {
+      "path": "D:\\tmp\\colibri-m4.1-05\\dense-artifact-v1-repeat",
+      "kind": "directory",
+      "classification": "reproducibility evidence",
+      "expected_file_count": 2,
+      "expected_logical_bytes": 6164520354,
+      "expected_reclaimable_bytes": 6164520354,
+      "expected_shared_hardlink_bytes": 0
+    },
+    {
+      "path": "D:\\tmp\\colibri-m4.1-05\\vertical-artifact-v1",
+      "kind": "directory",
+      "classification": "completed-task temporary output",
+      "expected_file_count": 2,
+      "expected_logical_bytes": 25917,
+      "expected_reclaimable_bytes": 25917,
+      "expected_shared_hardlink_bytes": 0
+    },
+    {
+      "path": "D:\\tmp\\colibri-m4.1-05\\vertical-artifact-v1-repeat",
+      "kind": "directory",
+      "classification": "reproducibility evidence",
+      "expected_file_count": 2,
+      "expected_logical_bytes": 25917,
+      "expected_reclaimable_bytes": 25917,
+      "expected_shared_hardlink_bytes": 0
+    },
+    {
+      "path": "D:\\tmp\\colibri-m4.1-05\\vertical-slice-plan-v1.tsv",
+      "kind": "file",
+      "classification": "completed-task temporary output",
+      "expected_file_count": 1,
+      "expected_logical_bytes": 2192,
+      "expected_reclaimable_bytes": 2192,
+      "expected_shared_hardlink_bytes": 0
+    },
+    {
+      "path": "D:\\tmp\\colibri-m4.1-06\\expert-artifact-v1",
+      "kind": "directory",
+      "classification": "completed-task temporary output",
+      "expected_file_count": 49,
+      "expected_logical_bytes": 115967247918,
+      "expected_reclaimable_bytes": 3130926,
+      "expected_shared_hardlink_bytes": 115964116992
+    },
+    {
+      "path": "D:\\tmp\\colibri-m4.1-06\\expert-artifact-v1-repeat",
+      "kind": "directory",
+      "classification": "reproducibility evidence",
+      "expected_file_count": 49,
+      "expected_logical_bytes": 115967247918,
+      "expected_reclaimable_bytes": 115967247918,
+      "expected_shared_hardlink_bytes": 0
+    },
+    {
+      "path": "D:\\tmp\\colibri-m4.1-06\\expert-vertical-v1",
+      "kind": "directory",
+      "classification": "completed-task temporary output",
+      "expected_file_count": 3,
+      "expected_logical_bytes": 56625241,
+      "expected_reclaimable_bytes": 56625241,
+      "expected_shared_hardlink_bytes": 0
+    },
+    {
+      "path": "D:\\tmp\\colibri-m4.1-06\\expert-vertical-v1-repeat",
+      "kind": "directory",
+      "classification": "reproducibility evidence",
+      "expected_file_count": 3,
+      "expected_logical_bytes": 56625241,
+      "expected_reclaimable_bytes": 56625241,
+      "expected_shared_hardlink_bytes": 0
+    },
+    {
+      "path": "D:\\tmp\\colibri-m4.1-07",
+      "kind": "directory",
+      "classification": "completed-task temporary output",
+      "expected_file_count": 4,
+      "expected_logical_bytes": 15881072,
+      "expected_reclaimable_bytes": 15881072,
+      "expected_shared_hardlink_bytes": 0
+    },
+    {
+      "path": "D:\\tmp\\colibri-m4.1-08",
+      "kind": "directory",
+      "classification": "completed-task temporary output",
+      "expected_file_count": 0,
+      "expected_logical_bytes": 0,
+      "expected_reclaimable_bytes": 0,
+      "expected_shared_hardlink_bytes": 0
+    }
+  ]
+}

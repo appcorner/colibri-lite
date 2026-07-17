@@ -554,3 +554,876 @@ and correctness are not implemented and remain M4 work.
 
 Next task: Create `milestone/m4-full-qwen3` from the reviewed M3 closure and
 begin M4.1-01 by pinning the exact full-model ID and revision.
+
+## 2026-07-14 - M4.1-01 full-model source contract
+
+Date: 2026-07-14
+
+Starting task: M4.1-01 - pin the exact Qwen3-30B-A3B model ID and revision.
+
+Completed task: M4.1-01. Merged the approved M3 branch into `main` with merge
+commit `dfa800b`, tagged it `m3-generation`, and created
+`milestone/m4-full-qwen3`. Pinned `Qwen/Qwen3-30B-A3B` at immutable revision
+`ad44e777bcd18fa416d9da3bd8f70d33ebb85d39`. Added source manifest v1 and ADR
+0011 with Apache-2.0 license, architecture/config, tokenizer, 16-shard
+inventory, source hashes, and disk requirements.
+
+Commands executed: all five standard M3 verification commands; `main...M3`
+scope, test, dependency, unsafe, deferred-feature, and public-API diff review;
+official Hugging Face immutable-revision API queries; in-memory SHA-256 hashing
+of non-weight source files; and Safetensors index inspection.
+
+Evidence: All 83 workspace tests passed; Clippy passed with warnings denied;
+the CLI smoke passed. The source tree contains 26 files totaling
+61,084,187,391 bytes (56.889 GiB), including 16 weight shards totaling
+61,066,575,648 bytes. The index maps 18,867 tensors. No weight shard was
+downloaded.
+
+Known issue and stop condition: upstream `head_dim = 128`, while the current
+public runtime derives `2048 / 32 = 64`. M4 configuration mapping would be
+incorrect without a reviewed public contract change. BF16 source storage and
+the 40,960 model versus 131,072 tokenizer context limits also require explicit
+mapping decisions.
+
+Next task: M4.1-02 - document upstream license and artifact provenance, only
+after review of ADR 0011 and the `head_dim` contract conflict.
+
+## 2026-07-14 - M4.1-02 provenance approval
+
+Date: 2026-07-14
+
+Starting task: M4.1-02 - document upstream license and artifact provenance.
+
+Completed task: M4.1-02. ADR 0011 and source manifest v1 were approved. The
+immutable model revision, Apache-2.0 license, complete source inventory, file
+hashes, and download-space requirements are now the accepted provenance
+contract.
+
+Known issue: Configuration mapping remains gated on the separately reviewed
+explicit `head_dim` contract in ADR 0012.
+
+Next: Implement and verify ADR 0012 before beginning M4.1-03.
+
+## 2026-07-14 - Explicit attention head dimension contract
+
+Date: 2026-07-14
+
+Starting work: Implement the approved public-contract prerequisite for
+M4.1-03.
+
+Completed: Added explicit generic head dimension and checked query/KV
+projection widths, removed the hidden/query-width equality assumption, updated
+Qwen attention/output projection and KV-cache construction, and recorded ADR
+0012. The tiny fixture now states `head_dim = 4` explicitly without changing
+weights or checkpoints.
+
+Commands executed: focused core/Qwen config tests; exact frozen M1 logits and
+M3 greedy/seeded regression tests; `python python\reference\generate_fixture.py
+verify`; and all five standard Cargo verification commands.
+
+Evidence: All 87 workspace tests passed; Clippy passed with warnings denied;
+CLI smoke passed. Fixture regeneration matched every committed artifact hash.
+Pinned dimensions `2048/32/4/128` are accepted with query width 4,096 and KV
+width 512. Zero head dimension and query/KV overflow cases return structured
+errors. Frozen numerical outputs and generation sequences are unchanged.
+
+Known issues: BF16 remains source metadata only. Model maximum positions,
+tokenizer limit, and session capacity remain intentionally separate.
+
+Next task: M4.1-03 - map required Hugging Face configuration fields.
+
+## 2026-07-14 - M4.1-03 pinned configuration mapping
+
+Date: 2026-07-14
+
+Starting task: M4.1-03 - map required Hugging Face configuration fields.
+
+Completed task: M4.1-03. Added a typed Qwen3-MoE source configuration and
+validated source-to-F32-runtime mapping for the immutable Qwen3-30B-A3B
+revision. `head_dim=128` maps directly; query/KV widths are 4,096/512. BF16 is
+retained separately as source storage metadata. ADR 0013 records field
+mappings, rejected unsupported features, and deliberately separate context
+limits.
+
+Commands executed: focused source-mapping tests and all five standard Cargo
+verification commands.
+
+Evidence: All 90 workspace tests passed; doc tests passed; Clippy passed with
+warnings denied; CLI smoke passed. Unsupported architecture, dtype, activation,
+attention bias/dropout, RoPE scaling, dense-only layers, sliding window, and
+tied embeddings return structured errors. Frozen M1/M3 regressions remain
+unchanged through the full workspace suite.
+
+Known issues: Source JSON parsing is intentionally deferred. Tensor names and
+shapes have not been mapped or validated, and no weight shard is downloaded.
+
+Next task: M4.1-04 - map and validate required tensor names and shapes.
+
+## 2026-07-14 - M4.1-04 pinned tensor inventory
+
+Date: 2026-07-14
+
+Starting task: M4.1-04 - map and validate required tensor names and shapes.
+
+Completed task: M4.1-04. Added metadata-only Qwen3-MoE tensor-role mapping and
+validation for the complete pinned Safetensors inventory. The validator uses
+checked config-derived shapes, explicit query/KV widths, complete layer and
+expert coverage, separate untied embedding/LM-head requirements, and
+structured errors for all required invalid inventory categories. ADR 0014 and
+tensor inventory summary v1 record the frozen grammar and source evidence.
+
+Commands executed: bounded upstream Safetensors index/header inspection with
+no tensor payload reads; inventory evidence reconciliation; focused inventory
+tests; `cargo fmt --all --check`, `cargo check --workspace`,
+`cargo test --workspace`,
+`cargo clippy --workspace --all-targets -- -D warnings`, and
+`cargo run -p clr-cli`.
+
+Evidence: All 18,867 pinned index tensors are classified and shape-validated:
+3 top-level tensors, 48 copies of each of 9 per-layer roles, and 6,144 copies
+of each expert gate/up/down role. Unknown and unsupported counts are zero. The
+16 shard headers contain the same 18,867 tensors in 2,330,272 inspected bytes;
+no tensor payload byte was downloaded. All 102 workspace tests passed with
+zero failures or ignored tests; 12 tensor-inventory tests cover the full valid
+inventory and required failure modes. Clippy and CLI smoke passed.
+
+Known issues: Source BF16 remains storage metadata only. No weights have been
+downloaded or converted, and no tokenizer parsing or optimized execution path
+was introduced.
+
+Next task: M4.1-05 - convert dense tensors for resident access.
+
+## 2026-07-14 - M4.1-05 dense resident artifact conversion
+
+Date: 2026-07-14
+
+Starting task: M4.1-05 - convert dense tensors for resident access.
+
+Completed task: M4.1-05. Added safe, chunked BF16-to-F32 conversion with full
+source-shard hash verification before decode, Qwen role/shape validation,
+preflight disk accounting, deterministic multi-range artifact manifests,
+temporary output plus manifest-last atomic commit, and streaming exact F32
+round-trip verification. ADR 0015, the 435-tensor source plan, report, and
+compact evidence record the accepted design and real conversion results.
+
+Real evidence: The initial three-norm slice verified all 1,087,928,584 bytes of
+shard 16 and produced a 24,576-byte artifact. The complete conversion verified
+61,066,575,648 source-shard bytes before decoding and converted all 435 dense
+tensors into one 6,164,373,504-byte physical payload with independent logical
+ranges. Maximum explicit working buffers were 327,680 bytes. Both slice and
+complete conversions were independently repeated with identical payload and
+manifest hashes; every F32 element matched direct BF16 decoding byte-for-byte.
+
+Commands executed: immutable pinned index/shard downloads into `D:\tmp`;
+source length/hash/header/index reconciliation; focused storage, Qwen, and plan
+parser tests; two real slice runs; two complete release-profile conversion
+runs; external artifact hash checks; and all five standard verification
+commands.
+
+Tests: All 114 workspace tests passed with zero failures or ignored tests, plus
+the focused conversion-plan parser test. Failure coverage includes wrong hash,
+truncation, wrong dtype, wrong pinned shape, invalid range, insufficient disk,
+expert selection, incomplete full inventory, and incomplete-output cleanup.
+Clippy passed with warnings denied and the CLI smoke passed.
+
+Known issues: Source and converted multi-gigabyte files remain local and are
+not committed. BF16 is source metadata/decoding only. Expert conversion,
+tokenizer parsing, quantization, mmap, SIMD, FFI, and optimized kernels remain
+unimplemented.
+
+Next task: M4.1-06 - convert experts for independent on-demand access.
+
+## 2026-07-15 - M4.1-06 independently accessible expert conversion
+
+Date: 2026-07-15
+
+Starting task: M4.1-06 - convert experts for independent on-demand access.
+
+Completed task: M4.1-06. Added pinned expert source-plan parsing and validation,
+safe chunked BF16-to-F32 conversion, one deterministic container per selected
+layer, versioned arbitrary-shard expert mappings, exact preflight accounting,
+complete source hash verification, manifest-last transaction cleanup, and
+streaming exact round-trip verification. The existing `ArtifactReader`,
+`ExpertStore`, packed gate/up/down layout, leases, views, and shared numerical
+path remain unchanged. ADR 0016, the 18,432-tensor source plan, report, and
+compact evidence record the design and real conversion results.
+
+Real evidence: The vertical slice converted experts `0:0`, `0:127`, and
+`47:127` across two layer containers. The complete conversion accounted for all
+6,144 experts and 18,432 expert tensors, bringing cumulative pinned inventory
+coverage to all 18,867 tensors. It wrote 115,964,116,992 F32 bytes across 48
+2,415,919,104-byte layer containers plus a 3,130,926-byte manifest. Maximum
+explicit buffers were 327,680 bytes. Loading expert `23:64` through the existing
+store read exactly its 18,874,368-byte logical payload.
+
+Determinism: Two independent complete runs produced byte-identical manifests
+with SHA-256
+`9c581c6c46ecf830e7d0dd0e380d26b17803784f009b37ef2657ae34d06b2939`
+and identical ordered shard-set SHA-256
+`b90d537f5c0c202b2bf5db0e74b8bf8b9ba9ea5378d788733d2bf9e11d36bf91`.
+All 48 shard records and 6,144 expert records matched. External hashes of first,
+middle, and last physical layer files matched both manifests.
+
+Commands executed: source-plan count/order/range/hash audits; two real
+vertical-slice runs; two complete release-profile conversion runs; independent
+manifest, record, file-length, and representative physical hash comparisons;
+focused expert conversion and plan parser tests; `cargo fmt --all --check`,
+`cargo check --workspace`, `cargo test --workspace`,
+`cargo clippy --workspace --all-targets -- -D warnings`, and
+`cargo run -p clr-cli`.
+
+Tests: All 118 workspace tests passed with zero failures or ignored tests, plus
+the focused conversion-plan parser test. Failure coverage includes corruption,
+truncation, invalid offsets, wrong shard, wrong layer/expert identity, wrong
+shape, incomplete inventory, duplicate experts, invalid projection order,
+invalid chunk size, insufficient disk space, one-layer slices, and incomplete
+output cleanup. Clippy passed with warnings denied and the CLI smoke passed.
+
+Known issues: The 16 source shards and 232 GB of independently repeated expert
+artifacts remain local evidence and are not committed. BF16 is decoded to F32;
+quantization, BF16 kernels, mmap, async prefetch, SIMD, FFI, tokenizer parsing,
+optimized kernels, and full-model generation remain unimplemented.
+
+Next task: M4.1-07 - include tokenizer assets required for the first full-model
+test.
+
+## 2026-07-15 - M4.1-07 pinned offline tokenizer assets
+
+Date: 2026-07-15
+
+Starting task: M4.1-07 - include tokenizer assets required for the first
+full-model test.
+
+Completed task: M4.1-07. Added all four canonical Qwen3-30B-A3B tokenizer
+assets from the approved immutable revision, a versioned artifact manifest, a
+frozen seven-case reference fixture, and an offline-only verification adapter.
+ADR 0017, the task report, and compact evidence record the byte-level BPE
+contract, vocabulary and added-token metadata, special IDs, chat-template hash,
+separate length concepts, provenance, and dependency decision.
+
+Artifact evidence: `tokenizer.json`, `tokenizer_config.json`, `vocab.json`, and
+`merges.txt` total 15,881,072 bytes. All sizes and SHA-256 hashes match ADR 0011
+at revision `ad44e777bcd18fa416d9da3bd8f70d33ebb85d39`. The tokenizer has
+151,643 base entries, 151,387 merges, 26 added tokens, and 151,669 total entries
+against the model's separate 151,936 vocabulary size. The 4,168-byte preserved
+chat template hashes to
+`a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8`.
+
+Reference evidence: The existing Transformers 5.12.1/tokenizers 0.22.2 oracle
+loaded only committed local files with Hugging Face offline mode forced. Exact
+token IDs, decoded text, and round trips matched 7/7 cases covering English,
+Thai, source code/indentation, whitespace/newlines, Unicode/emoji, special
+tokens, and empty input.
+
+Dependency decision: No Cargo or Python dependency, native library, unsafe
+boundary, or public API was added. Rust inference remains token-ID based. A
+production Rust Unicode-regex/BPE tokenizer and chat-template renderer remain
+deferred for separate review; no chat framework, tool calling, or API was
+implemented.
+
+Commands executed: Pinned HTTPS downloads for four tokenizer files only;
+source-contract size/hash reconciliation; tokenizer JSON/vocabulary/merge,
+added-token, special-ID, limit, and chat-template inspection;
+`python python\reference\verify_tokenizer.py`; `cargo fmt --all --check`,
+`cargo check --workspace`, `cargo test --workspace`,
+`cargo clippy --workspace --all-targets -- -D warnings`, and
+`cargo run -p clr-cli`.
+
+Tests: Offline tokenizer verification passed all seven exact comparison cases.
+All 118 workspace tests passed with zero failures or ignored tests. Clippy
+passed with warnings denied and the CLI smoke reported `bootstrap ready`.
+
+Known issues: Rust text tokenization and chat-template rendering are not
+implemented. Model maximum positions (40,960), tokenizer-declared length
+(131,072), and caller-configured runtime session capacity remain separate.
+
+Next task: M4.1-08 - generate hashes and a reproducible conversion manifest.
+
+## 2026-07-15 - M4.1-08 unified model manifest and M4.1 closure
+
+Date: 2026-07-15
+
+Starting task: M4.1-08 - generate hashes and a reproducible conversion
+manifest.
+
+Completed task: M4.1-08 and milestone M4.1. Added deterministic root artifact
+format `colibri-lite-model` version 1, a standard-library generator, strict
+metadata/full validators, synthetic failure tests, ADR 0018, task/closure
+reports, and compact non-canonical build evidence. Existing dense, expert,
+tokenizer, `ArtifactManifest`, and `ExpertStore` contracts remain unchanged.
+
+Canonical evidence: Two independent generations produced the same 11,395 bytes
+and root SHA-256
+`f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2`.
+The root contains 57 unique canonical relative file records and no timestamp,
+absolute/local path, temporary directory, user/host name, or build identity.
+Regeneration after moving the complete directory produced the same bytes/hash.
+
+Closure footprint: 122,147,678,312 logical bytes across 58 files including the
+root manifest. Components are 12,786 source-provenance bytes; 6,164,520,354
+dense bytes across a manifest and 435-tensor payload; 115,967,247,918 expert
+bytes across a manifest and 48 shards for 6,144 experts; and 15,885,859
+tokenizer bytes across its manifest and four assets.
+
+Validation evidence: Metadata mode passed after hashing 19,187,816 bytes across
+9 files and checking sizes/cross-references for every required file. Full mode
+passed after hashing 122,147,678,312 bytes across all 58 files. Metadata
+validation passed after moving the real complete artifact, and synthetic full
+validation passed after relocation.
+
+Tests: Four grouped synthetic tests cover deterministic generation, metadata
+and full validation, relocation, missing/renamed/truncated/corrupted files,
+hash/size mismatch, missing/duplicate expert shards, unsupported versions,
+incompatible architecture/model type, unknown critical root fields, and
+incomplete temporary output. All tests passed.
+
+Commands executed: Two canonical generations; canonical-environment audit;
+real metadata/full validation; real relocation and post-move regeneration;
+`python -m unittest python\reference\test_model_artifact_manifest.py -v`;
+`cargo fmt --all --check`, `cargo check --workspace`,
+`cargo test --workspace`,
+`cargo clippy --workspace --all-targets -- -D warnings`, and
+`cargo run -p clr-cli`.
+
+Standard verification: All 118 workspace tests passed with zero failures or
+ignored tests. Clippy passed with warnings denied and the CLI smoke reported
+`bootstrap ready`.
+
+Known issues: The F32 artifact requires approximately 113.76 GiB. Rust text
+tokenization, chat rendering, quantization, mmap, SIMD, GPU work, performance
+optimization, and full-model numerical inference remain unimplemented.
+
+Next task: M4.2-01 - validate selected tensor values against Safetensors.
+
+## 2026-07-15 - pre-M4.2 temporary storage audit
+
+Date: 2026-07-15
+
+M4.2-01 remains paused and unstarted. Audited all project-owned
+`D:\tmp\colibri-m4.1-*` directories without deleting or creating model
+payloads. Recorded full path, recursive bytes/file count, creation/modification
+times, duplicate relationships, hard-link identities, classifications, and
+preflight/post-dry-run disk accounting in the storage audit report.
+
+Canonical artifact root:
+`D:\tmp\colibri-m4.1-08-moved\relocated-model-artifact-v1`. The 17 pinned
+source files under `D:\tmp\colibri-m4.1-05` remain separately protected and
+required for M4.2-01.
+
+Evidence: 244,392,722,124 logical bytes are proposed cleanup entries. Exact
+last-link reclaimable file bytes are 122,264,231,628; 122,128,490,496 bytes are
+shared dense/expert hard-link names that remain through canonical paths. Dense,
+expert, vertical-slice, tokenizer, and source classifications were established
+from hashes, component manifests, file IDs, and hard-link lists. No incomplete
+or orphaned payload was found.
+
+Added `docs/temp-artifact-policy.md`, a reviewed machine cleanup plan,
+dry-run-first `scripts/cleanup_temp_artifacts.py`, and five safety tests. The
+real dry run passed with 11 candidates, 117 files, no deletion, and zero
+free-space delta. Cleanup apply mode was not invoked.
+
+Standard verification passed: formatting, workspace check, all 118 Rust tests,
+warning-free clippy, CLI bootstrap, all 5 cleanup safety tests, and
+`git diff --check`.
+
+Next: review the classification and cleanup decision. Do not resume M4.2-01
+until cleanup approval is recorded.
+
+## 2026-07-15 - stable artifact promotion and approved cleanup
+
+Date: 2026-07-15
+
+The conditional cleanup review was approved. Promoted the canonical artifact
+by same-volume directory rename to
+`D:\models\colibri-lite\qwen3-30b-a3b\artifact-v1`; no 122 GB payload copy was
+created. Added a tracked canonical-root registry and made cleanup require an
+exact registry match outside the temporary namespace.
+
+Pre-cleanup metadata and full-integrity validation passed at the stable root.
+The second dry-run matched exactly 11 approved paths, 117 files,
+244,392,722,124 logical bytes, 122,128,490,496 shared hard-link bytes, and
+122,264,231,628 expected last-link bytes. Applied only that reviewed set.
+
+Disk free bytes increased from 202,957,639,680 to 325,221,920,768. Logical
+bytes removed were 244,392,722,124; actual physical bytes reclaimed were
+122,264,281,088. All 11 candidates are absent. The stable 58-file artifact and
+17 pinned source files remain present.
+
+Post-cleanup metadata/full validation passed across all 122,147,678,312
+canonical bytes with root hash
+`f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2`.
+Pinned-source validation passed across 17 files and 61,068,275,406 bytes. All 6
+cleanup tests, 3 source-validator tests, 118 Rust tests, formatting, workspace
+check, warning-free clippy, and CLI bootstrap passed.
+
+Next task: M4.2-01 - validate selected tensor values against Safetensors.
+
+## 2026-07-15 - M4.2-01 selected full-model tensor values
+
+Date: 2026-07-15
+
+Completed task: M4.2-01. Added a deterministic, standard-library validator that
+binds the stable canonical-root registry, pinned source provenance, dense and
+expert source plans, component manifests, and a versioned tensor selection.
+
+Validated 88 exact BF16-to-F32 bit samples across 13 dense tensors and 9
+gate/up/down projections for three experts spanning layers 0, 24, and 47.
+Selected source shards 0, 7, 14, and 15 were hash-verified across
+13,084,683,552 bytes before payload sampling. No value, shape, offset, dtype,
+orientation, or layout mismatch occurred.
+
+Two real runs produced identical 34,479-byte evidence with SHA-256
+`4c77a28a4ccc6fa764c5d7da64379f737278924caf65f295eb71930127818068`;
+the second run left the existing evidence unchanged.
+
+Next task: M4.2-02 - validate selected layer router IDs against Transformers.
+
+## 2026-07-16 - M4.2-02 Layer-24 router validation
+
+Date: 2026-07-16
+
+Completed the reviewed Layer-24 subtask of M4.2-02. The genuine Rust path now
+executes the embedding and complete streaming Layers 0-23, then executes Layer
+24 only through router selection. It loads only selected experts through the
+normal `ExpertStore`; Layer-24 experts and later operations remain unreachable.
+
+Transformers F32 and Rust selected identical experts for every layer 0-24. All
+four Layer-24 F32 classifications are `exact_match_safe`; all four independent
+BF16 classifications are `numerically_ambiguous`. The Layer-24 router maximum
+error is `3.719329833984375e-5`, and the minimum F32 boundary margin is
+`0.01013946533203125`, safely above its `0.0000743865966796875` required
+margin.
+
+The first scalar-only combined-MoE guard stopped at Layer 1. A focused
+same-Rust-input diagnostic reduced the maximum from `3.509521484375e-4` to
+`8.392333984375e-5` and produced zero scalar-contract failures, classifying the
+original one-element failure as accumulated incoming drift rather than a local
+expert implementation mismatch. ADR 0022 freezes per-layer propagated budgets;
+RMSNorm, router ordering, expert arithmetic, and global tolerances are
+unchanged.
+
+Rust loaded 546 unique layer/expert keys for 768 occurrences, with 0 hits, 546
+misses/loads, 545 evictions, and `18,874,368` peak expert-resident bytes. Dense,
+expert, and total artifact reads were `1,914,119,168`, `10,305,404,928`, and
+`12,219,524,096` bytes. Modeled peak explicit Rust memory was `126,140,262`
+bytes; maximum Python peak working set was `660,402,176` bytes.
+
+Evidence: two reference runs and two final Rust runs were byte-identical. All
+temporary validation runs were removed. The canonical artifact and pinned
+source remained read-only, and no model payload was copied.
+
+Verification: `cargo fmt --all --check`, `cargo check --workspace`, all 123
+workspace tests, workspace Clippy with warnings denied, CLI bootstrap,
+feature-gated Clippy, Python compilation, four router-policy tests, and the
+focused optimized Layer-24 validation all passed. The focused test reported 1
+passed, 0 failed, and 73 filtered tests.
+
+Open issue: ADR 0022 budgets are provisional for this frozen Layer-24 path and
+must not be reused for Layer 47.
+
+Next subtask after review: M4.2-02 Layer-47 router validation. Do not begin it
+without the requested review.
+
+## 2026-07-16 - M4.2-02 Layer-47 router validation and task closure
+
+Date: 2026-07-16
+
+Completed Layer-47 router validation and M4.2-02. The genuine Rust F32 path
+executed embedding and complete streaming Layers 0-46, then Layer 47 only
+through pre-router and router selection. Layer-47 experts, the Layer-47 block,
+final norm, LM head, logits, sampling, and generation remained unreachable.
+
+Transformers F32 and Rust selected identical experts for all four tokens at
+every layer 0-47. All Layer-47 F32 classifications are `exact_match_safe`; all
+independent BF16 classifications are `numerically_ambiguous`. The smallest F32
+margin is `0.04711651802062988`, safely above its `0.00001811981201171875`
+required margin.
+
+ADR 0023 freezes a new Layer-47 propagated budget from the measured Layers
+24-47 components. The largest block drift is `2.3193359375e-3`, first reached
+at Layer 3. Layers 4-45 remain flat, and Layer 46 reduces the error to
+`9.765625e-4`; no anomalous late increase or out-of-budget checkpoint occurred.
+No isolated diagnostic was required and no arithmetic or numerical contract
+changed.
+
+Rust executed 1,504 expert occurrences and loaded 1,045 unique layer/expert
+keys. Cache metrics were 0 hits, 1,045 misses/loads, 1,044 evictions, and
+`18,874,368` peak resident expert bytes. Dense, expert, and total artifact reads
+were `3,675,078,656`, `19,723,714,560`, and `23,398,793,216` bytes. Modeled
+peak explicit Rust memory was `136,869,670` bytes; maximum Python peak working
+set was `693,604,352` bytes.
+
+Two reference exports and two final Rust evidence runs were byte-identical. All
+Layer-47 run directories were removed; the canonical artifact and pinned source
+remained read-only. Eleven compact files totaling `24,009,529` logical bytes
+were promoted.
+
+Verification passed: formatting, workspace check, all 123 workspace tests,
+warning-free workspace and feature Clippy, CLI bootstrap, Python compilation,
+four router-policy tests, the Layer-24 feature regression, and both final
+Layer-47 feature runs.
+
+Next task after review: M4.2-03 - validate selected intermediate outputs. It was
+not started in this session.
+
+## 2026-07-16 - M4.2-03 selected intermediate validation
+
+Date: 2026-07-16
+
+Completed M4.2-03 with eight deterministic expert cases at Layers 0, 1, 24,
+and 47. The genuine Rust path completed all 48 blocks through the normal
+storage-aware expert path and stopped before final model normalization. Gate,
+up, SiLU, product, down, routing-weighted output, aggregation, residual, and
+block checkpoints all passed the per-stage ADR 0024 budgets.
+
+The reference exporter preserves Transformers occurrence batching. Its initial
+single-row Layer-0 recomputation stopped; a same-input diagnostic proved
+separate and concatenated gate/up calls bit-identical, and restoring genuine
+occurrence batching reproduced the frozen aggregate exactly. The Rust trace's
+down output is bit-identical to the unchanged normal expert output in every
+case, so no compensating arithmetic or local implementation defect appeared.
+
+Rust executed 1,536 expert occurrences and loaded 1,066 unique layer/expert
+keys with zero hits, 1,066 misses/loads, 1,065 evictions, and `18,874,368`
+peak resident expert bytes. Dense, expert, and total artifact reads were
+`3,675,078,656`, `20,120,076,288`, and `23,795,154,944` bytes. Modeled peak
+explicit memory was `126,685,121` bytes; Python peaked at `761,298,944` bytes.
+
+Two reference exports and two final Rust evidence runs were byte-identical.
+The canonical artifact and pinned source remained read-only. RMSNorm, routing,
+activation, expert layout, dtype, and cache contracts were unchanged.
+
+Verification passed: formatting, workspace check, all 123 workspace tests,
+warning-free workspace and feature Clippy, CLI bootstrap, Python compilation,
+11 focused Python tests, and both optimized intermediate evidence runs. The
+single 10,457-byte characterization run was removed; no temporary run remains.
+
+Next task after review: M4.2-04 - run a short deterministic token sequence. It
+was not started in this session.
+
+## 2026-07-16 - M4.2-04 short deterministic cached sequence
+
+Date: 2026-07-16
+
+Completed the full unquantized path through final RMSNorm, streamed LM head,
+vocabulary logits, deterministic greedy selection, and two genuine cached
+decode steps. Prompt `[9707, 11, 1879, 0]` generated `[1096, 374]`; both F32
+selections are `exact_match_safe` and all top-20 ranks agree.
+
+The fixed 48-layer KV cache reached length 6 with `1,179,648` payload bytes.
+All previous K/V prefixes remained byte-identical after append and allocation
+capacities never changed. Transformers incremental and full recomputation also
+agree on argmax through the processed final token.
+
+Rust read `29,518,290,944` dense and `43,486,543,872` expert bytes. The 2,304
+selected-expert loads produced zero hits and 2,303 evictions with `18,874,368`
+peak expert residency. Modeled peak explicit memory was `127,823,000` bytes.
+
+Two final reference passes and two final Rust passes were byte-identical. The
+two successful temporary directories, including both full vocabulary-row
+files, were removed. No canonical or pinned source artifact changed.
+
+Verification passed: formatting, workspace check, all 123 workspace tests,
+warning-free workspace and feature Clippy, CLI bootstrap, Python compilation,
+11 focused Python tests, and both optimized generation evidence runs.
+
+Next task after review: M4.2-05 - record peak resident bytes, bytes read, and
+cache metrics. It was not started in this session.
+
+## 2026-07-16 - M4.2-05 resource and I/O baseline
+
+Date: 2026-07-16
+
+Completed three fresh-process measurements of the unchanged M4.2-04 scalar
+full-model fixture. Every run preserved prompt `[9707, 11, 1879, 0]`, generated
+`[1096, 374]`, both F32 `exact_match_safe` classifications, and the fixed
+48-layer KV cache with 1,179,648 bytes and no allocation growth or overwrite.
+
+Rust inference-only wall time ranged from 393.820 to 437.023 seconds. Process
+peak working set ranged from 145,424,384 to 148,066,304 bytes, while modeled
+explicit memory remained 127,823,000 bytes. The three runs read
+29,518,290,944 logical dense bytes and 43,486,543,872 logical expert bytes for
+73,004,834,816 total logical artifact bytes. These are application range reads,
+not physical disk I/O; no cold-cache claim was made.
+
+The one-expert 18,874,368-byte cache handled 2,304 occurrences across 1,332
+unique layer/expert keys. It recorded zero hits, 2,304 misses/loads, 2,303
+evictions, and 972 cross-token reuses. Overall read amplification was 2.428603x
+and expert amplification was 1.729730x. Zero hits did not trigger optimization.
+
+All non-timing deterministic metrics matched across the three processes.
+Verification passed all five standard Cargo commands, 123 workspace tests,
+warning-free workspace and feature Clippy, Python compilation, 20 Python unit
+tests, the focused reconciliation test, and the M4.2-04 correctness regression
+in every measured run.
+
+Policy cleanup removed five flat run directories, 18 files, and 7,511,832
+logical bytes after a matching dry run. No temporary run remains. The canonical
+artifact and pinned source stayed read-only.
+
+Next task after review: M4.2-06 - document failures or tolerance differences
+before optimization. It was not started in this session.
+
+## 2026-07-16 - M4.2-06 correctness and variance closure
+
+Date: 2026-07-16
+
+Closed M4.2 with the verdict `completed with documented numerical variance`.
+The closure classifies every observed issue, keeps performance limitations
+separate from correctness failures, records remaining coverage risks, and adds
+an authoritative machine-readable tolerance registry plus optimization
+invariants.
+
+No Rust runtime implementation defect remains in the validated F32 path. The
+initial post-RMSNorm stop was PyTorch reduction-order variance; ordered Python
+F32 and Rust remain bit-exact. The Layer-1 scalar stop was accumulated incoming
+drift, and the selected-intermediate discrepancy was a reference occurrence-
+batching issue. Router ties retain higher-score/lower-ID ordering. BF16 remains
+an independent model-behavior reference.
+
+The registry covers 24 checkpoint/selection contracts and preserves their
+distinct scopes: exact internal, provisional cross-runtime, layer-specific,
+fixture-specific, diagnostic-only, and semantic-margin. Four focused tests
+validate checkpoint completeness, scope rules, supporting documents, frozen
+fixture invariants, and 12 content-addressed evidence references.
+
+The frozen optimized M4.2-04 regression regenerated exact reference hashes,
+passed all budgets and KV invariants, generated `[1096, 374]`, and retained the
+existing Rust evidence byte-for-byte. Policy cleanup removed the four temporary
+full-logit files and retained no M4.2-06 run.
+
+Verification passed all five standard Cargo commands, 123 workspace tests,
+warning-free workspace and feature Clippy, Python compilation, all 24 Python
+tests, registry consistency, evidence-reference validation, and the frozen
+generation regression.
+
+Next ordered task after review: M4.3-01 - establish an unquantized or higher-
+precision correctness baseline. No optimization or M4.3 implementation began
+in this session.
+
+## 2026-07-16 - M4.3-01 frozen F32 reference baseline
+
+Date: 2026-07-16
+
+Froze the existing ordered scalar Rust F32 full-model path as the authoritative
+baseline for future M4.3 variants. Added a canonical baseline manifest,
+Tier A/B/C fixture hierarchy, selected diagnostic-only F64 records, a stable
+future-comparison schema, ADR 0028, and an optimization-invariants checklist.
+No runtime arithmetic, artifact, cache, I/O, dtype, or execution policy changed.
+
+Tier A reuses the approved prompt `[9707, 11, 1879, 0]` and generated IDs
+`[1096, 374]`. Tier B executed six complete-forward fixtures totaling 11
+positions and covering low/high token IDs, English, Thai, code/newline,
+repeated text, and the end-of-text special token. All guard router IDs,
+top-20 ranks, argmax IDs, finite-output checks, KV allocations, and cache
+counters passed. Tier C references the existing focused M4.2 operation evidence.
+
+The `single_low_token` compact logit difference (`2.8419495e-4`) exceeded the
+largest prior M4.2 fixture-specific observation. A required same-input
+diagnostic measured only `1.9073486e-5` all-logit local LM-head difference and
+showed incoming-state effects up to `2.7370453e-4`; this is accumulated drift,
+not a local LM-head defect. New budgets are scoped per Tier B fixture using the
+existing `3 * observed + guard` model and do not change the M4.2 registry.
+
+The clean final Rust Tier B regression passed in 926.71 seconds. Its TSV was
+byte-identical to the generated tracked evidence with SHA-256
+`5632f63acd29b4af09709904d0ffcef12336628a9af51c1b4a8514c857d976f2`.
+The canonical baseline manifest SHA-256 is
+`5e36071de4f4385f8d4ea3310b3beef138ab65ac4627ea53a575ab5e627b71b4`.
+
+Verification passed all five standard Cargo commands, all 123 workspace tests,
+warning-free workspace and feature Clippy, the feature-gated Tier B schema
+test, Python compilation, all 29 Python tests, two byte-identical bundle
+generations, evidence-reference checks, and the final full Tier B regression.
+The M4.2-05 performance baseline remains frozen and was not rerun.
+
+Cleanup dry-run and apply validated and removed two flat run directories with
+seven files and 663,661 logical bytes. No M4.3-01 temporary run remains, and
+the canonical artifact and pinned source roots remained protected.
+
+Next ordered task after review: M4.3-02 - define the first candidate expert
+quantization format. No quantization or performance implementation began.
+
+## 2026-07-17 - M4.3-02 first expert quantization format
+
+Defined and evaluated three representative INT8 formats without modifying the
+runtime or creating a quantized artifact. The experiment read 24 canonical F32
+projection matrices from Layers 0, 1, 24, and 47 for experts 62, 91, 68, 127,
+85, 8, 54, and 36. It evaluated 72 matrix quantizations and 24 same-input
+gate/up/activation/product/down/weighted chains.
+
+Per-tensor INT8 was rejected. Per-output-channel INT8 was selected for the
+first future implementation: its maximum weighted expert error was 0.1043549,
+modeled expert size 4,733,280 bytes, 4.200218x compression, and 226 experts
+under a 1 GiB binary cache. Input-group-128 was numerically better at 0.0820999
+but costs 2.81% more bytes and remains promising rather than selected.
+
+The selected format is symmetric INT8, F32 per-output-row scales, nearest-even
+rounding, saturation to [-127,127], F32 activations and accumulation, and
+little-endian 64-byte-aligned deterministic serialization. The draft runtime
+contract dequantizes one complete projection to F32 before using the existing
+scalar operation. The additive artifact schema is versioned separately from
+the canonical F32 artifact.
+
+Evidence was generated twice with identical hashes:
+
+- JSON: `fe8b7d06d013227952f6387969d705c433913f4c8a95db56f7abda1324f5ddf1`
+- TSV: `b2bb78d52c96fa8dec4c35cb9d80daabb48576a864b2f8f1689845b77cd2208b`
+
+Added the candidate report, ADR 0029, format specification, additive artifact
+schema, runtime kernel contract, provisional correctness gates, and five
+deterministic schema/evidence tests. No F32 tolerance or runtime behavior was
+changed.
+
+Next ordered task after review: M4.3-03 - keep router and sensitive dense
+tensors at measured safe precision.
+
+## 2026-07-17 - M4.3-03 sensitive dense precision policy
+
+Measured embedding, attention Q/K/V/O, normalization, Q/K norm, router,
+final-norm, and LM-head weight groups at Layers 0, 1, 24, and 47 using F32,
+BF16-rounded-to-F32, and offline per-output-channel INT8 diagnostics. The
+canonical F32 artifact remained read-only; no mixed artifact, runtime kernel,
+cache change, or arithmetic change was made.
+
+The canonical artifact is BF16-derived, so BF16-rounded weights were exact in
+the controlled weight-only experiment. This does not authorize BF16 activation
+or kernel arithmetic. INT8 router changed Layer-0 IDs despite a positive safe
+margin (`0.0468793`) and is rejected. Attention O INT8 local output error
+reached `0.2976232`; dense INT8 remains diagnostic-only. Router, RMSNorm, Q/K
+norm, final norm, routing weights, residuals, activations, and accumulations
+remain F32. Embedding, attention Q/K/V/O, and LM-head weights are future BF16
+storage candidates requiring Tier C/B/A evidence.
+
+The deterministic evaluator produced 117 records and 12 router records twice
+with JSON SHA-256
+`1387addd232a80e970af00d7c86dc1a747085589fff14663b2f909ab3b38db81`.
+Added the precision-sensitivity report, machine-readable evidence, tensor
+registry, mixed-precision policy draft, ADR 0030, and focused Python tests.
+
+Verification completed: Python compilation, four policy/evidence tests, and
+repeated deterministic evidence generation. The standard Cargo verification
+commands are run before the review commit.
+
+Next ordered task after review: M4.3-04 - compare output degradation against
+the frozen F32 baseline.
+
+## 2026-07-17 - M4.3-04 expert INT8 degradation study
+
+Ran the selected symmetric INT8 per-output-channel expert simulation with F32
+scales, F32 expert activations/accumulation, and all non-expert tensors at F32.
+The simulation quantized and dequantized selected projections on demand and
+did not create a quantized artifact or modify production runtime behavior.
+
+Tier C covered eight representative expert cases and passed all provisional
+M4.3-02 gates. Tier B covered all six frozen fixtures. No safe-margin router
+true mismatch occurred, but propagated drift became material at Layer 1 and
+reached a maximum Layer-47 final-block error of `152.1300659`. The Thai fixture
+argmax changed from `7360` to `16222` under a numerically ambiguous margin.
+Tier A retained generated IDs `[1096, 374]`, with several ambiguous vocabulary
+and router classifications.
+
+The candidate is classified `quality_risk`, not accepted for runtime prototype.
+The F32 tolerance registry, canonical artifact, router policy, norms, cache,
+and production runtime remain unchanged. Evidence was generated with SHA-256
+`0a2f5c85087de32a23b975bc206ed98b007e353dbc897fb71317fcef6568e140`.
+
+Verification for this task includes deterministic Tier C/B/A simulation and
+the focused degradation tests; standard Cargo and full Python verification are
+run before the review commit.
+
+Next ordered task after review: M4.3-05 - compare memory/I/O and speed against
+ik_llama.cpp where formats and hardware permit.
+
+## 2026-07-17 - M4.3-05 ik_llama comparison
+
+Pinned `ik_llama.cpp` at `1fddd12ba861c4815a8633f14d9c5670692099cc` with a
+clean external checkout and CPU-only Release build. The exact Qwen3-30B-A3B
+Q4_K_M artifact was downloaded read-only into one flat temporary run, verified
+at 18,556,685,824 bytes and SHA-256
+`0d003f6662faee786ed5da3e31b29c978de5ae5d275c8794c606a7f3c01aa8f5`.
+
+Four fresh-process short runs and one 32-token decode completed with the exact
+fixture `Hello, world!` -> `[9707, 11, 1879, 0]`. Short CLI decode was
+`5.276-5.863` tok/s with 4.36-4.41 GB peak working set; the long decode was
+`3.511` tok/s with 9.03 GB peak working set. Three `llama-bench` repetitions
+reported `3.968 +/- 0.875` prompt tok/s and `2.819 +/- 0.099` decode tok/s.
+The result is directional because Q4_K_M, mmap, fused MoE, SIMD, graph reuse,
+and optimized kernels differ from colibri's F32 scalar path. Physical I/O was
+not claimed and no runtime code changed.
+
+Added the environment manifest, compact run metrics, comparison report, ADR
+0032, and the reproducible external benchmark script. Successful temporary
+model files are removed after evidence review.
+
+Next ordered task after review: M4.3-06 - select or reject the candidate based
+on recorded evidence.
+
+## 2026-07-17 - M4.3-06 candidate decision and phase closure
+
+Formally rejected symmetric INT8 per-output-channel expert weights as a
+full-model production candidate. The format remains retained for diagnostics
+and possible selective-layer/selective-projection investigation only with new
+evidence. Local Tier-C gates passed, but propagated risk began at Layer 1
+(`0.1724930` final-block error), reached Layer 47 (`152.1300659`), changed the
+Thai Tier-B argmax (`7360` to `16222`), and reduced Top-20 overlap to `0.65`.
+Tier-A IDs `[1096, 374]` matched but included ambiguous steps and are not a
+sufficient acceptance criterion.
+
+M4.3 phase verdict: completed with documented quantization rejection and
+optimization pivot. F32 is authoritative; per-tensor INT8 is rejected;
+group-128 is promising but insufficiently evidenced; router INT8 is rejected;
+dense BF16 is a future kernel/activation candidate; ik_llama Q4_K_M is an
+external performance reference only.
+
+The project continues, pivoting from immediate quantized-runtime work to the
+simulation-only `F32 memory-hierarchy study: resident dense weights plus
+trace-driven expert-cache sizing` at 1/2/4/8/16/24/32 binary GiB. No runtime
+change is authorized before simulation review.
+
+Added candidate status and decision registries, M4.3 closure report, memory
+hierarchy roadmap, ADR 0033, and four registry/evidence tests.
+
+Exact next task after review: M4.4-01 - emit versioned baseline JSON.
+
+## 2026-07-17 - M4.4-01 versioned performance baseline index
+
+Created the canonical deterministic baseline index
+`models/qwen3-30b-a3b/m4.4-performance-baseline-v1.json` with stable ID
+`qwen3-30b-a3b-colibri-f32-windows-x64-v1`. It references 31 existing model,
+correctness, resource, quantization, invariant, roadmap, and ik_llama evidence
+files by canonical relative path, byte count, and SHA-256; no model payload or
+large checkpoint evidence was duplicated.
+
+The generator validates canonical model revision and artifact inventory, F32
+authority, known evidence schema versions, frozen fixture IDs, performance and
+cache reconciliation, unique baseline IDs, and rejection of production
+quantization candidates. Serialization is sorted-key compact UTF-8 JSON with a
+trailing newline and no timestamp. Repeated generation is byte-identical.
+
+Added focused baseline-schema/reference/hash/reproducibility tests and the
+human-readable M4.4-01 report. Runtime behavior, artifacts, cache capacity,
+and numerical arithmetic were unchanged; RAM/cache simulation has not started.
+
+Next ordered task after review: M4.4-02 - record runtime/model commits and
+artifact version.
+
+## 2026-07-17 - M4.4-02 M4 release provenance and closure
+
+Created the authoritative release record
+`models/qwen3-30b-a3b/m4-release-provenance-v1.json` with release ID
+`colibri-lite-rs-m4-qwen3-30b-a3b-f32-v1`. It pins runtime commit
+`a230074959fc3b55ff73e8f4eb24e377a0a6b79f`, parent M4.4 baseline commit
+`80099f05246a4450ded6f42baf6b8db5a4b2e623`, the Qwen3 revision,
+source/tokenizer identity, canonical artifact hashes, F32 contracts, M4.4
+resource evidence, M4.3 decisions, and the directional ik_llama reference.
+
+Added provenance validation and deterministic regeneration tests, release notes,
+README status, and M4/M5 task tracking. Validation rejects changed hashes or
+identities, accepted rejected candidates, duplicate release IDs, and any M5
+task marked started. No runtime, artifact, cache, numerical, or performance
+implementation changed; no RAM/cache simulation ran.
+
+The approved tag is `m4-full-qwen3-baseline-v1` and must point to the final
+clean closure commit. Exact next task: M5.1-01 trace-driven memory hierarchy
+simulation.

@@ -3,11 +3,11 @@ use std::fmt;
 use clr_core::{DataType, RuntimeError, Tensor, TensorView, ops::elementwise_add};
 use clr_storage::{ByteOrder, ExpertKey, ExpertStore, StorageError};
 
+#[cfg(all(test, feature = "full-model-validation"))]
+use crate::block::{ExpertMlpTrace, expert_mlp_trace};
 use crate::{
     Qwen3MoeBlockOutput, Qwen3MoeConfig, Qwen3MoeModelOutput,
-    block::{
-        attention_with_weights, combine_routed_experts, expert_mlp, linear, rms_norm, route_tokens,
-    },
+    block::{combine_routed_experts, expert_mlp, linear, pre_router_with_weights, rms_norm},
     model::embedding_lookup,
 };
 
@@ -178,48 +178,35 @@ impl StreamingQwen3MoeModel {
         weights: &StreamingBlockWeightsSpec,
         store: &mut ExpertStore,
     ) -> Result<Qwen3MoeBlockOutput, StreamingModelError> {
-        let input_norm = rms_norm(
+        let pre_router = pre_router_with_weights(
             hidden,
             weights.input_norm.view(),
-            self.config.rms_norm_epsilon(),
-        )?;
-        let attention_output = attention_with_weights(
-            input_norm.view(),
-            self.config,
             weights.query_projection.view(),
             weights.key_projection.view(),
             weights.value_projection.view(),
             weights.output_projection.view(),
             weights.query_norm.view(),
             weights.key_norm.view(),
-        )?;
-        let after_attention = elementwise_add(hidden, attention_output.view())?;
-        let post_attention_norm = rms_norm(
-            after_attention.view(),
             weights.post_attention_norm.view(),
-            self.config.rms_norm_epsilon(),
-        )?;
-        let router = route_tokens(
-            post_attention_norm.view(),
             weights.router.view(),
             self.config,
         )?;
         let moe_output = streaming_routed_experts(
-            post_attention_norm.view(),
-            &router,
+            pre_router.post_attention_norm.view(),
+            &pre_router.router,
             self.config,
             layer_index,
             store,
             self.layout,
         )?;
-        let block_output = elementwise_add(after_attention.view(), moe_output.view())?;
+        let block_output = elementwise_add(pre_router.residual_output.view(), moe_output.view())?;
         Ok(Qwen3MoeBlockOutput {
-            input_norm,
-            attention_output,
-            post_attention_norm,
-            router_logits: router.logits,
-            routing_weights: router.weights,
-            selected_experts: router.selected_experts,
+            input_norm: pre_router.input_norm,
+            attention_output: pre_router.attention_output,
+            post_attention_norm: pre_router.post_attention_norm,
+            router_logits: pre_router.router.logits,
+            routing_weights: pre_router.router.weights,
+            selected_experts: pre_router.router.selected_experts,
             moe_output,
             block_output,
         })
@@ -234,6 +221,30 @@ pub(crate) fn streaming_routed_experts(
     store: &mut ExpertStore,
     layout: PackedExpertLayout,
 ) -> Result<Tensor, StreamingModelError> {
+    streaming_routed_experts_with_observer(
+        hidden_states,
+        router,
+        config,
+        layer_index,
+        store,
+        layout,
+        |_, _, _, _| {},
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn streaming_routed_experts_with_observer<F>(
+    hidden_states: TensorView<'_>,
+    router: &crate::block::RouterOutput,
+    config: Qwen3MoeConfig,
+    layer_index: usize,
+    store: &mut ExpertStore,
+    layout: PackedExpertLayout,
+    mut observe: F,
+) -> Result<Tensor, StreamingModelError>
+where
+    F: FnMut(usize, usize, usize, &[f32]),
+{
     let hidden_size = config.model().hidden_size();
     let intermediate = config.moe_intermediate_size();
     combine_routed_experts(
@@ -247,21 +258,79 @@ pub(crate) fn streaming_routed_experts(
             };
             let lease = store.load(key)?;
             let decoded = decode_payload(key, lease.bytes(), layout)?;
-            Ok(occurrences
-                .iter()
-                .map(|(token, _)| {
-                    let input =
-                        &hidden_states.data()[token * hidden_size..(token + 1) * hidden_size];
-                    expert_mlp(
+            let mut outputs = Vec::with_capacity(occurrences.len());
+            for &(token, position) in occurrences {
+                let input = &hidden_states.data()[token * hidden_size..(token + 1) * hidden_size];
+                let output = expert_mlp(
+                    input,
+                    &decoded.gate,
+                    &decoded.up,
+                    &decoded.down,
+                    hidden_size,
+                    intermediate,
+                );
+                observe(expert_id, token, position, &output);
+                outputs.push(output);
+            }
+            Ok(outputs)
+        },
+    )
+}
+
+#[cfg(all(test, feature = "full-model-validation"))]
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn streaming_routed_experts_with_trace_observer<P, F>(
+    hidden_states: TensorView<'_>,
+    router: &crate::block::RouterOutput,
+    config: Qwen3MoeConfig,
+    layer_index: usize,
+    store: &mut ExpertStore,
+    layout: PackedExpertLayout,
+    mut trace_requested: P,
+    mut observe: F,
+) -> Result<Tensor, StreamingModelError>
+where
+    P: FnMut(usize, usize, usize) -> bool,
+    F: FnMut(usize, usize, usize, &[f32], &ExpertMlpTrace),
+{
+    let hidden_size = config.model().hidden_size();
+    let intermediate = config.moe_intermediate_size();
+    combine_routed_experts(
+        hidden_states,
+        router,
+        config,
+        |expert_id, occurrences| -> Result<Vec<Vec<f32>>, StreamingModelError> {
+            let key = ExpertKey {
+                layer_index: u32::try_from(layer_index).unwrap_or(u32::MAX),
+                expert_id: clr_storage::ExpertId(u32::try_from(expert_id).unwrap_or(u32::MAX)),
+            };
+            let lease = store.load(key)?;
+            let decoded = decode_payload(key, lease.bytes(), layout)?;
+            let mut outputs = Vec::with_capacity(occurrences.len());
+            for &(token, position) in occurrences {
+                let input = &hidden_states.data()[token * hidden_size..(token + 1) * hidden_size];
+                let output = expert_mlp(
+                    input,
+                    &decoded.gate,
+                    &decoded.up,
+                    &decoded.down,
+                    hidden_size,
+                    intermediate,
+                );
+                if trace_requested(expert_id, token, position) {
+                    let trace = expert_mlp_trace(
                         input,
                         &decoded.gate,
                         &decoded.up,
                         &decoded.down,
                         hidden_size,
                         intermediate,
-                    )
-                })
-                .collect())
+                    );
+                    observe(expert_id, token, position, &output, &trace);
+                }
+                outputs.push(output);
+            }
+            Ok(outputs)
         },
     )
 }

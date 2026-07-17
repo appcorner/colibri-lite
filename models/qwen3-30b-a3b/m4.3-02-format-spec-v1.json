@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "task": "M4.3-02",
+  "status": "selected_for_implementation",
+  "selected_format": "symmetric_int8_per_output_channel_f32_scale",
+  "selection_scope": "format_definition_only; no quantized runtime or complete artifact implemented",
+  "source": {
+    "dtype": "F32",
+    "artifact": "canonical F32 expert artifact",
+    "root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "model_revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39"
+  },
+  "quantized_dtype": "INT8",
+  "scale_dtype": "F32",
+  "quantization_axis": 0,
+  "group_size": null,
+  "scale_calculation": "scale[row] = max(abs(weight[row, :])) / 127",
+  "rounding": "IEEE-754 nearest-even",
+  "clamping": "saturate to [-127, 127]; -128 is reserved and never emitted",
+  "zero_row": "scale=0 and every quantized value=0; reconstruction=0",
+  "non_finite_input": "reject NaN and infinity before quantization",
+  "orientation": {
+    "gate": "output_by_input [768, 2048]",
+    "up": "output_by_input [768, 2048]",
+    "down": "output_by_intermediate [2048, 768]"
+  },
+  "serialization": {
+    "byte_order": "little-endian",
+    "payload_order": "row-major C order",
+    "scale_order": "output-row order",
+    "alignment_bytes": 64,
+    "padding": "zero padding to 64-byte boundaries; padding excluded from logical tensor lengths",
+    "metadata": "canonical sorted JSON descriptor followed by INT8 payload and F32 scales",
+    "determinism": "same source bytes and descriptor produce byte-identical payload, scales, and hashes"
+  },
+  "storage_reference": "models/qwen3-30b-a3b/m4.3-02-quantization-evidence-v1.json",
+  "selection_rationale": {
+    "per_tensor": "rejected: largest representative weighted expert error 0.4204293",
+    "per_output_channel": "selected: 0.1043549 maximum weighted error, 4.200218x modeled compression, simple row-wise metadata, portable correctness-first implementation",
+    "input_group_128": "promising_but_requires_more_evidence: lower 0.0820999 maximum weighted error but 2.81 percent more bytes and more indexing complexity"
+  },
+  "future_extension": "axis/group metadata leaves a compatible path for group-wise formats and later Q4 research without changing the F32 artifact"
+}

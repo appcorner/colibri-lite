@@ -58,6 +58,7 @@ fn config_with_theta_and_normalization(
         layer_count: frozen_config::LAYER_COUNT,
         attention_head_count: frozen_config::ATTENTION_HEAD_COUNT,
         key_value_head_count: frozen_config::KEY_VALUE_HEAD_COUNT,
+        head_dimension: frozen_config::HEAD_DIMENSION,
         intermediate_size: frozen_config::INTERMEDIATE_SIZE,
         max_sequence_length: frozen_config::MAX_SEQUENCE_LENGTH,
         data_type: DataType::F32,
@@ -376,6 +377,59 @@ fn router_can_renormalize_selected_probabilities() {
 
     assert_eq!(output.selected_experts, [0, 1]);
     assert_eq!(output.weights.data(), [0.5, 0.5]);
+}
+
+fn route_explicit_logits(logits: [f32; 4]) -> RouterOutput {
+    let config = fixture_config();
+    let mut hidden = vec![0.0; 16];
+    hidden[0] = 1.0;
+    let hidden = Tensor::new(TensorShape::new([1, 16]), hidden).expect("hidden");
+    let mut weights = vec![0.0; 4 * 16];
+    for (expert, logit) in logits.into_iter().enumerate() {
+        weights[expert * 16] = logit;
+    }
+    let router = Tensor::new(TensorShape::new([4, 16]), weights).expect("router");
+    route_tokens(hidden.view(), router.view(), config).expect("route explicit logits")
+}
+
+#[test]
+fn router_orders_strict_scores_from_highest_to_lowest() {
+    assert_eq!(
+        route_explicit_logits([1.0, 4.0, 2.0, 3.0]).selected_experts,
+        [1, 3]
+    );
+}
+
+#[test]
+fn router_orders_all_equal_scores_by_lower_expert_id() {
+    assert_eq!(route_explicit_logits([2.0; 4]).selected_experts, [0, 1]);
+}
+
+#[test]
+fn router_orders_ties_inside_selected_set_by_lower_expert_id() {
+    assert_eq!(
+        route_explicit_logits([4.0, 4.0, 2.0, 1.0]).selected_experts,
+        [0, 1]
+    );
+}
+
+#[test]
+fn router_orders_top_k_boundary_ties_by_lower_expert_id() {
+    assert_eq!(
+        route_explicit_logits([4.0, 3.0, 3.0, 1.0]).selected_experts,
+        [0, 1]
+    );
+}
+
+#[test]
+fn router_tie_order_is_repeatable() {
+    let expected = route_explicit_logits([4.0, 3.0, 3.0, 1.0]).selected_experts;
+    for _ in 0..32 {
+        assert_eq!(
+            route_explicit_logits([4.0, 3.0, 3.0, 1.0]).selected_experts,
+            expected
+        );
+    }
 }
 
 #[test]

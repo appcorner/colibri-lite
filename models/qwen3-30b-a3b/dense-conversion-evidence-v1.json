@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-14",
+  "model_id": "Qwen/Qwen3-30B-A3B",
+  "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+  "source": {
+    "dtype": "BF16",
+    "shard_count": 16,
+    "shard_bytes": 61066575648,
+    "all_shard_hashes_verified_before_payload_decode": true,
+    "plan_path": "models/qwen3-30b-a3b/dense-source-plan-v1.tsv",
+    "plan_bytes": 33937,
+    "plan_sha256": "23c165cfddb8e1b516ed6cf181fef573f8025e22e857457a2d1c81aeef645d0d",
+    "dense_tensor_count": 435,
+    "dense_bf16_payload_bytes": 3082186752,
+    "index_shard_mapping_errors": 0,
+    "header_dtype_errors": 0
+  },
+  "artifact_contract": {
+    "format_version": 1,
+    "dtype": "F32",
+    "endianness": "little",
+    "physical_payload": "dense-f32.bin",
+    "manifest": "dense-manifest-v1.json",
+    "logical_tensor_count": 435,
+    "physical_payload_count": 1,
+    "transpose_or_layout_transform": false,
+    "tensor_payload_order": "canonical tensor name ascending"
+  },
+  "preflight": {
+    "initial_available_bytes": 508623314944,
+    "initial_available_gib": 473.692,
+    "full_run_available_bytes": 447494340608,
+    "full_conversion_required_bytes": 6164617086,
+    "existing_cached_and_materialized_estimate_bytes": 130000000000,
+    "estimate_exceeded": false
+  },
+  "vertical_slice": {
+    "tensors": [
+      "model.layers.47.input_layernorm.weight",
+      "model.layers.47.post_attention_layernorm.weight",
+      "model.norm.weight"
+    ],
+    "source_shard": "model-00016-of-00016.safetensors",
+    "source_shard_sha256": "0c979e314faf06e94a5e1841abd285d4e26e763c79c1abe7710d543192d9da48",
+    "source_verification_bytes_read": 1087928584,
+    "unique_bf16_payload_bytes": 12288,
+    "source_payload_bytes_read_for_conversion_and_round_trip": 24576,
+    "total_source_bytes_read": 1087953160,
+    "artifact_bytes_written": 24576,
+    "manifest_bytes_written": 1341,
+    "preflight_required_bytes": 30310,
+    "peak_conversion_buffer_bytes": 327680,
+    "payload_sha256": "d265721759f19bd8a62c1dd7746f841592e0e7a46827e884f9df58ccad649f4d",
+    "manifest_sha256": "7112a40c15bd68122f32fe1fe38392cb2f115a524ab4808f3040d1442d1caf8c",
+    "repeat_payload_hash_equal": true,
+    "repeat_manifest_hash_equal": true,
+    "exact_f32_round_trip": true
+  },
+  "complete_dense_conversion": {
+    "tensor_count": 435,
+    "source_verification_bytes_read": 61066575648,
+    "unique_bf16_payload_bytes": 3082186752,
+    "source_payload_bytes_read_for_conversion_and_round_trip": 6164373504,
+    "total_source_bytes_read": 67230949152,
+    "artifact_bytes_written": 6164373504,
+    "manifest_bytes_written": 146850,
+    "preflight_required_bytes": 6164617086,
+    "peak_conversion_buffer_bytes": 327680,
+    "payload_sha256": "bfad7fdc0f8611537ca5751f8e7140c35cf72bb4e67934b02d99711c89640893",
+    "manifest_sha256": "aff0f4c59a71b98590bd2a1efc4e3fd6a95d58794063ce4b1092acce1597bc54",
+    "repeat_payload_hash_equal": true,
+    "repeat_manifest_hash_equal": true,
+    "exact_f32_round_trip": true
+  },
+  "conversion": {
+    "source_chunk_bytes": 65536,
+    "peak_buffer_formula": "source chunk + expected F32 chunk + artifact verification chunk",
+    "temporary_output": true,
+    "manifest_committed_last": true,
+    "incomplete_output_cleanup_tested": true,
+    "dependency_added": false,
+    "unsafe_added": false,
+    "command": "cargo run --release -p clr-qwen3-moe --example convert_pinned_dense -- complete models\\qwen3-30b-a3b\\dense-source-plan-v1.tsv <source-root> <output-directory> <available-bytes>"
+  },
+  "failure_cases": [
+    "wrong complete source shard hash",
+    "truncated source shard",
+    "wrong source dtype",
+    "wrong pinned tensor shape",
+    "invalid source shard range",
+    "insufficient preflight disk space",
+    "injected incomplete output transaction",
+    "expert tensor selected for dense conversion",
+    "incomplete full dense inventory"
+  ],
+  "excluded": [
+    "expert conversion",
+    "quantization",
+    "memory mapping",
+    "SIMD",
+    "FFI",
+    "native kernels",
+    "tokenizer parsing"
+  ]
+}

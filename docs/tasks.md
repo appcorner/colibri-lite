@@ -263,44 +263,56 @@ Acceptance:
 
 ## M4.1 - Full-model artifact conversion
 
-- [ ] M4.1-01 Pin exact Qwen3-30B-A3B model ID and revision.
-- [ ] M4.1-02 Document upstream license and artifact provenance.
-- [ ] M4.1-03 Map required Hugging Face configuration fields.
-- [ ] M4.1-04 Map and validate required tensor names and shapes.
-- [ ] M4.1-05 Convert dense tensors for resident access.
-- [ ] M4.1-06 Convert experts for independent on-demand access.
-- [ ] M4.1-07 Include tokenizer assets required for the first full-model test.
-- [ ] M4.1-08 Generate hashes and a reproducible conversion manifest.
+- [x] M4.1-01 Pin exact Qwen3-30B-A3B model ID and revision.
+- [x] M4.1-02 Document upstream license and artifact provenance.
+- [x] M4.1-03 Map required Hugging Face configuration fields.
+- [x] M4.1-04 Map and validate required tensor names and shapes.
+- [x] M4.1-05 Convert dense tensors for resident access.
+- [x] M4.1-06 Convert experts for independent on-demand access.
+- [x] M4.1-07 Include tokenizer assets required for the first full-model test.
+- [x] M4.1-08 Generate hashes and a reproducible conversion manifest.
 
 ## M4.2 - Full-model correctness checkpoint
 
-- [ ] M4.2-01 Validate selected tensor values against Safetensors.
-- [ ] M4.2-02 Validate selected layer router IDs against Transformers.
-- [ ] M4.2-03 Validate selected intermediate outputs.
-- [ ] M4.2-04 Run a short deterministic token sequence.
-- [ ] M4.2-05 Record peak resident bytes, bytes read, and cache metrics.
-- [ ] M4.2-06 Document failures or tolerance differences before optimization.
+- [x] M4.2-01 Validate selected tensor values against Safetensors.
+- [x] M4.2-02 Validate selected layer router IDs against Transformers.
+- [x] M4.2-03 Validate selected intermediate outputs.
+- [x] M4.2-04 Run a short deterministic token sequence.
+- [x] M4.2-05 Record peak resident bytes, bytes read, and cache metrics.
+- [x] M4.2-06 Document failures or tolerance differences before optimization.
 
 ## M4.3 - Evidence-driven quantization
 
-- [ ] M4.3-01 Establish an unquantized or higher-precision correctness baseline.
-- [ ] M4.3-02 Define the first candidate expert quantization format.
-- [ ] M4.3-03 Keep router and sensitive dense tensors at measured safe precision.
-- [ ] M4.3-04 Compare output degradation against the baseline.
-- [ ] M4.3-05 Compare memory/I/O and speed against ik_llama.cpp where formats
+- [x] M4.3-01 Establish an unquantized or higher-precision correctness baseline.
+- [x] M4.3-02 Define the first candidate expert quantization format.
+- [x] M4.3-03 Keep router and sensitive dense tensors at measured safe precision.
+- [x] M4.3-04 Compare output degradation against the baseline.
+- [x] M4.3-05 Compare memory/I/O and speed against ik_llama.cpp where formats
   and hardware permit.
-- [ ] M4.3-06 Select or reject the candidate based on recorded evidence.
+- [x] M4.3-06 Select or reject the candidate based on recorded evidence.
+
+M4.3 is closed with the F32 baseline accepted, full-model expert INT8 rejected
+for production, and the first optimization pivot recorded in
+`docs/m4.3-next-phase-memory-hierarchy-roadmap.md`.
 
 ## M4.4 - Reproducible full-model baseline
 
-- [ ] M4.4-01 Emit versioned baseline JSON.
-- [ ] M4.4-02 Record runtime/model commits and artifact version.
-- [ ] M4.4-03 Record hardware and Windows version.
-- [ ] M4.4-04 Record resident budget, peak resident bytes, total bytes read, and
+- [x] M4.4-01 Emit versioned baseline JSON.
+- [x] M4.4-02 Record runtime/model commits and artifact version.
+- [x] M4.4-03 Record hardware and Windows version.
+- [x] M4.4-04 Record resident budget, peak resident bytes, total bytes read, and
   cache hit rate.
-- [ ] M4.4-05 Record prompt and generation throughput.
-- [ ] M4.4-06 Document supported configuration and known limitations.
-- [ ] M4.4-07 Repeat the run and verify the report is reproducible.
+- [x] M4.4-05 Record prompt and generation throughput.
+- [x] M4.4-06 Document supported configuration and known limitations.
+- [x] M4.4-07 Repeat the run and verify the report is reproducible.
+
+M4 is complete. The release provenance and closure record are in
+`models/qwen3-30b-a3b/m4-release-provenance-v1.json` and
+`docs/reports/m4-release-closure.md`. No M5 implementation has started.
+
+## M5 - Memory hierarchy and performance recovery
+
+- [ ] M5.1-01 Trace-driven memory hierarchy simulation.
 
 ## Standard verification commands
 

@@ -348,6 +348,8 @@ resident-memory budget.
 
 #### M4.1 - Full-model artifact conversion
 
+Status: complete.
+
 Scope:
 
 - Pin one exact upstream model revision.
@@ -358,6 +360,8 @@ Scope:
 - Document conversion provenance and licensing.
 
 #### M4.2 - Full-model correctness checkpoint
+
+Status: complete. M4.2 is completed with documented numerical variance.
 
 Scope:
 
@@ -372,6 +376,12 @@ The unoptimized storage-aware path is numerically credible and debuggable.
 
 #### M4.3 - Evidence-driven quantization
 
+Status: complete with documented quantization rejection. The ordered Rust F32
+path remains authoritative; expert INT8 per-output-channel is retained for
+diagnostics but rejected as a full-model production candidate. No quantization
+or optimization runtime code has begun. The next phase pivots to a simulation-
+first F32 memory-hierarchy study.
+
 Scope:
 
 - Select a first expert quantization only after measuring memory and I/O.
@@ -380,8 +390,14 @@ Scope:
 - Validate degradation against a defined prompt/evaluation set.
 - Treat ik_llama.cpp as a performance and quantization baseline, not a code
   target.
+- Preserve the F32 correctness invariants while simulating resident dense
+  weights and trace-driven expert-cache sizing at reviewed RAM budgets.
 
 #### M4.4 - Reproducible baseline
+
+Status: complete. M4 is closed with the release-provenance record and the
+approved `m4-full-qwen3-baseline-v1` tag. No optimization or M5 implementation
+has started.
 
 Required JSON fields:
 

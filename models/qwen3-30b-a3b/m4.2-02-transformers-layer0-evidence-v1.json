@@ -1,0 +1,381 @@
+{
+  "artifact_bytes_read": 0,
+  "attention_mask": {
+    "allowed_value": 0.0,
+    "kind": "causal additive",
+    "masked_value": "minimum finite BF16",
+    "shape": [
+      1,
+      1,
+      4,
+      4
+    ]
+  },
+  "checkpoint_file": {
+    "bytes": 167256,
+    "sha256": "122cb4ad670b98be004ae64cacd0cefb31d9dcd9cb53ef04fe56cc55dab8e747"
+  },
+  "checkpoint_inventory": {
+    "attention_mask": {
+      "bytes": 64,
+      "dtype": "float32",
+      "shape": [
+        1,
+        1,
+        4,
+        4
+      ]
+    },
+    "attention_output": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "embedding_output": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "input_ids": {
+      "bytes": 32,
+      "dtype": "int64",
+      "shape": [
+        4
+      ]
+    },
+    "input_rmsnorm": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "position_ids": {
+      "bytes": 32,
+      "dtype": "int64",
+      "shape": [
+        4
+      ]
+    },
+    "post_attention_rmsnorm": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "residual_output": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "router_logits": {
+      "bytes": 2048,
+      "dtype": "float32",
+      "shape": [
+        4,
+        128
+      ]
+    },
+    "routing_weights": {
+      "bytes": 128,
+      "dtype": "float32",
+      "shape": [
+        4,
+        8
+      ]
+    },
+    "selected_expert_ids": {
+      "bytes": 256,
+      "dtype": "int64",
+      "shape": [
+        4,
+        8
+      ]
+    }
+  },
+  "comparison_batch_axis_removed": true,
+  "determinism": {
+    "attention_implementation": "eager",
+    "device": "cpu",
+    "gradient_tracking": false,
+    "module_mode": "eval",
+    "seed": 0,
+    "torch_deterministic_algorithms": true,
+    "torch_interop_threads": 1,
+    "torch_threads": 1
+  },
+  "environment": {
+    "python": "3.12.10",
+    "safetensors": "0.8.0",
+    "torch": "2.12.1+cpu",
+    "transformers": "5.12.1"
+  },
+  "execution_seconds": 0.030385799997020513,
+  "expert_execution": false,
+  "input_token_ids": [
+    9707,
+    11,
+    1879,
+    0
+  ],
+  "layer": 0,
+  "model_id": "Qwen/Qwen3-30B-A3B",
+  "peak_explicit_tensor_bytes": 38448128,
+  "peak_process_working_set_bytes": 552140800,
+  "position_ids": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+  "router_boundaries": [
+    {
+      "expert_ids": [
+        62,
+        21,
+        75,
+        87,
+        36,
+        126,
+        34,
+        91
+      ],
+      "highest_unselected_logit": -3.71875,
+      "kth_selected_logit": -3.671875,
+      "routing_weights": [
+        0.294921875,
+        0.15234375,
+        0.150390625,
+        0.13671875,
+        0.0712890625,
+        0.06591796875,
+        0.06591796875,
+        0.0625
+      ],
+      "selected_logits": [
+        -2.125,
+        -2.78125,
+        -2.796875,
+        -2.890625,
+        -3.546875,
+        -3.625,
+        -3.625,
+        -3.671875
+      ],
+      "selection_margin": 0.046875,
+      "token_index": 0,
+      "top_k_boundary_tied": false
+    },
+    {
+      "expert_ids": [
+        114,
+        44,
+        26,
+        65,
+        59,
+        104,
+        83,
+        69
+      ],
+      "highest_unselected_logit": -3.71875,
+      "kth_selected_logit": -3.6875,
+      "routing_weights": [
+        0.271484375,
+        0.19921875,
+        0.1552734375,
+        0.12255859375,
+        0.11181640625,
+        0.052734375,
+        0.043701171875,
+        0.04248046875
+      ],
+      "selected_logits": [
+        -1.828125,
+        -2.140625,
+        -2.390625,
+        -2.625,
+        -2.71875,
+        -3.46875,
+        -3.65625,
+        -3.6875
+      ],
+      "selection_margin": 0.03125,
+      "token_index": 1,
+      "top_k_boundary_tied": false
+    },
+    {
+      "expert_ids": [
+        87,
+        105,
+        110,
+        91,
+        25,
+        54,
+        41,
+        21
+      ],
+      "highest_unselected_logit": -3.609375,
+      "kth_selected_logit": -3.59375,
+      "routing_weights": [
+        0.271484375,
+        0.138671875,
+        0.130859375,
+        0.1279296875,
+        0.0986328125,
+        0.08837890625,
+        0.07421875,
+        0.06982421875
+      ],
+      "selected_logits": [
+        -2.234375,
+        -2.90625,
+        -2.96875,
+        -2.984375,
+        -3.25,
+        -3.359375,
+        -3.53125,
+        -3.59375
+      ],
+      "selection_margin": 0.015625,
+      "token_index": 2,
+      "top_k_boundary_tied": false
+    },
+    {
+      "expert_ids": [
+        98,
+        65,
+        99,
+        114,
+        100,
+        72,
+        40,
+        96
+      ],
+      "highest_unselected_logit": -3.484375,
+      "kth_selected_logit": -3.4375,
+      "routing_weights": [
+        0.37890625,
+        0.130859375,
+        0.10205078125,
+        0.09765625,
+        0.09033203125,
+        0.076171875,
+        0.0693359375,
+        0.053955078125
+      ],
+      "selected_logits": [
+        -1.484375,
+        -2.546875,
+        -2.796875,
+        -2.84375,
+        -2.921875,
+        -3.09375,
+        -3.1875,
+        -3.4375
+      ],
+      "selection_margin": 0.046875,
+      "token_index": 3,
+      "top_k_boundary_tied": false
+    }
+  ],
+  "runtime_dtype": "F32",
+  "runtime_plan": {
+    "bytes": 989,
+    "sha256": "6a0f2ce4dabe20471e7d96bc7f811f5b8dd1193f23220974db6364271646c165"
+  },
+  "schema_version": 1,
+  "source_dtype": "BF16",
+  "source_hash_bytes_read": 3999417504,
+  "source_payload_bytes_read": 38298112,
+  "source_shards_verified": [
+    {
+      "bytes": 3999417504,
+      "path": "model-00001-of-00016.safetensors",
+      "sha256": "454e77b346a61bfb201d54df60e15158838cf930617ee135113556204f2802b5",
+      "shard_id": 0
+    }
+  ],
+  "status": "reference_export_passed",
+  "tolerances": {
+    "attention_output": {
+      "absolute": 0.03,
+      "relative": 0.03
+    },
+    "embedding_output": {
+      "absolute": 0.0,
+      "relative": 0.0
+    },
+    "input_rmsnorm": {
+      "absolute": 0.008,
+      "relative": 0.008
+    },
+    "post_attention_rmsnorm": {
+      "absolute": 0.015,
+      "relative": 0.015
+    },
+    "residual_output": {
+      "absolute": 0.03,
+      "relative": 0.03
+    },
+    "router_logits": {
+      "absolute": 0.015625,
+      "relative": 0.0
+    },
+    "routing_weights": {
+      "absolute": 0.01,
+      "relative": 0.03
+    }
+  },
+  "transformers_raw_checkpoint_shapes": {
+    "attention_output": [
+      1,
+      4,
+      2048
+    ],
+    "embedding_output": [
+      1,
+      4,
+      2048
+    ],
+    "input_rmsnorm": [
+      1,
+      4,
+      2048
+    ],
+    "post_attention_rmsnorm": [
+      1,
+      4,
+      2048
+    ],
+    "residual_output": [
+      1,
+      4,
+      2048
+    ],
+    "router_logits": [
+      4,
+      128
+    ],
+    "routing_weights": [
+      4,
+      8
+    ],
+    "selected_expert_ids": [
+      4,
+      8
+    ]
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "task": "M4.3-03",
+  "status": "diagnostic_policy_not_runtime",
+  "model": {
+    "model_id": "Qwen/Qwen3-30B-A3B",
+    "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+    "canonical_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2"
+  },
+  "evidence": "models/qwen3-30b-a3b/m4.3-03-precision-sensitivity-evidence-v1.json",
+  "comparison_semantics": {
+    "f32": "authoritative Rust ordered F32 baseline",
+    "bf16_rounded_f32": "BF16-rounded weights represented back in F32; weight-only diagnostic",
+    "int8_per_output_channel": "offline symmetric INT8 dequantized to F32; no runtime kernel"
+  },
+  "default_activation_dtype": "F32",
+  "default_accumulation_dtype": "F32",
+  "groups": [
+    {"group": "embedding_weights", "classification": "candidate_bf16", "required_dtype": "F32", "candidate_dtype": "BF16_storage_F32_compute", "reason": "weight-rounding diagnostic was exact; full Tier A/B propagation required before acceptance", "int8_status": "diagnostic_only"},
+    {"group": "attention_q_projection", "classification": "candidate_bf16", "required_dtype": "F32", "candidate_dtype": "BF16_storage_F32_compute", "reason": "weight-rounding exact locally; attention propagation and router guards remain required", "int8_status": "diagnostic_only"},
+    {"group": "attention_k_projection", "classification": "candidate_bf16", "required_dtype": "F32", "candidate_dtype": "BF16_storage_F32_compute", "reason": "weight-rounding exact locally; attention propagation and router guards remain required", "int8_status": "diagnostic_only"},
+    {"group": "attention_v_projection", "classification": "candidate_bf16", "required_dtype": "F32", "candidate_dtype": "BF16_storage_F32_compute", "reason": "weight-rounding exact locally; attention propagation and router guards remain required", "int8_status": "diagnostic_only"},
+    {"group": "attention_o_projection", "classification": "candidate_bf16", "required_dtype": "F32", "candidate_dtype": "BF16_storage_F32_compute", "reason": "weight-rounding exact locally; INT8 local output error reached 0.2976232", "int8_status": "rejected_lower_precision"},
+    {"group": "input_rmsnorm_weights", "classification": "must_remain_f32", "required_dtype": "F32", "candidate_dtype": null, "reason": "normalization weights are part of the frozen reduction-order contract and save only 196608 bytes across 48 layers", "int8_status": "diagnostic_only"},
+    {"group": "post_attention_rmsnorm_weights", "classification": "must_remain_f32", "required_dtype": "F32", "candidate_dtype": null, "reason": "normalization weights are part of the frozen propagated contract and save only 196608 bytes across 48 layers", "int8_status": "diagnostic_only"},
+    {"group": "q_norm_weights", "classification": "must_remain_f32", "required_dtype": "F32", "candidate_dtype": null, "reason": "small sensitive normalization vector; no meaningful output-channel INT8 structure", "int8_status": "diagnostic_only"},
+    {"group": "k_norm_weights", "classification": "must_remain_f32", "required_dtype": "F32", "candidate_dtype": null, "reason": "small sensitive normalization vector; no meaningful output-channel INT8 structure", "int8_status": "diagnostic_only"},
+    {"group": "router_weights", "classification": "must_remain_f32", "required_dtype": "F32", "candidate_dtype": null, "reason": "INT8 changed Layer-0 expert IDs despite a positive F32 boundary margin; deterministic routing is critical", "int8_status": "rejected_lower_precision"},
+    {"group": "final_rmsnorm_weights", "classification": "must_remain_f32", "required_dtype": "F32", "candidate_dtype": null, "reason": "final normalization is in the frozen final-norm contract and saves only 4096 bytes", "int8_status": "diagnostic_only"},
+    {"group": "lm_head_weights", "classification": "candidate_bf16", "required_dtype": "F32", "candidate_dtype": "BF16_storage_F32_compute", "reason": "weight-rounding exact locally; full-vocabulary top-k and Tier A token gates are required", "int8_status": "diagnostic_only"}
+  ],
+  "invariants": [
+    "router logits and expert selection remain F32",
+    "RMSNorm and Q/K normalization weights remain F32",
+    "routing weights, residuals, softmax, activations, and accumulations remain F32",
+    "canonical F32 artifact and M4.2 registry are unchanged",
+    "candidate storage is additive and cannot be accepted without Tier A/B regressions"
+  ],
+  "supporting_adr": "docs/adr/0030-sensitive-dense-precision-policy.md",
+  "supporting_report": "docs/reports/m4.3-03-precision-sensitivity.md",
+  "provisional_regression_requirements": [
+    "Tier C local operation and router margin checks",
+    "Tier B all six fixtures with guard-layer IDs and final logits",
+    "Tier A generated IDs [1096, 374] before accepting any candidate",
+    "no NaN or infinity and unchanged cache invariants",
+    "report correctness, numerical, memory, I/O, latency, artifact, and platform deltas"
+  ]
+}

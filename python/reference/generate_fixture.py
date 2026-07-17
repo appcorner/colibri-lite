@@ -84,6 +84,7 @@ def _tiny_config() -> Qwen3MoeConfig:
         num_hidden_layers=2,
         num_attention_heads=4,
         num_key_value_heads=2,
+        head_dim=4,
         max_position_embeddings=32,
         initializer_range=0.02,
         rms_norm_eps=1.0e-6,
@@ -320,6 +321,7 @@ def _write_rust_config(output_dir: Path, config: Qwen3MoeConfig) -> None:
         f"pub const LAYER_COUNT: usize = {config.num_hidden_layers};\n"
         f"pub const ATTENTION_HEAD_COUNT: usize = {config.num_attention_heads};\n"
         f"pub const KEY_VALUE_HEAD_COUNT: usize = {config.num_key_value_heads};\n"
+        f"pub const HEAD_DIMENSION: usize = {config.head_dim};\n"
         f"pub const INTERMEDIATE_SIZE: usize = {config.intermediate_size};\n"
         f"pub const MAX_SEQUENCE_LENGTH: usize = {config.max_position_embeddings};\n"
         f"pub const RMS_NORM_EPSILON: f32 = {config.rms_norm_eps!r}_f32;\n"

@@ -1,0 +1,24 @@
+format_version	1
+model_id	Qwen/Qwen3-30B-A3B
+revision	ad44e777bcd18fa416d9da3bd8f70d33ebb85d39
+root_manifest_sha256	f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2
+payload	dense/dense-f32.bin	6164373504	bfad7fdc0f8611537ca5751f8e7140c35cf72bb4e67934b02d99711c89640893
+tensor	model.embed_tokens.weight	1244659712	1244659712	151936,2048
+tensor	model.layers.0.input_layernorm.weight	2489319424	8192	2048
+tensor	model.layers.0.self_attn.q_proj.weight	2528134144	33554432	4096,2048
+tensor	model.layers.0.self_attn.k_proj.weight	2490384896	4194304	512,2048
+tensor	model.layers.0.self_attn.v_proj.weight	2561688576	4194304	512,2048
+tensor	model.layers.0.self_attn.o_proj.weight	2494579200	33554432	2048,4096
+tensor	model.layers.0.self_attn.q_norm.weight	2528133632	512	128
+tensor	model.layers.0.self_attn.k_norm.weight	2490384384	512	128
+tensor	model.layers.0.post_attention_layernorm.weight	2490376192	8192	2048
+tensor	model.layers.0.mlp.gate.weight	2489327616	1048576	128,2048
+tensor	model.layers.1.input_layernorm.weight	2565882880	8192	2048
+tensor	model.layers.1.self_attn.q_proj.weight	2604697600	33554432	4096,2048
+tensor	model.layers.1.self_attn.k_proj.weight	2566948352	4194304	512,2048
+tensor	model.layers.1.self_attn.v_proj.weight	2638252032	4194304	512,2048
+tensor	model.layers.1.self_attn.o_proj.weight	2571142656	33554432	2048,4096
+tensor	model.layers.1.self_attn.q_norm.weight	2604697088	512	128
+tensor	model.layers.1.self_attn.k_norm.weight	2566947840	512	128
+tensor	model.layers.1.post_attention_layernorm.weight	2566939648	8192	2048
+tensor	model.layers.1.mlp.gate.weight	2565891072	1048576	128,2048

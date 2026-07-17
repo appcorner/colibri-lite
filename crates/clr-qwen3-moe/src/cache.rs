@@ -199,6 +199,14 @@ mod tests {
     }
 
     #[test]
+    fn explicit_head_dimension_drives_kv_byte_accounting() {
+        let cache = KvCache::new(2, 8, 4, 128).expect("explicit-head cache");
+
+        assert_eq!(cache.byte_size(), 2 * 8 * 4 * 128 * 2 * 4);
+        assert_eq!(cache.allocation_capacities(), vec![(4096, 4096); 2]);
+    }
+
+    #[test]
     fn append_is_transactional_and_never_grows_allocations() {
         let mut cache = KvCache::new(2, 1, 1, 2).expect("cache");
         let before = cache.allocation_capacities();

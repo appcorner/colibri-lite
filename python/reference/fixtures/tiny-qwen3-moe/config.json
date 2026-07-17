@@ -8,6 +8,7 @@
   "decoder_sparse_step": 1,
   "dtype": "float32",
   "eos_token_id": 2,
+  "head_dim": 4,
   "hidden_act": "silu",
   "hidden_size": 16,
   "id2label": {

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "task": "M4.3-02",
+  "status": "provisional_future_quantized_contract_not_in_f32_registry",
+  "selected_format": "symmetric_int8_per_output_channel_f32_scale",
+  "source_evidence": "models/qwen3-30b-a3b/m4.3-02-quantization-evidence-v1.json",
+  "structural_gates": ["canonical source identity", "layer/expert/role identity", "shape and orientation", "gate/up/down ordering", "offset and length", "deterministic serialization hash"],
+  "finite_gate": "all dequantized weights, projection outputs, expert outputs, MoE outputs, logits, and selected tokens must be finite",
+  "representative_error_gates": {
+    "matrix_reconstruction_max": 0.0078125,
+    "gate_projection_max": 0.04,
+    "up_projection_max": 0.06,
+    "activated_gate_max": 0.05,
+    "activated_product_max": 0.30,
+    "down_projection_max": 0.40,
+    "weighted_expert_output_max": 0.13
+  },
+  "semantic_gates": ["frozen F32 router IDs remain exact_match_safe", "Tier B top-k vocabulary IDs agree", "Tier A generated IDs remain [1096, 374]", "no safe-margin true mismatch"],
+  "budget_scope": "representative M4.3-02 cases only; characterize on full Tier A/B before promotion",
+  "stop_condition": "first structural mismatch, non-finite value, budget exceedance, unsafe router/token margin, or changed F32 evidence",
+  "contract_decision": "do not alter m4.2-tolerance-contract-registry-v1.json or m4.3-01 F32 baseline"
+}

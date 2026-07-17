@@ -29,6 +29,7 @@ pub(crate) fn config() -> Qwen3MoeConfig {
         layer_count: frozen_config::LAYER_COUNT,
         attention_head_count: frozen_config::ATTENTION_HEAD_COUNT,
         key_value_head_count: frozen_config::KEY_VALUE_HEAD_COUNT,
+        head_dimension: frozen_config::HEAD_DIMENSION,
         intermediate_size: frozen_config::INTERMEDIATE_SIZE,
         max_sequence_length: frozen_config::MAX_SEQUENCE_LENGTH,
         data_type: DataType::F32,

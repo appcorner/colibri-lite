@@ -96,39 +96,35 @@ impl Qwen3MoeBlock {
             });
         }
 
-        let input_norm = rms_norm(
+        let pre_router = pre_router_with_weights(
             hidden_states,
             self.weights.input_norm.view(),
-            self.config.rms_norm_epsilon(),
-        )?;
-        let attention_output = attention(input_norm.view(), self.config, &self.weights)?;
-        let after_attention = elementwise_add(hidden_states, attention_output.view())?;
-        let post_attention_norm = rms_norm(
-            after_attention.view(),
+            self.weights.query_projection.view(),
+            self.weights.key_projection.view(),
+            self.weights.value_projection.view(),
+            self.weights.output_projection.view(),
+            self.weights.query_norm.view(),
+            self.weights.key_norm.view(),
             self.weights.post_attention_norm.view(),
-            self.config.rms_norm_epsilon(),
-        )?;
-        let router = route_tokens(
-            post_attention_norm.view(),
             self.weights.router.view(),
             self.config,
         )?;
         let moe_output = routed_experts(
-            post_attention_norm.view(),
+            pre_router.post_attention_norm.view(),
             self.weights.expert_gate_up.view(),
             self.weights.expert_down.view(),
-            &router,
+            &pre_router.router,
             self.config,
         )?;
-        let block_output = elementwise_add(after_attention.view(), moe_output.view())?;
+        let block_output = elementwise_add(pre_router.residual_output.view(), moe_output.view())?;
 
         Ok(Qwen3MoeBlockOutput {
-            input_norm,
-            attention_output,
-            post_attention_norm,
-            router_logits: router.logits,
-            routing_weights: router.weights,
-            selected_experts: router.selected_experts,
+            input_norm: pre_router.input_norm,
+            attention_output: pre_router.attention_output,
+            post_attention_norm: pre_router.post_attention_norm,
+            router_logits: pre_router.router.logits,
+            routing_weights: pre_router.router.weights,
+            selected_experts: pre_router.router.selected_experts,
             moe_output,
             block_output,
         })
@@ -140,6 +136,55 @@ pub(crate) struct RouterOutput {
     pub(crate) logits: Tensor,
     pub(crate) weights: Tensor,
     pub(crate) selected_experts: Vec<usize>,
+}
+
+pub(crate) struct PreRouterOutput {
+    pub(crate) input_norm: Tensor,
+    pub(crate) attention_output: Tensor,
+    pub(crate) residual_output: Tensor,
+    pub(crate) post_attention_norm: Tensor,
+    pub(crate) router: RouterOutput,
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn pre_router_with_weights(
+    hidden_states: TensorView<'_>,
+    input_norm_weight: TensorView<'_>,
+    query_weight: TensorView<'_>,
+    key_weight: TensorView<'_>,
+    value_weight: TensorView<'_>,
+    output_weight: TensorView<'_>,
+    query_norm_weight: TensorView<'_>,
+    key_norm_weight: TensorView<'_>,
+    post_attention_norm_weight: TensorView<'_>,
+    router_weight: TensorView<'_>,
+    config: Qwen3MoeConfig,
+) -> Result<PreRouterOutput, RuntimeError> {
+    let input_norm = rms_norm(hidden_states, input_norm_weight, config.rms_norm_epsilon())?;
+    let attention_output = attention_with_weights(
+        input_norm.view(),
+        config,
+        query_weight,
+        key_weight,
+        value_weight,
+        output_weight,
+        query_norm_weight,
+        key_norm_weight,
+    )?;
+    let residual_output = elementwise_add(hidden_states, attention_output.view())?;
+    let post_attention_norm = rms_norm(
+        residual_output.view(),
+        post_attention_norm_weight,
+        config.rms_norm_epsilon(),
+    )?;
+    let router = route_tokens(post_attention_norm.view(), router_weight, config)?;
+    Ok(PreRouterOutput {
+        input_norm,
+        attention_output,
+        residual_output,
+        post_attention_norm,
+        router,
+    })
 }
 
 pub(crate) fn rms_norm(
@@ -179,6 +224,7 @@ pub(crate) fn rms_norm(
     Tensor::new(input.shape().clone(), output)
 }
 
+#[cfg(test)]
 pub(crate) fn attention(
     hidden_states: TensorView<'_>,
     config: Qwen3MoeConfig,
@@ -267,7 +313,7 @@ pub(crate) fn attention_with_weights(
         }
     }
     let attended = Tensor::new(
-        TensorShape::new([sequence_length, config.model().hidden_size()]),
+        TensorShape::new([sequence_length, config.model().query_projection_width()]),
         attended,
     )?;
     linear(
@@ -379,7 +425,7 @@ pub(crate) fn cached_attention_with_weights(
         }
     }
     let attended = Tensor::new(
-        TensorShape::new([1, config.model().hidden_size()]),
+        TensorShape::new([1, config.model().query_projection_width()]),
         attended,
     )?;
     let output = linear(
@@ -626,6 +672,54 @@ pub(crate) fn expert_mlp(
         .collect()
 }
 
+#[cfg(all(test, feature = "full-model-validation"))]
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) struct ExpertMlpTrace {
+    pub gate_projection: Vec<f32>,
+    pub up_projection: Vec<f32>,
+    pub activated_gate: Vec<f32>,
+    pub activated_product: Vec<f32>,
+    pub down_projection: Vec<f32>,
+}
+
+#[cfg(all(test, feature = "full-model-validation"))]
+pub(crate) fn expert_mlp_trace(
+    input: &[f32],
+    gate: &[f32],
+    up: &[f32],
+    down: &[f32],
+    hidden_size: usize,
+    intermediate_size: usize,
+) -> ExpertMlpTrace {
+    let mut gate_projection = Vec::with_capacity(intermediate_size);
+    let mut up_projection = Vec::with_capacity(intermediate_size);
+    let mut activated_gate = Vec::with_capacity(intermediate_size);
+    let mut activated_product = Vec::with_capacity(intermediate_size);
+    for intermediate_index in 0..intermediate_size {
+        let start = intermediate_index * hidden_size;
+        let gate_value = dot(input, &gate[start..start + hidden_size]);
+        let up_value = dot(input, &up[start..start + hidden_size]);
+        let activated_gate_value = gate_value / (1.0 + (-gate_value).exp());
+        gate_projection.push(gate_value);
+        up_projection.push(up_value);
+        activated_gate.push(activated_gate_value);
+        activated_product.push(activated_gate_value * up_value);
+    }
+    let down_projection = (0..hidden_size)
+        .map(|hidden_index| {
+            let start = hidden_index * intermediate_size;
+            dot(&activated_product, &down[start..start + intermediate_size])
+        })
+        .collect();
+    ExpertMlpTrace {
+        gate_projection,
+        up_projection,
+        activated_gate,
+        activated_product,
+        down_projection,
+    }
+}
+
 pub(crate) fn linear(
     input: TensorView<'_>,
     weight: TensorView<'_>,
@@ -718,8 +812,8 @@ fn validate_weight_shapes(
     weights: &Qwen3MoeBlockWeightsSpec,
 ) -> Result<(), RuntimeError> {
     let hidden = config.model().hidden_size();
-    let query_width = config.model().attention_head_count() * config.head_dimension();
-    let key_value_width = config.model().key_value_head_count() * config.head_dimension();
+    let query_width = config.model().query_projection_width();
+    let key_value_width = config.model().key_value_projection_width();
     let experts = config.expert_count();
     let intermediate = config.moe_intermediate_size();
     require_shape(&weights.input_norm, &[hidden], "input norm weight")?;

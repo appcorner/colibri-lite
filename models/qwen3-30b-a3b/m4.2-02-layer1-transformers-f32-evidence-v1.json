@@ -1,0 +1,935 @@
+{
+  "bf16_vs_f32": {
+    "attention_mask": {
+      "maximum_absolute_difference": 0.0
+    },
+    "embedding_output": {
+      "maximum_absolute_difference": 0.0
+    },
+    "input_ids": {
+      "exact": true
+    },
+    "layer0_attention_output": {
+      "maximum_absolute_difference": 0.0040149688720703125
+    },
+    "layer0_block_output": {
+      "maximum_absolute_difference": 0.006351947784423828
+    },
+    "layer0_expert_input": {
+      "maximum_absolute_difference": 0.01611185073852539
+    },
+    "layer0_expert_output_t0_p0_e62": {
+      "maximum_absolute_difference": 0.0011912286281585693
+    },
+    "layer0_expert_output_t0_p1_e21": {
+      "maximum_absolute_difference": 0.003489673137664795
+    },
+    "layer0_expert_output_t0_p2_e75": {
+      "maximum_absolute_difference": 0.0009435117244720459
+    },
+    "layer0_expert_output_t0_p3_e87": {
+      "maximum_absolute_difference": 0.0018132328987121582
+    },
+    "layer0_expert_output_t0_p4_e36": {
+      "maximum_absolute_difference": 0.0005565434694290161
+    },
+    "layer0_expert_output_t0_p5_e126": {
+      "maximum_absolute_difference": 0.000488579273223877
+    },
+    "layer0_expert_output_t0_p6_e34": {
+      "maximum_absolute_difference": 0.0010932981967926025
+    },
+    "layer0_expert_output_t0_p7_e91": {
+      "maximum_absolute_difference": 0.0004383884370326996
+    },
+    "layer0_expert_output_t1_p0_e114": {
+      "maximum_absolute_difference": 0.013311624526977539
+    },
+    "layer0_expert_output_t1_p1_e44": {
+      "maximum_absolute_difference": 0.0019286274909973145
+    },
+    "layer0_expert_output_t1_p2_e26": {
+      "maximum_absolute_difference": 0.005179643630981445
+    },
+    "layer0_expert_output_t1_p3_e65": {
+      "maximum_absolute_difference": 0.009056806564331055
+    },
+    "layer0_expert_output_t1_p4_e59": {
+      "maximum_absolute_difference": 0.0025179386138916016
+    },
+    "layer0_expert_output_t1_p5_e104": {
+      "maximum_absolute_difference": 0.001572251319885254
+    },
+    "layer0_expert_output_t1_p6_e83": {
+      "maximum_absolute_difference": 0.00103074312210083
+    },
+    "layer0_expert_output_t1_p7_e69": {
+      "maximum_absolute_difference": 0.0031696557998657227
+    },
+    "layer0_expert_output_t2_p0_e87": {
+      "maximum_absolute_difference": 0.0038213729858398438
+    },
+    "layer0_expert_output_t2_p1_e105": {
+      "maximum_absolute_difference": 0.0008083879947662354
+    },
+    "layer0_expert_output_t2_p2_e110": {
+      "maximum_absolute_difference": 0.0014386624097824097
+    },
+    "layer0_expert_output_t2_p3_e91": {
+      "maximum_absolute_difference": 0.0019318163394927979
+    },
+    "layer0_expert_output_t2_p4_e25": {
+      "maximum_absolute_difference": 0.0014255493879318237
+    },
+    "layer0_expert_output_t2_p5_e54": {
+      "maximum_absolute_difference": 0.002345263957977295
+    },
+    "layer0_expert_output_t2_p6_e41": {
+      "maximum_absolute_difference": 0.0007065534591674805
+    },
+    "layer0_expert_output_t2_p7_e21": {
+      "maximum_absolute_difference": 0.0017880499362945557
+    },
+    "layer0_expert_output_t3_p0_e98": {
+      "maximum_absolute_difference": 0.0030846595764160156
+    },
+    "layer0_expert_output_t3_p1_e65": {
+      "maximum_absolute_difference": 0.0021659135818481445
+    },
+    "layer0_expert_output_t3_p2_e99": {
+      "maximum_absolute_difference": 0.003266453742980957
+    },
+    "layer0_expert_output_t3_p3_e114": {
+      "maximum_absolute_difference": 0.0016450881958007812
+    },
+    "layer0_expert_output_t3_p4_e100": {
+      "maximum_absolute_difference": 0.002779364585876465
+    },
+    "layer0_expert_output_t3_p5_e72": {
+      "maximum_absolute_difference": 0.0004467964172363281
+    },
+    "layer0_expert_output_t3_p6_e40": {
+      "maximum_absolute_difference": 0.0007013194262981415
+    },
+    "layer0_expert_output_t3_p7_e96": {
+      "maximum_absolute_difference": 0.001528322696685791
+    },
+    "layer0_moe_output": {
+      "maximum_absolute_difference": 0.006398558616638184
+    },
+    "layer0_residual_output": {
+      "maximum_absolute_difference": 0.00400775671005249
+    },
+    "layer0_router_logits": {
+      "maximum_absolute_difference": 0.03326892852783203
+    },
+    "layer0_routing_weights": {
+      "maximum_absolute_difference": 0.0019285976886749268
+    },
+    "layer0_selected_expert_ids": {
+      "exact": true
+    },
+    "layer1_attention_output": {
+      "maximum_absolute_difference": 0.0026459693908691406
+    },
+    "layer1_input": {
+      "maximum_absolute_difference": 0.006351947784423828
+    },
+    "layer1_input_rmsnorm": {
+      "maximum_absolute_difference": 0.0009052008390426636
+    },
+    "layer1_post_attention_rmsnorm": {
+      "maximum_absolute_difference": 0.019003868103027344
+    },
+    "layer1_residual_output": {
+      "maximum_absolute_difference": 0.005606889724731445
+    },
+    "layer1_router_logits": {
+      "maximum_absolute_difference": 0.03312397003173828
+    },
+    "layer1_routing_weights": {
+      "maximum_absolute_difference": 0.003670215606689453
+    },
+    "layer1_selected_expert_ids": {
+      "exact": true
+    },
+    "position_ids": {
+      "exact": true
+    }
+  },
+  "checkpoint_file": {
+    "bytes": 632312,
+    "sha256": "95611a0d4e67c03cb64da1a5d6053f690e0203839d8f14be479c2c3626947752"
+  },
+  "checkpoint_inventory": {
+    "attention_mask": {
+      "bytes": 64,
+      "dtype": "float32",
+      "shape": [
+        1,
+        1,
+        4,
+        4
+      ]
+    },
+    "embedding_output": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "input_ids": {
+      "bytes": 32,
+      "dtype": "int64",
+      "shape": [
+        4
+      ]
+    },
+    "layer0_attention_output": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "layer0_block_output": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "layer0_expert_input": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "layer0_expert_output_t0_p0_e62": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t0_p1_e21": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t0_p2_e75": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t0_p3_e87": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t0_p4_e36": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t0_p5_e126": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t0_p6_e34": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t0_p7_e91": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t1_p0_e114": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t1_p1_e44": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t1_p2_e26": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t1_p3_e65": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t1_p4_e59": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t1_p5_e104": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t1_p6_e83": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t1_p7_e69": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t2_p0_e87": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t2_p1_e105": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t2_p2_e110": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t2_p3_e91": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t2_p4_e25": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t2_p5_e54": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t2_p6_e41": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t2_p7_e21": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t3_p0_e98": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t3_p1_e65": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t3_p2_e99": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t3_p3_e114": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t3_p4_e100": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t3_p5_e72": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t3_p6_e40": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_expert_output_t3_p7_e96": {
+      "bytes": 8192,
+      "dtype": "float32",
+      "shape": [
+        2048
+      ]
+    },
+    "layer0_moe_output": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "layer0_residual_output": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "layer0_router_logits": {
+      "bytes": 2048,
+      "dtype": "float32",
+      "shape": [
+        4,
+        128
+      ]
+    },
+    "layer0_routing_weights": {
+      "bytes": 128,
+      "dtype": "float32",
+      "shape": [
+        4,
+        8
+      ]
+    },
+    "layer0_selected_expert_ids": {
+      "bytes": 256,
+      "dtype": "int64",
+      "shape": [
+        4,
+        8
+      ]
+    },
+    "layer1_attention_output": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "layer1_input": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "layer1_input_rmsnorm": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "layer1_post_attention_rmsnorm": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "layer1_residual_output": {
+      "bytes": 32768,
+      "dtype": "float32",
+      "shape": [
+        4,
+        2048
+      ]
+    },
+    "layer1_router_logits": {
+      "bytes": 2048,
+      "dtype": "float32",
+      "shape": [
+        4,
+        128
+      ]
+    },
+    "layer1_routing_weights": {
+      "bytes": 128,
+      "dtype": "float32",
+      "shape": [
+        4,
+        8
+      ]
+    },
+    "layer1_selected_expert_ids": {
+      "bytes": 256,
+      "dtype": "int64",
+      "shape": [
+        4,
+        8
+      ]
+    },
+    "position_ids": {
+      "bytes": 32,
+      "dtype": "int64",
+      "shape": [
+        4
+      ]
+    }
+  },
+  "compute_dtype": "F32",
+  "determinism": {
+    "attention_implementation": "eager",
+    "device": "cpu",
+    "gradient_tracking": false,
+    "module_mode": "eval",
+    "seed": 0,
+    "torch_deterministic_algorithms": true,
+    "torch_interop_threads": 1,
+    "torch_threads": 1
+  },
+  "environment": {
+    "python": "3.12.10",
+    "safetensors": "0.8.0",
+    "torch": "2.12.1+cpu",
+    "transformers": "5.12.1"
+  },
+  "expert_runtime_plan": {
+    "bytes": 4325,
+    "sha256": "46f4b0ea5b458d46795525d1c805082c0a98903c1d32d61c2f22097e21a43757"
+  },
+  "input_token_ids": [
+    9707,
+    11,
+    1879,
+    0
+  ],
+  "layer0_router_boundaries": [
+    {
+      "expert_ids": [
+        62,
+        21,
+        75,
+        87,
+        36,
+        126,
+        34,
+        91
+      ],
+      "highest_unselected_logit": -3.7143404483795166,
+      "kth_selected_logit": -3.667461395263672,
+      "routing_weights": [
+        0.2957717776298523,
+        0.15278638899326324,
+        0.14915664494037628,
+        0.13744115829467773,
+        0.07047730684280396,
+        0.06607351452112198,
+        0.06558515876531601,
+        0.06270808726549149
+      ],
+      "selected_logits": [
+        -2.116363763809204,
+        -2.7769110202789307,
+        -2.800954818725586,
+        -2.882755994796753,
+        -3.550661087036133,
+        -3.6151838302612305,
+        -3.6226024627685547,
+        -3.667461395263672
+      ],
+      "selection_margin": 0.04687905311584473,
+      "token_index": 0,
+      "top_k_boundary_tied": false
+    },
+    {
+      "expert_ids": [
+        114,
+        44,
+        26,
+        65,
+        59,
+        104,
+        83,
+        69
+      ],
+      "highest_unselected_logit": -3.7184572219848633,
+      "kth_selected_logit": -3.6951115131378174,
+      "routing_weights": [
+        0.2734129726886749,
+        0.19796636700630188,
+        0.15590135753154755,
+        0.1222735345363617,
+        0.11137653142213821,
+        0.05315236747264862,
+        0.04394473135471344,
+        0.041972335427999496
+      ],
+      "selected_logits": [
+        -1.821138858795166,
+        -2.1440250873565674,
+        -2.3828988075256348,
+        -2.625861644744873,
+        -2.719205617904663,
+        -3.4589595794677734,
+        -3.6491894721984863,
+        -3.6951115131378174
+      ],
+      "selection_margin": 0.0233457088470459,
+      "token_index": 1,
+      "top_k_boundary_tied": false
+    },
+    {
+      "expert_ids": [
+        87,
+        105,
+        110,
+        91,
+        25,
+        54,
+        41,
+        21
+      ],
+      "highest_unselected_logit": -3.615557909011841,
+      "kth_selected_logit": -3.584653854370117,
+      "routing_weights": [
+        0.27160003781318665,
+        0.13891589641571045,
+        0.13093341886997223,
+        0.12815167009830475,
+        0.09862831979990005,
+        0.08810261636972427,
+        0.07373103499412537,
+        0.06993695348501205
+      ],
+      "selected_logits": [
+        -2.227917432785034,
+        -2.898379325866699,
+        -2.957559108734131,
+        -2.9790334701538086,
+        -3.240889549255371,
+        -3.353745698928833,
+        -3.5318241119384766,
+        -3.584653854370117
+      ],
+      "selection_margin": 0.030904054641723633,
+      "token_index": 2,
+      "top_k_boundary_tied": false
+    },
+    {
+      "expert_ids": [
+        98,
+        65,
+        99,
+        114,
+        100,
+        72,
+        40,
+        96
+      ],
+      "highest_unselected_logit": -3.4770712852478027,
+      "kth_selected_logit": -3.443150520324707,
+      "routing_weights": [
+        0.3791462182998657,
+        0.1323743611574173,
+        0.10289736837148666,
+        0.09715346246957779,
+        0.08958639204502106,
+        0.07592591643333435,
+        0.06914587318897247,
+        0.05377044528722763
+      ],
+      "selected_logits": [
+        -1.489952564239502,
+        -2.542240619659424,
+        -2.794142484664917,
+        -2.8515827655792236,
+        -2.932671070098877,
+        -3.098116397857666,
+        -3.1916561126708984,
+        -3.443150520324707
+      ],
+      "selection_margin": 0.0339207649230957,
+      "token_index": 3,
+      "top_k_boundary_tied": false
+    }
+  ],
+  "layer1_expert_execution": false,
+  "layer1_router_boundaries": [
+    {
+      "expert_ids": [
+        68,
+        114,
+        55,
+        90,
+        0,
+        9,
+        30,
+        127
+      ],
+      "highest_unselected_logit": -4.217254638671875,
+      "kth_selected_logit": -4.177116394042969,
+      "routing_weights": [
+        0.3099326193332672,
+        0.1998092085123062,
+        0.13272704184055328,
+        0.1308591514825821,
+        0.09210064262151718,
+        0.06761964410543442,
+        0.044211480766534805,
+        0.0227401964366436
+      ],
+      "selected_logits": [
+        -1.564895510673523,
+        -2.003887414932251,
+        -2.4129557609558105,
+        -2.427128791809082,
+        -2.7783684730529785,
+        -3.0873517990112305,
+        -3.512265920639038,
+        -4.177116394042969
+      ],
+      "selection_margin": 0.04013824462890625,
+      "token_index": 0,
+      "top_k_boundary_tied": false
+    },
+    {
+      "expert_ids": [
+        50,
+        127,
+        30,
+        119,
+        23,
+        62,
+        58,
+        80
+      ],
+      "highest_unselected_logit": -3.1717257499694824,
+      "kth_selected_logit": -3.1653432846069336,
+      "routing_weights": [
+        0.23823736608028412,
+        0.1884138584136963,
+        0.1279420554637909,
+        0.1069156751036644,
+        0.09221924841403961,
+        0.08567699790000916,
+        0.08153978735208511,
+        0.07905496656894684
+      ],
+      "selected_logits": [
+        -2.0622191429138184,
+        -2.2968456745147705,
+        -2.6839091777801514,
+        -2.8634462356567383,
+        -3.011317729949951,
+        -3.084902286529541,
+        -3.1343955993652344,
+        -3.1653432846069336
+      ],
+      "selection_margin": 0.006382465362548828,
+      "token_index": 1,
+      "top_k_boundary_tied": false
+    },
+    {
+      "expert_ids": [
+        8,
+        6,
+        4,
+        30,
+        38,
+        23,
+        22,
+        61
+      ],
+      "highest_unselected_logit": -3.748900890350342,
+      "kth_selected_logit": -3.711951971054077,
+      "routing_weights": [
+        0.25202763080596924,
+        0.18921709060668945,
+        0.13230542838573456,
+        0.1120222881436348,
+        0.09319819509983063,
+        0.08804609626531601,
+        0.06729701906442642,
+        0.06588634103536606
+      ],
+      "selected_logits": [
+        -2.370344400405884,
+        -2.6569881439208984,
+        -3.014770030975342,
+        -3.181185245513916,
+        -3.36515474319458,
+        -3.422022581100464,
+        -3.690767288208008,
+        -3.711951971054077
+      ],
+      "selection_margin": 0.03694891929626465,
+      "token_index": 2,
+      "top_k_boundary_tied": false
+    },
+    {
+      "expert_ids": [
+        127,
+        70,
+        119,
+        18,
+        94,
+        108,
+        61,
+        38
+      ],
+      "highest_unselected_logit": -3.8641417026519775,
+      "kth_selected_logit": -3.8481435775756836,
+      "routing_weights": [
+        0.2345598042011261,
+        0.17285536229610443,
+        0.15249130129814148,
+        0.14718236029148102,
+        0.09115011245012283,
+        0.0828324481844902,
+        0.06041014567017555,
+        0.05851835757493973
+      ],
+      "selected_logits": [
+        -2.459773540496826,
+        -2.765028953552246,
+        -2.890376567840576,
+        -2.925811767578125,
+        -3.4049763679504395,
+        -3.500664234161377,
+        -3.8163270950317383,
+        -3.8481435775756836
+      ],
+      "selection_margin": 0.015998125076293945,
+      "token_index": 3,
+      "top_k_boundary_tied": false
+    }
+  ],
+  "model_id": "Qwen/Qwen3-30B-A3B",
+  "position_ids": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+  "runtime_plan": {
+    "bytes": 1626,
+    "sha256": "082569d1946758e205f138fac71d502c6fcd211d226970cec3b25b023aa58d81"
+  },
+  "schema_version": 1,
+  "selected_layer0_logical_expert_count": 27,
+  "selected_layer0_occurrence_count": 32,
+  "selected_layer0_unique_experts": [
+    21,
+    25,
+    26,
+    34,
+    36,
+    40,
+    41,
+    44,
+    54,
+    59,
+    62,
+    65,
+    69,
+    72,
+    75,
+    83,
+    87,
+    91,
+    96,
+    98,
+    99,
+    100,
+    104,
+    105,
+    110,
+    114,
+    126
+  ],
+  "source_hash_bytes_read": 3999417504,
+  "source_payload_bytes_read": 331383808,
+  "source_shards_verified": [
+    {
+      "bytes": 3999417504,
+      "path": "model-00001-of-00016.safetensors",
+      "sha256": "454e77b346a61bfb201d54df60e15158838cf930617ee135113556204f2802b5",
+      "shard_id": 0
+    }
+  ],
+  "status": "f32_control_export_passed",
+  "validated_path": "complete_layer_0_then_layer_1_pre_router",
+  "weight_derivation": "exact BF16 values decoded to F32; no different pretrained weights"
+}

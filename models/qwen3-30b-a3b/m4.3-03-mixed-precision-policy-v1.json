@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "task": "M4.3-03",
+  "status": "policy_draft_no_runtime_change",
+  "policy_id": "colibri-qwen3-moe-mixed-precision-v1",
+  "baseline": {
+    "compute_dtype": "F32",
+    "activation_dtype": "F32",
+    "accumulation_dtype": "F32",
+    "artifact": "canonical F32 artifact read-only",
+    "router_tie_policy": "higher score then lower expert ID"
+  },
+  "tensor_groups": [
+    {"group": "embedding_weights", "dtype": "F32", "future_storage_candidate": "BF16", "scale": null, "accumulation": "F32", "activation": "F32", "gates": ["Tier B final norm digest", "finite outputs", "Tier A generated IDs"]},
+    {"group": "attention_q_projection", "dtype": "F32", "future_storage_candidate": "BF16", "scale": null, "accumulation": "F32", "activation": "F32", "gates": ["attention output budget", "guard router IDs", "Tier A"]},
+    {"group": "attention_k_projection", "dtype": "F32", "future_storage_candidate": "BF16", "scale": null, "accumulation": "F32", "activation": "F32", "gates": ["attention output budget", "guard router IDs", "Tier A"]},
+    {"group": "attention_v_projection", "dtype": "F32", "future_storage_candidate": "BF16", "scale": null, "accumulation": "F32", "activation": "F32", "gates": ["attention output budget", "guard router IDs", "Tier A"]},
+    {"group": "attention_o_projection", "dtype": "F32", "future_storage_candidate": "BF16", "scale": null, "accumulation": "F32", "activation": "F32", "gates": ["residual budget", "guard router IDs", "Tier A"]},
+    {"group": "input_rmsnorm_weights", "dtype": "F32", "future_storage_candidate": null, "scale": null, "accumulation": "F32", "activation": "F32", "gates": ["ordered RMSNorm contract", "post-norm budget"]},
+    {"group": "post_attention_rmsnorm_weights", "dtype": "F32", "future_storage_candidate": null, "scale": null, "accumulation": "F32", "activation": "F32", "gates": ["ordered RMSNorm contract", "post-norm budget"]},
+    {"group": "q_norm_weights", "dtype": "F32", "future_storage_candidate": null, "scale": null, "accumulation": "F32", "activation": "F32", "gates": ["Q/K normalization exact internal contract"]},
+    {"group": "k_norm_weights", "dtype": "F32", "future_storage_candidate": null, "scale": null, "accumulation": "F32", "activation": "F32", "gates": ["Q/K normalization exact internal contract"]},
+    {"group": "router_weights", "dtype": "F32", "future_storage_candidate": null, "scale": null, "accumulation": "F32", "activation": "F32", "gates": ["safe router margin", "exact expert IDs", "lower-ID tie policy"]},
+    {"group": "final_rmsnorm_weights", "dtype": "F32", "future_storage_candidate": null, "scale": null, "accumulation": "F32", "activation": "F32", "gates": ["final norm fixture budget", "finite output"]},
+    {"group": "lm_head_weights", "dtype": "F32", "future_storage_candidate": "BF16", "scale": null, "accumulation": "F32", "activation": "F32", "gates": ["full vocabulary top-20", "top-1 safe margin", "Tier A generated IDs"]}
+  ],
+  "expert_policy_reference": "models/qwen3-30b-a3b/m4.3-02-format-spec-v1.json",
+  "forbidden_until_review": ["INT8 router", "reduced-precision RMSNorm", "reduced-precision routing weights", "mixed activation dtype", "INT8 kernel", "SIMD", "threading"],
+  "acceptance_rule": "A candidate is not accepted from local diagnostics alone; it must pass Tier C, Tier B, and Tier A with a separately versioned comparison contract."
+}

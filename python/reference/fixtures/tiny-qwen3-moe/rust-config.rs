@@ -5,6 +5,7 @@ pub const HIDDEN_SIZE: usize = 16;
 pub const LAYER_COUNT: usize = 2;
 pub const ATTENTION_HEAD_COUNT: usize = 4;
 pub const KEY_VALUE_HEAD_COUNT: usize = 2;
+pub const HEAD_DIMENSION: usize = 4;
 pub const INTERMEDIATE_SIZE: usize = 32;
 pub const MAX_SEQUENCE_LENGTH: usize = 32;
 pub const RMS_NORM_EPSILON: f32 = 1e-06_f32;

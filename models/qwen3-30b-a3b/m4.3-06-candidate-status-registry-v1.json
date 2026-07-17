@@ -1,0 +1,48 @@
+{
+  "schema": "m4.3-06-candidate-status-registry-v1",
+  "task": "M4.3-06",
+  "decision": "reject_full_model_expert_int8_and_pivot_to_memory_hierarchy",
+  "model": {
+    "model_id": "Qwen/Qwen3-30B-A3B",
+    "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+    "canonical_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2"
+  },
+  "candidate": {
+    "format": "symmetric_int8_per_output_channel_f32_scale",
+    "scope": "all expert gate/up/down weights",
+    "statuses": [
+      "rejected_full_model_candidate",
+      "retained_for_diagnostics",
+      "candidate_selective_use_only"
+    ],
+    "reasons": [
+      "local Tier-C gates pass but propagated error becomes material at Layer 1",
+      "Layer-47 final-block maximum drift is 152.1300659",
+      "Tier-B Thai argmax changes from 7360 to 16222 under an ambiguous margin",
+      "Tier-A generated IDs [1096, 374] match but several steps are ambiguous; generation alone is insufficient"
+    ],
+    "storage": {
+      "compression_ratio": 4.200218,
+      "expert_bytes": 4733280,
+      "full_6144_expert_bytes": 29081272448,
+      "cache_capacity_experts_binary_gib": {"1":226,"2":453,"4":907,"8":1814,"16":3629,"24":5444,"32":7259}
+    }
+  },
+  "phase_verdict": [
+    {"item":"f32_baseline","status":"authoritative_and_accepted","evidence":"models/qwen3-30b-a3b/m4.3-01-f32-baseline-manifest-v1.json"},
+    {"item":"int8_per_tensor","status":"rejected","reason":"maximum representative down error 1.3565183 and weighted error 0.4204293","evidence":"models/qwen3-30b-a3b/m4.3-02-quantization-evidence-v1.json"},
+    {"item":"int8_per_output_channel","status":"rejected_full_model_candidate","reason":"quality risk under full-depth propagation","evidence":"models/qwen3-30b-a3b/m4.3-04-degradation-evidence-v1.json"},
+    {"item":"int8_group_128","status":"promising_but_insufficient_evidence","reason":"lower local error 0.0820999 weighted but broader propagation evidence is absent and bytes cost is 2.81 percent higher","evidence":"models/qwen3-30b-a3b/m4.3-02-quantization-evidence-v1.json"},
+    {"item":"router_int8","status":"rejected","reason":"Layer-0 expert IDs changed despite safe positive F32 margin 0.0468793","evidence":"models/qwen3-30b-a3b/m4.3-03-precision-sensitivity-evidence-v1.json"},
+    {"item":"dense_bf16_storage","status":"candidate_requires_kernel_and_activation_evidence","reason":"weight-only BF16 rounding is exact because source artifact is BF16-derived; semantic BF16 compute is unvalidated","evidence":"models/qwen3-30b-a3b/m4.3-03-tensor-precision-registry-v1.json"},
+    {"item":"ik_llama_q4_k_m","status":"external_performance_reference_only","reason":"Q4_K_M, mmap, fused MoE and optimized kernels are not format-controlled against colibri F32; model quality equivalence is unestablished","evidence":"models/qwen3-30b-a3b/m4.3-05-ik-llama-run-metrics-v1.json"}
+  ],
+  "evidence": [
+    {"path":"models/qwen3-30b-a3b/m4.3-01-f32-baseline-manifest-v1.json","sha256":"5e36071de4f4385f8d4ea3310b3beef138ab65ac4627ea53a575ab5e627b71b4"},
+    {"path":"models/qwen3-30b-a3b/m4.3-02-quantization-evidence-v1.json","sha256":"fe8b7d06d013227952f6387969d705c433913f4c8a95db56f7abda1324f5ddf1"},
+    {"path":"models/qwen3-30b-a3b/m4.3-03-precision-sensitivity-evidence-v1.json","sha256":"1387addd232a80e970af00d7c86dc1a747085589fff14663b2f909ab3b38db81"},
+    {"path":"models/qwen3-30b-a3b/m4.3-04-degradation-evidence-v1.json","sha256":"0a2f5c85087de32a23b975bc206ed98b007e353dbc897fb71317fcef6568e140"},
+    {"path":"models/qwen3-30b-a3b/m4.3-05-ik-llama-run-metrics-v1.json","sha256":"768ea52b1712178359bf521de441242891bd276de55bf115274684cec43f8362"}
+  ],
+  "runtime_impact": "none; no quantized runtime, artifact, ExpertStore, cache, router, or arithmetic change"
+}

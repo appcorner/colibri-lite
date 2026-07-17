@@ -1,0 +1,162 @@
+{
+  "bf16_vs_f32_maximum_absolute_by_checkpoint": {
+    "activated_gate": 0.07744884490966797,
+    "activated_product": 1.2506256103515625,
+    "aggregated_moe_output": 0.62396240234375,
+    "down_projection": 0.929656982421875,
+    "expert_input": 0.18955326080322266,
+    "final_block_output": 0.34970712661743164,
+    "gate_projection": 0.10123825073242188,
+    "moe_residual_addition": 0.34970712661743164,
+    "routing_weight": 0.002939760684967041,
+    "up_projection": 0.08877944946289062,
+    "weighted_expert_output": 0.6094436645507812
+  },
+  "checkpoint_file": {
+    "bytes": 401632,
+    "sha256": "deca57130bbcfcf9d870f0693a6c277e018a00331e858a6459d6dc77fb813c7b",
+    "tensor_count": 76
+  },
+  "compute_dtype": "F32",
+  "environment": {
+    "python": "3.12.10",
+    "safetensors": "0.8.0",
+    "torch": "2.12.1+cpu",
+    "transformers": "5.12.1"
+  },
+  "model_id": "Qwen/Qwen3-30B-A3B",
+  "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+  "runtime_plan": {
+    "bytes": 3480,
+    "selected_layer47_experts": [
+      14,
+      15,
+      20,
+      21,
+      32,
+      34,
+      36,
+      44,
+      54,
+      57,
+      73,
+      74,
+      82,
+      85,
+      86,
+      109,
+      111,
+      114,
+      117,
+      126,
+      127
+    ],
+    "sha256": "23ca7471477db02cbce7fd6c5b83147a548e550959ea4cf0a539f9530ab667a7"
+  },
+  "schema_version": 1,
+  "selected_cases": [
+    {
+      "expert": 62,
+      "layer": 0,
+      "position": 0,
+      "routing_weight_index": 0,
+      "token": 0
+    },
+    {
+      "expert": 91,
+      "layer": 0,
+      "position": 7,
+      "routing_weight_index": 7,
+      "token": 0
+    },
+    {
+      "expert": 68,
+      "layer": 1,
+      "position": 0,
+      "routing_weight_index": 0,
+      "token": 0
+    },
+    {
+      "expert": 127,
+      "layer": 1,
+      "position": 7,
+      "routing_weight_index": 7,
+      "token": 0
+    },
+    {
+      "expert": 85,
+      "layer": 24,
+      "position": 0,
+      "routing_weight_index": 8,
+      "token": 1
+    },
+    {
+      "expert": 8,
+      "layer": 24,
+      "position": 7,
+      "routing_weight_index": 15,
+      "token": 1
+    },
+    {
+      "expert": 54,
+      "layer": 47,
+      "position": 0,
+      "routing_weight_index": 0,
+      "token": 0
+    },
+    {
+      "expert": 36,
+      "layer": 47,
+      "position": 7,
+      "routing_weight_index": 7,
+      "token": 0
+    }
+  ],
+  "source_hash_bytes_read": 13084683552,
+  "source_payload_bytes_read": 887095296,
+  "source_shards_verified": [
+    {
+      "bytes": 3999417504,
+      "path": "model-00001-of-00016.safetensors",
+      "sha256": "454e77b346a61bfb201d54df60e15158838cf930617ee135113556204f2802b5",
+      "shard_id": 0
+    },
+    {
+      "bytes": 3997362064,
+      "path": "model-00008-of-00016.safetensors",
+      "sha256": "a85bf0cc8a8047c116172d4c08cf4792eb59d4375032708ba3e1a7ffca0f708a",
+      "shard_id": 7
+    },
+    {
+      "bytes": 3999975400,
+      "path": "model-00015-of-00016.safetensors",
+      "sha256": "2fe000da4fc7399ff6303bb0daec8c415a5d850f5ea53863392758c77fc37664",
+      "shard_id": 14
+    },
+    {
+      "bytes": 1087928584,
+      "path": "model-00016-of-00016.safetensors",
+      "sha256": "0c979e314faf06e94a5e1841abd285d4e26e763c79c1abe7710d543192d9da48",
+      "shard_id": 15
+    }
+  ],
+  "status": "selected_intermediate_reference_passed",
+  "structural_contract": {
+    "aggregation_order": "ascending_expert_id",
+    "expert_input_shape": [
+      2048
+    ],
+    "expert_output_shape": [
+      2048
+    ],
+    "intermediate_shape": [
+      768
+    ],
+    "projection_order": [
+      "gate",
+      "up",
+      "down"
+    ],
+    "structure_sha256": "2bfdf92f85dd0824deda461a500a06d5a62b89b321b1afbee4db03dbf6344a7b"
+  }
+}
