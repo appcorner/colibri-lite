@@ -312,7 +312,14 @@ M4 is complete. The release provenance and closure record are in
 
 ## M5 - Memory hierarchy and performance recovery
 
+- [x] M5.1-00 Capture authoritative ordered expert trace.
 - [ ] M5.1-01 Trace-driven memory hierarchy simulation.
+
+M5.1-00 is complete as a deterministic measurement supplement. The ordered
+trace and validator are recorded in
+`models/qwen3-30b-a3b/m5.1-00-ordered-expert-trace-v1.json` and
+`scripts/validate_m5_1_00_trace.py`. No cache simulation or runtime prototype
+has started.
 
 ## Standard verification commands
 

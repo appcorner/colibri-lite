@@ -1,7 +1,10 @@
 use std::fmt;
 
 use clr_core::{DataType, RuntimeError, Tensor, TensorView, ops::elementwise_add};
-use clr_storage::{ByteOrder, ExpertKey, ExpertLoadObservation, ExpertStore, StorageError};
+use clr_storage::{ByteOrder, ExpertKey, ExpertStore, StorageError};
+
+#[cfg(feature = "full-model-validation")]
+use clr_storage::ExpertLoadObservation;
 
 #[cfg(all(test, feature = "full-model-validation"))]
 use crate::block::{ExpertMlpTrace, expert_mlp_trace};

@@ -1427,3 +1427,26 @@ implementation changed; no RAM/cache simulation ran.
 The approved tag is `m4-full-qwen3-baseline-v1` and must point to the final
 clean closure commit. Exact next task: M5.1-01 trace-driven memory hierarchy
 simulation.
+
+## 2026-07-17 - M5.1-00 authoritative ordered expert trace
+
+Added behavior-preserving request instrumentation at the `ExpertStore` load
+boundary and replayed the frozen M4 Tier-A configuration. The canonical trace
+contains 2,304 actual ordered expert occurrences and 1,332 unique
+layer/expert keys. Validation reproduced 0 hits, 2,304 misses/loads, 2,303
+evictions, 43,486,543,872 expert logical bytes, and the frozen reuse-distance
+distribution (379/384/1,924; 525/298/149 buckets).
+
+The canonical trace and an independent repeat are byte-identical at
+SHA-256 `f3f87f05d15424030c9261cdf3e93bd72e9c006a55303bc0c28a92a4fb3ff2d0`.
+Both replays preserved generated IDs `[1096, 374]`, guard router IDs,
+finite outputs, selected checkpoints, and KV-cache invariants. The replay is
+explicitly a measurement supplement; temporary full-vocabulary logits were not
+retained, so no new full-logit claim is made.
+
+Added trace schema/manifest, deterministic capture and validation scripts,
+aggregate evidence, report, and ADR 0034. No cache simulation or runtime
+memory-hierarchy prototype has started.
+
+Exact next task after review: M5.1-01 - trace-driven memory hierarchy
+simulation.

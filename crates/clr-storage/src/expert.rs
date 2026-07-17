@@ -223,6 +223,11 @@ impl ExpertStore {
 
     /// Loads an expert without changing cache behavior and reports the
     /// resulting hit/load/eviction deltas after the lease is acquired.
+    ///
+    /// # Errors
+    ///
+    /// Returns the same storage error as [`ExpertStore::load`] when the
+    /// payload cannot be loaded or validated.
     pub fn load_with_observer<F>(
         &mut self,
         key: ExpertKey,

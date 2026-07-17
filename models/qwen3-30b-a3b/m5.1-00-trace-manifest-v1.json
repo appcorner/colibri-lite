@@ -1,0 +1,60 @@
+{
+  "schema": "colibri-qwen3-moe-m5.1-00-trace-manifest-v1",
+  "schema_version": 1,
+  "classification": "M5 measurement supplement replaying the frozen M4 baseline configuration",
+  "trace_id": "m4-tier-a-short-generation-ordered-expert-requests-v1",
+  "baseline_id": "qwen3-30b-a3b-colibri-f32-windows-x64-v1",
+  "release_id": "colibri-lite-rs-m4-qwen3-30b-a3b-f32-v1",
+  "release_tag": "m4-full-qwen3-baseline-v1",
+  "baseline_runtime_source_commit": "80099f05246a4450ded6f42baf6b8db5a4b2e623",
+  "trace_instrumentation_commit": "39db289",
+  "model_repository": "Qwen/Qwen3-30B-A3B",
+  "model_revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+  "canonical_artifact_root_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+  "input_token_ids": [9707, 11, 1879, 0],
+  "expected_generated_token_ids": [1096, 374],
+  "cache": {
+    "budget_bytes": 18874368,
+    "policy": "strict_lru",
+    "kv_cache_capacity": 6,
+    "threads": 8,
+    "dtype": "F32"
+  },
+  "replay": {
+    "command": "clr_qwen3_moe-e1503717729029d2.exe full_model_validation_tests::short_cached_generation_matches_transformers --exact --nocapture",
+    "validation_mode": "trace_only; full-vocabulary temporary logits were not retained",
+    "generated_ids_preserved": true,
+    "guard_router_ids_preserved": true,
+    "finite_outputs_preserved": true,
+    "kv_cache_invariants_preserved": true
+  },
+  "trace": {
+    "schema_path": "models/qwen3-30b-a3b/m5.1-00-ordered-expert-trace-schema-v1.json",
+    "schema_sha256": "4a927ac7b2089317c3084ac0ea48714dc132060e40e3d302d62c49beadd516c4",
+    "path": "models/qwen3-30b-a3b/m5.1-00-ordered-expert-trace-v1.json",
+    "bytes": 685395,
+    "sha256": "f3f87f05d15424030c9261cdf3e93bd72e9c006a55303bc0c28a92a4fb3ff2d0",
+    "record_count": 2304,
+    "unique_layer_expert_keys": 1332
+  },
+  "repeat": {
+    "source": "M5.1-00 replay with identical configuration",
+    "sha256": "f3f87f05d15424030c9261cdf3e93bd72e9c006a55303bc0c28a92a4fb3ff2d0",
+    "byte_identical": true
+  },
+  "derived_aggregate": {
+    "path": "models/qwen3-30b-a3b/m5.1-00-trace-derived-aggregate-v1.json",
+    "sha256": "33d554eb79344b7c02d3a066a3de3d4fe9e0320fe802b5d4604c8a44703608bc"
+  },
+  "source_evidence": {
+    "baseline_summary": {
+      "path": "models/qwen3-30b-a3b/m4.2-05-baseline-summary-v1.json",
+      "sha256": "87783671900fa1735e824fe1e2bc19b9da29244d0c9f6f8e4f47f4e9744821bf"
+    },
+    "f32_manifest": {
+      "path": "models/qwen3-30b-a3b/m4.3-01-f32-baseline-manifest-v1.json",
+      "sha256": "5e36071de4f4385f8d4ea3310b3beef138ab65ac4627ea53a575ab5e627b71b4"
+    }
+  },
+  "serialization": "UTF-8 JSON, fixed field order, compact separators, trailing newline; no timestamp, process ID, or local path in hashed artifacts"
+}

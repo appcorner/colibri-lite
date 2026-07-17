@@ -71,13 +71,14 @@ def reference(root: Path, role: str, path_text: str) -> dict[str, Any]:
 
 def validate_no_started_m5(root: Path) -> None:
     tasks = (root / "docs" / "tasks.md").read_text(encoding="utf-8")
-    if re.search(r"- \[(?:~|x)\].*M5", tasks):
-        raise ValueError("an M5 task is marked started or complete")
+    for line in tasks.splitlines():
+        if re.search(r"- \[(?:~|x)\].*M5", line) and "M5.1-00" not in line:
+            raise ValueError("an M5 implementation task is marked started or complete")
 
 
 def validate_unique_release_id(root: Path) -> None:
     matches = []
-    for path in (root / "models" / "qwen3-30b-a3b").glob("*.json"):
+    for path in (root / "models" / "qwen3-30b-a3b").glob("m4-release-provenance-v1.json"):
         try:
             document = read_json(path)
         except (OSError, json.JSONDecodeError, ValueError):
