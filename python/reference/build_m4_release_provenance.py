@@ -72,10 +72,11 @@ def reference(root: Path, role: str, path_text: str) -> dict[str, Any]:
 def validate_no_started_m5(root: Path) -> None:
     tasks = (root / "docs" / "tasks.md").read_text(encoding="utf-8")
     for line in tasks.splitlines():
-        # M5.1-00 through M5.1-03 and M5.2-01 are post-release evidence tasks.
+        # M5.1-00 through M5.1-03 and M5.2-01/M5.2-02 are post-release
+        # evidence tasks.
         # Keep rejecting unrelated M5 implementation work from this historical
         # M4 validator while allowing the approved evidence chain to advance.
-        if re.search(r"- \[(?:~|x)\].*M5", line) and not re.search(r"M5\.1-0[0-3]|M5\.2-01", line):
+        if re.search(r"- \[(?:~|x)\].*M5", line) and not re.search(r"M5\.1-0[0-3]|M5\.2-0[12]", line):
             raise ValueError("an M5 implementation task is marked started or complete")
 
 

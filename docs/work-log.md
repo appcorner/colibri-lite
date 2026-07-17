@@ -1565,3 +1565,53 @@ Next:
 
 - M5.2-02 Simulate cache policies and RAM budgets across the representative
   trace corpus. Do not start until corpus review is complete.
+
+## 2026-07-18 - M5.2-02 representative corpus cache simulation
+
+Completed:
+
+- M5.2-02 deterministic cache-policy and expert-payload-budget simulation.
+- Validated all eight M5.2-01 traces, hashes, boundaries, ordinals, ranges,
+  payloads, canonical artifact identity, M4 baseline/provenance references,
+  and M5.1 simulator key compatibility before replay.
+- Simulated cold per-session and persistent manifest/reverse fixture orders for
+  global LRU, architecture-only layer LRU, calibrated layer LRU, observed LFU,
+  segmented LRU, and offline Belady across 1/2/4/6/8/12/16/24/32/48 GiB.
+
+Changed:
+
+- Added `scripts/simulate_m5_2_corpus_cache.py` and synthetic/unit regression
+  tests in `scripts/test_simulate_m5_2_corpus_cache.py`.
+- Added the simulation input manifest, result matrix, corpus aggregate
+  statistics, threshold analysis, persistent-cache evidence, report, ADR
+  0039, and task status.
+- Kept the payload-only ExpertCache budget contract; metadata/alignment remain
+  separate accounting context. No Rust runtime, cache policy, artifact, or
+  numerical execution changed.
+
+Evidence:
+
+- Cold global LRU at 8 GiB: 2,808 hits, 8,712 misses/loads, 24.3750% micro
+  byte hit rate and 15.5660% macro byte hit rate; 2/8 fixtures have zero hits.
+- Cold global LRU at 16 GiB: 31.9444% micro and 19.8707% macro byte hit rate.
+- 8 GiB classification: `useful_for_selected_workloads`.
+- Selected policy: retain strict global LRU. Next runtime matrix: 8 versus
+  16 GiB global LRU; not executed in M5.2-02.
+- Canonical result SHA-256:
+  `cc76873de24cc29eb8fbfa1580fafa721617bc4b6c5b64f4dd04079048378949`.
+- Canonical report SHA-256:
+  `925c7e87b7eae0785edc7781b2caa4d0b1224633dc84c72588c565f8f84cefcb`.
+- Input manifest SHA-256:
+  `d040e505c9ab87b65935f11b68e8fc65aa4b496bb02f3d10832b98eadaf80b5b`.
+- Regeneration was byte-identical for both result and report.
+
+Open issues:
+
+- The corpus remains eight deterministic workloads; it is not production
+  traffic coverage. Persistent-cache results are order-sensitive, calibrated
+  layer policies are diagnostics, and Belady is offline-only.
+- No throughput, latency, physical-I/O, or production-readiness claim is made.
+
+Next:
+
+- M5.2-03. Stop before running the selected full-runtime validation matrix.

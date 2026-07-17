@@ -318,6 +318,7 @@ the release boundary.
 - [x] M5.1-02 Implement the reviewed configurable expert-cache prototype.
 - [x] M5.1-03 Validate the configurable expert cache on the canonical full model.
 - [x] M5.2-01 Capture broader representative expert traces.
+- [x] M5.2-02 Simulate cache policies and RAM budgets across the representative trace corpus.
 
 M5.1-00 is complete as a deterministic measurement supplement. The ordered
 trace and validator are recorded in
@@ -356,6 +357,23 @@ traces, and
 classifies the existing 8 GiB recommendation as `inconclusive`; no cache
 simulation or cache-policy change was performed. ADR 0038 records the v2
 trace schema and measurement contract.
+
+M5.2-02 is complete as a deterministic, simulation-only replay over all eight
+accepted corpus traces. The input manifest validates the canonical artifact,
+M4 baseline/provenance, corpus aggregate, trace hashes, fixture boundaries,
+ordinals, ranges, payload sizes, and M5.1 record adapter before replay. The
+results cover per-session cold caches, manifest/reverse persistent orders,
+binary 1/2/4/6/8/12/16/24/32/48 GiB payload budgets, strict global LRU,
+architecture-only and calibrated layer LRU diagnostics, observed LFU,
+segmented LRU, and offline Belady. The descriptive decision is to classify
+8 GiB as `useful_for_selected_workloads`, retain strict global LRU for the next
+runtime experiment, and validate 8 versus 16 GiB without executing that matrix
+in this task. Results are recorded in
+`models/qwen3-30b-a3b/m5.2-02-cache-simulation-results-v1.json`, the input
+manifest, and
+`docs/reports/m5.2-02-corpus-cache-simulation.md`; ADR 0039 records the
+simulation policy contract and decision. No Rust runtime, ExpertCache,
+artifact, numerical path, or dense-residency implementation changed.
 
 ## Standard verification commands
 
