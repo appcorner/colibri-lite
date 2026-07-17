@@ -282,6 +282,7 @@ where
 
 #[cfg(feature = "full-model-validation")]
 #[allow(clippy::too_many_arguments)]
+#[allow(dead_code)]
 pub(crate) fn streaming_routed_experts_with_request_observer<R, F>(
     hidden_states: TensorView<'_>,
     router: &crate::block::RouterOutput,
