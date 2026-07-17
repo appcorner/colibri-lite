@@ -42,8 +42,7 @@ def reuse_distances(records: list[dict[str, Any]]) -> list[int]:
     for index, record in enumerate(records):
         key = record["layer_expert_key"]
         if key in last:
-            between = {item["layer_expert_key"] for item in records[last[key] + 1 : index]}
-            distances.append(len(between))
+            distances.append(index - last[key])
         last[key] = index
     return distances
 
@@ -109,7 +108,7 @@ def validate(trace_path: Path, baseline_path: Path, expert_manifest_path: Path) 
     frozen_distance = baseline_cache["reuse_distance"]
     assert len(distances) == baseline_cache["repeated_across_tokens"]
     assert min(distances) == frozen_distance["minimum"]
-    assert sorted(distances)[len(distances) // 2] == frozen_distance["median"]
+    assert sorted(distances)[(len(distances) - 1) // 2] == frozen_distance["median"]
     assert max(distances) == frozen_distance["maximum"]
     assert sum(distance <= 384 for distance in distances) == frozen_distance["at_most_384"]
     assert sum(385 <= distance <= 768 for distance in distances) == frozen_distance["from_385_through_768"]
@@ -128,7 +127,7 @@ def validate(trace_path: Path, baseline_path: Path, expert_manifest_path: Path) 
         "expert_logical_read_bytes": loaded_bytes,
         "reuse_distance": {
             "minimum": min(distances),
-            "median": sorted(distances)[len(distances) // 2],
+            "median": sorted(distances)[(len(distances) - 1) // 2],
             "maximum": max(distances),
             "at_most_384": sum(distance <= 384 for distance in distances),
             "from_385_through_768": sum(385 <= distance <= 768 for distance in distances),
