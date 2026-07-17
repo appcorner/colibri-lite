@@ -1,7 +1,7 @@
 use std::fmt;
 
 use clr_core::{DataType, RuntimeError, Tensor, TensorView, ops::elementwise_add};
-use clr_storage::{ByteOrder, ExpertKey, ExpertStore, StorageError};
+use clr_storage::{ByteOrder, ExpertKey, ExpertLoadObservation, ExpertStore, StorageError};
 
 #[cfg(all(test, feature = "full-model-validation"))]
 use crate::block::{ExpertMlpTrace, expert_mlp_trace};
@@ -260,6 +260,62 @@ where
             let decoded = decode_payload(key, lease.bytes(), layout)?;
             let mut outputs = Vec::with_capacity(occurrences.len());
             for &(token, position) in occurrences {
+                let input = &hidden_states.data()[token * hidden_size..(token + 1) * hidden_size];
+                let output = expert_mlp(
+                    input,
+                    &decoded.gate,
+                    &decoded.up,
+                    &decoded.down,
+                    hidden_size,
+                    intermediate,
+                );
+                observe(expert_id, token, position, &output);
+                outputs.push(output);
+            }
+            Ok(outputs)
+        },
+    )
+}
+
+#[cfg(feature = "full-model-validation")]
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn streaming_routed_experts_with_request_observer<R, F>(
+    hidden_states: TensorView<'_>,
+    router: &crate::block::RouterOutput,
+    config: Qwen3MoeConfig,
+    layer_index: usize,
+    store: &mut ExpertStore,
+    layout: PackedExpertLayout,
+    mut request_observer: R,
+    mut observe: F,
+) -> Result<Tensor, StreamingModelError>
+where
+    R: FnMut(usize, usize, usize, usize, usize, ExpertLoadObservation),
+    F: FnMut(usize, usize, usize, &[f32]),
+{
+    let hidden_size = config.model().hidden_size();
+    let intermediate = config.moe_intermediate_size();
+    combine_routed_experts(
+        hidden_states,
+        router,
+        config,
+        |expert_id, occurrences| -> Result<Vec<Vec<f32>>, StreamingModelError> {
+            let key = ExpertKey {
+                layer_index: u32::try_from(layer_index).unwrap_or(u32::MAX),
+                expert_id: clr_storage::ExpertId(u32::try_from(expert_id).unwrap_or(u32::MAX)),
+            };
+            let mut observation = None;
+            let lease = store.load_with_observer(key, |value| observation = Some(value))?;
+            let observation = observation.expect("expert load observer called exactly once");
+            let decoded = decode_payload(key, lease.bytes(), layout)?;
+            let mut outputs = Vec::with_capacity(occurrences.len());
+            for &(token, position) in occurrences {
+                let top_k = config.experts_per_token();
+                let rank = router.selected_experts[token * top_k..(token + 1) * top_k]
+                    .iter()
+                    .position(|&selected| selected == expert_id)
+                    .expect("occurrence expert has a selected rank");
+                request_observer(layer_index, expert_id, token, position, rank, observation);
                 let input = &hidden_states.data()[token * hidden_size..(token + 1) * hidden_size];
                 let output = expert_mlp(
                     input,

@@ -13,7 +13,8 @@ use std::{
 use clr_core::{DataType, Tensor, TensorShape, ops::elementwise_add};
 use clr_storage::{
     ARTIFACT_FORMAT_VERSION, ArtifactManifest, ArtifactReader, ByteOrder, ExpertId, ExpertKey,
-    ExpertRegistration, ExpertStore, Sha256Hasher, TensorLocation, TensorMetadata,
+    ExpertLoadObservation, ExpertRegistration, ExpertStore, Sha256Hasher, TensorLocation,
+    TensorMetadata,
 };
 
 use crate::{
@@ -26,6 +27,7 @@ use crate::{
     generation::greedy_token,
     streaming::{
         PackedExpertLayout, streaming_routed_experts_with_observer,
+        streaming_routed_experts_with_request_observer,
         streaming_routed_experts_with_trace_observer,
     },
 };
@@ -176,6 +178,20 @@ const TIER_B_F32_REFERENCE: &str = include_str!(concat!(
 ));
 const GENERATION_INPUT_TOKENS: [usize; 6] = [9707, 11, 1879, 0, 1096, 374];
 const GENERATION_GUARD_LAYERS: [usize; 3] = [0, 24, 47];
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct OrderedExpertTraceRecord {
+    ordinal: usize,
+    step: usize,
+    position: usize,
+    layer: usize,
+    rank: usize,
+    expert: usize,
+    payload_bytes: usize,
+    cache_hit: bool,
+    loaded: bool,
+    evictions: u64,
+}
 const GENERATION_DENSE_READS_PER_TOKEN: u64 = 1 + 48 * 9 + 594;
 const GENERATION_EXPERT_READS_PER_TOKEN: u64 = 48 * 8;
 const INTERMEDIATE_CASES: [(usize, usize, usize, usize); 8] = [
@@ -3747,6 +3763,7 @@ fn short_cached_generation_matches_transformers() {
     let mut step_loads = Vec::with_capacity(6);
     let mut step_evictions = Vec::with_capacity(6);
     let mut expert_request_sequence = Vec::with_capacity(6 * 48 * 8);
+    let mut ordered_expert_trace = Vec::with_capacity(6 * 48 * 8);
     let mut repeated_requests_within_token = 0_usize;
 
     for (step, &token_id) in GENERATION_INPUT_TOKENS.iter().enumerate() {
@@ -3809,13 +3826,27 @@ fn short_cached_generation_matches_transformers() {
                 guard_ids.extend_from_slice(&router.selected_experts);
             }
             let mut layer47_outputs = vec![0.0_f32; 8 * 2048];
-            let moe = streaming_routed_experts_with_observer(
+            let moe = streaming_routed_experts_with_request_observer(
                 post_norm.view(),
                 &router,
                 config,
                 layer,
                 &mut store,
                 expert_layout,
+                |layer, expert, _token, position, rank, observation: ExpertLoadObservation| {
+                    ordered_expert_trace.push(OrderedExpertTraceRecord {
+                        ordinal: ordered_expert_trace.len(),
+                        step,
+                        position,
+                        layer,
+                        rank,
+                        expert,
+                        payload_bytes: observation.payload_bytes,
+                        cache_hit: observation.cache_hit,
+                        loaded: observation.loaded,
+                        evictions: observation.evictions,
+                    });
+                },
                 |_, token, position, output| {
                     assert_eq!(token, 0, "single-token expert occurrence");
                     if layer == 47 {
@@ -4774,11 +4805,67 @@ fn short_cached_generation_matches_transformers() {
         );
         atomic_diagnostic(&metrics_path, baseline.as_bytes());
     }
+    if let Some(trace_path) = env::var_os("COLIBRI_EXPERT_TRACE_OUTPUT") {
+        let instrumentation_commit = env::var("COLIBRI_TRACE_INSTRUMENTATION_COMMIT")
+            .expect("COLIBRI_TRACE_INSTRUMENTATION_COMMIT must identify the trace code");
+        write_ordered_expert_trace(
+            Path::new(&trace_path),
+            &ordered_expert_trace,
+            &instrumentation_commit,
+        );
+    }
     println!(
         "short_generation_complete elapsed_seconds={} generated={generated:?} dense_bytes_read={dense_bytes_read} expert_metrics={metrics:?} kv_cache_bytes={} modeled_peak_explicit_bytes={modeled_peak_explicit_bytes}",
         started.elapsed().as_secs_f64(),
         cache.byte_size(),
     );
+}
+
+fn write_ordered_expert_trace(
+    path: &Path,
+    records: &[OrderedExpertTraceRecord],
+    instrumentation_commit: &str,
+) {
+    let mut output = String::with_capacity(records.len() * 220 + 1800);
+    writeln!(
+        output,
+        "{{\"schema\":\"colibri-qwen3-moe-m5.1-00-ordered-expert-trace-v1\",\"schema_version\":1,\"trace_id\":\"m4-tier-a-short-generation-ordered-expert-requests-v1\",\"classification\":\"M5 measurement supplement replaying the frozen M4 baseline configuration\",\"baseline_id\":\"qwen3-30b-a3b-colibri-f32-windows-x64-v1\",\"release_id\":\"colibri-lite-rs-m4-qwen3-30b-a3b-f32-v1\",\"release_tag\":\"m4-full-qwen3-baseline-v1\",\"baseline_runtime_source_commit\":\"80099f05246a4450ded6f42baf6b8db5a4b2e623\",\"trace_instrumentation_commit\":\"{instrumentation_commit}\",\"model_repository\":\"Qwen/Qwen3-30B-A3B\",\"model_revision\":\"ad44e777bcd18fa416d9da3bd8f70d33ebb85d39\",\"canonical_artifact_root_sha256\":\"f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2\",\"tokenizer_identity\":\"Qwen2Tokenizer:a66c5b39331656b1a3befd2d695265f15bdc5f16226fbbf7794bfb5ae9220c5e\",\"input_token_ids\":[9707,11,1879,0],\"expected_generated_token_ids\":[1096,374],\"cache_budget_bytes\":18874368,\"cache_policy\":\"strict_lru\",\"runtime_configuration\":{{\"compute_dtype\":\"F32\",\"kv_cache_capacity\":6,\"threads\":8,\"target\":\"x86_64-pc-windows-msvc\",\"build_profile\":\"release\"}},\"requested_trace_count\":{},\"serialization\":\"UTF-8 JSON object with fixed header and record field order, compact separators, trailing newline, no timestamp or local path\",\"records\":[",
+        records.len()
+    )
+    .expect("write trace header");
+    for (index, record) in records.iter().enumerate() {
+        if index != 0 {
+            output.push(',');
+        }
+        let phase = if record.step < 4 { "prefill" } else { "decode" };
+        let decode_step = if record.step < 4 {
+            "null".to_owned()
+        } else {
+            (record.step - 4).to_string()
+        };
+        write!(
+            output,
+            "{{\"global_ordinal\":{},\"phase\":\"{}\",\"generation_step\":{},\"decode_step\":{},\"input_token_id\":{},\"absolute_position\":{},\"layer_index\":{},\"selected_expert_rank\":{},\"expert_id\":{},\"layer_expert_key\":\"layer.{}.expert.{}\",\"payload_bytes\":{},\"cache_hit\":{},\"loaded\":{},\"evictions_caused\":{}}}",
+            record.ordinal,
+            phase,
+            record.step,
+            decode_step,
+            GENERATION_INPUT_TOKENS[record.step],
+            record.step,
+            record.layer,
+            record.rank,
+            record.expert,
+            record.layer,
+            record.expert,
+            record.payload_bytes,
+            record.cache_hit,
+            record.loaded,
+            record.evictions,
+        )
+        .expect("write trace record");
+    }
+    output.push_str("]}\n");
+    fs::write(path, output).expect("write ordered expert trace");
 }
 
 #[derive(Debug, Default)]

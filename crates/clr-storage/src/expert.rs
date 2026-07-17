@@ -30,6 +30,16 @@ pub struct CacheMetrics {
     pub bytes_read: u64,
 }
 
+/// Observation of one completed expert-store request.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ExpertLoadObservation {
+    pub key: ExpertKey,
+    pub payload_bytes: usize,
+    pub cache_hit: bool,
+    pub loaded: bool,
+    pub evictions: u64,
+}
+
 /// Pinned access to one cached expert payload.
 #[derive(Debug, Clone)]
 pub struct ExpertLease {
@@ -209,6 +219,29 @@ impl ExpertStore {
         self.cache.get_or_load(key, || {
             self.reader.read_tensor(&name).map(|tensor| tensor.bytes)
         })
+    }
+
+    /// Loads an expert without changing cache behavior and reports the
+    /// resulting hit/load/eviction deltas after the lease is acquired.
+    pub fn load_with_observer<F>(
+        &mut self,
+        key: ExpertKey,
+        observe: F,
+    ) -> Result<ExpertLease, StorageError>
+    where
+        F: FnOnce(ExpertLoadObservation),
+    {
+        let before = self.metrics();
+        let lease = self.load(key)?;
+        let after = self.metrics();
+        observe(ExpertLoadObservation {
+            key,
+            payload_bytes: lease.bytes().len(),
+            cache_hit: after.hits > before.hits,
+            loaded: after.loads > before.loads,
+            evictions: after.evictions - before.evictions,
+        });
+        Ok(lease)
     }
 
     #[must_use]

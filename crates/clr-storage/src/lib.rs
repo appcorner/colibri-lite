@@ -14,7 +14,8 @@ pub use converter::{
 };
 pub use error::StorageError;
 pub use expert::{
-    CacheMetrics, ExpertCache, ExpertId, ExpertKey, ExpertLease, ExpertRegistration, ExpertStore,
+    CacheMetrics, ExpertCache, ExpertId, ExpertKey, ExpertLease, ExpertLoadObservation,
+    ExpertRegistration, ExpertStore,
 };
 pub use hash::Sha256Hasher;
 pub use manifest::{
