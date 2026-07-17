@@ -14,7 +14,9 @@ Mixture-of-Experts models.
 
 ## Current milestone
 
-M0, M1, M2, and M3 are complete. Next: M4 - full Qwen3-30B-A3B path.
+M0, M1, M2, M3, and M4 are complete. M4 closed with the validated ordered F32
+baseline and documented numerical variance. Quantized runtime work is not
+accepted; the next task is the simulation-only M5.1 memory-hierarchy study.
 
 The frozen tiny model accepts token IDs directly:
 
@@ -32,3 +34,4 @@ cargo run -p clr-cli -- generate --tokens 1,7,3,12 --max-new-tokens 4
 - [M1 correctness report](docs/reports/m1.md)
 - [M2 storage and residency report](docs/reports/m2.md)
 - [M3 autoregressive generation report](docs/reports/m3.md)
+- [M4 release closure](docs/reports/m4-release-closure.md)

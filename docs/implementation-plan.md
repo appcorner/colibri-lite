@@ -395,6 +395,10 @@ Scope:
 
 #### M4.4 - Reproducible baseline
 
+Status: complete. M4 is closed with the release-provenance record and the
+approved `m4-full-qwen3-baseline-v1` tag. No optimization or M5 implementation
+has started.
+
 Required JSON fields:
 
 ```json

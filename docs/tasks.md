@@ -298,13 +298,21 @@ for production, and the first optimization pivot recorded in
 ## M4.4 - Reproducible full-model baseline
 
 - [x] M4.4-01 Emit versioned baseline JSON.
-- [ ] M4.4-02 Record runtime/model commits and artifact version.
-- [ ] M4.4-03 Record hardware and Windows version.
-- [ ] M4.4-04 Record resident budget, peak resident bytes, total bytes read, and
+- [x] M4.4-02 Record runtime/model commits and artifact version.
+- [x] M4.4-03 Record hardware and Windows version.
+- [x] M4.4-04 Record resident budget, peak resident bytes, total bytes read, and
   cache hit rate.
-- [ ] M4.4-05 Record prompt and generation throughput.
-- [ ] M4.4-06 Document supported configuration and known limitations.
-- [ ] M4.4-07 Repeat the run and verify the report is reproducible.
+- [x] M4.4-05 Record prompt and generation throughput.
+- [x] M4.4-06 Document supported configuration and known limitations.
+- [x] M4.4-07 Repeat the run and verify the report is reproducible.
+
+M4 is complete. The release provenance and closure record are in
+`models/qwen3-30b-a3b/m4-release-provenance-v1.json` and
+`docs/reports/m4-release-closure.md`. No M5 implementation has started.
+
+## M5 - Memory hierarchy and performance recovery
+
+- [ ] M5.1-01 Trace-driven memory hierarchy simulation.
 
 ## Standard verification commands
 

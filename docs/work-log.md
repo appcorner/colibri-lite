@@ -1407,3 +1407,23 @@ and numerical arithmetic were unchanged; RAM/cache simulation has not started.
 
 Next ordered task after review: M4.4-02 - record runtime/model commits and
 artifact version.
+
+## 2026-07-17 - M4.4-02 M4 release provenance and closure
+
+Created the authoritative release record
+`models/qwen3-30b-a3b/m4-release-provenance-v1.json` with release ID
+`colibri-lite-rs-m4-qwen3-30b-a3b-f32-v1`. It pins runtime commit
+`a230074959fc3b55ff73e8f4eb24e377a0a6b79f`, parent M4.4 baseline commit
+`80099f05246a4450ded6f42baf6b8db5a4b2e623`, the Qwen3 revision,
+source/tokenizer identity, canonical artifact hashes, F32 contracts, M4.4
+resource evidence, M4.3 decisions, and the directional ik_llama reference.
+
+Added provenance validation and deterministic regeneration tests, release notes,
+README status, and M4/M5 task tracking. Validation rejects changed hashes or
+identities, accepted rejected candidates, duplicate release IDs, and any M5
+task marked started. No runtime, artifact, cache, numerical, or performance
+implementation changed; no RAM/cache simulation ran.
+
+The approved tag is `m4-full-qwen3-baseline-v1` and must point to the final
+clean closure commit. Exact next task: M5.1-01 trace-driven memory hierarchy
+simulation.
