@@ -21,6 +21,9 @@ EXPECTED_GENERATED = [1096, 374]
 EXPECTED_LAYER_COUNT = 48
 EXPECTED_EXPERT_COUNT = 128
 EXPECTED_PAYLOAD_BYTES = 18_874_368
+EXPECTED_BASELINE_SUMMARY_SHA256 = "87783671900fa1735e824fe1e2bc19b9da29244d0c9f6f8e4f47f4e9744821bf"
+EXPECTED_F32_MANIFEST_SHA256 = "5e36071de4f4385f8d4ea3310b3beef138ab65ac4627ea53a575ab5e627b71b4"
+EXPECTED_EXPERT_MANIFEST_SHA256 = "9c581c6c46ecf830e7d0dd0e380d26b17803784f009b37ef2657ae34d06b2939"
 
 
 def sha256(path: Path) -> str:
@@ -51,6 +54,11 @@ def validate(trace_path: Path, baseline_path: Path, expert_manifest_path: Path) 
     trace = load_json(trace_path)
     baseline = load_json(baseline_path)
     expert_manifest = load_json(expert_manifest_path)
+    repository_root = baseline_path.resolve().parents[2]
+    f32_manifest_path = repository_root / "models/qwen3-30b-a3b/m4.3-01-f32-baseline-manifest-v1.json"
+    assert sha256(baseline_path) == EXPECTED_BASELINE_SUMMARY_SHA256
+    assert sha256(f32_manifest_path) == EXPECTED_F32_MANIFEST_SHA256
+    assert sha256(expert_manifest_path) == EXPECTED_EXPERT_MANIFEST_SHA256
     assert trace["schema"] == EXPECTED_TRACE_SCHEMA
     assert trace["baseline_id"] == EXPECTED_BASELINE_ID
     assert trace["canonical_artifact_root_sha256"] == EXPECTED_ARTIFACT_ROOT
