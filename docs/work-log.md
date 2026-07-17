@@ -1450,3 +1450,30 @@ memory-hierarchy prototype has started.
 
 Exact next task after review: M5.1-01 - trace-driven memory hierarchy
 simulation.
+
+## 2026-07-17 - M5.1-01 trace-driven memory hierarchy simulation
+
+Implemented a deterministic Python simulator over the authoritative M5.1-00
+ordered trace. The input and result artifacts validate the trace SHA-256,
+frozen M4 baseline/provenance identity, key ranges, payload accounting, and
+all scenario identities. Simulated binary 1/2/4/8/16/24/32 GiB budgets for
+streamed-dense and resident-dense configurations under global LRU,
+layer-aware LRU, observed-frequency LFU, and a clearly theoretical Belady
+upper bound.
+
+Global LRU requires exactly 379 charged entries (`7,154,937,856` bytes) for
+the first hit; the first fixed total-RAM point with a hit is 8 GiB. At 8 GiB
+streamed-dense LRU, expert-byte hit rate is 31.21% and modeled total logical
+reads are reduced 18.59%. Full unique-key residency requires 25,146,114,048
+bytes including entry charge. Dense residency is infeasible below 8 GiB and
+competes with the expert working set at 8/16 GiB.
+
+Selected the configurable larger expert cache as the first runtime prototype
+for a future task. This task made no Rust runtime, cache-policy, artifact,
+quantization, mmap, prefetch, SIMD, threading, GPU, or numerical changes.
+Added the simulator, focused synthetic-policy tests, input manifest, result
+matrix, report, and ADR 0035. Deterministic regeneration and accounting tests
+pass.
+
+Exact next task after review: M5.1-02 (or the next task specified by the
+approved roadmap), before implementing the selected prototype.

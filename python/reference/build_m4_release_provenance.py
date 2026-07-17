@@ -72,7 +72,9 @@ def reference(root: Path, role: str, path_text: str) -> dict[str, Any]:
 def validate_no_started_m5(root: Path) -> None:
     tasks = (root / "docs" / "tasks.md").read_text(encoding="utf-8")
     for line in tasks.splitlines():
-        if re.search(r"- \[(?:~|x)\].*M5", line) and "M5.1-00" not in line:
+        # M5.1-00 capture and M5.1-01 simulation are measurement supplements;
+        # the M4 release remains valid until a runtime prototype starts.
+        if re.search(r"- \[(?:~|x)\].*M5", line) and not re.search(r"M5\.1-0[01]", line):
             raise ValueError("an M5 implementation task is marked started or complete")
 
 
