@@ -1358,3 +1358,30 @@ model files are removed after evidence review.
 
 Next ordered task after review: M4.3-06 - select or reject the candidate based
 on recorded evidence.
+
+## 2026-07-17 - M4.3-06 candidate decision and phase closure
+
+Formally rejected symmetric INT8 per-output-channel expert weights as a
+full-model production candidate. The format remains retained for diagnostics
+and possible selective-layer/selective-projection investigation only with new
+evidence. Local Tier-C gates passed, but propagated risk began at Layer 1
+(`0.1724930` final-block error), reached Layer 47 (`152.1300659`), changed the
+Thai Tier-B argmax (`7360` to `16222`), and reduced Top-20 overlap to `0.65`.
+Tier-A IDs `[1096, 374]` matched but included ambiguous steps and are not a
+sufficient acceptance criterion.
+
+M4.3 phase verdict: completed with documented quantization rejection and
+optimization pivot. F32 is authoritative; per-tensor INT8 is rejected;
+group-128 is promising but insufficiently evidenced; router INT8 is rejected;
+dense BF16 is a future kernel/activation candidate; ik_llama Q4_K_M is an
+external performance reference only.
+
+The project continues, pivoting from immediate quantized-runtime work to the
+simulation-only `F32 memory-hierarchy study: resident dense weights plus
+trace-driven expert-cache sizing` at 1/2/4/8/16/24/32 binary GiB. No runtime
+change is authorized before simulation review.
+
+Added candidate status and decision registries, M4.3 closure report, memory
+hierarchy roadmap, ADR 0033, and four registry/evidence tests.
+
+Exact next task after review: M4.4-01 - emit versioned baseline JSON.

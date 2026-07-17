@@ -1,0 +1,49 @@
+{
+  "schema": "m4.3-06-decision-summary-v1",
+  "verdict": "completed_with_documented_quantization_rejection_and_optimization_pivot",
+  "investment_decision": {
+    "continue_project": true,
+    "hardware_capable_of_useful_speed": true,
+    "immediate_production_int8": false,
+    "pivot": "memory hierarchy and compute path optimization while preserving F32 correctness",
+    "first_experiment": "F32 memory-hierarchy study: resident dense weights plus trace-driven expert-cache sizing"
+  },
+  "next_phase": {
+    "simulation_only_first": true,
+    "request_trace_sources": [
+      "models/qwen3-30b-a3b/m4.2-04-rust-short-generation-evidence-v1.tsv",
+      "models/qwen3-30b-a3b/m4.2-03-rust-intermediate-evidence-v1.tsv",
+      "models/qwen3-30b-a3b/m4.2-05-baseline-summary-v1.json"
+    ],
+    "ram_budgets_binary_gib": [1,2,4,8,16,24,32],
+    "configurations": ["dense_resident_plus_expert_cache", "dense_streamed_plus_expert_cache", "dense_resident_expert_cache_only"],
+    "outputs": ["predicted_hits", "predicted_misses", "predicted_evictions", "bytes_avoided", "estimated_ram", "capacity_reconciliation"],
+    "prototype_gate": "simulation reviewed before any runtime code change",
+    "success_gates": [
+      "frozen F32 fixture IDs, router IDs, intermediate evidence and KV invariants remain unchanged",
+      "logical reads per token decrease materially in the modeled path",
+      "measurable cache hits occur at an explicitly bounded budget",
+      "resident bytes remain within each configured budget",
+      "no artifact duplication or canonical-root mutation",
+      "throughput is measured only after a reviewed memory-path prototype exists"
+    ]
+  },
+  "frozen_invariants": [
+    "canonical artifact and root manifest hashes/layout",
+    "ordered Rust F32 arithmetic and RMSNorm contract",
+    "higher-score then lower-expert-ID router tie ordering",
+    "Tier-A generated IDs [1096, 374]",
+    "F32 exact-safe router classifications at frozen guard layers",
+    "selected intermediate evidence and finite outputs",
+    "fixed-capacity KV cache allocation and no-overwrite guarantee",
+    "bounded memory and evidence schema compatibility"
+  ],
+  "success_metrics": [
+    "correctness status and first mismatch checkpoint",
+    "logical bytes per decode token and read amplification",
+    "cache hit/miss/load/eviction reconciliation",
+    "peak resident and modeled explicit bytes",
+    "startup, prefill, and decode latency after prototype",
+    "artifact and dependency deltas"
+  ]
+}

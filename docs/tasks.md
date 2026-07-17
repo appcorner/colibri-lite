@@ -289,7 +289,11 @@ Acceptance:
 - [x] M4.3-04 Compare output degradation against the baseline.
 - [x] M4.3-05 Compare memory/I/O and speed against ik_llama.cpp where formats
   and hardware permit.
-- [ ] M4.3-06 Select or reject the candidate based on recorded evidence.
+- [x] M4.3-06 Select or reject the candidate based on recorded evidence.
+
+M4.3 is closed with the F32 baseline accepted, full-model expert INT8 rejected
+for production, and the first optimization pivot recorded in
+`docs/m4.3-next-phase-memory-hierarchy-roadmap.md`.
 
 ## M4.4 - Reproducible full-model baseline
 

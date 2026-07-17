@@ -376,9 +376,11 @@ The unoptimized storage-aware path is numerically credible and debuggable.
 
 #### M4.3 - Evidence-driven quantization
 
-Status: in progress. M4.3-01 and M4.3-02 are complete. The ordered Rust F32
-path remains authoritative; the first INT8 expert format is defined but not
-implemented. No quantization or optimization runtime code has begun.
+Status: complete with documented quantization rejection. The ordered Rust F32
+path remains authoritative; expert INT8 per-output-channel is retained for
+diagnostics but rejected as a full-model production candidate. No quantization
+or optimization runtime code has begun. The next phase pivots to a simulation-
+first F32 memory-hierarchy study.
 
 Scope:
 
@@ -388,6 +390,8 @@ Scope:
 - Validate degradation against a defined prompt/evaluation set.
 - Treat ik_llama.cpp as a performance and quantization baseline, not a code
   target.
+- Preserve the F32 correctness invariants while simulating resident dense
+  weights and trace-driven expert-cache sizing at reviewed RAM budgets.
 
 #### M4.4 - Reproducible baseline
 
