@@ -32,6 +32,9 @@ use crate::{
     },
 };
 
+#[path = "m5_2_trace_capture.rs"]
+mod m5_2_trace_capture;
+
 const RUNTIME_PLAN: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../../models/qwen3-30b-a3b/m4.2-02-layer0-runtime-plan-v1.tsv"
