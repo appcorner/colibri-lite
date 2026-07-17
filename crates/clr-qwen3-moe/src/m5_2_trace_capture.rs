@@ -130,7 +130,10 @@ fn representative_trace_capture() {
     );
     assert_finite("final norm weight", final_norm_weight.data());
     let mut store = expert_store_from_plans(
-        &[GENERATION_LAYER47_EXPERT_RUNTIME_PLAN],
+        &[
+            LAYER47_EXPERT_RUNTIME_PLAN,
+            GENERATION_LAYER47_EXPERT_RUNTIME_PLAN,
+        ],
         &artifact_root,
         48 * 128,
     );
