@@ -1277,3 +1277,33 @@ changed.
 
 Next ordered task after review: M4.3-03 - keep router and sensitive dense
 tensors at measured safe precision.
+
+## 2026-07-17 - M4.3-03 sensitive dense precision policy
+
+Measured embedding, attention Q/K/V/O, normalization, Q/K norm, router,
+final-norm, and LM-head weight groups at Layers 0, 1, 24, and 47 using F32,
+BF16-rounded-to-F32, and offline per-output-channel INT8 diagnostics. The
+canonical F32 artifact remained read-only; no mixed artifact, runtime kernel,
+cache change, or arithmetic change was made.
+
+The canonical artifact is BF16-derived, so BF16-rounded weights were exact in
+the controlled weight-only experiment. This does not authorize BF16 activation
+or kernel arithmetic. INT8 router changed Layer-0 IDs despite a positive safe
+margin (`0.0468793`) and is rejected. Attention O INT8 local output error
+reached `0.2976232`; dense INT8 remains diagnostic-only. Router, RMSNorm, Q/K
+norm, final norm, routing weights, residuals, activations, and accumulations
+remain F32. Embedding, attention Q/K/V/O, and LM-head weights are future BF16
+storage candidates requiring Tier C/B/A evidence.
+
+The deterministic evaluator produced 117 records and 12 router records twice
+with JSON SHA-256
+`1387addd232a80e970af00d7c86dc1a747085589fff14663b2f909ab3b38db81`.
+Added the precision-sensitivity report, machine-readable evidence, tensor
+registry, mixed-precision policy draft, ADR 0030, and focused Python tests.
+
+Verification completed: Python compilation, four policy/evidence tests, and
+repeated deterministic evidence generation. The standard Cargo verification
+commands are run before the review commit.
+
+Next ordered task after review: M4.3-04 - compare output degradation against
+the frozen F32 baseline.

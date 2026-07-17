@@ -1,0 +1,2405 @@
+{
+  "coverage_note": "same-input local diagnostics; no mixed-precision runtime or complete artifact was created",
+  "determinism": {
+    "bf16_rounding": "IEEE nearest-even bit truncation",
+    "int8": "symmetric per output channel, F32 scales, nearest-even, [-127,127]"
+  },
+  "groups": [
+    "embedding_weights",
+    "attention_q_projection",
+    "attention_k_projection",
+    "attention_v_projection",
+    "attention_o_projection",
+    "input_rmsnorm_weights",
+    "post_attention_rmsnorm_weights",
+    "q_norm_weights",
+    "k_norm_weights",
+    "router_weights",
+    "final_rmsnorm_weights",
+    "lm_head_weights"
+  ],
+  "layers": [
+    0,
+    1,
+    24,
+    47
+  ],
+  "model": {
+    "canonical_f32_unchanged": true,
+    "canonical_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "model_id": "Qwen/Qwen3-30B-A3B",
+    "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39"
+  },
+  "records": [
+    {
+      "finite": true,
+      "group": "embedding_weights",
+      "layer": null,
+      "operation": "row_lookup",
+      "selected_row_output_max_error": 0.0,
+      "selected_row_output_rmse": 0.0,
+      "shape": [
+        5,
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "embedding_weights",
+      "layer": null,
+      "operation": "row_lookup",
+      "selected_row_output_max_error": 0.0,
+      "selected_row_output_rmse": 0.0,
+      "shape": [
+        5,
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "embedding_weights",
+      "layer": null,
+      "operation": "row_lookup",
+      "selected_row_output_max_error": 0.001190185546875,
+      "selected_row_output_rmse": 0.0004232770297676325,
+      "shape": [
+        5,
+        2048
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.9997521638870239,
+      "weight_max_error": 0.001190185546875,
+      "weight_mean_absolute_error": 0.0003321676922496408,
+      "weight_rmse": 0.0004232770297676325
+    },
+    {
+      "finite": true,
+      "group": "attention_q_projection",
+      "layer": 0,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        4096,
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_q_projection",
+      "layer": 0,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        4096,
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_q_projection",
+      "layer": 0,
+      "local_output_max_error": 0.014315620064735413,
+      "local_output_rmse": 0.0018746762070804834,
+      "operation": "matvec",
+      "shape": [
+        4096,
+        2048
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.9998490810394287,
+      "weight_max_error": 0.0011068033054471016,
+      "weight_mean_absolute_error": 0.00016677315579727292,
+      "weight_rmse": 0.000207517747185193
+    },
+    {
+      "finite": true,
+      "group": "attention_q_projection",
+      "layer": 1,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        4096,
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 0.9999998807907104,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_q_projection",
+      "layer": 1,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        4096,
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 0.9999998807907104,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_q_projection",
+      "layer": 1,
+      "local_output_max_error": 0.031569838523864746,
+      "local_output_rmse": 0.0037410154473036528,
+      "operation": "matvec",
+      "shape": [
+        4096,
+        2048
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.9998953342437744,
+      "weight_max_error": 0.002872016280889511,
+      "weight_mean_absolute_error": 0.00020564798614941537,
+      "weight_rmse": 0.0002566842595115304
+    },
+    {
+      "finite": true,
+      "group": "attention_q_projection",
+      "layer": 24,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        4096,
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_q_projection",
+      "layer": 24,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        4096,
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_q_projection",
+      "layer": 24,
+      "local_output_max_error": 0.0432124137878418,
+      "local_output_rmse": 0.005670742131769657,
+      "operation": "matvec",
+      "shape": [
+        4096,
+        2048
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.9999099373817444,
+      "weight_max_error": 0.0013607963919639587,
+      "weight_mean_absolute_error": 0.00021047081099823117,
+      "weight_rmse": 0.0002569321368355304
+    },
+    {
+      "finite": true,
+      "group": "attention_q_projection",
+      "layer": 47,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        4096,
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 0.9999998807907104,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_q_projection",
+      "layer": 47,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        4096,
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 0.9999998807907104,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_q_projection",
+      "layer": 47,
+      "local_output_max_error": 0.09228348731994629,
+      "local_output_rmse": 0.009420015849173069,
+      "operation": "matvec",
+      "shape": [
+        4096,
+        2048
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.9999096393585205,
+      "weight_max_error": 0.0021203719079494476,
+      "weight_mean_absolute_error": 0.00019078145851381123,
+      "weight_rmse": 0.00024087808560580015
+    },
+    {
+      "finite": true,
+      "group": "attention_k_projection",
+      "layer": 0,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_k_projection",
+      "layer": 0,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_k_projection",
+      "layer": 0,
+      "local_output_max_error": 0.007228165864944458,
+      "local_output_rmse": 0.001847466453909874,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.9999172687530518,
+      "weight_max_error": 0.0008093155920505524,
+      "weight_mean_absolute_error": 0.00016995432088151574,
+      "weight_rmse": 0.00020812370348721743
+    },
+    {
+      "finite": true,
+      "group": "attention_k_projection",
+      "layer": 1,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_k_projection",
+      "layer": 1,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_k_projection",
+      "layer": 1,
+      "local_output_max_error": 0.016855061054229736,
+      "local_output_rmse": 0.0036702132783830166,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.9999489188194275,
+      "weight_max_error": 0.0012139752507209778,
+      "weight_mean_absolute_error": 0.00020366950775496662,
+      "weight_rmse": 0.00024541051243431866
+    },
+    {
+      "finite": true,
+      "group": "attention_k_projection",
+      "layer": 24,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_k_projection",
+      "layer": 24,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_k_projection",
+      "layer": 24,
+      "local_output_max_error": 0.027107715606689453,
+      "local_output_rmse": 0.005668316502124071,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.9999459981918335,
+      "weight_max_error": 0.001914377324283123,
+      "weight_mean_absolute_error": 0.00021564721828326583,
+      "weight_rmse": 0.0002699969045352191
+    },
+    {
+      "finite": true,
+      "group": "attention_k_projection",
+      "layer": 47,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_k_projection",
+      "layer": 47,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_k_projection",
+      "layer": 47,
+      "local_output_max_error": 0.04353642463684082,
+      "local_output_rmse": 0.008660412393510342,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.9999531507492065,
+      "weight_max_error": 0.0007997006177902222,
+      "weight_mean_absolute_error": 0.00018423539586365223,
+      "weight_rmse": 0.00022480743064079434
+    },
+    {
+      "finite": true,
+      "group": "attention_v_projection",
+      "layer": 0,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_v_projection",
+      "layer": 0,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_v_projection",
+      "layer": 0,
+      "local_output_max_error": 0.008592545986175537,
+      "local_output_rmse": 0.001710302080027759,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.999904990196228,
+      "weight_max_error": 0.0008680688915774226,
+      "weight_mean_absolute_error": 0.0001431357959518209,
+      "weight_rmse": 0.00018115714192390442
+    },
+    {
+      "finite": true,
+      "group": "attention_v_projection",
+      "layer": 1,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_v_projection",
+      "layer": 1,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_v_projection",
+      "layer": 1,
+      "local_output_max_error": 0.011789083480834961,
+      "local_output_rmse": 0.0034672748297452927,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.999940812587738,
+      "weight_max_error": 0.001152699813246727,
+      "weight_mean_absolute_error": 0.00021567019575741142,
+      "weight_rmse": 0.00025475796428509057
+    },
+    {
+      "finite": true,
+      "group": "attention_v_projection",
+      "layer": 24,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 0.9999999403953552,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_v_projection",
+      "layer": 24,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 0.9999999403953552,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_v_projection",
+      "layer": 24,
+      "local_output_max_error": 0.020170390605926514,
+      "local_output_rmse": 0.0059783267788589,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.9999504685401917,
+      "weight_max_error": 0.0008910167962312698,
+      "weight_mean_absolute_error": 0.00023876444902271032,
+      "weight_rmse": 0.00028058161842636764
+    },
+    {
+      "finite": true,
+      "group": "attention_v_projection",
+      "layer": 47,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_v_projection",
+      "layer": 47,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_v_projection",
+      "layer": 47,
+      "local_output_max_error": 0.058676570653915405,
+      "local_output_rmse": 0.013456861488521099,
+      "operation": "matvec",
+      "shape": [
+        512,
+        2048
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.9999266862869263,
+      "weight_max_error": 0.0013437308371067047,
+      "weight_mean_absolute_error": 0.00028646597638726234,
+      "weight_rmse": 0.00035403939546085894
+    },
+    {
+      "finite": true,
+      "group": "attention_o_projection",
+      "layer": 0,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        2048,
+        4096
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_o_projection",
+      "layer": 0,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        2048,
+        4096
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_o_projection",
+      "layer": 0,
+      "local_output_max_error": 0.016339898109436035,
+      "local_output_rmse": 0.0030918435659259558,
+      "operation": "matvec",
+      "shape": [
+        2048,
+        4096
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.999861478805542,
+      "weight_max_error": 0.002952754497528076,
+      "weight_mean_absolute_error": 0.0002096970856655389,
+      "weight_rmse": 0.00026665080804377794
+    },
+    {
+      "finite": true,
+      "group": "attention_o_projection",
+      "layer": 1,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        2048,
+        4096
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_o_projection",
+      "layer": 1,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        2048,
+        4096
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_o_projection",
+      "layer": 1,
+      "local_output_max_error": 0.06215810775756836,
+      "local_output_rmse": 0.009331386536359787,
+      "operation": "matvec",
+      "shape": [
+        2048,
+        4096
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.9998802542686462,
+      "weight_max_error": 0.002291440963745117,
+      "weight_mean_absolute_error": 0.00024349275918211788,
+      "weight_rmse": 0.0003074810083489865
+    },
+    {
+      "finite": true,
+      "group": "attention_o_projection",
+      "layer": 24,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        2048,
+        4096
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_o_projection",
+      "layer": 24,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        2048,
+        4096
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_o_projection",
+      "layer": 24,
+      "local_output_max_error": 0.2612353563308716,
+      "local_output_rmse": 0.016427084803581238,
+      "operation": "matvec",
+      "shape": [
+        2048,
+        4096
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.9998952746391296,
+      "weight_max_error": 0.003744766116142273,
+      "weight_mean_absolute_error": 0.00022167249699123204,
+      "weight_rmse": 0.0002754505549091846
+    },
+    {
+      "finite": true,
+      "group": "attention_o_projection",
+      "layer": 47,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        2048,
+        4096
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 0.9999998807907104,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_o_projection",
+      "layer": 47,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        2048,
+        4096
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 0.9999998807907104,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "attention_o_projection",
+      "layer": 47,
+      "local_output_max_error": 0.2976231575012207,
+      "local_output_rmse": 0.03137850761413574,
+      "operation": "matvec",
+      "shape": [
+        2048,
+        4096
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.999862551689148,
+      "weight_max_error": 0.004638671875,
+      "weight_mean_absolute_error": 0.00025008164811879396,
+      "weight_rmse": 0.00034011690877377987
+    },
+    {
+      "finite": true,
+      "group": "input_rmsnorm_weights",
+      "layer": 0,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "input_rmsnorm_weights",
+      "layer": 0,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "group": "input_rmsnorm_weights",
+      "layer": 0,
+      "status": "not_structurally_meaningful",
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "finite": true,
+      "group": "input_rmsnorm_weights",
+      "layer": 1,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "input_rmsnorm_weights",
+      "layer": 1,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "group": "input_rmsnorm_weights",
+      "layer": 1,
+      "status": "not_structurally_meaningful",
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "finite": true,
+      "group": "input_rmsnorm_weights",
+      "layer": 24,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "input_rmsnorm_weights",
+      "layer": 24,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "group": "input_rmsnorm_weights",
+      "layer": 24,
+      "status": "not_structurally_meaningful",
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "finite": true,
+      "group": "input_rmsnorm_weights",
+      "layer": 47,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "input_rmsnorm_weights",
+      "layer": 47,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "group": "input_rmsnorm_weights",
+      "layer": 47,
+      "status": "not_structurally_meaningful",
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "finite": true,
+      "group": "post_attention_rmsnorm_weights",
+      "layer": 0,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "post_attention_rmsnorm_weights",
+      "layer": 0,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "group": "post_attention_rmsnorm_weights",
+      "layer": 0,
+      "status": "not_structurally_meaningful",
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "finite": true,
+      "group": "post_attention_rmsnorm_weights",
+      "layer": 1,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "post_attention_rmsnorm_weights",
+      "layer": 1,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "group": "post_attention_rmsnorm_weights",
+      "layer": 1,
+      "status": "not_structurally_meaningful",
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "finite": true,
+      "group": "post_attention_rmsnorm_weights",
+      "layer": 24,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "post_attention_rmsnorm_weights",
+      "layer": 24,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "group": "post_attention_rmsnorm_weights",
+      "layer": 24,
+      "status": "not_structurally_meaningful",
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "finite": true,
+      "group": "post_attention_rmsnorm_weights",
+      "layer": 47,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "post_attention_rmsnorm_weights",
+      "layer": 47,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "group": "post_attention_rmsnorm_weights",
+      "layer": 47,
+      "status": "not_structurally_meaningful",
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "finite": true,
+      "group": "q_norm_weights",
+      "layer": 0,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        128
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "q_norm_weights",
+      "layer": 0,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        128
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "group": "q_norm_weights",
+      "layer": 0,
+      "status": "not_structurally_meaningful",
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "finite": true,
+      "group": "q_norm_weights",
+      "layer": 1,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        128
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "q_norm_weights",
+      "layer": 1,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        128
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "group": "q_norm_weights",
+      "layer": 1,
+      "status": "not_structurally_meaningful",
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "finite": true,
+      "group": "q_norm_weights",
+      "layer": 24,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        128
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "q_norm_weights",
+      "layer": 24,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        128
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "group": "q_norm_weights",
+      "layer": 24,
+      "status": "not_structurally_meaningful",
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "finite": true,
+      "group": "q_norm_weights",
+      "layer": 47,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        128
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 0.9999999403953552,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "q_norm_weights",
+      "layer": 47,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        128
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 0.9999999403953552,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "group": "q_norm_weights",
+      "layer": 47,
+      "status": "not_structurally_meaningful",
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "finite": true,
+      "group": "k_norm_weights",
+      "layer": 0,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        128
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "k_norm_weights",
+      "layer": 0,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        128
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "group": "k_norm_weights",
+      "layer": 0,
+      "status": "not_structurally_meaningful",
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "finite": true,
+      "group": "k_norm_weights",
+      "layer": 1,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        128
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "k_norm_weights",
+      "layer": 1,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        128
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "group": "k_norm_weights",
+      "layer": 1,
+      "status": "not_structurally_meaningful",
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "finite": true,
+      "group": "k_norm_weights",
+      "layer": 24,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        128
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 0.9999998807907104,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "k_norm_weights",
+      "layer": 24,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        128
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 0.9999998807907104,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "group": "k_norm_weights",
+      "layer": 24,
+      "status": "not_structurally_meaningful",
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "finite": true,
+      "group": "k_norm_weights",
+      "layer": 47,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        128
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "k_norm_weights",
+      "layer": 47,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        128
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "group": "k_norm_weights",
+      "layer": 47,
+      "status": "not_structurally_meaningful",
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "finite": true,
+      "group": "router_weights",
+      "layer": 0,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        128,
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "router_weights",
+      "layer": 0,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        128,
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "router_weights",
+      "layer": 0,
+      "local_output_max_error": 0.03696393966674805,
+      "local_output_rmse": 0.012815727852284908,
+      "operation": "matvec",
+      "shape": [
+        128,
+        2048
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.9996798634529114,
+      "weight_max_error": 0.0061076004058122635,
+      "weight_mean_absolute_error": 0.0012829945189878345,
+      "weight_rmse": 0.0015597856836393476
+    },
+    {
+      "finite": true,
+      "group": "router_weights",
+      "layer": 1,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        128,
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "router_weights",
+      "layer": 1,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        128,
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "router_weights",
+      "layer": 1,
+      "local_output_max_error": 0.07615303993225098,
+      "local_output_rmse": 0.020132971927523613,
+      "operation": "matvec",
+      "shape": [
+        128,
+        2048
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.9996705055236816,
+      "weight_max_error": 0.005103403702378273,
+      "weight_mean_absolute_error": 0.0010605254210531712,
+      "weight_rmse": 0.0013178327353671193
+    },
+    {
+      "finite": true,
+      "group": "router_weights",
+      "layer": 24,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        128,
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "router_weights",
+      "layer": 24,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        128,
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "router_weights",
+      "layer": 24,
+      "local_output_max_error": 0.08421134948730469,
+      "local_output_rmse": 0.02510523423552513,
+      "operation": "matvec",
+      "shape": [
+        128,
+        2048
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.9993008375167847,
+      "weight_max_error": 0.00396728515625,
+      "weight_mean_absolute_error": 0.0009913668036460876,
+      "weight_rmse": 0.0012312961043789983
+    },
+    {
+      "finite": true,
+      "group": "router_weights",
+      "layer": 47,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        128,
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "router_weights",
+      "layer": 47,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "matvec",
+      "shape": [
+        128,
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "router_weights",
+      "layer": 47,
+      "local_output_max_error": 0.0372312068939209,
+      "local_output_rmse": 0.012536454945802689,
+      "operation": "matvec",
+      "shape": [
+        128,
+        2048
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.9997410774230957,
+      "weight_max_error": 0.0009261006489396095,
+      "weight_mean_absolute_error": 0.0002684790233615786,
+      "weight_rmse": 0.0003210324211977422
+    },
+    {
+      "finite": true,
+      "group": "final_rmsnorm_weights",
+      "layer": null,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "group": "final_rmsnorm_weights",
+      "layer": null,
+      "local_output_max_error": 0.0,
+      "local_output_rmse": 0.0,
+      "operation": "elementwise",
+      "shape": [
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "group": "final_rmsnorm_weights",
+      "layer": null,
+      "status": "not_structurally_meaningful",
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "finite": true,
+      "full_vocabulary_rank_check": "not_run; selected deterministic rows only",
+      "group": "lm_head_weights",
+      "layer": null,
+      "operation": "selected_lm_head_rows",
+      "sampled_argmax_id": 0,
+      "sampled_candidate_argmax_id": 0,
+      "sampled_top20_overlap": 1.0,
+      "selected_logit_max_error": 0.0,
+      "selected_logit_rmse": 0.0,
+      "shape": [
+        5,
+        2048
+      ],
+      "status": "measured",
+      "variant": "f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "full_vocabulary_rank_check": "not_run; selected deterministic rows only",
+      "group": "lm_head_weights",
+      "layer": null,
+      "operation": "selected_lm_head_rows",
+      "sampled_argmax_id": 0,
+      "sampled_candidate_argmax_id": 0,
+      "sampled_top20_overlap": 1.0,
+      "selected_logit_max_error": 0.0,
+      "selected_logit_rmse": 0.0,
+      "shape": [
+        5,
+        2048
+      ],
+      "status": "measured",
+      "variant": "bf16_rounded_f32",
+      "weight_cosine_similarity": 1.0000001192092896,
+      "weight_max_error": 0.0,
+      "weight_mean_absolute_error": 0.0,
+      "weight_rmse": 0.0
+    },
+    {
+      "finite": true,
+      "full_vocabulary_rank_check": "not_run; selected deterministic rows only",
+      "group": "lm_head_weights",
+      "layer": null,
+      "operation": "selected_lm_head_rows",
+      "sampled_argmax_id": 0,
+      "sampled_candidate_argmax_id": 0,
+      "sampled_top20_overlap": 1.0,
+      "selected_logit_max_error": 0.002870798110961914,
+      "selected_logit_rmse": 0.002181332092732191,
+      "shape": [
+        5,
+        2048
+      ],
+      "status": "measured",
+      "variant": "int8_per_output_channel",
+      "weight_cosine_similarity": 0.9999666213989258,
+      "weight_max_error": 0.0004594475030899048,
+      "weight_mean_absolute_error": 0.00018647892284207046,
+      "weight_rmse": 0.00021707707492168993
+    }
+  ],
+  "router_records": [
+    {
+      "boundary_margin": 0.04687929153442383,
+      "candidate_ids": [
+        62,
+        21,
+        75,
+        87,
+        36,
+        126,
+        34,
+        91
+      ],
+      "classification": "exact_match_safe",
+      "f32_ids": [
+        62,
+        21,
+        75,
+        87,
+        36,
+        126,
+        34,
+        91
+      ],
+      "highest_unselected_logit": -3.7143406867980957,
+      "kth_selected_logit": -3.667461395263672,
+      "layer": 0,
+      "max_logit_error": 0.0,
+      "required_safe_margin": 0.0,
+      "variant": "f32"
+    },
+    {
+      "boundary_margin": 0.04687929153442383,
+      "candidate_ids": [
+        62,
+        21,
+        75,
+        87,
+        36,
+        126,
+        34,
+        91
+      ],
+      "classification": "exact_match_safe",
+      "f32_ids": [
+        62,
+        21,
+        75,
+        87,
+        36,
+        126,
+        34,
+        91
+      ],
+      "highest_unselected_logit": -3.7143406867980957,
+      "kth_selected_logit": -3.667461395263672,
+      "layer": 0,
+      "max_logit_error": 0.0,
+      "required_safe_margin": 0.0,
+      "variant": "bf16_rounded_f32"
+    },
+    {
+      "boundary_margin": 0.04687929153442383,
+      "candidate_ids": [
+        62,
+        75,
+        21,
+        87,
+        36,
+        126,
+        34,
+        91
+      ],
+      "classification": "true_mismatch",
+      "f32_ids": [
+        62,
+        21,
+        75,
+        87,
+        36,
+        126,
+        34,
+        91
+      ],
+      "highest_unselected_logit": -3.7143406867980957,
+      "kth_selected_logit": -3.667461395263672,
+      "layer": 0,
+      "max_logit_error": 0.03696393966674805,
+      "required_safe_margin": 0.0739278793334961,
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "boundary_margin": 0.04013824462890625,
+      "candidate_ids": [
+        68,
+        114,
+        55,
+        90,
+        0,
+        9,
+        30,
+        127
+      ],
+      "classification": "exact_match_safe",
+      "f32_ids": [
+        68,
+        114,
+        55,
+        90,
+        0,
+        9,
+        30,
+        127
+      ],
+      "highest_unselected_logit": -4.217255115509033,
+      "kth_selected_logit": -4.177116870880127,
+      "layer": 1,
+      "max_logit_error": 0.0,
+      "required_safe_margin": 0.0,
+      "variant": "f32"
+    },
+    {
+      "boundary_margin": 0.04013824462890625,
+      "candidate_ids": [
+        68,
+        114,
+        55,
+        90,
+        0,
+        9,
+        30,
+        127
+      ],
+      "classification": "exact_match_safe",
+      "f32_ids": [
+        68,
+        114,
+        55,
+        90,
+        0,
+        9,
+        30,
+        127
+      ],
+      "highest_unselected_logit": -4.217255115509033,
+      "kth_selected_logit": -4.177116870880127,
+      "layer": 1,
+      "max_logit_error": 0.0,
+      "required_safe_margin": 0.0,
+      "variant": "bf16_rounded_f32"
+    },
+    {
+      "boundary_margin": 0.04013824462890625,
+      "candidate_ids": [
+        68,
+        114,
+        55,
+        90,
+        0,
+        9,
+        30,
+        127
+      ],
+      "classification": "numerically_ambiguous",
+      "f32_ids": [
+        68,
+        114,
+        55,
+        90,
+        0,
+        9,
+        30,
+        127
+      ],
+      "highest_unselected_logit": -4.217255115509033,
+      "kth_selected_logit": -4.177116870880127,
+      "layer": 1,
+      "max_logit_error": 0.07615303993225098,
+      "required_safe_margin": 0.15230607986450195,
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "boundary_margin": 0.09546566009521484,
+      "candidate_ids": [
+        85,
+        65,
+        28,
+        50,
+        24,
+        105,
+        78,
+        8
+      ],
+      "classification": "exact_match_safe",
+      "f32_ids": [
+        85,
+        65,
+        28,
+        50,
+        24,
+        105,
+        78,
+        8
+      ],
+      "highest_unselected_logit": -3.432821273803711,
+      "kth_selected_logit": -3.337355613708496,
+      "layer": 24,
+      "max_logit_error": 0.0,
+      "required_safe_margin": 0.0,
+      "variant": "f32"
+    },
+    {
+      "boundary_margin": 0.09546566009521484,
+      "candidate_ids": [
+        85,
+        65,
+        28,
+        50,
+        24,
+        105,
+        78,
+        8
+      ],
+      "classification": "exact_match_safe",
+      "f32_ids": [
+        85,
+        65,
+        28,
+        50,
+        24,
+        105,
+        78,
+        8
+      ],
+      "highest_unselected_logit": -3.432821273803711,
+      "kth_selected_logit": -3.337355613708496,
+      "layer": 24,
+      "max_logit_error": 0.0,
+      "required_safe_margin": 0.0,
+      "variant": "bf16_rounded_f32"
+    },
+    {
+      "boundary_margin": 0.09546566009521484,
+      "candidate_ids": [
+        85,
+        65,
+        28,
+        50,
+        24,
+        105,
+        78,
+        8
+      ],
+      "classification": "numerically_ambiguous",
+      "f32_ids": [
+        85,
+        65,
+        28,
+        50,
+        24,
+        105,
+        78,
+        8
+      ],
+      "highest_unselected_logit": -3.432821273803711,
+      "kth_selected_logit": -3.337355613708496,
+      "layer": 24,
+      "max_logit_error": 0.08421134948730469,
+      "required_safe_margin": 0.16842269897460938,
+      "variant": "int8_per_output_channel"
+    },
+    {
+      "boundary_margin": 0.12393498420715332,
+      "candidate_ids": [
+        54,
+        32,
+        73,
+        34,
+        85,
+        111,
+        117,
+        36
+      ],
+      "classification": "exact_match_safe",
+      "f32_ids": [
+        54,
+        32,
+        73,
+        34,
+        85,
+        111,
+        117,
+        36
+      ],
+      "highest_unselected_logit": -2.6594338417053223,
+      "kth_selected_logit": -2.535498857498169,
+      "layer": 47,
+      "max_logit_error": 0.0,
+      "required_safe_margin": 0.0,
+      "variant": "f32"
+    },
+    {
+      "boundary_margin": 0.12393498420715332,
+      "candidate_ids": [
+        54,
+        32,
+        73,
+        34,
+        85,
+        111,
+        117,
+        36
+      ],
+      "classification": "exact_match_safe",
+      "f32_ids": [
+        54,
+        32,
+        73,
+        34,
+        85,
+        111,
+        117,
+        36
+      ],
+      "highest_unselected_logit": -2.6594338417053223,
+      "kth_selected_logit": -2.535498857498169,
+      "layer": 47,
+      "max_logit_error": 0.0,
+      "required_safe_margin": 0.0,
+      "variant": "bf16_rounded_f32"
+    },
+    {
+      "boundary_margin": 0.12393498420715332,
+      "candidate_ids": [
+        54,
+        32,
+        73,
+        34,
+        85,
+        111,
+        117,
+        36
+      ],
+      "classification": "exact_match_safe",
+      "f32_ids": [
+        54,
+        32,
+        73,
+        34,
+        85,
+        111,
+        117,
+        36
+      ],
+      "highest_unselected_logit": -2.6594338417053223,
+      "kth_selected_logit": -2.535498857498169,
+      "layer": 47,
+      "max_logit_error": 0.0372312068939209,
+      "required_safe_margin": 0.0744624137878418,
+      "variant": "int8_per_output_channel"
+    }
+  ],
+  "schema_version": 1,
+  "status": "precision_sensitivity_diagnostic_complete",
+  "storage_impact": {
+    "dense_artifact_bytes": 6164373504,
+    "groups": {
+      "attention_k_projection": {
+        "bf16_bytes": 100663296,
+        "bf16_saved_bytes": 100663296,
+        "bf16_saved_percent": 50.0,
+        "f32_bytes": 201326592,
+        "int8_per_output_channel_bytes": 50429952,
+        "int8_saved_bytes": 150896640,
+        "int8_saved_percent": 74.951171875
+      },
+      "attention_o_projection": {
+        "bf16_bytes": 805306368,
+        "bf16_saved_bytes": 805306368,
+        "bf16_saved_percent": 50.0,
+        "f32_bytes": 1610612736,
+        "int8_per_output_channel_bytes": 403046400,
+        "int8_saved_bytes": 1207566336,
+        "int8_saved_percent": 74.9755859375
+      },
+      "attention_q_projection": {
+        "bf16_bytes": 805306368,
+        "bf16_saved_bytes": 805306368,
+        "bf16_saved_percent": 50.0,
+        "f32_bytes": 1610612736,
+        "int8_per_output_channel_bytes": 403439616,
+        "int8_saved_bytes": 1207173120,
+        "int8_saved_percent": 74.951171875
+      },
+      "attention_v_projection": {
+        "bf16_bytes": 100663296,
+        "bf16_saved_bytes": 100663296,
+        "bf16_saved_percent": 50.0,
+        "f32_bytes": 201326592,
+        "int8_per_output_channel_bytes": 50429952,
+        "int8_saved_bytes": 150896640,
+        "int8_saved_percent": 74.951171875
+      },
+      "embedding_weights": {
+        "bf16_bytes": 622329856,
+        "bf16_saved_bytes": 622329856,
+        "bf16_saved_percent": 50.0,
+        "f32_bytes": 1244659712,
+        "int8_per_output_channel_bytes": 311772672,
+        "int8_saved_bytes": 932887040,
+        "int8_saved_percent": 74.951171875
+      },
+      "final_rmsnorm_weights": {
+        "bf16_bytes": 4096,
+        "bf16_saved_bytes": 4096,
+        "bf16_saved_percent": 50.0,
+        "f32_bytes": 8192,
+        "int8_per_output_channel_bytes": null,
+        "int8_saved_bytes": null,
+        "int8_saved_percent": null
+      },
+      "input_rmsnorm_weights": {
+        "bf16_bytes": 196608,
+        "bf16_saved_bytes": 196608,
+        "bf16_saved_percent": 50.0,
+        "f32_bytes": 393216,
+        "int8_per_output_channel_bytes": 98496,
+        "int8_saved_bytes": 294720,
+        "int8_saved_percent": 74.951171875
+      },
+      "k_norm_weights": {
+        "bf16_bytes": 12288,
+        "bf16_saved_bytes": 12288,
+        "bf16_saved_percent": 50.0,
+        "f32_bytes": 24576,
+        "int8_per_output_channel_bytes": 6336,
+        "int8_saved_bytes": 18240,
+        "int8_saved_percent": 74.21875
+      },
+      "lm_head_weights": {
+        "bf16_bytes": 622329856,
+        "bf16_saved_bytes": 622329856,
+        "bf16_saved_percent": 50.0,
+        "f32_bytes": 1244659712,
+        "int8_per_output_channel_bytes": 311772672,
+        "int8_saved_bytes": 932887040,
+        "int8_saved_percent": 74.951171875
+      },
+      "post_attention_rmsnorm_weights": {
+        "bf16_bytes": 196608,
+        "bf16_saved_bytes": 196608,
+        "bf16_saved_percent": 50.0,
+        "f32_bytes": 393216,
+        "int8_per_output_channel_bytes": 98496,
+        "int8_saved_bytes": 294720,
+        "int8_saved_percent": 74.951171875
+      },
+      "q_norm_weights": {
+        "bf16_bytes": 12288,
+        "bf16_saved_bytes": 12288,
+        "bf16_saved_percent": 50.0,
+        "f32_bytes": 24576,
+        "int8_per_output_channel_bytes": 6336,
+        "int8_saved_bytes": 18240,
+        "int8_saved_percent": 74.21875
+      },
+      "router_weights": {
+        "bf16_bytes": 25165824,
+        "bf16_saved_bytes": 25165824,
+        "bf16_saved_percent": 50.0,
+        "f32_bytes": 50331648,
+        "int8_per_output_channel_bytes": 12607488,
+        "int8_saved_bytes": 37724160,
+        "int8_saved_percent": 74.951171875
+      }
+    }
+  },
+  "task": "M4.3-03",
+  "token_ids": [
+    0,
+    11,
+    9707,
+    125451,
+    151643
+  ],
+  "variants": [
+    "f32",
+    "bf16_rounded_f32",
+    "int8_per_output_channel"
+  ]
+}
