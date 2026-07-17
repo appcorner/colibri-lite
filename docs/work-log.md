@@ -1385,3 +1385,25 @@ Added candidate status and decision registries, M4.3 closure report, memory
 hierarchy roadmap, ADR 0033, and four registry/evidence tests.
 
 Exact next task after review: M4.4-01 - emit versioned baseline JSON.
+
+## 2026-07-17 - M4.4-01 versioned performance baseline index
+
+Created the canonical deterministic baseline index
+`models/qwen3-30b-a3b/m4.4-performance-baseline-v1.json` with stable ID
+`qwen3-30b-a3b-colibri-f32-windows-x64-v1`. It references 31 existing model,
+correctness, resource, quantization, invariant, roadmap, and ik_llama evidence
+files by canonical relative path, byte count, and SHA-256; no model payload or
+large checkpoint evidence was duplicated.
+
+The generator validates canonical model revision and artifact inventory, F32
+authority, known evidence schema versions, frozen fixture IDs, performance and
+cache reconciliation, unique baseline IDs, and rejection of production
+quantization candidates. Serialization is sorted-key compact UTF-8 JSON with a
+trailing newline and no timestamp. Repeated generation is byte-identical.
+
+Added focused baseline-schema/reference/hash/reproducibility tests and the
+human-readable M4.4-01 report. Runtime behavior, artifacts, cache capacity,
+and numerical arithmetic were unchanged; RAM/cache simulation has not started.
+
+Next ordered task after review: M4.4-02 - record runtime/model commits and
+artifact version.

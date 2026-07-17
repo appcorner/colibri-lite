@@ -297,7 +297,7 @@ for production, and the first optimization pivot recorded in
 
 ## M4.4 - Reproducible full-model baseline
 
-- [ ] M4.4-01 Emit versioned baseline JSON.
+- [x] M4.4-01 Emit versioned baseline JSON.
 - [ ] M4.4-02 Record runtime/model commits and artifact version.
 - [ ] M4.4-03 Record hardware and Windows version.
 - [ ] M4.4-04 Record resident budget, peak resident bytes, total bytes read, and
