@@ -308,13 +308,15 @@ for production, and the first optimization pivot recorded in
 
 M4 is complete. The release provenance and closure record are in
 `models/qwen3-30b-a3b/m4-release-provenance-v1.json` and
-`docs/reports/m4-release-closure.md`. No M5 implementation has started.
+`docs/reports/m4-release-closure.md`. No M5 implementation had started at
+the release boundary.
 
 ## M5 - Memory hierarchy and performance recovery
 
 - [x] M5.1-00 Capture authoritative ordered expert trace.
 - [x] M5.1-01 Trace-driven memory hierarchy simulation.
-- [ ] M5.1-02 Implement the reviewed configurable expert-cache prototype.
+- [x] M5.1-02 Implement the reviewed configurable expert-cache prototype.
+- [ ] M5.2-01 Capture broader representative expert traces.
 
 M5.1-00 is complete as a deterministic measurement supplement. The ordered
 trace and validator are recorded in
@@ -326,6 +328,13 @@ M5.1-01 is complete as a deterministic, simulation-only study. Results are
 recorded in `models/qwen3-30b-a3b/m5.1-01-memory-hierarchy-results-v1.json`
 and the first prototype decision is recorded in ADR 0035. No Rust runtime
 behavior, cache capacity, artifact, or numerical execution changed.
+
+M5.1-02 is accepted with limitations. The configurable payload-byte LRU cache
+and expanded accounting are implemented in `clr-storage`; ordered trace replay
+matches the M5.1-01 counters at the reviewed operating points. Full-model
+correctness and timing are pending because canonical payload directories and
+`COLIBRI_ARTIFACT_ROOT` are unavailable in this checkout. ADR 0036 records the
+decision. No resident-dense or other optimization prototype has started.
 
 ## Standard verification commands
 

@@ -1477,3 +1477,27 @@ pass.
 
 Exact next task after review: M5.1-02 (or the next task specified by the
 approved roadmap), before implementing the selected prototype.
+
+## 2026-07-17 - M5.1-02 configurable expert-cache prototype
+
+Promoted the existing safe Rust byte-budgeted `ExpertCache` into the reviewed
+configurable prototype contract. The API continues to accept an explicit
+payload-byte budget through `ExpertStore::new`, preserving the one-expert
+default. Added configured-budget, resident/peak entry, bytes-served/avoided,
+oversized-entry, and blocked-eviction metrics. Strict global LRU, deterministic
+tie-breaking, lease pinning, bounded payload residency, and oversized-entry
+rejection remain unchanged.
+
+Added synthetic cache tests and a Rust trace-replay example with a Python
+adapter. Replay of the authoritative M5.1-00 order matched M5.1-01 global-LRU
+counters at the 8 GiB and 16 GiB modeled operating points. Payload residency
+stayed within budget; metadata/alignment deltas were reported separately.
+
+Full-model correctness and timing were not run because this checkout lacks the
+canonical dense/expert payload directories and `COLIBRI_ARTIFACT_ROOT`. No
+timing or physical-I/O claim is made. Classification is
+`accepted_with_limitations`; next candidate is a broader representative trace
+corpus, recorded in ADR 0036.
+
+Exact next task after review: M5.2-01 Capture broader representative expert
+traces.

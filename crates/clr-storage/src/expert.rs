@@ -21,13 +21,21 @@ pub struct ExpertKey {
 /// Cumulative cache and I/O evidence.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct CacheMetrics {
+    /// Configured payload-byte budget (metadata is tracked separately).
+    pub configured_budget_bytes: usize,
     pub hits: u64,
     pub misses: u64,
     pub loads: u64,
     pub evictions: u64,
     pub resident_bytes: usize,
     pub peak_resident_bytes: usize,
+    pub resident_entry_count: usize,
+    pub peak_entry_count: usize,
     pub bytes_read: u64,
+    pub bytes_served_from_cache: u64,
+    pub bytes_avoided: u64,
+    pub oversized_entry_events: u64,
+    pub blocked_eviction_events: u64,
 }
 
 /// Observation of one completed expert-store request.
@@ -81,7 +89,10 @@ impl ExpertCache {
             budget,
             clock: 0,
             entries: HashMap::new(),
-            metrics: CacheMetrics::default(),
+            metrics: CacheMetrics {
+                configured_budget_bytes: budget,
+                ..CacheMetrics::default()
+            },
         }
     }
 
@@ -99,6 +110,12 @@ impl ExpertCache {
         if let Some(entry) = self.entries.get_mut(&key) {
             entry.last_used = self.clock;
             self.metrics.hits += 1;
+            self.metrics.bytes_served_from_cache +=
+                u64::try_from(entry.bytes.len()).unwrap_or(u64::MAX);
+            self.metrics.bytes_avoided = self
+                .metrics
+                .bytes_avoided
+                .saturating_add(u64::try_from(entry.bytes.len()).unwrap_or(u64::MAX));
             return Ok(ExpertLease {
                 key,
                 bytes: Arc::clone(&entry.bytes),
@@ -108,6 +125,7 @@ impl ExpertCache {
         let payload = loader()?;
         let length = payload.len();
         if length > self.budget {
+            self.metrics.oversized_entry_events += 1;
             return Err(StorageError::ExpertExceedsBudget {
                 key,
                 bytes: length,
@@ -122,6 +140,7 @@ impl ExpertCache {
                 .min_by_key(|(candidate_key, entry)| (entry.last_used, **candidate_key))
                 .map(|(candidate_key, _)| *candidate_key);
             let Some(candidate) = candidate else {
+                self.metrics.blocked_eviction_events += 1;
                 return Err(StorageError::CacheBudgetExhausted {
                     requested: length,
                     budget: self.budget,
@@ -129,6 +148,7 @@ impl ExpertCache {
                 });
             };
             let Some(removed) = self.entries.remove(&candidate) else {
+                self.metrics.blocked_eviction_events += 1;
                 return Err(StorageError::CacheBudgetExhausted {
                     requested: length,
                     budget: self.budget,
@@ -142,10 +162,15 @@ impl ExpertCache {
         self.metrics.loads += 1;
         self.metrics.bytes_read += u64::try_from(length).unwrap_or(u64::MAX);
         self.metrics.resident_bytes += length;
+        self.metrics.resident_entry_count = self.entries.len() + 1;
         self.metrics.peak_resident_bytes = self
             .metrics
             .peak_resident_bytes
             .max(self.metrics.resident_bytes);
+        self.metrics.peak_entry_count = self
+            .metrics
+            .peak_entry_count
+            .max(self.metrics.resident_entry_count);
         self.entries.insert(
             key,
             CacheEntry {
@@ -159,6 +184,12 @@ impl ExpertCache {
     #[must_use]
     pub const fn metrics(&self) -> CacheMetrics {
         self.metrics
+    }
+
+    /// Returns the configured payload-byte budget.
+    #[must_use]
+    pub const fn budget(&self) -> usize {
+        self.budget
     }
 }
 
@@ -253,6 +284,12 @@ impl ExpertStore {
     pub const fn metrics(&self) -> CacheMetrics {
         self.cache.metrics()
     }
+
+    /// Returns the configured payload-byte budget.
+    #[must_use]
+    pub const fn budget(&self) -> usize {
+        self.cache.budget()
+    }
 }
 
 #[cfg(test)]
@@ -311,6 +348,10 @@ mod tests {
         assert_eq!(metrics.resident_bytes, 8);
         assert_eq!(metrics.peak_resident_bytes, 8);
         assert_eq!(metrics.bytes_read, 12);
+        assert_eq!(metrics.configured_budget_bytes, 8);
+        assert_eq!(metrics.peak_entry_count, 2);
+        assert_eq!(metrics.bytes_served_from_cache, 4);
+        assert_eq!(metrics.bytes_avoided, 4);
         drop(
             cache
                 .get_or_load(key(0), || panic!("0 remains MRU"))
@@ -351,6 +392,66 @@ mod tests {
             Err(StorageError::ExpertExceedsBudget { .. })
         ));
         assert!(cache.metrics().resident_bytes <= 8);
+        assert_eq!(cache.metrics().oversized_entry_events, 1);
+        assert_eq!(cache.metrics().blocked_eviction_events, 1);
+    }
+
+    #[test]
+    fn exact_fit_and_multiple_evictions_preserve_payload_budget() {
+        let mut cache = ExpertCache::new(8);
+        drop(
+            cache
+                .get_or_load(key(0), || Ok(vec![0; 3]))
+                .expect("load 0"),
+        );
+        drop(
+            cache
+                .get_or_load(key(1), || Ok(vec![1; 3]))
+                .expect("load 1"),
+        );
+        drop(
+            cache
+                .get_or_load(key(2), || Ok(vec![2; 7]))
+                .expect("load 2"),
+        );
+
+        let metrics = cache.metrics();
+        assert_eq!(metrics.evictions, 2);
+        assert_eq!(metrics.resident_bytes, 7);
+        assert_eq!(metrics.peak_resident_bytes, 7);
+        assert!(metrics.resident_bytes <= cache.budget());
+    }
+
+    #[test]
+    fn released_lease_becomes_evictable_and_blocked_eviction_is_counted() {
+        let mut cache = ExpertCache::new(8);
+        let first = cache.get_or_load(key(0), || Ok(vec![0; 4])).expect("load");
+        let second = cache.get_or_load(key(1), || Ok(vec![1; 4])).expect("load");
+        assert!(matches!(
+            cache.get_or_load(key(2), || Ok(vec![2; 4])),
+            Err(StorageError::CacheBudgetExhausted { .. })
+        ));
+        assert_eq!(cache.metrics().blocked_eviction_events, 1);
+        drop(second);
+        drop(
+            cache
+                .get_or_load(key(2), || Ok(vec![2; 4]))
+                .expect("released entry evicted"),
+        );
+        assert_eq!(first.bytes(), [0; 4]);
+        assert!(cache.metrics().resident_bytes <= cache.budget());
+    }
+
+    #[test]
+    fn zero_budget_rejects_the_first_payload_without_residency() {
+        let mut cache = ExpertCache::new(0);
+        assert!(matches!(
+            cache.get_or_load(key(0), || Ok(vec![0; 1])),
+            Err(StorageError::ExpertExceedsBudget { budget: 0, .. })
+        ));
+        assert_eq!(cache.budget(), 0);
+        assert_eq!(cache.metrics().resident_bytes, 0);
+        assert_eq!(cache.metrics().oversized_entry_events, 1);
     }
 
     #[test]
