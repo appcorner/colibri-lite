@@ -446,6 +446,23 @@ The selected next prototype is an isolated read-only mmap expert-access study.
 It is not implemented here and must remain feature-gated and outside the
 default runtime path.
 
+M5.3-04 is complete for review as an isolated read-only mmap expert-access
+prototype. The `clr-mmap` boundary maps complete expert shards lazily and
+copies validated ranges into owned expert storage; the reference reader remains
+default. Byte-equivalence, lifecycle, cleanup, deterministic trace, cache, KV,
+and bounded-memory gates passed, and all 16 reference/mmap full-runtime runs
+matched M5.2 simulation exactly. Mmap regressed all eight paired timing
+comparisons with a median `+5.92%` change and raised measured working set to
+29.46--39.00 GiB while mapping 108 GiB of virtual shard space. The prototype
+is classified `insufficient_runtime_value`; no mmap promotion or mapping-cache
+follow-up is selected. Evidence is recorded in
+`models/qwen3-30b-a3b/m5.3-04-mmap-results-v1.json`,
+`models/qwen3-30b-a3b/m5.3-04-mmap-benchmark-v1.json`,
+`docs/reports/m5.3-04-mmap-expert-access.md`, and ADR 0044.
+
+Exact next task after review: stop the current storage-access optimization path
+due insufficient runtime value. Do not start it in this task.
+
 ## Standard verification commands
 
 Run before closing every milestone:

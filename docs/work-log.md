@@ -1849,3 +1849,54 @@ Next:
 
 - Exact next task after review: `M5.3-04 Isolated read-only mmap expert-access
   prototype`. Do not start it in this task.
+
+## 2026-07-18 - M5.3-04 isolated read-only mmap expert access
+
+Completed:
+
+- Added isolated `clr-mmap` using `memmap2 = 0.9.11`, with lazy complete-shard
+  read-only mappings and explicit file/map ownership.
+- Kept the reference reader default and exposed mmap only through the
+  `m5-3-mmap` feature and explicit reader mode.
+- Added byte-equivalence, boundary, truncation, missing-file, two-shard,
+  repeated-access, and Windows cleanup tests.
+- Extended storage evidence with mapping, virtual-byte, first-touch, access,
+  copy, and reuse counters; added deterministic benchmark and full-runtime
+  capture tooling.
+
+Changed:
+
+- `crates/clr-mmap/`, `crates/clr-storage/src/mmap.rs`, and feature-gated
+  reader integration in `clr-storage`.
+- `crates/clr-storage/examples/m5_3_expert_access_bench.rs` compares reference,
+  reusable staging, and mmap across same-shard and cross-shard scenarios.
+- `scripts/capture_m5_3_04_mmap.py`, ADR 0044, and the M5.3-04 report.
+
+Evidence:
+
+- Canonical artifact root SHA-256:
+  `f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2`.
+- Full runtime results SHA-256:
+  `05a5aff20b5ce7698825ff1cb50bddc7394d02d54a7673e89382a9a31547af64`.
+- Storage benchmark SHA-256:
+  `87bfdbdd44975096e20a7d59c3fc6b584e820aed4370d88d62d1ac335eb2b1cb`.
+- All 16 reference/mmap rows passed correctness, exact simulation, trace,
+  cache, KV, and bounded-payload checks. Mmap was slower in all 8 paired
+  comparisons; median total-runtime change was `+5.92%`.
+- Mmap mapped 108 GiB virtual shard space in full runtime and measured
+  29.46--39.00 GiB peak working set versus 8.72/17.31 GiB for reference at
+  8/16 GiB cache budgets. No physical-I/O claim was made.
+- `cargo test -p clr-mmap`: 2 passed; `cargo test -p clr-storage
+  --features m5-3-mmap`: 24 passed; mmap-enabled feature Clippy passed.
+
+Open issues:
+
+- Mmap is technically correct but has insufficient runtime value and remains
+  non-default, non-production, and outside the normal runtime configuration.
+- Filesystem cache and page-fault state were uncontrolled; mapped virtual bytes
+  are not resident-RAM claims.
+
+Next:
+
+- Exact next task after review: stop the current storage-access optimization
+  path due insufficient runtime value. Do not start it.
