@@ -1900,3 +1900,55 @@ Next:
 
 - Exact next task after review: stop the current storage-access optimization
   path due insufficient runtime value. Do not start it.
+
+## 2026-07-18 - M5.4-01 resident-dense candidate simulation
+
+Completed:
+
+- Ran a deterministic simulation-only resident-dense plus strict global-LRU
+  study over the validated M5.2 corpus.
+- Validated all eight corpus inputs and used the six fixtures with recorded
+  full-runtime dense-read evidence for the candidate matrix.
+- Modeled total-RAM budgets at 8, 12, 16, 24, 32, and 48 binary GiB by
+  reserving dense/runtime components before assigning the remaining bytes to
+  expert payload cache.
+- Added focused simulator invariants for fixed-component accounting and
+  configuration validation.
+
+Changed:
+
+- Added `scripts/simulate_m5_4_resident_dense.py` and
+  `scripts/test_simulate_m5_4_resident_dense.py`.
+- Added `models/qwen3-30b-a3b/m5.4-01-resident-dense-simulation-v1.json` and
+  `docs/reports/m5.4-01-resident-dense-simulation.md`.
+- Added ADR 0045 and promoted resident dense plus strict global LRU from a
+  deferred idea to a separately reviewed candidate direction.
+- Updated the implementation plan, task tracker, README, and backlog.
+- No Rust runtime, artifact, cache policy, numerical path, dependency, or
+  production default changed.
+
+Evidence:
+
+- Six-fixture aggregate modeled total logical-read reduction: resident dense
+  40.43% at 8 GiB and 56.90% at 16 GiB; streamed dense was 16.31% and 21.36%
+  under the same total-RAM accounting.
+- At 8 GiB resident dense leaves 1.981 GiB for experts and produces zero
+  simulated expert-byte hits; at 16 GiB it retains 27.64% expert-byte hits.
+- `python -m unittest scripts.test_simulate_m5_4_resident_dense`: 3 passed.
+- The simulation validated the canonical artifact identity and M5.2 input and
+  runtime evidence hashes before replay.
+
+Open issues:
+
+- Resident-dense runtime behavior, latency, throughput, physical I/O,
+  allocator overhead, working-set behavior, and concurrent behavior remain
+  unmeasured.
+- Two M5.2 corpus traces were not included because their full-runtime
+  dense-read evidence was not recorded.
+- The candidate is not a production preset and does not authorize runtime
+  implementation by itself.
+
+Next:
+
+- Stop for separate review of `M5.4-02 Measurement-only resident-dense runtime
+  prototype`. Do not implement it until explicitly approved.

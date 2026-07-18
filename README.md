@@ -15,13 +15,16 @@ Mixture-of-Experts models.
 ## Current milestone
 
 M0--M4 are complete. M5.1--M5.3-04 have completed their recorded evidence
-work; the project is now at M5 review closure. The Qwen3-30B-A3B F32 path
+work, and M5.4-01 has completed the resident-dense simulation for review. The
+Qwen3-30B-A3B F32 path
 executes all 48 layers and generates deterministic tokens with streamed experts
 and a byte-budgeted strict global-LRU cache. It is correctness-valid and
 low-memory feasible, but not production-performance-ready.
 
-The current storage-access optimization path is stopped for decision review:
-the reusable-buffer prototype is diagnostic/microbenchmark only, mmap is
+The current storage-access optimization path is stopped. The resident-dense
+plus strict-global-LRU simulation is the selected candidate for a separate
+measurement-only prototype review. The reusable-buffer prototype is
+diagnostic/microbenchmark only, mmap is
 rejected for runtime adoption, and the reference reader remains the default.
 
 The frozen tiny model accepts token IDs directly:
@@ -237,13 +240,14 @@ prototype was slower in every paired full-runtime comparison (median +5.92%)
 and increased measured peak working set to approximately 29.46--39.00 GiB;
 it is rejected for runtime adoption.
 
-The current optimization path is therefore **STOP** pending decision review.
-Do not begin another mmap or storage-access optimization immediately. The only
-proposed next direction is to assess resident dense weights plus strict global
-LRU using simulation and measurement before any runtime change. It must show
-repeatable end-to-end improvement while preserving frozen F32 correctness and
-configured memory limits. If no candidate passes those gates, freeze the
-project as a research runtime rather than expand scope.
+The current storage-access optimization path remains **STOP**. M5.4-01 has
+completed the simulation stage for resident dense weights plus strict global
+LRU. At 16 GiB it models 56.90% total logical-read reduction versus 21.36%
+for streamed dense under the same total-RAM accounting; this is not a latency
+or throughput claim. A runtime prototype requires separate review and must
+show repeatable end-to-end improvement while preserving frozen F32 correctness
+and configured memory limits. If it fails those gates, freeze the project as a
+research runtime rather than expand scope.
 
 Suggested decode-performance gates:
 
@@ -261,17 +265,18 @@ Every optimization must preserve the frozen F32 correctness invariants, determin
 
 `colibri-lite-rs` is no longer a proof that asks whether the model can run. M4 has established a tagged, reproducible, correctness-valid F32 baseline for Qwen3-30B-A3B on Windows x64.
 
-The project is at M5 review closure. Its validated F32 runtime remains a
+The project is at M5.4-01 candidate review. Its validated F32 runtime remains a
 research runtime: strict global LRU and the reference reader are retained,
 while the reusable-buffer and mmap paths are not production defaults. Any
-future candidate must be separately reviewed and measurement-led; deferred GPU,
-server, web UI, and quantized-runtime work remains out of scope.
+resident-dense runtime prototype must be separately reviewed and
+measurement-led; deferred GPU, server, web UI, and quantized-runtime work
+remains out of scope.
 
 In short:
 
 ```text
 M4: Can the full model run correctly with bounded RAM?  YES
-M5: Is a production-performance recovery path proven?   NO -- REVIEW STOP
+M5: Is a production-performance recovery path proven?   NO -- CANDIDATE REVIEW
 ```
 
 ## Project documents

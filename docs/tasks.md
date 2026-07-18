@@ -324,6 +324,8 @@ the release boundary.
 - [x] M5.3-02 Implement reusable aligned read-buffer prototype.
 - [x] M5.3-03 Compute profiling.
 - [x] M5.3-04 Isolated read-only mmap expert-access prototype (complete for review; rejected for production adoption).
+- [x] M5.4-01 Resident-dense plus strict global-LRU simulation (complete for review).
+- [ ] M5.4-02 Measurement-only resident-dense runtime prototype (requires separate review).
 
 M5.1-00 is complete as a deterministic measurement supplement. The ordered
 trace and validator are recorded in
@@ -465,6 +467,28 @@ Exact next task after review: stop the current storage-access optimization path
 due insufficient runtime value. M5.3-04 is complete for review; mmap is
 rejected for production adoption. Do not start another storage-access
 optimization without a new reviewed, measurement-first proposal.
+
+M5.4-01 is complete as a deterministic, simulation-only resident-dense
+candidate study. It validates the complete eight-fixture M5.2 corpus and uses
+the six fixtures with recorded full-runtime dense-read evidence for the
+candidate matrix. Under total-RAM accounting and strict global LRU, resident
+dense models 40.43% total logical-read reduction at 8 GiB and 56.90% at
+16 GiB, compared with 16.31% and 21.36% for streamed dense in the same
+six-fixture subset. At 8 GiB resident dense leaves only 1.981 GiB for experts
+and records no simulated expert hits; at 16 GiB it retains 27.64% expert-byte
+hits. These are modeled logical-read results, not latency or throughput claims.
+Evidence is recorded in
+`models/qwen3-30b-a3b/m5.4-01-resident-dense-simulation-v1.json`,
+`docs/reports/m5.4-01-resident-dense-simulation.md`, and
+`scripts/simulate_m5_4_resident_dense.py`. No Rust runtime, artifact, cache
+policy, numerical path, or production default changed.
+
+The simulation selects resident dense plus strict global LRU for a separate
+measurement-only runtime prototype review. M5.4-02 is not authorized by this
+simulation result alone; it must preserve the frozen F32 invariants, explicit
+total-RAM accounting, and the reference reader unless a separate review
+approves a runtime change. The two corpus fixtures without M5.2 full-runtime
+dense-read evidence remain outside the candidate matrix.
 
 ## Standard verification commands
 

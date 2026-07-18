@@ -463,6 +463,31 @@ It requires end-to-end improvement while retaining frozen F32 correctness and
 explicit memory limits. If no candidate clears those evidence gates, freeze the
 project as a research runtime rather than expand scope without evidence.
 
+### M5.4 - Resident-dense candidate study
+
+Status: M5.4-01 is complete for review; runtime implementation remains pending
+separate approval.
+
+M5.4-01 is a simulation-only study over the validated M5.2 corpus and the six
+fixtures with recorded full-runtime dense-read evidence. It models resident
+dense weights plus strict global LRU under total-RAM budgets of 8, 12, 16, 24,
+32, and 48 GiB. The simulation reserves dense/runtime components before
+assigning the remainder to expert payload cache capacity. It does not claim
+latency, throughput, physical I/O, allocator behavior, or concurrent safety.
+
+Recorded results show modeled total logical-read reduction of 40.43% at 8 GiB
+and 56.90% at 16 GiB for resident dense, compared with 16.31% and 21.36% for
+streamed dense under the same total-RAM accounting. The 8 GiB resident-dense
+case has no simulated expert hits because only 1.981 GiB remains for experts;
+the 16 GiB case retains 27.64% expert-byte hits. These results select a
+measurement-only runtime prototype for review, but do not authorize runtime
+implementation or a production preset.
+
+M5.4-02, if approved, must validate resident-dense initialization, full-model
+F32 correctness, strict total-RAM enforcement, working-set semantics, and
+repeatable end-to-end improvement against the reference reader. Failure to
+clear those gates returns the project to research-runtime freeze.
+
 ## Deferred until after M4
 
 - GPU backends.
