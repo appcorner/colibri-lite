@@ -424,6 +424,45 @@ Exit condition:
 The target model generates tokens, respects the configured budget, and emits a
 reproducible report with known limitations.
 
+### M5 - Memory hierarchy and performance recovery
+
+Status: review closure after M5.3-04. M5 evidence has confirmed the
+correctness-valid F32 path and the low-memory expert-streaming design, but has
+not established production-ready performance. This phase must not be described
+as a production-performance milestone.
+
+Purpose:
+
+- Measure memory hierarchy and expert-cache behavior against the frozen M4 F32
+  correctness evidence.
+- Preserve the reference reader, strict global LRU policy, numerical contracts,
+  artifact format, and configured payload-byte budget unless a separately
+  reviewed experiment supplies contrary evidence.
+- Stop a storage-access candidate when its end-to-end evidence is insufficient;
+  microbenchmark improvements alone are not acceptance evidence.
+
+Current closure findings:
+
+- M5.1 and M5.2 established deterministic expert traces, cache-policy
+  simulation, and representative 8/16 GiB strict-global-LRU runtime evidence.
+- M5.3-03 attributes approximately 71.6--76.4% of profiled time to cache
+  lookup/expert loading; this identifies a measured area, not an automatic
+  approval for another storage optimization.
+- The reusable-buffer prototype has diagnostic/microbenchmark value only and
+  is not the default reader.
+- The isolated mmap prototype is rejected for runtime adoption: it regressed
+  all paired full-runtime comparisons (median +5.92%) and increased measured
+  peak working set to 29.46--39.00 GiB.
+- Strict global LRU remains the selected cache policy and the reference reader
+  remains the default production path.
+
+The current storage-access optimization path is stopped pending decision
+review. A possible later candidate is resident dense weights plus strict global
+LRU, but it must begin with simulation and measurement, not runtime changes.
+It requires end-to-end improvement while retaining frozen F32 correctness and
+explicit memory limits. If no candidate clears those evidence gates, freeze the
+project as a research runtime rather than expand scope without evidence.
+
 ## Deferred until after M4
 
 - GPU backends.

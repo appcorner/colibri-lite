@@ -323,6 +323,7 @@ the release boundary.
 - [x] M5.3-01 Study mmap and coalesced expert access.
 - [x] M5.3-02 Implement reusable aligned read-buffer prototype.
 - [x] M5.3-03 Compute profiling.
+- [x] M5.3-04 Isolated read-only mmap expert-access prototype (complete for review; rejected for production adoption).
 
 M5.1-00 is complete as a deterministic measurement supplement. The ordered
 trace and validator are recorded in
@@ -461,7 +462,9 @@ follow-up is selected. Evidence is recorded in
 `docs/reports/m5.3-04-mmap-expert-access.md`, and ADR 0044.
 
 Exact next task after review: stop the current storage-access optimization path
-due insufficient runtime value. Do not start it in this task.
+due insufficient runtime value. M5.3-04 is complete for review; mmap is
+rejected for production adoption. Do not start another storage-access
+optimization without a new reviewed, measurement-first proposal.
 
 ## Standard verification commands
 
