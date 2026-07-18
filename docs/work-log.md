@@ -1901,6 +1901,47 @@ Next:
 - Exact next task after review: stop the current storage-access optimization
   path due insufficient runtime value. Do not start it.
 
+## 2026-07-18 - M5.4-02 resident-dense runtime prototype measurement closure
+
+Completed:
+
+- Re-verified the read-only canonical Qwen3-30B-A3B artifact root and captured
+  all 24 paired rows: six streamed and six resident-dense fixtures at 8 GiB,
+  then the same matrix at 16 GiB.
+- Confirmed exact generated IDs, trace hashes, router/expert ordering,
+  intermediate F32 checkpoints, finite outputs, KV invariants, strict global
+  LRU accounting, and total-budget accounting for every passed row.
+- Marked M5.4-02 complete for review only. It remains measurement-only.
+
+Changed:
+
+- Updated the M5.4-02 report, task status, and machine-readable results with
+  runtime evidence from source commit `6207fef2c6c1acbcafd525379f29da4bf023e5c0`.
+
+Evidence:
+
+- Canonical root SHA-256:
+  `f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2`;
+  58 files and 122,147,666,917 component bytes.
+- The 8 GiB resident maximum accounted peak was 8,580,189,336 <=
+  8,589,934,592 bytes; the 16 GiB resident maximum was 17,168,026,776 <=
+  17,179,869,184 bytes.
+- Retained bounded diagnostics were caused by a harness cache-hit assertion and
+  an output filename collision, then passed on rerun. They were not memory,
+  allocation, numerical, router, KV, or cache-policy failures.
+
+Open issues:
+
+- Timing is directional and uncontrolled. Physical I/O and page-cache behavior
+  were not measured, so no latency, throughput, or production-performance claim
+  is supported. The two fixtures lacking M5.2 full-runtime dense-read evidence
+  remain unavailable.
+
+Next:
+
+- Review the measurement-only evidence. No production/default adoption is
+  authorized; decision classification remains `prototype_insufficient_runtime_value`.
+
 ## 2026-07-18 - M5.4-02 resident-dense runtime prototype implementation
 
 Completed:

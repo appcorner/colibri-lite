@@ -325,7 +325,7 @@ the release boundary.
 - [x] M5.3-03 Compute profiling.
 - [x] M5.3-04 Isolated read-only mmap expert-access prototype (complete for review; rejected for production adoption).
 - [x] M5.4-01 Resident-dense plus strict global-LRU simulation (complete for review).
-- [ ] M5.4-02 Measurement-only resident-dense runtime prototype (implementation and focused tests complete; full-model capture remains unavailable because the canonical artifact is not mounted).
+- [x] M5.4-02 Measurement-only resident-dense runtime prototype (complete for review; 24-row paired runtime matrix recorded; measurement-only with no production/default adoption authorization).
 
 M5.1-00 is complete as a deterministic measurement supplement. The ordered
 trace and validator are recorded in
