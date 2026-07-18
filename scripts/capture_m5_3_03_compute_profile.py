@@ -281,11 +281,12 @@ def capture(args: argparse.Namespace) -> int:
                         "COLIBRI_M5_3_STORAGE_METRICS_OUTPUT": str(storage_path),
                         "COLIBRI_RMS_DIAGNOSTIC_ROOT": str(diagnostic_root),
                         "COLIBRI_FULL_LOGITS_ROOT": str(diagnostic_root),
-                        "COLIBRI_METRICS_OUTPUT": str(metrics_path),
+                        "COLIBRI_RUNTIME_METRICS_OUTPUT": str(metrics_path),
                         "COLIBRI_EXPERT_TRACE_OUTPUT": str(trace_path),
                     })
                     if fixture_id == "tier_a_control":
                         command = [str(executable), CONTROL_TEST, "--exact", "--nocapture"]
+                        environment["COLIBRI_METRICS_OUTPUT"] = str(metrics_path)
                     else:
                         command = [str(executable), TRACE_TEST, "--exact", "--nocapture"]
                         environment.update({
