@@ -25,6 +25,8 @@ pub use manifest::{
 };
 #[cfg(feature = "m5-3-instrumentation")]
 pub use reader::ReaderMetrics;
+#[cfg(feature = "m5-3-reusable-buffer")]
+pub use reader::ReaderMode;
 pub use reader::{ArtifactReader, TensorBytes};
 
 /// Calculates SHA-256 for artifact construction and integrity tests.

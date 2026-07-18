@@ -13,8 +13,9 @@ use std::{
 
 use clr_core::{DataType, TensorShape};
 use clr_storage::{
-    ARTIFACT_FORMAT_VERSION, ArtifactManifest, ArtifactReader, ByteOrder, ExpertId, ExpertKey,
-    ExpertRegistration, ExpertStore, ReaderMetrics, TensorLocation, TensorMetadata, sha256_digest,
+    ARTIFACT_FORMAT_VERSION, ArtifactManifest, ArtifactReader, ByteOrder, CacheMetrics, ExpertId,
+    ExpertKey, ExpertPathMetrics, ExpertRegistration, ExpertStore, ReaderMetrics, ReaderMode,
+    TensorLocation, TensorMetadata, sha256_digest,
 };
 
 const PAYLOAD_BYTES: u64 = 18_874_368;
@@ -33,6 +34,14 @@ struct ExpertRange {
 struct RunResult {
     elapsed_nanos: u128,
     metrics: ReaderMetrics,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct StoreRunResult {
+    elapsed_nanos: u128,
+    cache: CacheMetrics,
+    path: ExpertPathMetrics,
+    reader: ReaderMetrics,
 }
 
 fn env_path(name: &str, default: &str) -> PathBuf {
@@ -90,11 +99,19 @@ fn build_manifest(ranges: &[ExpertRange]) -> ArtifactManifest {
 }
 
 fn build_reader(artifact_root: &Path, ranges: &[ExpertRange]) -> ArtifactReader {
-    ArtifactReader::open(artifact_root.join("experts"), build_manifest(ranges))
+    build_reader_mode(artifact_root, ranges, ReaderMode::Reference)
+}
+
+fn build_reader_mode(
+    artifact_root: &Path,
+    ranges: &[ExpertRange],
+    mode: ReaderMode,
+) -> ArtifactReader {
+    ArtifactReader::open_with_mode(artifact_root.join("experts"), build_manifest(ranges), mode)
         .expect("open expert reader")
 }
 
-fn build_store(artifact_root: &Path, ranges: &[ExpertRange]) -> ExpertStore {
+fn build_store(artifact_root: &Path, ranges: &[ExpertRange], mode: ReaderMode) -> ExpertStore {
     let registrations = ranges
         .iter()
         .enumerate()
@@ -107,8 +124,7 @@ fn build_store(artifact_root: &Path, ranges: &[ExpertRange]) -> ExpertStore {
         })
         .collect();
     ExpertStore::new(
-        ArtifactReader::open(artifact_root.join("experts"), build_manifest(ranges))
-            .expect("open expert store reader"),
+        build_reader_mode(artifact_root, ranges, mode),
         registrations,
         usize::try_from(PAYLOAD_BYTES).expect("payload usize"),
     )
@@ -196,6 +212,34 @@ fn read_sequence(path: &Path, ranges: &[ExpertRange]) -> Vec<usize> {
     ids
 }
 
+fn run_store(
+    artifact_root: &Path,
+    ranges: &[ExpertRange],
+    ids: &[usize],
+    mode: ReaderMode,
+) -> StoreRunResult {
+    let mut store = build_store(artifact_root, ranges, mode);
+    let started = Instant::now();
+    for &id in ids {
+        let lease = store
+            .load(ExpertKey {
+                layer_index: 47,
+                expert_id: ExpertId(u32::try_from(id).expect("expert ID")),
+            })
+            .expect("expert store benchmark load");
+        assert_eq!(
+            lease.bytes().len(),
+            usize::try_from(PAYLOAD_BYTES).expect("payload usize")
+        );
+    }
+    StoreRunResult {
+        elapsed_nanos: started.elapsed().as_nanos(),
+        cache: store.metrics(),
+        path: store.path_metrics(),
+        reader: store.reader_metrics(),
+    }
+}
+
 fn subtract_metrics(after: ReaderMetrics, before: ReaderMetrics) -> ReaderMetrics {
     ReaderMetrics {
         tensor_reads: after.tensor_reads - before.tensor_reads,
@@ -209,6 +253,14 @@ fn subtract_metrics(after: ReaderMetrics, before: ReaderMetrics) -> ReaderMetric
         buffer_allocation_count: after.buffer_allocation_count - before.buffer_allocation_count,
         allocated_bytes: after.allocated_bytes - before.allocated_bytes,
         copied_bytes: after.copied_bytes - before.copied_bytes,
+        buffer_growth_events: after.buffer_growth_events - before.buffer_growth_events,
+        buffer_reuse_count: after.buffer_reuse_count - before.buffer_reuse_count,
+        bytes_read_into_reusable_buffers: after.bytes_read_into_reusable_buffers
+            - before.bytes_read_into_reusable_buffers,
+        bytes_copied_after_read: after.bytes_copied_after_read - before.bytes_copied_after_read,
+        peak_buffer_capacity: after.peak_buffer_capacity,
+        fallback_allocations: after.fallback_allocations - before.fallback_allocations,
+        alignment_failures: after.alignment_failures - before.alignment_failures,
         hash_bytes: after.hash_bytes - before.hash_bytes,
         open_nanos: after.open_nanos - before.open_nanos,
         metadata_nanos: after.metadata_nanos - before.metadata_nanos,
@@ -220,7 +272,7 @@ fn subtract_metrics(after: ReaderMetrics, before: ReaderMetrics) -> ReaderMetric
 
 fn metrics_json(metrics: ReaderMetrics) -> String {
     format!(
-        "{{\"tensor_reads\":{},\"file_open_count\":{},\"file_handle_reuse_count\":{},\"metadata_count\":{},\"seek_count\":{},\"read_call_count\":{},\"requested_read_bytes\":{},\"returned_read_bytes\":{},\"buffer_allocation_count\":{},\"allocated_bytes\":{},\"copied_bytes\":{},\"hash_bytes\":{},\"open_nanos\":{},\"metadata_nanos\":{},\"seek_nanos\":{},\"read_nanos\":{},\"hash_nanos\":{}}}",
+        "{{\"tensor_reads\":{},\"file_open_count\":{},\"file_handle_reuse_count\":{},\"metadata_count\":{},\"seek_count\":{},\"read_call_count\":{},\"requested_read_bytes\":{},\"returned_read_bytes\":{},\"buffer_allocation_count\":{},\"allocated_bytes\":{},\"copied_bytes\":{},\"buffer_growth_events\":{},\"buffer_reuse_count\":{},\"bytes_read_into_reusable_buffers\":{},\"bytes_copied_after_read\":{},\"peak_buffer_capacity\":{},\"fallback_allocations\":{},\"alignment_failures\":{},\"hash_bytes\":{},\"open_nanos\":{},\"metadata_nanos\":{},\"seek_nanos\":{},\"read_nanos\":{},\"hash_nanos\":{}}}",
         metrics.tensor_reads,
         metrics.file_open_count,
         metrics.file_handle_reuse_count,
@@ -232,6 +284,13 @@ fn metrics_json(metrics: ReaderMetrics) -> String {
         metrics.buffer_allocation_count,
         metrics.allocated_bytes,
         metrics.copied_bytes,
+        metrics.buffer_growth_events,
+        metrics.buffer_reuse_count,
+        metrics.bytes_read_into_reusable_buffers,
+        metrics.bytes_copied_after_read,
+        metrics.peak_buffer_capacity,
+        metrics.fallback_allocations,
+        metrics.alignment_failures,
         metrics.hash_bytes,
         metrics.open_nanos,
         metrics.metadata_nanos,
@@ -250,14 +309,14 @@ fn current_run_json(requests: usize, result: RunResult) -> String {
     )
 }
 
-fn expert_store_run_json(requests: usize, elapsed_nanos: u128, store: &ExpertStore) -> String {
-    let cache = store.metrics();
-    let path = store.path_metrics();
-    let reader = store.reader_metrics();
+fn store_run_json(requests: usize, result: &StoreRunResult) -> String {
+    let cache = result.cache;
+    let path = result.path;
+    let reader = result.reader;
     format!(
-        "{{\"requests\":{},\"elapsed_nanos\":{},\"cache\":{{\"hits\":{},\"misses\":{},\"loads\":{},\"evictions\":{},\"bytes_read\":{}}},\"path_metrics\":{{\"request_count\":{},\"cache_hit_count\":{},\"expert_load_count\":{},\"total_nanos\":{},\"cache_lookup_nanos\":{},\"expert_load_nanos\":{}}},\"reader_metrics\":{}}}",
+        "{{\"requests\":{},\"elapsed_nanos\":{},\"cache\":{{\"hits\":{},\"misses\":{},\"loads\":{},\"evictions\":{},\"bytes_read\":{}}},\"path_metrics\":{{\"request_count\":{},\"cache_hit_count\":{},\"expert_load_count\":{},\"total_nanos\":{},\"cache_lookup_nanos\":{},\"expert_load_nanos\":{},\"bytes_copied_after_read\":{}}},\"reader_metrics\":{}}}",
         requests,
-        elapsed_nanos,
+        result.elapsed_nanos,
         cache.hits,
         cache.misses,
         cache.loads,
@@ -269,8 +328,28 @@ fn expert_store_run_json(requests: usize, elapsed_nanos: u128, store: &ExpertSto
         path.total_nanos,
         path.cache_lookup_nanos,
         path.expert_load_nanos,
+        path.bytes_copied_after_read,
         metrics_json(reader),
     )
+}
+
+fn repeated_store_runs_json(
+    artifact_root: &Path,
+    ranges: &[ExpertRange],
+    ids: &[usize],
+    mode: ReaderMode,
+    repeats: usize,
+) -> String {
+    let mut output = String::from("[");
+    for repeat in 0..repeats {
+        if repeat != 0 {
+            output.push(',');
+        }
+        let result = run_store(artifact_root, ranges, ids, mode);
+        output.push_str(&store_run_json(ids.len(), &result));
+    }
+    output.push(']');
+    output
 }
 
 fn main() {
@@ -287,6 +366,10 @@ fn main() {
     let ranges = load_plan(&plan_path);
     assert_eq!(ranges.len(), 128, "layer-47 expert plan count");
     let reader = build_reader(&artifact_root, &ranges);
+    let repeats = std::env::var("COLIBRI_M5_3_BENCH_REPEATS").map_or(2, |value| {
+        value.parse().expect("valid benchmark repeat count")
+    });
+    assert!(repeats > 0, "benchmark repeat count must be positive");
     let repeated = vec![0; 3];
     let randomized: Vec<_> = (0..32).map(|index| (index * 73 + 19) % 128).collect();
     let authoritative = read_sequence(&sequence_path, &ranges);
@@ -295,24 +378,22 @@ fn main() {
     let current_authoritative = read_current(&reader, &ranges, &authoritative);
     let fresh_authoritative = read_direct(&artifact_root, &ranges, &authoritative, false);
     let reusable_authoritative = read_persistent_reusable(&artifact_root, &ranges, &authoritative);
-    let mut store = build_store(&artifact_root, &ranges);
-    let store_started = Instant::now();
-    for &id in &authoritative {
-        let lease = store
-            .load(ExpertKey {
-                layer_index: 47,
-                expert_id: ExpertId(u32::try_from(id).expect("expert ID")),
-            })
-            .expect("expert store benchmark load");
-        assert_eq!(
-            lease.bytes().len(),
-            usize::try_from(PAYLOAD_BYTES).expect("payload usize")
-        );
-    }
-    let store_elapsed_nanos = store_started.elapsed().as_nanos();
-    let store_json = expert_store_run_json(authoritative.len(), store_elapsed_nanos, &store);
+    let reference_store_json = repeated_store_runs_json(
+        &artifact_root,
+        &ranges,
+        &authoritative,
+        ReaderMode::Reference,
+        repeats,
+    );
+    let reusable_store_json = repeated_store_runs_json(
+        &artifact_root,
+        &ranges,
+        &authoritative,
+        ReaderMode::ReusableAlignedBuffer,
+        repeats,
+    );
     let output = [
-        "{\"schema\":\"colibri-qwen3-moe-m5.3-01-storage-benchmark-v1\",\"schema_version\":1,\"artifact_root_sha256\":\"f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2\",\"payload_bytes\":",
+        "{\"schema\":\"colibri-qwen3-moe-m5.3-02-reusable-buffer-benchmark-v1\",\"schema_version\":1,\"artifact_root_sha256\":\"f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2\",\"payload_bytes\":",
         &PAYLOAD_BYTES.to_string(),
         ",\"warm_cache_state\":\"uncontrolled\",\"current_reader\":{\"repeated_same_expert\":",
         &current_run_json(3, current_repeated),
@@ -326,9 +407,13 @@ fn main() {
         &fresh_authoritative.to_string(),
         ",\"reusable_buffer_persistent_handle_elapsed_nanos\":",
         &reusable_authoritative.to_string(),
-        "}},\"expert_store_authoritative_layer47_miss_subset\":",
-        &store_json,
-        "}\n",
+        "}},\"expert_store_authoritative_layer47_miss_subset\":{\"repeat_count\":",
+        &repeats.to_string(),
+        ",\"reference_allocated\":",
+        &reference_store_json,
+        ",\"reusable_aligned_buffer\":",
+        &reusable_store_json,
+        "}}\n",
     ]
     .concat();
     std::fs::write(&output_path, output).expect("write benchmark evidence");

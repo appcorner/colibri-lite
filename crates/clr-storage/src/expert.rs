@@ -58,6 +58,7 @@ pub struct ExpertPathMetrics {
     pub total_nanos: u128,
     pub cache_lookup_nanos: u128,
     pub expert_load_nanos: u128,
+    pub bytes_copied_after_read: u64,
 }
 
 /// Pinned access to one cached expert payload.
@@ -118,6 +119,13 @@ impl ExpertCache {
     where
         F: FnOnce() -> Result<Vec<u8>, StorageError>,
     {
+        self.get_or_load_arc(key, || loader().map(Arc::<[u8]>::from))
+    }
+
+    fn get_or_load_arc<F>(&mut self, key: ExpertKey, loader: F) -> Result<ExpertLease, StorageError>
+    where
+        F: FnOnce() -> Result<Arc<[u8]>, StorageError>,
+    {
         self.clock = self.clock.wrapping_add(1);
         if let Some(entry) = self.entries.get_mut(&key) {
             entry.last_used = self.clock;
@@ -170,7 +178,7 @@ impl ExpertCache {
             self.metrics.resident_bytes -= removed.bytes.len();
             self.metrics.evictions += 1;
         }
-        let bytes: Arc<[u8]> = payload.into();
+        let bytes = payload;
         self.metrics.loads += 1;
         self.metrics.bytes_read += u64::try_from(length).unwrap_or(u64::MAX);
         self.metrics.resident_bytes += length;
@@ -268,10 +276,21 @@ impl ExpertStore {
         #[cfg(feature = "m5-3-instrumentation")]
         let mut expert_load_nanos = 0_u128;
         let reader = &self.reader;
-        let lease = self.cache.get_or_load(key, || {
+        let lease = self.cache.get_or_load_arc(key, || {
             #[cfg(feature = "m5-3-instrumentation")]
             let load_started = std::time::Instant::now();
-            let result = reader.read_tensor(&name).map(|tensor| tensor.bytes);
+            #[cfg(feature = "m5-3-reusable-buffer")]
+            let result = if reader.reader_mode_name() == "reusable_aligned_buffer" {
+                reader.read_tensor_reusable_arc(&name)
+            } else {
+                reader
+                    .read_tensor(&name)
+                    .map(|tensor| Arc::<[u8]>::from(tensor.bytes))
+            };
+            #[cfg(not(feature = "m5-3-reusable-buffer"))]
+            let result = reader
+                .read_tensor(&name)
+                .map(|tensor| Arc::<[u8]>::from(tensor.bytes));
             #[cfg(feature = "m5-3-instrumentation")]
             {
                 expert_load_nanos = load_started.elapsed().as_nanos();
@@ -287,6 +306,10 @@ impl ExpertStore {
             self.path_metrics.cache_lookup_nanos += total_nanos.saturating_sub(expert_load_nanos);
             if expert_load_nanos > 0 {
                 self.path_metrics.expert_load_count += 1;
+                if let Ok(loaded) = lease.as_ref() {
+                    self.path_metrics.bytes_copied_after_read +=
+                        u64::try_from(loaded.bytes().len()).unwrap_or(u64::MAX);
+                }
             } else {
                 self.path_metrics.cache_hit_count += 1;
             }
@@ -333,6 +356,12 @@ impl ExpertStore {
         self.cache.budget()
     }
 
+    /// Returns the active storage reader mode for runtime evidence.
+    #[must_use]
+    pub const fn reader_mode_name(&self) -> &'static str {
+        self.reader.reader_mode_name()
+    }
+
     /// Returns current reader instrumentation for the storage-path study.
     #[cfg(feature = "m5-3-instrumentation")]
     #[must_use]
@@ -358,6 +387,8 @@ mod tests {
     use clr_core::{DataType, TensorShape};
 
     use super::*;
+    #[cfg(feature = "m5-3-reusable-buffer")]
+    use crate::ReaderMode;
     use crate::{
         ARTIFACT_FORMAT_VERSION, ArtifactManifest, ByteOrder, TensorLocation, TensorMetadata,
         hash::sha256,
@@ -536,6 +567,11 @@ mod tests {
             }],
         )
         .expect("valid expert manifest");
+        #[cfg(feature = "m5-3-reusable-buffer")]
+        let reader =
+            ArtifactReader::open_with_mode(&root, manifest, ReaderMode::ReusableAlignedBuffer)
+                .expect("open reusable expert reader");
+        #[cfg(not(feature = "m5-3-reusable-buffer"))]
         let reader = ArtifactReader::open(&root, manifest).expect("open expert reader");
         let registration = ExpertRegistration {
             key: key(0),
@@ -558,6 +594,14 @@ mod tests {
             assert_eq!(path_metrics.expert_load_count, 1);
             assert!(path_metrics.total_nanos >= path_metrics.expert_load_nanos);
             assert!(path_metrics.cache_lookup_nanos > 0);
+        }
+        #[cfg(feature = "m5-3-reusable-buffer")]
+        {
+            assert_eq!(store.reader_mode_name(), "reusable_aligned_buffer");
+            let reader_metrics = store.reader_metrics();
+            assert_eq!(reader_metrics.buffer_allocation_count, 1);
+            assert_eq!(reader_metrics.buffer_reuse_count, 0);
+            assert_eq!(reader_metrics.bytes_copied_after_read, 8);
         }
         assert!(matches!(
             store.load(key(1)),

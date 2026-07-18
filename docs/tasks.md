@@ -321,7 +321,8 @@ the release boundary.
 - [x] M5.2-02 Simulate cache policies and RAM budgets across the representative trace corpus.
 - [x] M5.2-03 Validate 8 GiB versus 16 GiB global LRU across representative full-model workloads.
 - [x] M5.3-01 Study mmap and coalesced expert access.
-- [ ] M5.3-02 Implement reusable aligned read-buffer prototype.
+- [x] M5.3-02 Implement reusable aligned read-buffer prototype.
+- [ ] M5.3-03 Compute profiling.
 
 M5.1-00 is complete as a deterministic measurement supplement. The ordered
 trace and validator are recorded in
@@ -406,6 +407,25 @@ handles and mmap were not selected. The next selected prototype is reusable
 aligned read buffers, and it has not started. Evidence is recorded in
 `docs/reports/m5.3-01-expert-access-study.md`,
 `models/qwen3-30b-a3b/m5.3-01-expert-access-results-v1.json`, and ADR 0041.
+
+M5.3-02 is complete for review as a feature-gated reusable aligned staging
+buffer prototype. The implementation preserves the reference reader, cache
+policy, artifact layout, leases, request order, and numerical execution. It
+passes byte-equivalence/lifecycle tests and a 24-run full-model matrix across
+Tier-A control, Thai, special-token, code, long-context, and long-decode
+fixtures at exact 8 and 16 GiB budgets. All runtime counters and traces match
+the M5.2-02 simulation and all correctness/budget invariants pass. The
+isolated microbenchmark eliminates per-miss allocations, but the full-model
+matrix shows no generalizable end-to-end benefit and slower timing in 9 of 12
+matched comparisons. The prototype is classified
+`microbenchmark_only_value`; the reference reader remains the default. Results
+are recorded in
+`models/qwen3-30b-a3b/m5.3-02-reusable-buffer-results-v1.json`, the 72-file
+runtime evidence directory, the storage benchmark, and
+`docs/reports/m5.3-02-reusable-read-buffer.md`; ADR 0042 records the decision.
+
+Exact next task after review: `M5.3-03 Compute profiling`. Do not start it in
+this task.
 
 ## Standard verification commands
 

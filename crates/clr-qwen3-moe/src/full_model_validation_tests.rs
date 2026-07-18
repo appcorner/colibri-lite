@@ -11,6 +11,8 @@ use std::{
 };
 
 use clr_core::{DataType, Tensor, TensorShape, ops::elementwise_add};
+#[cfg(feature = "m5-3-reusable-buffer")]
+use clr_storage::ReaderMode;
 use clr_storage::{
     ARTIFACT_FORMAT_VERSION, ArtifactManifest, ArtifactReader, ByteOrder, ExpertId, ExpertKey,
     ExpertLoadObservation, ExpertRegistration, ExpertStore, Sha256Hasher, TensorLocation,
@@ -1192,6 +1194,17 @@ fn expert_store_from_plans(
     );
     let manifest = ArtifactManifest::new(ARTIFACT_FORMAT_VERSION, ByteOrder::Little, metadata)
         .expect("selected expert artifact manifest");
+    #[cfg(feature = "m5-3-reusable-buffer")]
+    let reader_mode = match env::var("COLIBRI_EXPERT_READER_MODE").as_deref() {
+        Ok("reference_allocated") | Err(_) => ReaderMode::Reference,
+        Ok("reusable_aligned_buffer") => ReaderMode::ReusableAlignedBuffer,
+        Ok(other) => panic!("unsupported COLIBRI_EXPERT_READER_MODE: {other}"),
+    };
+    #[cfg(feature = "m5-3-reusable-buffer")]
+    let reader =
+        ArtifactReader::open_with_mode(artifact_root.join("experts"), manifest, reader_mode)
+            .expect("canonical selected expert reader");
+    #[cfg(not(feature = "m5-3-reusable-buffer"))]
     let reader = ArtifactReader::open(artifact_root.join("experts"), manifest)
         .expect("canonical selected expert reader");
     let budget = env::var("COLIBRI_EXPERT_CACHE_BUDGET_BYTES").map_or(18_874_368, |value| {
@@ -4899,6 +4912,10 @@ fn short_cached_generation_matches_transformers() {
             cache_budget,
             env::var_os("COLIBRI_RUNTIME_VALIDATION").is_some(),
         );
+    }
+    #[cfg(feature = "m5-3-reusable-buffer")]
+    if let Some(storage_output) = env::var_os("COLIBRI_M5_3_STORAGE_METRICS_OUTPUT") {
+        m5_2_trace_capture::write_m5_3_storage_metrics(Path::new(&storage_output), &store, metrics);
     }
     println!(
         "short_generation_complete elapsed_seconds={} generated={generated:?} dense_bytes_read={dense_bytes_read} expert_metrics={metrics:?} kv_cache_bytes={} modeled_peak_explicit_bytes={modeled_peak_explicit_bytes}",

@@ -1727,3 +1727,60 @@ Next:
 
 - Exact next task: implement and independently benchmark reusable aligned read
   buffers. Do not start it in this task.
+
+## 2026-07-18 - M5.3-02 reusable aligned read-buffer prototype
+
+Completed:
+
+- Implemented feature-gated `Reference` and `ReusableAlignedBuffer` reader
+  modes in `clr-storage` with one safe reusable staging buffer, exact-range
+  hashing, owned `Arc<[u8]>` handoff, variable-size growth, and no unsafe code.
+- Extended deterministic reader/path metrics for allocation, growth, reuse,
+  read, copy, alignment, fallback, and active reader mode.
+- Added byte-equivalence, variable-size lifecycle, truncation/recovery, and
+  ExpertStore accounting tests.
+- Added deterministic full-runtime capture tooling and validated 24 runs:
+  six required fixtures × 8/16 GiB × reference/reusable reader. All rows match
+  M5.2-02 simulation counters and committed request traces.
+- Added M5.3-02 report and ADR 0042; updated task status.
+
+Changed:
+
+- `crates/clr-storage/src/reader.rs`, `crates/clr-storage/src/expert.rs`, and
+  feature declarations in storage/Qwen crates.
+- `crates/clr-qwen3-moe/src/full_model_validation_tests.rs` and
+  `m5_2_trace_capture.rs` for explicit reader mode and storage evidence.
+- `crates/clr-storage/examples/m5_3_expert_access_bench.rs` and
+  `scripts/capture_m5_3_02_runtime_validation.py`.
+- Machine-readable benchmark/results and 72 per-run runtime evidence files.
+
+Evidence:
+
+- Canonical artifact root SHA-256:
+  `f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2`.
+- M5.3-02 runtime results SHA-256:
+  `69121543607046c2c88bf312cae8c506840e74832cad4ac2d328c2658a97641a`.
+- M5.3-02 storage benchmark SHA-256:
+  `f1a20dfad10da22af89c3b535155f7d2896faa28f8eef81761651a3ae515ebc8`.
+- All 24 runtime rows have exact simulation comparison, finite outputs,
+  deterministic generated IDs/traces, bounded residency, zero fallback and
+  alignment failures, and one reusable allocation per run.
+- Isolated 64-request benchmark: reference 64 allocations/1,207,959,552
+  allocated bytes versus reusable 1 allocation/18,874,368 staging bytes;
+  reusable mean wall 5.589 s versus 5.800 s, with an added full payload copy.
+- Full-model simple mean total time: reference 150.41 s, reusable 187.11 s;
+  reusable was slower in 9/12 matched rows. Filesystem cache state was
+  uncontrolled, so timing is directional and no throughput claim is made.
+- `cargo test -p clr-storage --features m5-3-reusable-buffer`: 23 passed.
+
+Open issues:
+
+- The reusable path has microbenchmark-only value and remains non-default.
+- Hardware WMI queries were denied in the restricted shell; host details are
+  inherited from the M4 baseline.
+- Full-model timing has one sample per configuration and no cold-cache control.
+- Short English and repeated-pattern remain simulation-only for this task.
+
+Next:
+
+- Exact next task after review: `M5.3-03 Compute profiling`. Do not start it.

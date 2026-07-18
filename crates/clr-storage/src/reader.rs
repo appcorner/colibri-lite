@@ -40,6 +40,13 @@ pub struct ReaderMetrics {
     pub buffer_allocation_count: u64,
     pub allocated_bytes: u64,
     pub copied_bytes: u64,
+    pub buffer_growth_events: u64,
+    pub buffer_reuse_count: u64,
+    pub bytes_read_into_reusable_buffers: u64,
+    pub bytes_copied_after_read: u64,
+    pub peak_buffer_capacity: usize,
+    pub fallback_allocations: u64,
+    pub alignment_failures: u64,
     pub hash_bytes: u64,
     pub open_nanos: u128,
     pub metadata_nanos: u128,
@@ -62,6 +69,13 @@ impl ReaderMetrics {
         self.buffer_allocation_count += delta.buffer_allocation_count;
         self.allocated_bytes += delta.allocated_bytes;
         self.copied_bytes += delta.copied_bytes;
+        self.buffer_growth_events += delta.buffer_growth_events;
+        self.buffer_reuse_count += delta.buffer_reuse_count;
+        self.bytes_read_into_reusable_buffers += delta.bytes_read_into_reusable_buffers;
+        self.bytes_copied_after_read += delta.bytes_copied_after_read;
+        self.peak_buffer_capacity = self.peak_buffer_capacity.max(delta.peak_buffer_capacity);
+        self.fallback_allocations += delta.fallback_allocations;
+        self.alignment_failures += delta.alignment_failures;
         self.hash_bytes += delta.hash_bytes;
         self.open_nanos += delta.open_nanos;
         self.metadata_nanos += delta.metadata_nanos;
@@ -78,6 +92,80 @@ pub struct ArtifactReader {
     manifest: ArtifactManifest,
     #[cfg(feature = "m5-3-instrumentation")]
     metrics: Arc<Mutex<ReaderMetrics>>,
+    #[cfg(feature = "m5-3-reusable-buffer")]
+    mode: ReaderMode,
+    #[cfg(feature = "m5-3-reusable-buffer")]
+    reusable_buffer: Mutex<ReusableReadBuffer>,
+}
+
+/// Controlled storage reader mode for the M5.3-02 prototype.
+#[cfg(feature = "m5-3-reusable-buffer")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ReaderMode {
+    /// Allocate the exact payload buffer for every read.
+    Reference,
+    /// Read into one synchronously leased reusable staging buffer.
+    ReusableAlignedBuffer,
+}
+
+#[cfg(feature = "m5-3-reusable-buffer")]
+impl ReaderMode {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Reference => "reference_allocated",
+            Self::ReusableAlignedBuffer => "reusable_aligned_buffer",
+        }
+    }
+}
+
+#[cfg(feature = "m5-3-reusable-buffer")]
+#[derive(Debug, Default)]
+struct ReusableReadBuffer {
+    bytes: Vec<u8>,
+}
+
+#[cfg(feature = "m5-3-reusable-buffer")]
+impl ReusableReadBuffer {
+    const REQUIRED_ALIGNMENT: usize = 1;
+
+    fn prepare(&mut self, length: usize) -> BufferPreparation {
+        let capacity_before = self.bytes.capacity();
+        let reused = capacity_before >= length;
+        if self.bytes.len() < length {
+            self.bytes.resize(length, 0);
+        }
+        let capacity_after = self.bytes.capacity();
+        BufferPreparation {
+            reused,
+            grew: capacity_after > capacity_before,
+            allocated_bytes: capacity_after.saturating_sub(capacity_before),
+            capacity: capacity_after,
+        }
+    }
+}
+
+#[cfg(feature = "m5-3-reusable-buffer")]
+#[derive(Debug, Clone, Copy)]
+struct BufferPreparation {
+    reused: bool,
+    grew: bool,
+    allocated_bytes: usize,
+    capacity: usize,
+}
+
+#[derive(Debug)]
+struct PreparedTensor {
+    tensor: TensorMetadata,
+    path: PathBuf,
+    file: File,
+    length: usize,
+    #[cfg(feature = "m5-3-instrumentation")]
+    open_nanos: u128,
+    #[cfg(feature = "m5-3-instrumentation")]
+    metadata_nanos: u128,
+    #[cfg(feature = "m5-3-instrumentation")]
+    seek_nanos: u128,
 }
 
 #[cfg(feature = "m5-3-instrumentation")]
@@ -119,7 +207,43 @@ impl ArtifactReader {
             manifest,
             #[cfg(feature = "m5-3-instrumentation")]
             metrics: Arc::new(Mutex::new(ReaderMetrics::default())),
+            #[cfg(feature = "m5-3-reusable-buffer")]
+            mode: ReaderMode::Reference,
+            #[cfg(feature = "m5-3-reusable-buffer")]
+            reusable_buffer: Mutex::new(ReusableReadBuffer::default()),
         })
+    }
+
+    /// Opens a reader with an explicitly selected M5.3-02 mode.
+    #[cfg(feature = "m5-3-reusable-buffer")]
+    /// Opens an artifact reader with an explicitly selected reader mode.
+    ///
+    /// # Errors
+    ///
+    /// Returns a storage error when the artifact root or manifest cannot be
+    /// initialized.
+    pub fn open_with_mode(
+        root: impl AsRef<Path>,
+        manifest: ArtifactManifest,
+        mode: ReaderMode,
+    ) -> Result<Self, StorageError> {
+        let mut reader = Self::open(root, manifest)?;
+        reader.mode = mode;
+        Ok(reader)
+    }
+
+    /// Returns the active reader mode for runtime evidence.
+    #[cfg(feature = "m5-3-reusable-buffer")]
+    #[must_use]
+    pub const fn reader_mode_name(&self) -> &'static str {
+        self.mode.as_str()
+    }
+
+    /// Returns the active reader mode for runtime evidence.
+    #[cfg(not(feature = "m5-3-reusable-buffer"))]
+    #[must_use]
+    pub const fn reader_mode_name(&self) -> &'static str {
+        "reference_allocated"
     }
 
     /// Returns cumulative instrumentation metrics for the current reader.
@@ -150,59 +274,33 @@ impl ArtifactReader {
     ///
     /// Returns a structured error for unknown tensors, escaped paths, file I/O,
     /// truncation, or SHA-256 mismatch.
-    #[allow(clippy::too_many_lines)]
     pub fn read_tensor(&self, name: &str) -> Result<TensorBytes, StorageError> {
-        let tensor = self
-            .manifest
-            .tensor(name)
-            .ok_or_else(|| StorageError::TensorNotFound {
+        #[cfg(feature = "m5-3-reusable-buffer")]
+        if self.mode == ReaderMode::ReusableAlignedBuffer {
+            let bytes = self.read_tensor_reusable_arc(name)?;
+            return Ok(TensorBytes {
                 name: name.to_owned(),
-            })?;
-        let path = self.canonical_tensor_path(tensor)?;
-        #[cfg(feature = "m5-3-instrumentation")]
-        let open_started = Instant::now();
-        let mut file = File::open(&path).map_err(|source| StorageError::Io {
-            action: "open tensor file",
-            path: path.clone(),
-            source,
-        })?;
-        #[cfg(feature = "m5-3-instrumentation")]
-        let open_nanos = open_started.elapsed().as_nanos();
-        #[cfg(feature = "m5-3-instrumentation")]
-        let metadata_started = Instant::now();
-        let file_length = file
-            .metadata()
-            .map_err(|source| StorageError::Io {
-                action: "read tensor file metadata",
-                path: path.clone(),
-                source,
-            })?
-            .len();
-        #[cfg(feature = "m5-3-instrumentation")]
-        let metadata_nanos = metadata_started.elapsed().as_nanos();
-        let required_end = tensor.location.offset + tensor.location.length;
-        if file_length < required_end {
-            return Err(StorageError::TruncatedTensor {
-                tensor: tensor.name.clone(),
-                required_end,
-                file_length,
+                bytes: bytes.as_ref().to_vec(),
             });
         }
-        #[cfg(feature = "m5-3-instrumentation")]
-        let seek_started = Instant::now();
-        file.seek(SeekFrom::Start(tensor.location.offset))
-            .map_err(|source| StorageError::Io {
-                action: "seek tensor file",
-                path: path.clone(),
-                source,
-            })?;
-        #[cfg(feature = "m5-3-instrumentation")]
-        let seek_nanos = seek_started.elapsed().as_nanos();
-        let length = usize::try_from(tensor.location.length).map_err(|_| {
-            StorageError::ByteRangeOverflow {
-                tensor: tensor.name.clone(),
-            }
-        })?;
+        self.read_tensor_reference(name)
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn read_tensor_reference(&self, name: &str) -> Result<TensorBytes, StorageError> {
+        let prepared = self.prepare_tensor(name)?;
+        let PreparedTensor {
+            tensor,
+            path,
+            mut file,
+            length,
+            #[cfg(feature = "m5-3-instrumentation")]
+            open_nanos,
+            #[cfg(feature = "m5-3-instrumentation")]
+            metadata_nanos,
+            #[cfg(feature = "m5-3-instrumentation")]
+            seek_nanos,
+        } = prepared;
         let mut bytes = vec![0_u8; length];
         #[cfg(feature = "m5-3-instrumentation")]
         let read_started = Instant::now();
@@ -213,6 +311,7 @@ impl ArtifactReader {
                 requested_read_bytes: tensor.location.length,
                 buffer_allocation_count: 1,
                 allocated_bytes: tensor.location.length,
+                peak_buffer_capacity: length,
                 ..ReaderMetrics::default()
             },
         };
@@ -258,8 +357,152 @@ impl ArtifactReader {
             });
         }
         Ok(TensorBytes {
-            name: tensor.name.clone(),
+            name: tensor.name,
             bytes,
+        })
+    }
+
+    #[cfg(feature = "m5-3-reusable-buffer")]
+    pub(crate) fn read_tensor_reusable_arc(&self, name: &str) -> Result<Arc<[u8]>, StorageError> {
+        let prepared = self.prepare_tensor(name)?;
+        let PreparedTensor {
+            tensor,
+            path,
+            mut file,
+            length,
+            open_nanos,
+            metadata_nanos,
+            seek_nanos,
+        } = prepared;
+        let mut reusable_buffer = self
+            .reusable_buffer
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let preparation = reusable_buffer.prepare(length);
+        let alignment_failure = reusable_buffer
+            .bytes
+            .as_ptr()
+            .align_offset(ReusableReadBuffer::REQUIRED_ALIGNMENT)
+            != 0;
+        let mut delta = ReaderMetrics {
+            requested_read_bytes: tensor.location.length,
+            buffer_growth_events: u64::from(preparation.grew),
+            buffer_reuse_count: u64::from(preparation.reused),
+            bytes_read_into_reusable_buffers: tensor.location.length,
+            allocated_bytes: u64::try_from(preparation.allocated_bytes).unwrap_or(u64::MAX),
+            buffer_allocation_count: u64::from(preparation.grew),
+            peak_buffer_capacity: preparation.capacity,
+            alignment_failures: u64::from(alignment_failure),
+            ..ReaderMetrics::default()
+        };
+        let buffer = &mut reusable_buffer.bytes[..length];
+        let read_started = Instant::now();
+        let mut counting_file = CountingReader {
+            file: &mut file,
+            metrics: ReaderMetrics::default(),
+        };
+        counting_file
+            .read_exact(buffer)
+            .map_err(|source| StorageError::Io {
+                action: "read tensor bytes into reusable buffer",
+                path,
+                source,
+            })?;
+        let read_nanos = read_started.elapsed().as_nanos();
+        let hash_started = Instant::now();
+        let actual = sha256(buffer);
+        let hash_nanos = hash_started.elapsed().as_nanos();
+        delta.tensor_reads = 1;
+        delta.file_open_count = 1;
+        delta.metadata_count = 1;
+        delta.seek_count = 1;
+        delta.read_call_count = counting_file.metrics.read_call_count;
+        delta.returned_read_bytes = counting_file.metrics.returned_read_bytes;
+        delta.copied_bytes = tensor.location.length;
+        delta.bytes_copied_after_read = tensor.location.length;
+        delta.open_nanos = open_nanos;
+        delta.metadata_nanos = metadata_nanos;
+        delta.seek_nanos = seek_nanos;
+        delta.read_nanos = read_nanos;
+        delta.hash_bytes = tensor.location.length;
+        delta.hash_nanos = hash_nanos;
+        if actual != tensor.sha256 {
+            self.record(delta);
+            return Err(StorageError::HashMismatch {
+                tensor: tensor.name,
+                expected: tensor.sha256,
+                actual,
+            });
+        }
+        let bytes: Arc<[u8]> = Arc::from(&buffer[..]);
+        self.record(delta);
+        Ok(bytes)
+    }
+
+    fn prepare_tensor(&self, name: &str) -> Result<PreparedTensor, StorageError> {
+        let tensor = self
+            .manifest
+            .tensor(name)
+            .ok_or_else(|| StorageError::TensorNotFound {
+                name: name.to_owned(),
+            })?;
+        let path = self.canonical_tensor_path(tensor)?;
+        let tensor = tensor.clone();
+        #[cfg(feature = "m5-3-instrumentation")]
+        let open_started = Instant::now();
+        let mut file = File::open(&path).map_err(|source| StorageError::Io {
+            action: "open tensor file",
+            path: path.clone(),
+            source,
+        })?;
+        #[cfg(feature = "m5-3-instrumentation")]
+        let open_nanos = open_started.elapsed().as_nanos();
+        #[cfg(feature = "m5-3-instrumentation")]
+        let metadata_started = Instant::now();
+        let file_length = file
+            .metadata()
+            .map_err(|source| StorageError::Io {
+                action: "read tensor file metadata",
+                path: path.clone(),
+                source,
+            })?
+            .len();
+        #[cfg(feature = "m5-3-instrumentation")]
+        let metadata_nanos = metadata_started.elapsed().as_nanos();
+        let required_end = tensor.location.offset + tensor.location.length;
+        if file_length < required_end {
+            return Err(StorageError::TruncatedTensor {
+                tensor: tensor.name.clone(),
+                required_end,
+                file_length,
+            });
+        }
+        #[cfg(feature = "m5-3-instrumentation")]
+        let seek_started = Instant::now();
+        file.seek(SeekFrom::Start(tensor.location.offset))
+            .map_err(|source| StorageError::Io {
+                action: "seek tensor file",
+                path: path.clone(),
+                source,
+            })?;
+        #[cfg(feature = "m5-3-instrumentation")]
+        let seek_nanos = seek_started.elapsed().as_nanos();
+        let length = usize::try_from(tensor.location.length).map_err(|_| {
+            StorageError::ByteRangeOverflow {
+                tensor: tensor.name.clone(),
+            }
+        })?;
+        Ok(PreparedTensor {
+            tensor,
+            path,
+            file,
+            length,
+            #[cfg(feature = "m5-3-instrumentation")]
+            open_nanos,
+            #[cfg(feature = "m5-3-instrumentation")]
+            metadata_nanos,
+            #[cfg(feature = "m5-3-instrumentation")]
+            seek_nanos,
         })
     }
 
@@ -381,6 +624,112 @@ mod tests {
         assert_eq!(metrics.allocated_bytes, 8);
         assert_eq!(metrics.copied_bytes, 8);
         assert_eq!(metrics.hash_bytes, 8);
+    }
+
+    #[cfg(feature = "m5-3-reusable-buffer")]
+    #[test]
+    fn reusable_buffer_is_byte_equivalent_and_grows_without_shrinking() {
+        let directory = TestDirectory::new();
+        let first = [1_u8, 2, 3, 4, 5, 6, 7, 8];
+        let second = [9_u8, 10, 11, 12];
+        let third = [13_u8, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
+        let mut file_bytes = vec![0_u8; 4];
+        file_bytes.extend_from_slice(&first);
+        file_bytes.extend_from_slice(&second);
+        file_bytes.extend_from_slice(&third);
+        fs::write(directory.0.join("weights.bin"), file_bytes).expect("write variable artifact");
+        let metadata = vec![
+            TensorMetadata {
+                name: "first".to_owned(),
+                shape: TensorShape::new([2]),
+                data_type: DataType::F32,
+                location: TensorLocation {
+                    path: "weights.bin".into(),
+                    offset: 4,
+                    length: 8,
+                },
+                sha256: sha256(&first),
+            },
+            TensorMetadata {
+                name: "second".to_owned(),
+                shape: TensorShape::new([1]),
+                data_type: DataType::F32,
+                location: TensorLocation {
+                    path: "weights.bin".into(),
+                    offset: 12,
+                    length: 4,
+                },
+                sha256: sha256(&second),
+            },
+            TensorMetadata {
+                name: "third".to_owned(),
+                shape: TensorShape::new([3]),
+                data_type: DataType::F32,
+                location: TensorLocation {
+                    path: "weights.bin".into(),
+                    offset: 16,
+                    length: 12,
+                },
+                sha256: sha256(&third),
+            },
+        ];
+        let manifest = ArtifactManifest::new(ARTIFACT_FORMAT_VERSION, ByteOrder::Little, metadata)
+            .expect("variable-size manifest");
+        let reference = ArtifactReader::open(&directory.0, manifest.clone()).expect("reference");
+        let reusable = ArtifactReader::open_with_mode(
+            &directory.0,
+            manifest,
+            ReaderMode::ReusableAlignedBuffer,
+        )
+        .expect("reusable");
+
+        for name in ["first", "second", "third", "first"] {
+            assert_eq!(
+                reusable.read_tensor(name).expect("reusable read"),
+                reference.read_tensor(name).expect("reference read")
+            );
+        }
+        assert_eq!(reusable.reader_mode_name(), "reusable_aligned_buffer");
+        let metrics = reusable.metrics();
+        assert_eq!(metrics.tensor_reads, 4);
+        assert_eq!(metrics.buffer_growth_events, 2);
+        assert_eq!(metrics.buffer_reuse_count, 2);
+        assert_eq!(metrics.buffer_allocation_count, 2);
+        assert_eq!(metrics.bytes_read_into_reusable_buffers, 32);
+        assert_eq!(metrics.bytes_copied_after_read, 32);
+        assert!(metrics.peak_buffer_capacity >= 12);
+        assert_eq!(metrics.alignment_failures, 0);
+        assert_eq!(ReusableReadBuffer::REQUIRED_ALIGNMENT, 1);
+    }
+
+    #[cfg(feature = "m5-3-reusable-buffer")]
+    #[test]
+    fn reusable_buffer_recovers_after_truncated_read_without_leaking_a_handle() {
+        let directory = TestDirectory::new();
+        let payload = [1_u8, 2, 3, 4, 5, 6, 7, 8];
+        let path = directory.0.join("weights.bin");
+        fs::write(&path, [0_u8; 4]).expect("write truncated artifact");
+        let reader = ArtifactReader::open_with_mode(
+            &directory.0,
+            manifest(&payload, 8, sha256(&payload)),
+            ReaderMode::ReusableAlignedBuffer,
+        )
+        .expect("open reusable reader");
+        assert!(matches!(
+            reader.read_tensor("layer.weight"),
+            Err(StorageError::TruncatedTensor { .. })
+        ));
+        let mut repaired = vec![0_u8; 4];
+        repaired.extend_from_slice(&payload);
+        fs::write(&path, repaired).expect("repair artifact");
+        assert_eq!(
+            reader
+                .read_tensor("layer.weight")
+                .expect("recovered read")
+                .bytes,
+            payload
+        );
+        fs::remove_file(path).expect("reusable reader releases file handle");
     }
 
     #[test]

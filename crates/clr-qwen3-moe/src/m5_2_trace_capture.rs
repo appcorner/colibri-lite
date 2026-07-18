@@ -7,6 +7,8 @@ use std::{
 };
 
 use clr_storage::CacheMetrics;
+#[cfg(feature = "m5-3-reusable-buffer")]
+use clr_storage::{ExpertPathMetrics, ReaderMetrics};
 
 use super::*;
 
@@ -405,6 +407,10 @@ fn representative_trace_capture() {
             runtime_started.elapsed().as_secs_f64(),
         );
     }
+    #[cfg(feature = "m5-3-reusable-buffer")]
+    if let Some(storage_output) = env::var_os("COLIBRI_M5_3_STORAGE_METRICS_OUTPUT") {
+        write_m5_3_storage_metrics(&PathBuf::from(storage_output), &store, metrics);
+    }
     println!(
         "m5_2_trace_capture_complete fixture={fixture_id} generated={generated:?} records={} hits={} loads={} evictions={}",
         records.len() / (48 * 8),
@@ -412,6 +418,71 @@ fn representative_trace_capture() {
         metrics.loads,
         metrics.evictions,
     );
+}
+
+#[cfg(feature = "m5-3-reusable-buffer")]
+pub(super) fn write_m5_3_storage_metrics(
+    path: &Path,
+    store: &clr_storage::ExpertStore,
+    cache: CacheMetrics,
+) {
+    let reader = store.reader_metrics();
+    let path_metrics = store.path_metrics();
+    let output = format_storage_metrics(store.reader_mode_name(), reader, path_metrics, cache);
+    fs::write(path, output).expect("write M5.3 storage metrics");
+}
+
+#[cfg(feature = "m5-3-reusable-buffer")]
+fn format_storage_metrics(
+    reader_mode: &str,
+    reader: ReaderMetrics,
+    path_metrics: ExpertPathMetrics,
+    cache: CacheMetrics,
+) -> String {
+    format!(
+        "{{\"schema\":\"colibri-qwen3-moe-m5.3-02-storage-metrics-v1\",\"schema_version\":1,\"reader_mode\":\"{reader_mode}\",\"cache\":{{\"hits\":{},\"misses\":{},\"loads\":{},\"evictions\":{},\"bytes_read\":{},\"resident_bytes\":{},\"peak_resident_bytes\":{},\"peak_entry_count\":{},\"oversized_entry_events\":{},\"blocked_eviction_events\":{}}},\"path\":{{\"request_count\":{},\"cache_hit_count\":{},\"expert_load_count\":{},\"total_nanos\":{},\"cache_lookup_nanos\":{},\"expert_load_nanos\":{},\"bytes_copied_after_read\":{}}},\"reader\":{{\"tensor_reads\":{},\"file_open_count\":{},\"file_handle_reuse_count\":{},\"metadata_count\":{},\"seek_count\":{},\"read_call_count\":{},\"requested_read_bytes\":{},\"returned_read_bytes\":{},\"buffer_allocation_count\":{},\"allocated_bytes\":{},\"copied_bytes\":{},\"buffer_growth_events\":{},\"buffer_reuse_count\":{},\"bytes_read_into_reusable_buffers\":{},\"bytes_copied_after_read\":{},\"peak_buffer_capacity\":{},\"fallback_allocations\":{},\"alignment_failures\":{},\"hash_bytes\":{},\"open_nanos\":{},\"metadata_nanos\":{},\"seek_nanos\":{},\"read_nanos\":{},\"hash_nanos\":{}}}}}\n",
+        cache.hits,
+        cache.misses,
+        cache.loads,
+        cache.evictions,
+        cache.bytes_read,
+        cache.resident_bytes,
+        cache.peak_resident_bytes,
+        cache.peak_entry_count,
+        cache.oversized_entry_events,
+        cache.blocked_eviction_events,
+        path_metrics.request_count,
+        path_metrics.cache_hit_count,
+        path_metrics.expert_load_count,
+        path_metrics.total_nanos,
+        path_metrics.cache_lookup_nanos,
+        path_metrics.expert_load_nanos,
+        path_metrics.bytes_copied_after_read,
+        reader.tensor_reads,
+        reader.file_open_count,
+        reader.file_handle_reuse_count,
+        reader.metadata_count,
+        reader.seek_count,
+        reader.read_call_count,
+        reader.requested_read_bytes,
+        reader.returned_read_bytes,
+        reader.buffer_allocation_count,
+        reader.allocated_bytes,
+        reader.copied_bytes,
+        reader.buffer_growth_events,
+        reader.buffer_reuse_count,
+        reader.bytes_read_into_reusable_buffers,
+        reader.bytes_copied_after_read,
+        reader.peak_buffer_capacity,
+        reader.fallback_allocations,
+        reader.alignment_failures,
+        reader.hash_bytes,
+        reader.open_nanos,
+        reader.metadata_nanos,
+        reader.seek_nanos,
+        reader.read_nanos,
+        reader.hash_nanos,
+    )
 }
 
 fn json_f64_list(values: &[f64]) -> String {
