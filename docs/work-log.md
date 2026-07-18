@@ -1784,3 +1784,68 @@ Open issues:
 Next:
 
 - Exact next task after review: `M5.3-03 Compute profiling`. Do not start it.
+
+## 2026-07-18 - M5.3-03 compute profiling
+
+Completed:
+
+- Investigated and corrected the historical M4 repeated-build guard lifecycle.
+- Added a feature-gated hierarchical compute profiler and deterministic
+  capture/aggregation tooling.
+- Profiled Tier-A control, code, long-context, and long-decode fixtures at
+  exact 8 and 16 GiB reference-reader/global-LRU configurations, plus
+  disabled/coarse/detailed Tier-A overhead modes.
+- Selected an isolated read-only mmap expert-access prototype as the next
+  task; it was not implemented.
+
+Changed:
+
+- Added `m5-3-compute-profiling` instrumentation in `clr-qwen3-moe` for model,
+  phase, layer, attention, routing, expert load, expert MLP, and LM-head
+  scopes, with matrix dimensions and estimated FLOPs.
+- Added `scripts/capture_m5_3_03_compute_profile.py` and
+  `scripts/analyze_m5_3_compute_profile.py`.
+- Added the machine-readable profile results and aggregate, report, ADR 0043,
+  task status, and this work-log entry. The reference reader remains default;
+  no cache policy, artifact, numerical kernel, or runtime optimization changed.
+- Corrected the M4 provenance test to use an explicit historical task snapshot
+  for the repeated-build test while retaining a negative test for current M5
+  progress.
+
+Evidence:
+
+- All 10 profile rows passed correctness, deterministic trace/output identity,
+  bounded residency, zero blocked/oversized events, and exact simulation
+  comparison. Eight detailed rows were included in the aggregate.
+- The cache lookup/expert-load path measured 71.6--76.4% of model profile
+  time; expert MLP measured 4.1--5.5%, LM head 2.8--3.8%, and attention
+  approximately 2.0--2.8%.
+- Results JSON SHA-256:
+  `25036c06623f16cb84cfa681e9697f4ef291951eea89b7b92e3d1a8017aae9c1`.
+- Aggregate JSON SHA-256:
+  `9800aa25181e843e53fd3989f8a4edec315cab33ae68c52ccb75cba05d89390b`.
+- Canonical artifact root SHA-256:
+  `f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2`.
+- `cargo fmt --all --check`, workspace check/test/Clippy, feature-gated
+  Clippy, CLI smoke, explicit Python reference tests (61), historical guard
+  tests, profiler unit tests, artifact/schema/hash validation, and deterministic
+  evidence validation passed. Workspace tests reported 126 passed.
+
+Open issues:
+
+- Filesystem cache state was uncontrolled, so timing is directional and no
+  physical-I/O or throughput claim is made.
+- General allocator/copy percentages and dense-load-versus-dense-compute
+  percentages were not isolated by the current instrumentation; they remain
+  explicitly unknown rather than inferred.
+- The full feature test binary requires per-run artifact and fixture
+  environment variables; the capture harness supplied them for every accepted
+  row.
+- A redundant post-capture full-root rehash exceeded the 120-second command
+  limit because of artifact size; the completed capture preflight remains the
+  authoritative artifact validation.
+
+Next:
+
+- Exact next task after review: `M5.3-04 Isolated read-only mmap expert-access
+  prototype`. Do not start it in this task.

@@ -322,7 +322,7 @@ the release boundary.
 - [x] M5.2-03 Validate 8 GiB versus 16 GiB global LRU across representative full-model workloads.
 - [x] M5.3-01 Study mmap and coalesced expert access.
 - [x] M5.3-02 Implement reusable aligned read-buffer prototype.
-- [ ] M5.3-03 Compute profiling.
+- [x] M5.3-03 Compute profiling.
 
 M5.1-00 is complete as a deterministic measurement supplement. The ordered
 trace and validator are recorded in
@@ -426,6 +426,25 @@ runtime evidence directory, the storage benchmark, and
 
 Exact next task after review: `M5.3-03 Compute profiling`. Do not start it in
 this task.
+
+M5.3-03 is complete for review as a feature-gated hierarchical compute
+profiling study. The profiler preserved the reference reader, strict global
+LRU, numerical execution, request order, and bounded residency across Tier-A,
+code, long-context, and long-decode full-model workloads at exact 8 and 16
+GiB budgets. All eight detailed rows and three profiling-mode comparison rows
+passed deterministic non-timing validation and exact M5.2 simulation-counter
+comparison. The measured runtime is storage-bound: the cache lookup/expert
+load path is 71.6--76.4% of profile time, while expert MLP is 4.1--5.5% and
+LM head is 2.8--3.8%. No kernel, reader default, cache policy, artifact, or
+numerical path changed. The historical M4 guard test was corrected to use a
+historical task snapshot for repeated-build validation while continuing to
+reject current M5 progress. Results are recorded in
+`models/qwen3-30b-a3b/m5.3-03-compute-profile-results-v1.json`, the aggregate
+JSON, `docs/reports/m5.3-03-compute-profile.md`, and ADR 0043.
+
+The selected next prototype is an isolated read-only mmap expert-access study.
+It is not implemented here and must remain feature-gated and outside the
+default runtime path.
 
 ## Standard verification commands
 
