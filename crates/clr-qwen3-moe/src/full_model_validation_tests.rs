@@ -3676,6 +3676,10 @@ fn selected_expert_intermediates_match_transformers() {
 
 #[test]
 fn short_cached_generation_matches_transformers() {
+    #[cfg(feature = "m5-3-compute-profiling")]
+    let profiling_session = crate::profiling::start_from_env();
+    #[cfg(feature = "m5-3-compute-profiling")]
+    let model_profile = crate::profiling::scope("model.total");
     let metrics_output = env::var_os("COLIBRI_METRICS_OUTPUT").map(PathBuf::from);
     let filesystem_cache_assumption =
         env::var("COLIBRI_FS_CACHE_ASSUMPTION").unwrap_or_else(|_| "not_recorded".to_owned());
@@ -3810,6 +3814,12 @@ fn short_cached_generation_matches_transformers() {
     }
 
     for (step, &token_id) in GENERATION_INPUT_TOKENS.iter().enumerate() {
+        #[cfg(feature = "m5-3-compute-profiling")]
+        crate::profiling::set_phase(if step < INPUT_IDS.len() {
+            "prefill".to_owned()
+        } else {
+            format!("decode_{}", step - INPUT_IDS.len() + 1)
+        });
         if runtime_validation && step == 4 {
             println!("m5_2_runtime_phase phase=decode");
         }
@@ -3823,23 +3833,37 @@ fn short_cached_generation_matches_transformers() {
                 (view.key.to_vec(), view.value.to_vec())
             })
             .collect();
+        #[cfg(feature = "m5-3-compute-profiling")]
+        let embedding_profile = crate::profiling::scope("embedding.lookup");
         let mut current = embedding_row(&mut payload, &plan, token_id, &mut dense_bytes_read);
+        #[cfg(feature = "m5-3-compute-profiling")]
+        drop(embedding_profile);
         let mut updates = Vec::with_capacity(48);
         let mut guard_ids = Vec::with_capacity(24);
         let mut layer47_checkpoints = None;
         let token_request_start = expert_request_sequence.len();
 
         for layer in 0..48 {
+            #[cfg(feature = "m5-3-compute-profiling")]
+            crate::profiling::set_layer(Some(layer));
+            #[cfg(feature = "m5-3-compute-profiling")]
+            let layer_profile = crate::profiling::scope(&format!("decoder.layer.{layer}"));
             let layer_dense_before = dense_bytes_read;
             let weights = layer_weights(&mut payload, &plan, layer, &mut dense_bytes_read);
             maximum_dense_layer_bytes =
                 maximum_dense_layer_bytes.max(dense_bytes_read - layer_dense_before);
+            #[cfg(feature = "m5-3-compute-profiling")]
+            let input_norm_profile = crate::profiling::scope("layer.input_rms_norm");
             let input_norm = rms_norm(
                 current.view(),
                 weights.input_norm.view(),
                 config.rms_norm_epsilon(),
             )
             .unwrap_or_else(|error| panic!("step-{step} Layer-{layer} input norm: {error}"));
+            #[cfg(feature = "m5-3-compute-profiling")]
+            drop(input_norm_profile);
+            #[cfg(feature = "m5-3-compute-profiling")]
+            let attention_profile = crate::profiling::scope("attention.total");
             let attention = cached_attention_with_weights(
                 input_norm.view(),
                 config,
@@ -3852,18 +3876,32 @@ fn short_cached_generation_matches_transformers() {
                 cache.layer(layer).expect("KV layer view"),
             )
             .unwrap_or_else(|error| panic!("step-{step} Layer-{layer} attention: {error}"));
+            #[cfg(feature = "m5-3-compute-profiling")]
+            drop(attention_profile);
+            #[cfg(feature = "m5-3-compute-profiling")]
+            let attention_residual_profile = crate::profiling::scope("attention.residual_add");
             let residual =
                 elementwise_add(current.view(), attention.output.view()).unwrap_or_else(|error| {
                     panic!("step-{step} Layer-{layer} attention residual: {error}")
                 });
+            #[cfg(feature = "m5-3-compute-profiling")]
+            drop(attention_residual_profile);
+            #[cfg(feature = "m5-3-compute-profiling")]
+            let post_norm_profile = crate::profiling::scope("layer.post_attention_rms_norm");
             let post_norm = rms_norm(
                 residual.view(),
                 weights.post_norm.view(),
                 config.rms_norm_epsilon(),
             )
             .unwrap_or_else(|error| panic!("step-{step} Layer-{layer} post norm: {error}"));
+            #[cfg(feature = "m5-3-compute-profiling")]
+            drop(post_norm_profile);
+            #[cfg(feature = "m5-3-compute-profiling")]
+            let router_profile = crate::profiling::scope("router.top_k_selection");
             let router = route_tokens(post_norm.view(), weights.router.view(), config)
                 .unwrap_or_else(|error| panic!("step-{step} Layer-{layer} router: {error}"));
+            #[cfg(feature = "m5-3-compute-profiling")]
+            drop(router_profile);
             let mut requested_experts = router.selected_experts.clone();
             requested_experts.sort_unstable();
             expert_request_sequence
@@ -3902,8 +3940,12 @@ fn short_cached_generation_matches_transformers() {
                 },
             )
             .unwrap_or_else(|error| panic!("step-{step} Layer-{layer} experts: {error}"));
+            #[cfg(feature = "m5-3-compute-profiling")]
+            let final_residual_profile = crate::profiling::scope("layer.final_residual_add");
             let block = elementwise_add(residual.view(), moe.view())
                 .unwrap_or_else(|error| panic!("step-{step} Layer-{layer} block: {error}"));
+            #[cfg(feature = "m5-3-compute-profiling")]
+            drop(final_residual_profile);
             if layer == 47 {
                 let actual_experts = Tensor::new(TensorShape::new([8, 2048]), layer47_outputs)
                     .expect("Layer-47 expert output tensor");
@@ -3931,31 +3973,47 @@ fn short_cached_generation_matches_transformers() {
             updates.push((attention.key, attention.value));
             current = block;
             drop(weights);
+            #[cfg(feature = "m5-3-compute-profiling")]
+            drop(layer_profile);
         }
+        #[cfg(feature = "m5-3-compute-profiling")]
+        crate::profiling::set_layer(None);
         let token_requests = &expert_request_sequence[token_request_start..];
         repeated_requests_within_token +=
             token_requests.len() - token_requests.iter().copied().collect::<HashSet<_>>().len();
 
+        #[cfg(feature = "m5-3-compute-profiling")]
+        let final_norm_profile = crate::profiling::scope("final_norm");
         let normalized = rms_norm(
             current.view(),
             final_norm_weight.view(),
             config.rms_norm_epsilon(),
         )
         .unwrap_or_else(|error| panic!("step-{step} final RMSNorm: {error}"));
+        #[cfg(feature = "m5-3-compute-profiling")]
+        drop(final_norm_profile);
+        #[cfg(feature = "m5-3-compute-profiling")]
+        let lm_head_profile = crate::profiling::scope("lm_head");
         let logits = streaming_language_model_head(
             &mut payload,
             &final_plan,
             &normalized,
             &mut dense_bytes_read,
         );
+        #[cfg(feature = "m5-3-compute-profiling")]
+        drop(lm_head_profile);
         let selected = greedy_token(logits.view()).expect("finite greedy logits");
         let updates_view: Vec<_> = updates
             .iter()
             .map(|(key, value)| LayerKvUpdate { key, value })
             .collect();
+        #[cfg(feature = "m5-3-compute-profiling")]
+        let cache_append_profile = crate::profiling::scope("cache.append");
         cache
             .append_token(&updates_view)
             .expect("transactional KV append");
+        #[cfg(feature = "m5-3-compute-profiling")]
+        drop(cache_append_profile);
         let inference_seconds = step_started.elapsed().as_secs_f64();
         let inference_metrics = store.metrics();
         step_seconds.push(inference_seconds);
@@ -4913,7 +4971,22 @@ fn short_cached_generation_matches_transformers() {
             env::var_os("COLIBRI_RUNTIME_VALIDATION").is_some(),
         );
     }
-    #[cfg(feature = "m5-3-reusable-buffer")]
+    #[cfg(feature = "m5-3-compute-profiling")]
+    drop(model_profile);
+    #[cfg(feature = "m5-3-compute-profiling")]
+    let profile_snapshot = crate::profiling::finish(profiling_session);
+    #[cfg(feature = "m5-3-compute-profiling")]
+    if let Some(profile_output) = env::var_os("COLIBRI_COMPUTE_PROFILE_OUTPUT") {
+        crate::profiling::write_json(
+            Path::new(&profile_output),
+            &profile_snapshot,
+            "tier_a_control",
+            cache_budget,
+            &GENERATION_INPUT_TOKENS,
+            &generated,
+        );
+    }
+    #[cfg(any(feature = "m5-3-reusable-buffer", feature = "m5-3-compute-profiling"))]
     if let Some(storage_output) = env::var_os("COLIBRI_M5_3_STORAGE_METRICS_OUTPUT") {
         m5_2_trace_capture::write_m5_3_storage_metrics(Path::new(&storage_output), &store, metrics);
     }

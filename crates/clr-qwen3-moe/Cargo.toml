@@ -12,6 +12,7 @@ description = "Qwen3-MoE architecture implementation for colibri-lite-rs"
 full-model-validation = []
 m5-3-instrumentation = ["clr-storage/m5-3-instrumentation"]
 m5-3-reusable-buffer = ["clr-storage/m5-3-reusable-buffer"]
+m5-3-compute-profiling = ["m5-3-instrumentation"]
 
 [dependencies]
 clr-core = { path = "../clr-core" }

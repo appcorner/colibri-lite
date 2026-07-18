@@ -248,6 +248,8 @@ pub(crate) fn streaming_routed_experts_with_observer<F>(
 where
     F: FnMut(usize, usize, usize, &[f32]),
 {
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    let _experts_profile = crate::profiling::scope("experts.total");
     let hidden_size = config.model().hidden_size();
     let intermediate = config.moe_intermediate_size();
     combine_routed_experts(
@@ -259,11 +261,17 @@ where
                 layer_index: u32::try_from(layer_index).unwrap_or(u32::MAX),
                 expert_id: clr_storage::ExpertId(u32::try_from(expert_id).unwrap_or(u32::MAX)),
             };
+            #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+            let cache_profile = crate::profiling::scope("cache.lookup_and_expert_load");
             let lease = store.load(key)?;
+            #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+            drop(cache_profile);
             let decoded = decode_payload(key, lease.bytes(), layout)?;
             let mut outputs = Vec::with_capacity(occurrences.len());
             for &(token, position) in occurrences {
                 let input = &hidden_states.data()[token * hidden_size..(token + 1) * hidden_size];
+                #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+                let expert_profile = crate::profiling::scope("expert.mlp.total");
                 let output = expert_mlp(
                     input,
                     &decoded.gate,
@@ -272,6 +280,8 @@ where
                     hidden_size,
                     intermediate,
                 );
+                #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+                drop(expert_profile);
                 observe(expert_id, token, position, &output);
                 outputs.push(output);
             }
@@ -297,6 +307,8 @@ where
     R: FnMut(usize, usize, usize, usize, usize, ExpertLoadObservation),
     F: FnMut(usize, usize, usize, &[f32]),
 {
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    let _experts_profile = crate::profiling::scope("experts.total");
     let hidden_size = config.model().hidden_size();
     let intermediate = config.moe_intermediate_size();
     combine_routed_experts(
@@ -309,7 +321,11 @@ where
                 expert_id: clr_storage::ExpertId(u32::try_from(expert_id).unwrap_or(u32::MAX)),
             };
             let mut observation = None;
+            #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+            let cache_profile = crate::profiling::scope("cache.lookup_and_expert_load");
             let lease = store.load_with_observer(key, |value| observation = Some(value))?;
+            #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+            drop(cache_profile);
             let observation = observation.expect("expert load observer called exactly once");
             let decoded = decode_payload(key, lease.bytes(), layout)?;
             let mut outputs = Vec::with_capacity(occurrences.len());
@@ -321,6 +337,8 @@ where
                     .expect("occurrence expert has a selected rank");
                 request_observer(layer_index, expert_id, token, position, rank, observation);
                 let input = &hidden_states.data()[token * hidden_size..(token + 1) * hidden_size];
+                #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+                let expert_profile = crate::profiling::scope("expert.mlp.total");
                 let output = expert_mlp(
                     input,
                     &decoded.gate,
@@ -329,6 +347,8 @@ where
                     hidden_size,
                     intermediate,
                 );
+                #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+                drop(expert_profile);
                 observe(expert_id, token, position, &output);
                 outputs.push(output);
             }
@@ -400,6 +420,8 @@ fn decode_payload(
     bytes: &[u8],
     layout: PackedExpertLayout,
 ) -> Result<DecodedExpert, StreamingModelError> {
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    let _decode_profile = crate::profiling::scope("expert.payload_decode");
     if layout.data_type != DataType::F32
         || layout.byte_order != ByteOrder::Little
         || bytes.len() != layout.total_byte_length

@@ -9,6 +9,8 @@ mod expert_conversion;
 mod full_model_validation_tests;
 mod generation;
 mod model;
+#[cfg(all(test, feature = "m5-3-compute-profiling"))]
+mod profiling;
 mod session;
 mod source_config;
 mod streaming;
