@@ -140,6 +140,10 @@ def validate_storage(storage: dict[str, Any], runtime: dict[str, Any]) -> dict[s
     }
 
 
+def storage_non_timing(storage: dict[str, Any]) -> dict[str, Any]:
+    return {key: value for key, value in storage.items() if key != "timing"}
+
+
 def result_document(artifact: dict[str, Any], runs: list[dict[str, Any]], source_commit: str, status: str) -> dict[str, Any]:
     document: dict[str, Any] = {
         "schema": "colibri-qwen3-moe-m5.3-03-compute-profile-results-v1",
@@ -240,6 +244,9 @@ def capture(args: argparse.Namespace) -> int:
         prior = load_json(result_path)
         require(prior.get("references", {}).get("simulation_results_sha256") == m52.SIMULATION_RESULTS_SHA256, "existing result uses another simulation")
         runs = prior.get("runs", [])
+        for run in runs:
+            if "non_timing_fingerprint" in run and "storage_metrics" in run["runtime"]:
+                run["non_timing_fingerprint"]["storage"] = storage_non_timing(run["runtime"]["storage_metrics"])
         completed = {(run["profile_mode"], run["fixture_id"], run["budget_gib"]) for run in runs}
 
     required_keys = {
@@ -332,7 +339,7 @@ def capture(args: argparse.Namespace) -> int:
                         "io": runtime["io"],
                         "kv_cache": runtime["kv_cache"],
                         "correctness": runtime["correctness"],
-                        "storage": runtime["storage_metrics"],
+                        "storage": storage_non_timing(runtime["storage_metrics"]),
                     }
                     run = {
                         "profile_mode": mode,
