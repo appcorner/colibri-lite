@@ -95,7 +95,16 @@ def validate_storage(
         "cache": storage["cache"],
         "path": storage["path"],
         "reader": reader,
-        "timing": storage["timing"],
+        "timing": {
+            "path": {
+                key: storage["path"][key]
+                for key in ("total_nanos", "cache_lookup_nanos", "expert_load_nanos")
+            },
+            "reader": {
+                key: storage["reader"][key]
+                for key in ("open_nanos", "metadata_nanos", "seek_nanos", "read_nanos", "hash_nanos")
+            },
+        },
     }
 
 
