@@ -8,8 +8,18 @@ repository.workspace = true
 rust-version.workspace = true
 description = "Storage and expert-cache subsystem for colibri-lite-rs"
 
+[features]
+m5-3-instrumentation = []
+m5-3-reusable-buffer = ["m5-3-instrumentation"]
+m5-3-mmap = ["m5-3-instrumentation", "dep:clr-mmap"]
+
+[[example]]
+name = "m5_3_expert_access_bench"
+required-features = ["m5-3-reusable-buffer"]
+
 [dependencies]
 clr-core = { path = "../clr-core" }
+clr-mmap = { path = "../clr-mmap", optional = true }
 
 [lints]
 workspace = true

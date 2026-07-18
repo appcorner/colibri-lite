@@ -1,0 +1,67 @@
+{
+  "schema": "colibri-qwen3-moe-m5.1-02-expert-cache-prototype-results-v1",
+  "schema_version": 1,
+  "baseline_id": "qwen3-30b-a3b-colibri-f32-windows-x64-v1",
+  "trace_sha256": "f3f87f05d15424030c9261cdf3e93bd72e9c006a55303bc0c28a92a4fb3ff2d0",
+  "simulation_results_sha256": "9c9fc8b12ff58f4b8bffa3be13ca83a02922a381b020dffbb9728118e7914601",
+  "replay_evidence": {
+    "path": "models/qwen3-30b-a3b/m5.1-02-cache-replay-v1.json",
+    "sha256": "a12c3529bdf5699adf9fb27fe3b709469a2bbab549e1a9629a0faf5d2a0164e3",
+    "trace_replay_uses": "production clr-storage ExpertCache with compact TSV adapter",
+    "counter_agreement": true,
+    "operating_points": [
+      {
+        "modeled_total_ram_gib": 8,
+        "configured_payload_budget_bytes": 8212550504,
+        "hits": 719,
+        "misses": 1585,
+        "loads": 1585,
+        "evictions": 1150,
+        "peak_payload_bytes": 8210350080,
+        "peak_metadata_accounting_delta_bytes": 1781760,
+        "expert_bytes_loaded": 29915873280,
+        "expert_bytes_avoided": 13570670592,
+        "total_logical_reads_with_frozen_dense_bytes": 59434164224,
+        "counter_agreement": true
+      },
+      {
+        "modeled_total_ram_gib": 16,
+        "configured_payload_budget_bytes": 16802485096,
+        "hits": 929,
+        "misses": 1375,
+        "loads": 1375,
+        "evictions": 485,
+        "peak_payload_bytes": 16798187520,
+        "peak_metadata_accounting_delta_bytes": 3645440,
+        "expert_bytes_loaded": 25952256000,
+        "expert_bytes_avoided": 17534287872,
+        "total_logical_reads_with_frozen_dense_bytes": 55470546944,
+        "counter_agreement": true
+      }
+    ]
+  },
+  "cache_contract": {
+    "policy": "strict deterministic global LRU",
+    "budget_semantics": "payload bytes only; metadata and alignment are reported separately",
+    "lease_safety": "active Arc-backed leases are never evicted",
+    "oversized_entry": "rejected with ExpertExceedsBudget",
+    "blocked_eviction": "CacheBudgetExhausted and counter increment",
+    "default_behavior": "existing one-expert budget remains unchanged unless caller supplies another byte budget"
+  },
+  "full_model_validation": {
+    "status": "not_run",
+    "reason": "canonical dense/expert payload directories are absent and COLIBRI_ARTIFACT_ROOT is not configured in this checkout",
+    "timing_metrics": "not measured",
+    "frozen_generated_ids": [1096, 374],
+    "numerical_runtime_changed": false
+  },
+  "decision": {
+    "classification": "accepted_with_limitations",
+    "actual_cache_behavior_matches_simulation": true,
+    "larger_cache_materially_reduces_logical_reads": true,
+    "latency_improvement": "unknown_without_canonical_full-model replay",
+    "recommended_operating_point": "8 GiB modeled total-RAM balanced mode until full-model timing is available",
+    "next_candidate": "broader trace corpus",
+    "next_task": "M5.2-01 Capture broader representative expert traces"
+  }
+}

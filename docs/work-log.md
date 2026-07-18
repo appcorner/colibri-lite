@@ -1427,3 +1427,604 @@ implementation changed; no RAM/cache simulation ran.
 The approved tag is `m4-full-qwen3-baseline-v1` and must point to the final
 clean closure commit. Exact next task: M5.1-01 trace-driven memory hierarchy
 simulation.
+
+## 2026-07-17 - M5.1-00 authoritative ordered expert trace
+
+Added behavior-preserving request instrumentation at the `ExpertStore` load
+boundary and replayed the frozen M4 Tier-A configuration. The canonical trace
+contains 2,304 actual ordered expert occurrences and 1,332 unique
+layer/expert keys. Validation reproduced 0 hits, 2,304 misses/loads, 2,303
+evictions, 43,486,543,872 expert logical bytes, and the frozen reuse-distance
+distribution (379/384/1,924; 525/298/149 buckets).
+
+The canonical trace and an independent repeat are byte-identical at
+SHA-256 `f3f87f05d15424030c9261cdf3e93bd72e9c006a55303bc0c28a92a4fb3ff2d0`.
+Both replays preserved generated IDs `[1096, 374]`, guard router IDs,
+finite outputs, selected checkpoints, and KV-cache invariants. The replay is
+explicitly a measurement supplement; temporary full-vocabulary logits were not
+retained, so no new full-logit claim is made.
+
+Added trace schema/manifest, deterministic capture and validation scripts,
+aggregate evidence, report, and ADR 0034. No cache simulation or runtime
+memory-hierarchy prototype has started.
+
+Exact next task after review: M5.1-01 - trace-driven memory hierarchy
+simulation.
+
+## 2026-07-17 - M5.1-01 trace-driven memory hierarchy simulation
+
+Implemented a deterministic Python simulator over the authoritative M5.1-00
+ordered trace. The input and result artifacts validate the trace SHA-256,
+frozen M4 baseline/provenance identity, key ranges, payload accounting, and
+all scenario identities. Simulated binary 1/2/4/8/16/24/32 GiB budgets for
+streamed-dense and resident-dense configurations under global LRU,
+layer-aware LRU, observed-frequency LFU, and a clearly theoretical Belady
+upper bound.
+
+Global LRU requires exactly 379 charged entries (`7,154,937,856` bytes) for
+the first hit; the first fixed total-RAM point with a hit is 8 GiB. At 8 GiB
+streamed-dense LRU, expert-byte hit rate is 31.21% and modeled total logical
+reads are reduced 18.59%. Full unique-key residency requires 25,146,114,048
+bytes including entry charge. Dense residency is infeasible below 8 GiB and
+competes with the expert working set at 8/16 GiB.
+
+Selected the configurable larger expert cache as the first runtime prototype
+for a future task. This task made no Rust runtime, cache-policy, artifact,
+quantization, mmap, prefetch, SIMD, threading, GPU, or numerical changes.
+Added the simulator, focused synthetic-policy tests, input manifest, result
+matrix, report, and ADR 0035. Deterministic regeneration and accounting tests
+pass.
+
+Exact next task after review: M5.1-02 (or the next task specified by the
+approved roadmap), before implementing the selected prototype.
+
+## 2026-07-17 - M5.1-02 configurable expert-cache prototype
+
+Promoted the existing safe Rust byte-budgeted `ExpertCache` into the reviewed
+configurable prototype contract. The API continues to accept an explicit
+payload-byte budget through `ExpertStore::new`, preserving the one-expert
+default. Added configured-budget, resident/peak entry, bytes-served/avoided,
+oversized-entry, and blocked-eviction metrics. Strict global LRU, deterministic
+tie-breaking, lease pinning, bounded payload residency, and oversized-entry
+rejection remain unchanged.
+
+Added synthetic cache tests and a Rust trace-replay example with a Python
+adapter. Replay of the authoritative M5.1-00 order matched M5.1-01 global-LRU
+counters at the 8 GiB and 16 GiB modeled operating points. Payload residency
+stayed within budget; metadata/alignment deltas were reported separately.
+
+Full-model correctness and timing were not run because this checkout lacks the
+canonical dense/expert payload directories and `COLIBRI_ARTIFACT_ROOT`. No
+timing or physical-I/O claim is made. Classification is
+`accepted_with_limitations`; next candidate is a broader representative trace
+corpus, recorded in ADR 0036.
+
+Exact next task after review: M5.2-01 Capture broader representative expert
+traces.
+
+## 2026-07-17 - M5.1-03 canonical full-model cache validation
+
+Validated the configurable F32 strict-global-LRU cache against the canonical
+Qwen3-30B-A3B artifact at the one-expert baseline and exact nominal 8 GiB and
+16 GiB payload budgets. The artifact manifest and all 57 payload files matched
+the pinned root hash. Every run preserved generated IDs `[1096, 374]`, retained
+F32 checkpoints, deterministic routing, finite outputs, KV-cache invariants,
+and bounded payload residency.
+
+Exact-budget runtime counters matched independent trace replay: 8 GiB had
+719 hits, 1,585 loads, 1,130 evictions, and 13,570,670,592 bytes avoided; 16
+GiB had 931 hits, 1,373 loads, 463 evictions, and 17,572,036,608 bytes avoided.
+The different M5.1-02 counters are explained by its usable-budget overhead
+accounting. Logical reads fell 18.59% and 24.07% overall. Timing is directional
+because filesystem cache state was uncontrolled and one sample was collected
+per mode. Process working-set sampling and full-vocabulary logits remain open
+limitations. Classification remains `accepted_with_limitations`.
+
+Added the machine-readable result, validation report, and ADR 0037. Exact next
+task: M5.2-01 Capture broader representative expert traces.
+
+## 2026-07-18 - M5.2-01 representative expert traces
+
+Completed:
+
+- M5.2-01 representative corpus capture and validation.
+- Eight accepted workload cases, each captured twice; the frozen Tier-A
+  control was reproduced from the canonical M5.1-00 trace.
+- M5.1-03 counter discrepancy follow-up, resolved as budget-accounting
+  semantics with no runtime change.
+
+Changed:
+
+- Added v2 ordered-trace schema, fixture manifest, corpus manifest, seven new
+  individual traces, repeatability and aggregate evidence.
+- Added deterministic one-fixture-at-a-time capture and analysis tooling.
+- Added corpus regression/record-adapter tests, ADR 0038, task status, and the
+  M5.2-01 report.
+
+Evidence:
+
+- 11,520 total expert occurrences; 3,148 unique layer/expert keys;
+  `217,432,719,360` requested payload bytes.
+- Every trace has two byte-identical canonical repeats and stable generated
+  IDs. New-trace SHA-256 values are pinned in the corpus manifest.
+- All schema, ordinal/range, payload, KV-cache, cache-accounting, finite,
+  deterministic, and no-oversized/no-blocked-eviction checks passed.
+- Existing simulator record-key compatibility passed without running cache
+  simulation on the corpus.
+- Descriptive 8 GiB classification is `inconclusive`; no policy recommendation
+  was made.
+
+Open issues:
+
+- The corpus is intentionally small and synthetic/short; `single_low_token`
+  Tier-B was not included because it adds little diversity.
+- Long-context and long-decode cases do not claim independent Transformers
+  equivalence. Corpus-wide cache-policy behavior remains unmeasured.
+
+Next:
+
+- M5.2-02 Simulate cache policies and RAM budgets across the representative
+  trace corpus. Do not start until corpus review is complete.
+
+## 2026-07-18 - M5.2-02 representative corpus cache simulation
+
+Completed:
+
+- M5.2-02 deterministic cache-policy and expert-payload-budget simulation.
+- Validated all eight M5.2-01 traces, hashes, boundaries, ordinals, ranges,
+  payloads, canonical artifact identity, M4 baseline/provenance references,
+  and M5.1 simulator key compatibility before replay.
+- Simulated cold per-session and persistent manifest/reverse fixture orders for
+  global LRU, architecture-only layer LRU, calibrated layer LRU, observed LFU,
+  segmented LRU, and offline Belady across 1/2/4/6/8/12/16/24/32/48 GiB.
+
+Changed:
+
+- Added `scripts/simulate_m5_2_corpus_cache.py` and synthetic/unit regression
+  tests in `scripts/test_simulate_m5_2_corpus_cache.py`.
+- Added the simulation input manifest, result matrix, corpus aggregate
+  statistics, threshold analysis, persistent-cache evidence, report, ADR
+  0039, and task status.
+- Kept the payload-only ExpertCache budget contract; metadata/alignment remain
+  separate accounting context. No Rust runtime, cache policy, artifact, or
+  numerical execution changed.
+
+Evidence:
+
+- Cold global LRU at 8 GiB: 2,808 hits, 8,712 misses/loads, 24.3750% micro
+  byte hit rate and 15.5660% macro byte hit rate; 2/8 fixtures have zero hits.
+- Cold global LRU at 16 GiB: 31.9444% micro and 19.8707% macro byte hit rate.
+- 8 GiB classification: `useful_for_selected_workloads`.
+- Selected policy: retain strict global LRU. Next runtime matrix: 8 versus
+  16 GiB global LRU; not executed in M5.2-02.
+- Canonical result SHA-256:
+  `cc76873de24cc29eb8fbfa1580fafa721617bc4b6c5b64f4dd04079048378949`.
+- Canonical report SHA-256:
+  `925c7e87b7eae0785edc7781b2caa4d0b1224633dc84c72588c565f8f84cefcb`.
+- Input manifest SHA-256:
+  `d040e505c9ab87b65935f11b68e8fc65aa4b496bb02f3d10832b98eadaf80b5b`.
+- Regeneration was byte-identical for both result and report.
+
+Open issues:
+
+- The corpus remains eight deterministic workloads; it is not production
+  traffic coverage. Persistent-cache results are order-sensitive, calibrated
+  layer policies are diagnostics, and Belady is offline-only.
+- No throughput, latency, physical-I/O, or production-readiness claim is made.
+
+Next:
+
+- M5.2-03. Stop before running the selected full-runtime validation matrix.
+
+## 2026-07-18 - M5.2-03 representative full-runtime cache validation
+
+Completed:
+
+- M5.2-03 exact 8 GiB versus 16 GiB strict global-LRU validation.
+- Six representative full-model fixtures, 18 runs total; Tier-A,
+  long-context, and long-decode repeated twice per budget.
+- Exact simulation/runtime counter comparison, process-memory sampling,
+  logical-read accounting, timing capture, deterministic trace checks, and
+  correctness/invariant validation.
+
+Changed:
+
+- Added runtime-only timing, phase, process-memory, and machine-metrics
+  instrumentation around the existing full-model validation path.
+- Added deterministic one-fixture-at-a-time harness
+  `scripts/capture_m5_2_03_runtime_validation.py`.
+- Added runtime evidence, results JSON, report, ADR 0040, task status, and
+  this work-log entry. No cache policy, cache semantics, artifact, or
+  numerical execution changed.
+
+Evidence:
+
+- All 18 runs matched M5.2-02 exact-budget simulation fields: requests, hits,
+  misses, loads, evictions, expert bytes loaded/avoided, and peak resident
+  payload bytes.
+- All generated IDs, router/request traces, finite-output, KV-cache, and
+  bounded-residency checks passed. Oversized-entry and blocked-eviction events
+  were zero.
+- Selected-subset macro/micro byte hit rates were 19.1488%/27.3838% at 8 GiB
+  and 24.8884%/36.1178% at 16 GiB; Thai and special-token workloads had zero
+  hits at both budgets.
+- Canonical artifact root was revalidated at
+  `f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2`.
+- Evidence hashes: results JSON
+  `0a0b964eaca9de55f3244f45b275b8d386b66b448a701a35377fbf85631ae870`,
+  report `18cdbe6c9b1868050d87dcfe14858f1fa1c6490d85b5e1010b2f427da823772`,
+  ADR `d587f2b5fa8205103ad3a82aa49518fc8aed19772d69a8c0f6ef3f434ebdc127`,
+  and harness
+  `9934dc3f8e0541863bacc4d4074df8a997e2d18f94ebdd7b6ebc1d0930d1dce6`.
+- `cargo fmt --all --check`, `cargo check --workspace`, `cargo test --workspace`
+  (126 tests), workspace Clippy, feature-gated Clippy, CLI smoke, Python
+  compilation, Python reference tests (60), M5.1 control validation, and
+  simulator unit tests (8) passed.
+
+Open issues:
+
+- Filesystem cache state was uncontrolled; timing remains directional and no
+  physical-I/O or throughput claim is made.
+- Short English and repeated-pattern fixtures were omitted from full-model
+  execution but remain in the eight-fixture simulation corpus.
+- Persistent cache was not run in full runtime; M5.2-02 persistent results are
+  order-sensitive simulation evidence.
+
+Next:
+
+- Exact next task after review: mmap/coalesced expert access study. Do not start
+  it in this task.
+
+## 2026-07-18 - M5.3-01 expert access study
+
+Completed:
+
+- M5.3-01 artifact-layout, current-reader instrumentation, range-grouping, mmap
+  feasibility, and controlled storage microbenchmark study.
+- Validated the canonical artifact root, 48 expert shards, 6,144 expert ranges,
+  contiguous gate/up/down payload layout, selected M5.2 trace hashes, ordinals,
+  layer/expert ranges, and payload sizes.
+- Selected reusable aligned read buffers as the next isolated storage-access
+  prototype. It was not implemented in this task.
+
+Changed:
+
+- Added feature-gated `m5-3-instrumentation` reader counters/timings and
+  `ExpertPathMetrics` in `clr-storage`; default runtime behavior is unchanged.
+- Added `crates/clr-storage/examples/m5_3_expert_access_bench.rs` with exact
+  payload-hash checks and isolated current/persistent-handle/buffer loops.
+- Added `scripts/analyze_m5_3_expert_ranges.py` and its three synthetic tests,
+  deterministic range results, and the layer-47 miss-sequence evidence.
+- Added the M5.3-01 report and ADR 0041; updated task status.
+
+Evidence:
+
+- Canonical artifact root SHA-256:
+  `f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2`.
+- Deterministic range results SHA-256:
+  `2d7cab4e69d6063bebbd9c392c5635aa56183ee8a2055ad6d28e8e7a210f0ca0`.
+- Storage benchmark evidence SHA-256:
+  `59fcc85be74158497492d4c05334a490e19fbbbb5cec1b0da2c2651ec67119c`.
+- The 64-request current-reader miss subset performed 64 opens, seeks, read
+  calls, allocations, and 1,207,959,552 payload bytes; measured wall time was
+  6.410 seconds, including 5.748 seconds of SHA-256 verification. Persistent
+  handle/fresh buffer was 6.367 seconds and reusable buffer was 5.996 seconds
+  in the same uncontrolled-cache run.
+- Exact-adjacent grouping reduced simulated operations by 3.5–6.5%; 1 MiB
+  bounded grouping added no further grouping. One-layer batching amplified
+  bytes by approximately 12.3–15.8x.
+- Python compilation, range tests, feature-gated storage tests, benchmark
+  compilation, and payload hash checks passed.
+
+Open issues:
+
+- Physical I/O and cold-cache behavior remain unmeasured.
+- Full-model matrix-compute timing was not isolated; storage-vs-compute
+  dominance remains unknown.
+- The selected reusable-buffer prototype needs repeated controlled comparison.
+
+Next:
+
+- Exact next task: implement and independently benchmark reusable aligned read
+  buffers. Do not start it in this task.
+
+## 2026-07-18 - M5.3-02 reusable aligned read-buffer prototype
+
+Completed:
+
+- Implemented feature-gated `Reference` and `ReusableAlignedBuffer` reader
+  modes in `clr-storage` with one safe reusable staging buffer, exact-range
+  hashing, owned `Arc<[u8]>` handoff, variable-size growth, and no unsafe code.
+- Extended deterministic reader/path metrics for allocation, growth, reuse,
+  read, copy, alignment, fallback, and active reader mode.
+- Added byte-equivalence, variable-size lifecycle, truncation/recovery, and
+  ExpertStore accounting tests.
+- Added deterministic full-runtime capture tooling and validated 24 runs:
+  six required fixtures × 8/16 GiB × reference/reusable reader. All rows match
+  M5.2-02 simulation counters and committed request traces.
+- Added M5.3-02 report and ADR 0042; updated task status.
+
+Changed:
+
+- `crates/clr-storage/src/reader.rs`, `crates/clr-storage/src/expert.rs`, and
+  feature declarations in storage/Qwen crates.
+- `crates/clr-qwen3-moe/src/full_model_validation_tests.rs` and
+  `m5_2_trace_capture.rs` for explicit reader mode and storage evidence.
+- `crates/clr-storage/examples/m5_3_expert_access_bench.rs` and
+  `scripts/capture_m5_3_02_runtime_validation.py`.
+- Machine-readable benchmark/results and 72 per-run runtime evidence files.
+
+Evidence:
+
+- Canonical artifact root SHA-256:
+  `f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2`.
+- M5.3-02 runtime results SHA-256:
+  `69121543607046c2c88bf312cae8c506840e74832cad4ac2d328c2658a97641a`.
+- M5.3-02 storage benchmark SHA-256:
+  `f1a20dfad10da22af89c3b535155f7d2896faa28f8eef81761651a3ae515ebc8`.
+- All 24 runtime rows have exact simulation comparison, finite outputs,
+  deterministic generated IDs/traces, bounded residency, zero fallback and
+  alignment failures, and one reusable allocation per run.
+- Isolated 64-request benchmark: reference 64 allocations/1,207,959,552
+  allocated bytes versus reusable 1 allocation/18,874,368 staging bytes;
+  reusable mean wall 5.589 s versus 5.800 s, with an added full payload copy.
+- Full-model simple mean total time: reference 150.41 s, reusable 187.11 s;
+  reusable was slower in 9/12 matched rows. Filesystem cache state was
+  uncontrolled, so timing is directional and no throughput claim is made.
+- `cargo test -p clr-storage --features m5-3-reusable-buffer`: 23 passed.
+
+Open issues:
+
+- The reusable path has microbenchmark-only value and remains non-default.
+- Hardware WMI queries were denied in the restricted shell; host details are
+  inherited from the M4 baseline.
+- Full-model timing has one sample per configuration and no cold-cache control.
+- Short English and repeated-pattern remain simulation-only for this task.
+
+Next:
+
+- Exact next task after review: `M5.3-03 Compute profiling`. Do not start it.
+
+## 2026-07-18 - M5.3-03 compute profiling
+
+Completed:
+
+- Investigated and corrected the historical M4 repeated-build guard lifecycle.
+- Added a feature-gated hierarchical compute profiler and deterministic
+  capture/aggregation tooling.
+- Profiled Tier-A control, code, long-context, and long-decode fixtures at
+  exact 8 and 16 GiB reference-reader/global-LRU configurations, plus
+  disabled/coarse/detailed Tier-A overhead modes.
+- Selected an isolated read-only mmap expert-access prototype as the next
+  task; it was not implemented.
+
+Changed:
+
+- Added `m5-3-compute-profiling` instrumentation in `clr-qwen3-moe` for model,
+  phase, layer, attention, routing, expert load, expert MLP, and LM-head
+  scopes, with matrix dimensions and estimated FLOPs.
+- Added `scripts/capture_m5_3_03_compute_profile.py` and
+  `scripts/analyze_m5_3_compute_profile.py`.
+- Added the machine-readable profile results and aggregate, report, ADR 0043,
+  task status, and this work-log entry. The reference reader remains default;
+  no cache policy, artifact, numerical kernel, or runtime optimization changed.
+- Corrected the M4 provenance test to use an explicit historical task snapshot
+  for the repeated-build test while retaining a negative test for current M5
+  progress.
+
+Evidence:
+
+- All 10 profile rows passed correctness, deterministic trace/output identity,
+  bounded residency, zero blocked/oversized events, and exact simulation
+  comparison. Eight detailed rows were included in the aggregate.
+- The cache lookup/expert-load path measured 71.6--76.4% of model profile
+  time; expert MLP measured 4.1--5.5%, LM head 2.8--3.8%, and attention
+  approximately 2.0--2.8%.
+- Results JSON SHA-256:
+  `25036c06623f16cb84cfa681e9697f4ef291951eea89b7b92e3d1a8017aae9c1`.
+- Aggregate JSON SHA-256:
+  `9800aa25181e843e53fd3989f8a4edec315cab33ae68c52ccb75cba05d89390b`.
+- Canonical artifact root SHA-256:
+  `f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2`.
+- `cargo fmt --all --check`, workspace check/test/Clippy, feature-gated
+  Clippy, CLI smoke, explicit Python reference tests (61), historical guard
+  tests, profiler unit tests, artifact/schema/hash validation, and deterministic
+  evidence validation passed. Workspace tests reported 126 passed.
+
+Open issues:
+
+- Filesystem cache state was uncontrolled, so timing is directional and no
+  physical-I/O or throughput claim is made.
+- General allocator/copy percentages and dense-load-versus-dense-compute
+  percentages were not isolated by the current instrumentation; they remain
+  explicitly unknown rather than inferred.
+- The full feature test binary requires per-run artifact and fixture
+  environment variables; the capture harness supplied them for every accepted
+  row.
+- A redundant post-capture full-root rehash exceeded the 120-second command
+  limit because of artifact size; the completed capture preflight remains the
+  authoritative artifact validation.
+
+Next:
+
+- Exact next task after review: `M5.3-04 Isolated read-only mmap expert-access
+  prototype`. Do not start it in this task.
+
+## 2026-07-18 - M5.3-04 isolated read-only mmap expert access
+
+Completed:
+
+- Added isolated `clr-mmap` using `memmap2 = 0.9.11`, with lazy complete-shard
+  read-only mappings and explicit file/map ownership.
+- Kept the reference reader default and exposed mmap only through the
+  `m5-3-mmap` feature and explicit reader mode.
+- Added byte-equivalence, boundary, truncation, missing-file, two-shard,
+  repeated-access, and Windows cleanup tests.
+- Extended storage evidence with mapping, virtual-byte, first-touch, access,
+  copy, and reuse counters; added deterministic benchmark and full-runtime
+  capture tooling.
+
+Changed:
+
+- `crates/clr-mmap/`, `crates/clr-storage/src/mmap.rs`, and feature-gated
+  reader integration in `clr-storage`.
+- `crates/clr-storage/examples/m5_3_expert_access_bench.rs` compares reference,
+  reusable staging, and mmap across same-shard and cross-shard scenarios.
+- `scripts/capture_m5_3_04_mmap.py`, ADR 0044, and the M5.3-04 report.
+
+Evidence:
+
+- Canonical artifact root SHA-256:
+  `f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2`.
+- Full runtime results SHA-256:
+  `05a5aff20b5ce7698825ff1cb50bddc7394d02d54a7673e89382a9a31547af64`.
+- Storage benchmark SHA-256:
+  `87bfdbdd44975096e20a7d59c3fc6b584e820aed4370d88d62d1ac335eb2b1cb`.
+- All 16 reference/mmap rows passed correctness, exact simulation, trace,
+  cache, KV, and bounded-payload checks. Mmap was slower in all 8 paired
+  comparisons; median total-runtime change was `+5.92%`.
+- Mmap mapped 108 GiB virtual shard space in full runtime and measured
+  29.46--39.00 GiB peak working set versus 8.72/17.31 GiB for reference at
+  8/16 GiB cache budgets. No physical-I/O claim was made.
+- `cargo test -p clr-mmap`: 2 passed; `cargo test -p clr-storage
+  --features m5-3-mmap`: 24 passed; mmap-enabled feature Clippy passed.
+
+Open issues:
+
+- Mmap is technically correct but has insufficient runtime value and remains
+  non-default, non-production, and outside the normal runtime configuration.
+- Filesystem cache and page-fault state were uncontrolled; mapped virtual bytes
+  are not resident-RAM claims.
+
+Next:
+
+- Exact next task after review: stop the current storage-access optimization
+  path due insufficient runtime value. Do not start it.
+
+## 2026-07-18 - M5.4-02 resident-dense runtime prototype measurement closure
+
+Completed:
+
+- Re-verified the read-only canonical Qwen3-30B-A3B artifact root and captured
+  all 24 paired rows: six streamed and six resident-dense fixtures at 8 GiB,
+  then the same matrix at 16 GiB.
+- Confirmed exact generated IDs, trace hashes, router/expert ordering,
+  intermediate F32 checkpoints, finite outputs, KV invariants, strict global
+  LRU accounting, and total-budget accounting for every passed row.
+- Marked M5.4-02 complete for review only. It remains measurement-only.
+
+Changed:
+
+- Updated the M5.4-02 report, task status, and machine-readable results with
+  runtime evidence from source commit `6207fef2c6c1acbcafd525379f29da4bf023e5c0`.
+
+Evidence:
+
+- Canonical root SHA-256:
+  `f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2`;
+  58 files and 122,147,666,917 component bytes.
+- The 8 GiB resident maximum accounted peak was 8,580,189,336 <=
+  8,589,934,592 bytes; the 16 GiB resident maximum was 17,168,026,776 <=
+  17,179,869,184 bytes.
+- Retained bounded diagnostics were caused by a harness cache-hit assertion and
+  an output filename collision, then passed on rerun. They were not memory,
+  allocation, numerical, router, KV, or cache-policy failures.
+
+Open issues:
+
+- Timing is directional and uncontrolled. Physical I/O and page-cache behavior
+  were not measured, so no latency, throughput, or production-performance claim
+  is supported. The two fixtures lacking M5.2 full-runtime dense-read evidence
+  remain unavailable.
+
+Next:
+
+- Review the measurement-only evidence. No production/default adoption is
+  authorized; decision classification remains `prototype_insufficient_runtime_value`.
+
+## 2026-07-18 - M5.4-02 resident-dense runtime prototype implementation
+
+Completed:
+
+- Added a test-only, opt-in resident dense source guarded by the
+  `m5-4-resident-dense` feature and `COLIBRI_DENSE_RESIDENCY_MODE`.
+- Added focused validation for one-time loading, range rejection, explicit
+  over-budget rejection, and file release.
+- Preserved the streamed `File` path as the default and retained the existing
+  strict global-LRU `ExpertStore` for all experts.
+
+Changed:
+
+- `crates/clr-qwen3-moe/src/m5_4_resident_dense.rs` and the full-model
+  validation harness.
+- Added the M5.4-02 report and result record with unavailable runtime fields.
+
+Evidence:
+
+- `cargo test -p clr-qwen3-moe --features full-model-validation,m5-4-resident-dense m5_4_resident_dense`: 3 passed.
+- The full-model validation harness compiles with the prototype feature.
+- The canonical 122 GB artifact is not mounted in this workspace, so no
+  full-model measurement was executed and no timing or I/O claim was made.
+
+Open issues:
+
+- The six-fixture 8/16 GiB capture remains required on the registered canonical
+  artifact. The two M5.2 fixtures without dense-read evidence remain unavailable.
+
+Next:
+
+- Run the M5.4-02 six-fixture baseline/candidate matrix under the registered
+  canonical artifact; do not treat this measurement-only prototype as a
+  production adoption decision.
+
+## 2026-07-18 - M5.4-01 resident-dense candidate simulation
+
+Completed:
+
+- Ran a deterministic simulation-only resident-dense plus strict global-LRU
+  study over the validated M5.2 corpus.
+- Validated all eight corpus inputs and used the six fixtures with recorded
+  full-runtime dense-read evidence for the candidate matrix.
+- Modeled total-RAM budgets at 8, 12, 16, 24, 32, and 48 binary GiB by
+  reserving dense/runtime components before assigning the remaining bytes to
+  expert payload cache.
+- Added focused simulator invariants for fixed-component accounting and
+  configuration validation.
+
+Changed:
+
+- Added `scripts/simulate_m5_4_resident_dense.py` and
+  `scripts/test_simulate_m5_4_resident_dense.py`.
+- Added `models/qwen3-30b-a3b/m5.4-01-resident-dense-simulation-v1.json` and
+  `docs/reports/m5.4-01-resident-dense-simulation.md`.
+- Added ADR 0045 and promoted resident dense plus strict global LRU from a
+  deferred idea to a separately reviewed candidate direction.
+- Updated the implementation plan, task tracker, README, and backlog.
+- No Rust runtime, artifact, cache policy, numerical path, dependency, or
+  production default changed.
+
+Evidence:
+
+- Six-fixture aggregate modeled total logical-read reduction: resident dense
+  40.43% at 8 GiB and 56.90% at 16 GiB; streamed dense was 16.31% and 21.36%
+  under the same total-RAM accounting.
+- At 8 GiB resident dense leaves 1.981 GiB for experts and produces zero
+  simulated expert-byte hits; at 16 GiB it retains 27.64% expert-byte hits.
+- `python -m unittest scripts.test_simulate_m5_4_resident_dense`: 3 passed.
+- The simulation validated the canonical artifact identity and M5.2 input and
+  runtime evidence hashes before replay.
+
+Open issues:
+
+- Resident-dense runtime behavior, latency, throughput, physical I/O,
+  allocator overhead, working-set behavior, and concurrent behavior remain
+  unmeasured.
+- Two M5.2 corpus traces were not included because their full-runtime
+  dense-read evidence was not recorded.
+- The candidate is not a production preset and does not authorize runtime
+  implementation by itself.
+
+Next:
+
+- Stop for separate review of `M5.4-02 Measurement-only resident-dense runtime
+  prototype`. Do not implement it until explicitly approved.

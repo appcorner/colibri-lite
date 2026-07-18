@@ -10,6 +10,12 @@ description = "Qwen3-MoE architecture implementation for colibri-lite-rs"
 
 [features]
 full-model-validation = []
+m5-3-instrumentation = ["clr-storage/m5-3-instrumentation"]
+m5-3-reusable-buffer = ["clr-storage/m5-3-reusable-buffer"]
+m5-3-mmap = ["m5-3-instrumentation", "clr-storage/m5-3-mmap"]
+m5-3-compute-profiling = ["m5-3-instrumentation"]
+# Test-only measurement prototype. This does not alter the default reader.
+m5-4-resident-dense = []
 
 [dependencies]
 clr-core = { path = "../clr-core" }

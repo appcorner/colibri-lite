@@ -14,9 +14,18 @@ Mixture-of-Experts models.
 
 ## Current milestone
 
-M0, M1, M2, M3, and M4 are complete. M4 closed with the validated ordered F32
-baseline and documented numerical variance. Quantized runtime work is not
-accepted; the next task is the simulation-only M5.1 memory-hierarchy study.
+M0--M4 are complete. M5.1--M5.3-04 have completed their recorded evidence
+work, and M5.4-01 has completed the resident-dense simulation for review. The
+Qwen3-30B-A3B F32 path
+executes all 48 layers and generates deterministic tokens with streamed experts
+and a byte-budgeted strict global-LRU cache. It is correctness-valid and
+low-memory feasible, but not production-performance-ready.
+
+The current storage-access optimization path is stopped. The resident-dense
+plus strict-global-LRU simulation is the selected candidate for a separate
+measurement-only prototype review. The reusable-buffer prototype is
+diagnostic/microbenchmark only, mmap is
+rejected for runtime adoption, and the reference reader remains the default.
 
 The frozen tiny model accepts token IDs directly:
 
@@ -81,6 +90,9 @@ The release tag points directly to the final clean M4 closure commit. No M5 runt
 | Same-hardware optimized-runtime comparison (M4.3-05) | Complete | 100% |
 | Canonical performance baseline and release provenance (M4.4) | Complete | 100% |
 | M4 milestone | Officially closed and tagged | 100% |
+| M5.1--M5.2 cache evidence | Complete / accepted with workload limitations | Review evidence complete |
+| M5.3 storage and profiling studies | Complete for review | Reusable buffer diagnostic-only; mmap rejected |
+| M5.4 resident-dense runtime study | Complete for review | 24-row measurement-only matrix; no production adoption |
 | Production performance readiness | Not ready | 5-10% |
 | Overall product readiness | Research runtime | 25-35% |
 
@@ -219,17 +231,24 @@ M4 is officially complete. The project should continue, but the optimization str
 
 > Maximize tokens per second within a configurable user-selected memory budget.
 
-### Next Phase: M5 Performance Recovery
+### M5 Review Closure
 
-The exact next task is `M5.1-01 Trace-driven memory hierarchy simulation`. The recommended order is:
+M5.1--M5.4-02 provide an evidence review, not a production-performance
+release. The cache/expert-load path accounts for approximately 71.6--76.4% of
+profiled time. Reusable staging buffers reduced allocation work in an isolated
+microbenchmark but did not provide generalizable end-to-end value. The mmap
+prototype was slower in every paired full-runtime comparison (median +5.92%)
+and increased measured peak working set to approximately 29.46--39.00 GiB;
+it is rejected for runtime adoption.
 
-1. Trace-driven cache and RAM-budget simulation.
-2. Resident dense weights.
-3. Configurable F32 expert cache.
-4. I/O layout, mmap, coalesced reads, and prefetch.
-5. Threaded and SIMD matrix kernels.
-6. Revised mixed-precision or calibrated quantization candidates.
-7. Optional CUDA acceleration for LM head, selected experts, and hot-expert VRAM caching.
+The current storage-access optimization path remains **STOP**. M5.4-01
+completed the simulation stage for resident dense weights plus strict global
+LRU, and M5.4-02 completed a 24-row paired runtime matrix at 8 and 16 GiB.
+The resident-dense prototype passed correctness and total-RAM gates, but its
+single-run timing is directional, physical I/O and page-cache behavior were
+not measured, and the available runtime logical/cache evidence does not
+establish end-to-end value. It remains measurement-only and is not a
+production/default candidate.
 
 Suggested decode-performance gates:
 
@@ -247,13 +266,18 @@ Every optimization must preserve the frozen F32 correctness invariants, determin
 
 `colibri-lite-rs` is no longer a proof that asks whether the model can run. M4 has established a tagged, reproducible, correctness-valid F32 baseline for Qwen3-30B-A3B on Windows x64.
 
-The project is now entering M5 as a gated performance-recovery effort. M5 begins with trace-driven RAM and expert-cache simulation before any runtime modification, followed by resident dense weights, configurable expert caching, I/O improvements, optimized CPU kernels, and later mixed-precision or accelerator work where evidence supports it.
+The project is at M5.4 review closure. Its validated F32 runtime remains a
+research runtime: strict global LRU and the reference reader are retained,
+while reusable-buffer, mmap, and resident-dense paths are not production
+defaults. No further storage-access implementation is authorized without a
+new reviewed, measurement-first proposal; deferred GPU, server, web UI, and
+quantized-runtime work remains out of scope.
 
 In short:
 
 ```text
 M4: Can the full model run correctly with bounded RAM?  YES
-M5: Can it be made fast enough for practical use?       NEXT
+M5: Is a production-performance recovery path proven?   NO -- RESEARCH RUNTIME REVIEW CLOSURE
 ```
 
 ## Project documents
@@ -267,3 +291,4 @@ M5: Can it be made fast enough for practical use?       NEXT
 - [M2 storage and residency report](docs/reports/m2.md)
 - [M3 autoregressive generation report](docs/reports/m3.md)
 - [M4 release closure](docs/reports/m4-release-closure.md)
+- [M5.3 phase closure](docs/reports/m5.3-phase-closure.md)

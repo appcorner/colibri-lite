@@ -273,9 +273,21 @@ pub(crate) fn attention_with_weights(
         TensorShape::new([sequence_length, key_value_head_count, head_dimension]),
         value.into_data(),
     )?;
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    let query_norm_profile = crate::profiling::scope("attention.query_norm");
     let query = rms_norm(query.view(), query_norm_weight, config.rms_norm_epsilon())?;
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    drop(query_norm_profile);
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    let key_norm_profile = crate::profiling::scope("attention.key_norm");
     let key = rms_norm(key.view(), key_norm_weight, config.rms_norm_epsilon())?;
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    drop(key_norm_profile);
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    let rope_profile = crate::profiling::scope("attention.rope");
     let (query, key) = apply_rotary_embeddings(query.view(), key.view(), config)?;
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    drop(rope_profile);
 
     let mut attended = vec![0.0; sequence_length * query_head_count * head_dimension];
     // Attention scaling is defined in the model's F32 compute precision.
@@ -287,6 +299,8 @@ pub(crate) fn attention_with_weights(
             let key_value_head = query_head / group_count;
             let query_offset = (query_position * query_head_count + query_head) * head_dimension;
             let query_values = &query.data()[query_offset..query_offset + head_dimension];
+            #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+            let score_profile = crate::profiling::scope("attention.score_and_softmax");
             let mut scores = Vec::with_capacity(query_position + 1);
             for key_position in 0..=query_position {
                 let key_offset =
@@ -300,7 +314,11 @@ pub(crate) fn attention_with_weights(
                 scores.push(score * scale);
             }
             softmax_slice(&mut scores);
+            #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+            drop(score_profile);
 
+            #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+            let value_profile = crate::profiling::scope("attention.value_aggregation");
             let output_offset = (query_position * query_head_count + query_head) * head_dimension;
             for (key_position, attention_weight) in scores.iter().enumerate() {
                 let value_offset =
@@ -310,6 +328,8 @@ pub(crate) fn attention_with_weights(
                         attention_weight * value.data()[value_offset + dimension];
                 }
             }
+            #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+            drop(value_profile);
         }
     }
     let attended = Tensor::new(
@@ -330,6 +350,7 @@ pub(crate) struct CachedAttentionOutput {
 }
 
 #[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_lines)]
 pub(crate) fn cached_attention_with_weights(
     hidden_states: TensorView<'_>,
     config: Qwen3MoeConfig,
@@ -380,9 +401,21 @@ pub(crate) fn cached_attention_with_weights(
         TensorShape::new([1, key_value_head_count, head_dimension]),
         value.into_data(),
     )?;
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    let query_norm_profile = crate::profiling::scope("attention.query_norm");
     let query = rms_norm(query.view(), query_norm_weight, config.rms_norm_epsilon())?;
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    drop(query_norm_profile);
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    let key_norm_profile = crate::profiling::scope("attention.key_norm");
     let key = rms_norm(key.view(), key_norm_weight, config.rms_norm_epsilon())?;
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    drop(key_norm_profile);
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    let rope_profile = crate::profiling::scope("attention.rope");
     let (query, key) = apply_rotary_embeddings_at(query.view(), key.view(), config, cache.len)?;
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    drop(rope_profile);
 
     let mut attended = vec![0.0; query_head_count * head_dimension];
     #[allow(clippy::cast_precision_loss)]
@@ -392,6 +425,8 @@ pub(crate) fn cached_attention_with_weights(
         let key_value_head = query_head / group_count;
         let query_offset = query_head * head_dimension;
         let query_values = &query.data()[query_offset..query_offset + head_dimension];
+        #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+        let score_profile = crate::profiling::scope("attention.score_and_softmax");
         let mut scores = Vec::with_capacity(cache.len + 1);
         for key_position in 0..=cache.len {
             let key_offset =
@@ -409,7 +444,11 @@ pub(crate) fn cached_attention_with_weights(
             scores.push(score * scale);
         }
         softmax_slice(&mut scores);
+        #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+        drop(score_profile);
 
+        #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+        let value_profile = crate::profiling::scope("attention.value_aggregation");
         for (key_position, attention_weight) in scores.iter().enumerate() {
             let value_offset =
                 (key_position * key_value_head_count + key_value_head) * head_dimension;
@@ -423,6 +462,8 @@ pub(crate) fn cached_attention_with_weights(
                 attended[query_offset + dimension] += attention_weight * values[dimension];
             }
         }
+        #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+        drop(value_profile);
     }
     let attended = Tensor::new(
         TensorShape::new([1, config.model().query_projection_width()]),
@@ -657,6 +698,13 @@ pub(crate) fn expert_mlp(
     hidden_size: usize,
     intermediate_size: usize,
 ) -> Vec<f32> {
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    let gate_up_profile = crate::profiling::matrix_scope(
+        "expert.gate_up_activation",
+        1,
+        2 * intermediate_size,
+        hidden_size,
+    );
     let mut activated = vec![0.0; intermediate_size];
     for (intermediate_index, activated_value) in activated.iter_mut().enumerate() {
         let start = intermediate_index * hidden_size;
@@ -664,6 +712,11 @@ pub(crate) fn expert_mlp(
         let up_value = dot(input, &up[start..start + hidden_size]);
         *activated_value = gate_value / (1.0 + (-gate_value).exp()) * up_value;
     }
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    drop(gate_up_profile);
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    let _down_profile =
+        crate::profiling::matrix_scope("expert.down_projection", 1, hidden_size, intermediate_size);
     (0..hidden_size)
         .map(|hidden_index| {
             let start = hidden_index * intermediate_size;
@@ -725,6 +778,13 @@ pub(crate) fn linear(
     weight: TensorView<'_>,
     operation: &'static str,
 ) -> Result<Tensor, RuntimeError> {
+    #[cfg(all(test, feature = "m5-3-compute-profiling"))]
+    let _matrix_profile = crate::profiling::matrix_scope(
+        operation,
+        input.shape().dimensions().first().copied().unwrap_or(0),
+        weight.shape().dimensions().first().copied().unwrap_or(0),
+        input.shape().dimensions().get(1).copied().unwrap_or(0),
+    );
     require_rank(input, 2, operation)?;
     require_rank(weight, 2, operation)?;
     let row_count = input.shape().dimensions()[0];

@@ -1,0 +1,46 @@
+{
+  "schema": "colibri-qwen3-moe-m5.2-01-m5.1-03-counter-discrepancy-v1",
+  "schema_version": 1,
+  "task": "M5.2-01",
+  "status": "resolved_without_runtime_change",
+  "artifact_root_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+  "trace": {
+    "path": "models/qwen3-30b-a3b/m5.1-00-ordered-expert-trace-v1.json",
+    "sha256": "f3f87f05d15424030c9261cdf3e93bd72e9c006a55303bc0c28a92a4fb3ff2d0"
+  },
+  "evidence": {
+    "m5_1_03_results_path": "models/qwen3-30b-a3b/m5.1-03-full-model-cache-results-v1.json",
+    "m5_1_03_results_sha256": "56636e3bfccf56907520bfde7018187f8492d9c371a6595fa9666a707a296232",
+    "m5_1_02_replay_path": "models/qwen3-30b-a3b/m5.1-02-cache-replay-v1.json",
+    "m5_1_02_replay_sha256": "a12c3529bdf5699adf9fb27fe3b709469a2bbab549e1a9629a0faf5d2a0164e3",
+    "m5_1_02_prototype_path": "models/qwen3-30b-a3b/m5.1-02-expert-cache-prototype-results-v1.json",
+    "m5_1_02_prototype_sha256": "5eecd66ac4aea23f16e85c25326d20733d09352658407f702b047e7caa7eab32"
+  },
+  "counter_comparison": {
+    "8_gib": {
+      "nominal_payload_budget_bytes": 8589934592,
+      "runtime": {"hits": 719, "loads": 1585, "evictions": 1130},
+      "m5_1_02_usable_payload_budget_bytes": 8212550504,
+      "m5_1_02_replay": {"hits": 719, "loads": 1585, "evictions": 1150},
+      "difference_runtime_minus_m5_1_02": {"hits": 0, "loads": 0, "evictions": -20}
+    },
+    "16_gib": {
+      "nominal_payload_budget_bytes": 17179869184,
+      "runtime": {"hits": 931, "loads": 1373, "evictions": 463},
+      "m5_1_02_usable_payload_budget_bytes": 16802485096,
+      "m5_1_02_replay": {"hits": 929, "loads": 1375, "evictions": 485},
+      "difference_runtime_minus_m5_1_02": {"hits": 2, "loads": -2, "evictions": -22}
+    }
+  },
+  "diagnosis": {
+    "confirmed_cause": "payload_budget_accounting",
+    "explanation": "M5.1-02 replay modeled metadata, alignment, and safety overhead before assigning payload bytes. M5.1-03 full-model validation used the exact nominal payload-byte budgets. The ordered request sequence and strict global-LRU semantics agree; the different effective budgets change boundary evictions.",
+    "lease_lifetime": "ruled_out: replay requests release each lease before the next request, and the full-model path uses the same sequential request boundary",
+    "cache_update_timing": "ruled_out: exact nominal-budget replay matches the full-model hits, loads, and evictions",
+    "runtime_request_boundary": "ruled_out: the authoritative ordered trace has 2304 records in both paths",
+    "instrumentation_placement": "ruled_out: the full-model counters are derived at the ExpertStore request/load boundary and match independent trace replay",
+    "payload_alignment_accounting": "confirmed: M5.1-02 usable budgets were 8,212,550,504 and 16,802,485,096 bytes; M5.1-03 nominal budgets were 8,589,934,592 and 17,179,869,184 bytes",
+    "runtime_behavior_defect": false
+  },
+  "decision": "No runtime or cache-policy change is required for M5.2-01. Preserve both counter sets with their budget semantics explicitly labeled."
+}

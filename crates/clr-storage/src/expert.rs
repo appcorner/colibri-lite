@@ -21,13 +21,44 @@ pub struct ExpertKey {
 /// Cumulative cache and I/O evidence.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct CacheMetrics {
+    /// Configured payload-byte budget (metadata is tracked separately).
+    pub configured_budget_bytes: usize,
     pub hits: u64,
     pub misses: u64,
     pub loads: u64,
     pub evictions: u64,
     pub resident_bytes: usize,
     pub peak_resident_bytes: usize,
+    pub resident_entry_count: usize,
+    pub peak_entry_count: usize,
     pub bytes_read: u64,
+    pub bytes_served_from_cache: u64,
+    pub bytes_avoided: u64,
+    pub oversized_entry_events: u64,
+    pub blocked_eviction_events: u64,
+}
+
+/// Observation of one completed expert-store request.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ExpertLoadObservation {
+    pub key: ExpertKey,
+    pub payload_bytes: usize,
+    pub cache_hit: bool,
+    pub loaded: bool,
+    pub evictions: u64,
+}
+
+/// Runtime-only timing estimates for the existing expert load path.
+#[cfg(feature = "m5-3-instrumentation")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct ExpertPathMetrics {
+    pub request_count: u64,
+    pub cache_hit_count: u64,
+    pub expert_load_count: u64,
+    pub total_nanos: u128,
+    pub cache_lookup_nanos: u128,
+    pub expert_load_nanos: u128,
+    pub bytes_copied_after_read: u64,
 }
 
 /// Pinned access to one cached expert payload.
@@ -71,7 +102,10 @@ impl ExpertCache {
             budget,
             clock: 0,
             entries: HashMap::new(),
-            metrics: CacheMetrics::default(),
+            metrics: CacheMetrics {
+                configured_budget_bytes: budget,
+                ..CacheMetrics::default()
+            },
         }
     }
 
@@ -85,10 +119,23 @@ impl ExpertCache {
     where
         F: FnOnce() -> Result<Vec<u8>, StorageError>,
     {
+        self.get_or_load_arc(key, || loader().map(Arc::<[u8]>::from))
+    }
+
+    fn get_or_load_arc<F>(&mut self, key: ExpertKey, loader: F) -> Result<ExpertLease, StorageError>
+    where
+        F: FnOnce() -> Result<Arc<[u8]>, StorageError>,
+    {
         self.clock = self.clock.wrapping_add(1);
         if let Some(entry) = self.entries.get_mut(&key) {
             entry.last_used = self.clock;
             self.metrics.hits += 1;
+            self.metrics.bytes_served_from_cache +=
+                u64::try_from(entry.bytes.len()).unwrap_or(u64::MAX);
+            self.metrics.bytes_avoided = self
+                .metrics
+                .bytes_avoided
+                .saturating_add(u64::try_from(entry.bytes.len()).unwrap_or(u64::MAX));
             return Ok(ExpertLease {
                 key,
                 bytes: Arc::clone(&entry.bytes),
@@ -98,6 +145,7 @@ impl ExpertCache {
         let payload = loader()?;
         let length = payload.len();
         if length > self.budget {
+            self.metrics.oversized_entry_events += 1;
             return Err(StorageError::ExpertExceedsBudget {
                 key,
                 bytes: length,
@@ -112,6 +160,7 @@ impl ExpertCache {
                 .min_by_key(|(candidate_key, entry)| (entry.last_used, **candidate_key))
                 .map(|(candidate_key, _)| *candidate_key);
             let Some(candidate) = candidate else {
+                self.metrics.blocked_eviction_events += 1;
                 return Err(StorageError::CacheBudgetExhausted {
                     requested: length,
                     budget: self.budget,
@@ -119,6 +168,7 @@ impl ExpertCache {
                 });
             };
             let Some(removed) = self.entries.remove(&candidate) else {
+                self.metrics.blocked_eviction_events += 1;
                 return Err(StorageError::CacheBudgetExhausted {
                     requested: length,
                     budget: self.budget,
@@ -128,14 +178,19 @@ impl ExpertCache {
             self.metrics.resident_bytes -= removed.bytes.len();
             self.metrics.evictions += 1;
         }
-        let bytes: Arc<[u8]> = payload.into();
+        let bytes = payload;
         self.metrics.loads += 1;
         self.metrics.bytes_read += u64::try_from(length).unwrap_or(u64::MAX);
         self.metrics.resident_bytes += length;
+        self.metrics.resident_entry_count = self.entries.len() + 1;
         self.metrics.peak_resident_bytes = self
             .metrics
             .peak_resident_bytes
             .max(self.metrics.resident_bytes);
+        self.metrics.peak_entry_count = self
+            .metrics
+            .peak_entry_count
+            .max(self.metrics.resident_entry_count);
         self.entries.insert(
             key,
             CacheEntry {
@@ -149,6 +204,12 @@ impl ExpertCache {
     #[must_use]
     pub const fn metrics(&self) -> CacheMetrics {
         self.metrics
+    }
+
+    /// Returns the configured payload-byte budget.
+    #[must_use]
+    pub const fn budget(&self) -> usize {
+        self.budget
     }
 }
 
@@ -165,6 +226,8 @@ pub struct ExpertStore {
     reader: ArtifactReader,
     names: HashMap<ExpertKey, String>,
     cache: ExpertCache,
+    #[cfg(feature = "m5-3-instrumentation")]
+    path_metrics: ExpertPathMetrics,
 }
 
 impl ExpertStore {
@@ -192,6 +255,8 @@ impl ExpertStore {
             reader,
             names,
             cache: ExpertCache::new(budget),
+            #[cfg(feature = "m5-3-instrumentation")]
+            path_metrics: ExpertPathMetrics::default(),
         })
     }
 
@@ -206,14 +271,109 @@ impl ExpertStore {
             .get(&key)
             .ok_or(StorageError::ExpertNotRegistered { key })?
             .clone();
-        self.cache.get_or_load(key, || {
-            self.reader.read_tensor(&name).map(|tensor| tensor.bytes)
-        })
+        #[cfg(feature = "m5-3-instrumentation")]
+        let started = std::time::Instant::now();
+        #[cfg(feature = "m5-3-instrumentation")]
+        let mut expert_load_nanos = 0_u128;
+        let reader = &self.reader;
+        let lease = self.cache.get_or_load_arc(key, || {
+            #[cfg(feature = "m5-3-instrumentation")]
+            let load_started = std::time::Instant::now();
+            #[cfg(feature = "m5-3-reusable-buffer")]
+            let result = if reader.reader_mode_name() == "reusable_aligned_buffer" {
+                reader.read_tensor_reusable_arc(&name)
+            } else {
+                reader
+                    .read_tensor(&name)
+                    .map(|tensor| Arc::<[u8]>::from(tensor.bytes))
+            };
+            #[cfg(not(feature = "m5-3-reusable-buffer"))]
+            let result = reader
+                .read_tensor(&name)
+                .map(|tensor| Arc::<[u8]>::from(tensor.bytes));
+            #[cfg(feature = "m5-3-instrumentation")]
+            {
+                expert_load_nanos = load_started.elapsed().as_nanos();
+            }
+            result
+        });
+        #[cfg(feature = "m5-3-instrumentation")]
+        if lease.is_ok() {
+            let total_nanos = started.elapsed().as_nanos();
+            self.path_metrics.request_count += 1;
+            self.path_metrics.total_nanos += total_nanos;
+            self.path_metrics.expert_load_nanos += expert_load_nanos;
+            self.path_metrics.cache_lookup_nanos += total_nanos.saturating_sub(expert_load_nanos);
+            if expert_load_nanos > 0 {
+                self.path_metrics.expert_load_count += 1;
+                if let Ok(loaded) = lease.as_ref() {
+                    self.path_metrics.bytes_copied_after_read +=
+                        u64::try_from(loaded.bytes().len()).unwrap_or(u64::MAX);
+                }
+            } else {
+                self.path_metrics.cache_hit_count += 1;
+            }
+        }
+        lease
+    }
+
+    /// Loads an expert without changing cache behavior and reports the
+    /// resulting hit/load/eviction deltas after the lease is acquired.
+    ///
+    /// # Errors
+    ///
+    /// Returns the same storage error as [`ExpertStore::load`] when the
+    /// payload cannot be loaded or validated.
+    pub fn load_with_observer<F>(
+        &mut self,
+        key: ExpertKey,
+        observe: F,
+    ) -> Result<ExpertLease, StorageError>
+    where
+        F: FnOnce(ExpertLoadObservation),
+    {
+        let before = self.metrics();
+        let lease = self.load(key)?;
+        let after = self.metrics();
+        observe(ExpertLoadObservation {
+            key,
+            payload_bytes: lease.bytes().len(),
+            cache_hit: after.hits > before.hits,
+            loaded: after.loads > before.loads,
+            evictions: after.evictions - before.evictions,
+        });
+        Ok(lease)
     }
 
     #[must_use]
     pub const fn metrics(&self) -> CacheMetrics {
         self.cache.metrics()
+    }
+
+    /// Returns the configured payload-byte budget.
+    #[must_use]
+    pub const fn budget(&self) -> usize {
+        self.cache.budget()
+    }
+
+    /// Returns the active storage reader mode for runtime evidence.
+    #[must_use]
+    pub const fn reader_mode_name(&self) -> &'static str {
+        self.reader.reader_mode_name()
+    }
+
+    /// Returns current reader instrumentation for the storage-path study.
+    #[cfg(feature = "m5-3-instrumentation")]
+    #[must_use]
+    pub fn reader_metrics(&self) -> crate::ReaderMetrics {
+        self.reader.metrics()
+    }
+
+    /// Returns runtime-only cache/load timing estimates.
+    #[cfg(feature = "m5-3-instrumentation")]
+    #[must_use]
+    pub const fn path_metrics(&self) -> ExpertPathMetrics {
+        self.path_metrics
     }
 }
 
@@ -227,6 +387,8 @@ mod tests {
     use clr_core::{DataType, TensorShape};
 
     use super::*;
+    #[cfg(feature = "m5-3-reusable-buffer")]
+    use crate::ReaderMode;
     use crate::{
         ARTIFACT_FORMAT_VERSION, ArtifactManifest, ByteOrder, TensorLocation, TensorMetadata,
         hash::sha256,
@@ -273,6 +435,10 @@ mod tests {
         assert_eq!(metrics.resident_bytes, 8);
         assert_eq!(metrics.peak_resident_bytes, 8);
         assert_eq!(metrics.bytes_read, 12);
+        assert_eq!(metrics.configured_budget_bytes, 8);
+        assert_eq!(metrics.peak_entry_count, 2);
+        assert_eq!(metrics.bytes_served_from_cache, 4);
+        assert_eq!(metrics.bytes_avoided, 4);
         drop(
             cache
                 .get_or_load(key(0), || panic!("0 remains MRU"))
@@ -313,6 +479,66 @@ mod tests {
             Err(StorageError::ExpertExceedsBudget { .. })
         ));
         assert!(cache.metrics().resident_bytes <= 8);
+        assert_eq!(cache.metrics().oversized_entry_events, 1);
+        assert_eq!(cache.metrics().blocked_eviction_events, 1);
+    }
+
+    #[test]
+    fn exact_fit_and_multiple_evictions_preserve_payload_budget() {
+        let mut cache = ExpertCache::new(8);
+        drop(
+            cache
+                .get_or_load(key(0), || Ok(vec![0; 3]))
+                .expect("load 0"),
+        );
+        drop(
+            cache
+                .get_or_load(key(1), || Ok(vec![1; 3]))
+                .expect("load 1"),
+        );
+        drop(
+            cache
+                .get_or_load(key(2), || Ok(vec![2; 7]))
+                .expect("load 2"),
+        );
+
+        let metrics = cache.metrics();
+        assert_eq!(metrics.evictions, 2);
+        assert_eq!(metrics.resident_bytes, 7);
+        assert_eq!(metrics.peak_resident_bytes, 7);
+        assert!(metrics.resident_bytes <= cache.budget());
+    }
+
+    #[test]
+    fn released_lease_becomes_evictable_and_blocked_eviction_is_counted() {
+        let mut cache = ExpertCache::new(8);
+        let first = cache.get_or_load(key(0), || Ok(vec![0; 4])).expect("load");
+        let second = cache.get_or_load(key(1), || Ok(vec![1; 4])).expect("load");
+        assert!(matches!(
+            cache.get_or_load(key(2), || Ok(vec![2; 4])),
+            Err(StorageError::CacheBudgetExhausted { .. })
+        ));
+        assert_eq!(cache.metrics().blocked_eviction_events, 1);
+        drop(second);
+        drop(
+            cache
+                .get_or_load(key(2), || Ok(vec![2; 4]))
+                .expect("released entry evicted"),
+        );
+        assert_eq!(first.bytes(), [0; 4]);
+        assert!(cache.metrics().resident_bytes <= cache.budget());
+    }
+
+    #[test]
+    fn zero_budget_rejects_the_first_payload_without_residency() {
+        let mut cache = ExpertCache::new(0);
+        assert!(matches!(
+            cache.get_or_load(key(0), || Ok(vec![0; 1])),
+            Err(StorageError::ExpertExceedsBudget { budget: 0, .. })
+        ));
+        assert_eq!(cache.budget(), 0);
+        assert_eq!(cache.metrics().resident_bytes, 0);
+        assert_eq!(cache.metrics().oversized_entry_events, 1);
     }
 
     #[test]
@@ -341,6 +567,11 @@ mod tests {
             }],
         )
         .expect("valid expert manifest");
+        #[cfg(feature = "m5-3-reusable-buffer")]
+        let reader =
+            ArtifactReader::open_with_mode(&root, manifest, ReaderMode::ReusableAlignedBuffer)
+                .expect("open reusable expert reader");
+        #[cfg(not(feature = "m5-3-reusable-buffer"))]
         let reader = ArtifactReader::open(&root, manifest).expect("open expert reader");
         let registration = ExpertRegistration {
             key: key(0),
@@ -355,6 +586,23 @@ mod tests {
         assert_eq!(store.metrics().misses, 1);
         assert_eq!(store.metrics().loads, 1);
         assert_eq!(store.metrics().bytes_read, 8);
+        #[cfg(feature = "m5-3-instrumentation")]
+        {
+            let path_metrics = store.path_metrics();
+            assert_eq!(path_metrics.request_count, 2);
+            assert_eq!(path_metrics.cache_hit_count, 1);
+            assert_eq!(path_metrics.expert_load_count, 1);
+            assert!(path_metrics.total_nanos >= path_metrics.expert_load_nanos);
+            assert!(path_metrics.cache_lookup_nanos > 0);
+        }
+        #[cfg(feature = "m5-3-reusable-buffer")]
+        {
+            assert_eq!(store.reader_mode_name(), "reusable_aligned_buffer");
+            let reader_metrics = store.reader_metrics();
+            assert_eq!(reader_metrics.buffer_allocation_count, 1);
+            assert_eq!(reader_metrics.buffer_reuse_count, 0);
+            assert_eq!(reader_metrics.bytes_copied_after_read, 8);
+        }
         assert!(matches!(
             store.load(key(1)),
             Err(StorageError::ExpertNotRegistered { .. })

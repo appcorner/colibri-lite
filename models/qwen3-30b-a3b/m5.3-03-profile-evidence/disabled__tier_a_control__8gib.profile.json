@@ -1,0 +1,1 @@
+{"schema":"colibri-qwen3-moe-m5.3-03-compute-profile-v1","schema_version":1,"fixture_id":"tier_a_control","cache_budget_bytes":8589934592,"input_token_ids":[9707, 11, 1879, 0, 1096, 374],"generated_token_ids":[1096, 374],"mode":"disabled","scope_count":0,"events":[]}

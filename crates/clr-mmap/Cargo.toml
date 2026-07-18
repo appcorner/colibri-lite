@@ -1,0 +1,20 @@
+[package]
+name = "clr-mmap"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Isolated read-only Windows-compatible mapping boundary for colibri-lite-rs"
+
+[dependencies]
+memmap2 = "=0.9.11"
+
+[lints.rust]
+unsafe_code = "warn"
+missing_debug_implementations = "warn"
+
+[lints.clippy]
+all = "warn"
+pedantic = "warn"

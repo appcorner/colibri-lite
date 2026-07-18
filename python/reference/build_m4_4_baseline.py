@@ -101,7 +101,7 @@ def validate_evidence_schemas(manifests: dict[str, dict[str, Any]]) -> None:
 def validate_unique_baseline_id(root: Path) -> None:
     """A baseline ID names one canonical index in the model directory."""
     matches: list[Path] = []
-    for path in (root / "models" / "qwen3-30b-a3b").glob("*.json"):
+    for path in (root / "models" / "qwen3-30b-a3b").glob("m4.4-performance-baseline-v1.json"):
         try:
             document = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):

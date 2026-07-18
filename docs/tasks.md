@@ -308,11 +308,187 @@ for production, and the first optimization pivot recorded in
 
 M4 is complete. The release provenance and closure record are in
 `models/qwen3-30b-a3b/m4-release-provenance-v1.json` and
-`docs/reports/m4-release-closure.md`. No M5 implementation has started.
+`docs/reports/m4-release-closure.md`. No M5 implementation had started at
+the release boundary.
 
 ## M5 - Memory hierarchy and performance recovery
 
-- [ ] M5.1-01 Trace-driven memory hierarchy simulation.
+- [x] M5.1-00 Capture authoritative ordered expert trace.
+- [x] M5.1-01 Trace-driven memory hierarchy simulation.
+- [x] M5.1-02 Implement the reviewed configurable expert-cache prototype.
+- [x] M5.1-03 Validate the configurable expert cache on the canonical full model.
+- [x] M5.2-01 Capture broader representative expert traces.
+- [x] M5.2-02 Simulate cache policies and RAM budgets across the representative trace corpus.
+- [x] M5.2-03 Validate 8 GiB versus 16 GiB global LRU across representative full-model workloads.
+- [x] M5.3-01 Study mmap and coalesced expert access.
+- [x] M5.3-02 Implement reusable aligned read-buffer prototype.
+- [x] M5.3-03 Compute profiling.
+- [x] M5.3-04 Isolated read-only mmap expert-access prototype (complete for review; rejected for production adoption).
+- [x] M5.4-01 Resident-dense plus strict global-LRU simulation (complete for review).
+- [x] M5.4-02 Measurement-only resident-dense runtime prototype (complete for review; 24-row paired runtime matrix recorded; measurement-only with no production/default adoption authorization).
+
+M5.1-00 is complete as a deterministic measurement supplement. The ordered
+trace and validator are recorded in
+`models/qwen3-30b-a3b/m5.1-00-ordered-expert-trace-v1.json` and
+`scripts/validate_m5_1_00_trace.py`. No cache simulation or runtime prototype
+has started.
+
+M5.1-01 is complete as a deterministic, simulation-only study. Results are
+recorded in `models/qwen3-30b-a3b/m5.1-01-memory-hierarchy-results-v1.json`
+and the first prototype decision is recorded in ADR 0035. No Rust runtime
+behavior, cache capacity, artifact, or numerical execution changed.
+
+M5.1-02 is accepted with limitations. The configurable payload-byte LRU cache
+and expanded accounting are implemented in `clr-storage`; ordered trace replay
+matches the M5.1-01 counters at the reviewed operating points. ADR 0036 records
+the decision.
+
+M5.1-03 validated the same primitive against the canonical artifact at the
+baseline, exact 8 GiB, and exact 16 GiB payload budgets. Correctness invariants,
+generated IDs, bounded residency, and exact-budget trace counters passed.
+Results are recorded in
+`models/qwen3-30b-a3b/m5.1-03-full-model-cache-results-v1.json` and ADR 0037.
+The classification remains `accepted_with_limitations` because the fixture is
+short, filesystem cache state was uncontrolled, process working-set sampling
+and full-vocabulary logits were unavailable, and timing uses one sample per
+mode. No resident-dense or other optimization prototype has started.
+
+M5.2-01 is complete for review as an evidence-only corpus capture. The
+representative corpus contains eight deterministic workload traces, including
+the frozen Tier-A control, English and Thai prompts, source code, repeated
+text, formatting-heavy input, longer context, and longer decode. Results are
+recorded in
+`models/qwen3-30b-a3b/m5.2-01-trace-corpus-manifest-v1.json`, the individual
+traces, and
+`docs/reports/m5.2-01-representative-expert-traces.md`. The descriptive result
+classifies the existing 8 GiB recommendation as `inconclusive`; no cache
+simulation or cache-policy change was performed. ADR 0038 records the v2
+trace schema and measurement contract.
+
+M5.2-02 is complete as a deterministic, simulation-only replay over all eight
+accepted corpus traces. The input manifest validates the canonical artifact,
+M4 baseline/provenance, corpus aggregate, trace hashes, fixture boundaries,
+ordinals, ranges, payload sizes, and M5.1 record adapter before replay. The
+results cover per-session cold caches, manifest/reverse persistent orders,
+binary 1/2/4/6/8/12/16/24/32/48 GiB payload budgets, strict global LRU,
+architecture-only and calibrated layer LRU diagnostics, observed LFU,
+segmented LRU, and offline Belady. The descriptive decision is to classify
+8 GiB as `useful_for_selected_workloads`, retain strict global LRU for the next
+runtime experiment, and validate 8 versus 16 GiB without executing that matrix
+in this task. Results are recorded in
+`models/qwen3-30b-a3b/m5.2-02-cache-simulation-results-v1.json`, the input
+manifest, and
+`docs/reports/m5.2-02-corpus-cache-simulation.md`; ADR 0039 records the
+simulation policy contract and decision. No Rust runtime, ExpertCache,
+artifact, numerical path, or dense-residency implementation changed.
+
+M5.2-03 is complete for review as a representative full-runtime validation of
+the selected strict global-LRU policy at exact 8 GiB and 16 GiB payload
+budgets. Six workload classes were executed, with Tier-A, long-context, and
+long-decode repeated twice per budget. All 18 runs matched the exact M5.2-02
+simulation counters, retained deterministic generated IDs and request traces,
+preserved KV and bounded-memory invariants, and reported zero oversized-entry
+or blocked-eviction events. The cache remains
+`accepted_with_workload_limitations`: 8 GiB is useful for selected workloads,
+16 GiB is useful for cacheable workloads, and neither is a universal preset.
+Results are recorded in
+`models/qwen3-30b-a3b/m5.2-03-runtime-cache-results-v1.json`, validated traces
+and metrics, and `docs/reports/m5.2-03-representative-runtime-cache-validation.md`;
+ADR 0040 records the decision. No cache policy, runtime semantics, artifact,
+or numerical path changed.
+
+Exact next task after review was the M5.3-01 mmap/coalesced expert access
+study; that task is now recorded below as complete for review.
+
+M5.3-01 is complete for review as a storage-path measurement and prototype
+selection study. The current reader was instrumented behind the
+`m5-3-instrumentation` feature, the canonical artifact layout was validated,
+authoritative miss ranges were replayed, and hash-checked layer-47 storage
+microbenchmarks were recorded. Exact-adjacent grouping gave only a small
+operation reduction; broad layer batching caused severe over-read. Persistent
+handles and mmap were not selected. The next selected prototype is reusable
+aligned read buffers, and it has not started. Evidence is recorded in
+`docs/reports/m5.3-01-expert-access-study.md`,
+`models/qwen3-30b-a3b/m5.3-01-expert-access-results-v1.json`, and ADR 0041.
+
+M5.3-02 is complete for review as a feature-gated reusable aligned staging
+buffer prototype. The implementation preserves the reference reader, cache
+policy, artifact layout, leases, request order, and numerical execution. It
+passes byte-equivalence/lifecycle tests and a 24-run full-model matrix across
+Tier-A control, Thai, special-token, code, long-context, and long-decode
+fixtures at exact 8 and 16 GiB budgets. All runtime counters and traces match
+the M5.2-02 simulation and all correctness/budget invariants pass. The
+isolated microbenchmark eliminates per-miss allocations, but the full-model
+matrix shows no generalizable end-to-end benefit and slower timing in 9 of 12
+matched comparisons. The prototype is classified
+`microbenchmark_only_value`; the reference reader remains the default. Results
+are recorded in
+`models/qwen3-30b-a3b/m5.3-02-reusable-buffer-results-v1.json`, the 72-file
+runtime evidence directory, the storage benchmark, and
+`docs/reports/m5.3-02-reusable-read-buffer.md`; ADR 0042 records the decision.
+
+Exact next task after review: `M5.3-03 Compute profiling`. Do not start it in
+this task.
+
+M5.3-03 is complete for review as a feature-gated hierarchical compute
+profiling study. The profiler preserved the reference reader, strict global
+LRU, numerical execution, request order, and bounded residency across Tier-A,
+code, long-context, and long-decode full-model workloads at exact 8 and 16
+GiB budgets. All eight detailed rows and three profiling-mode comparison rows
+passed deterministic non-timing validation and exact M5.2 simulation-counter
+comparison. The measured runtime is storage-bound: the cache lookup/expert
+load path is 71.6--76.4% of profile time, while expert MLP is 4.1--5.5% and
+LM head is 2.8--3.8%. No kernel, reader default, cache policy, artifact, or
+numerical path changed. The historical M4 guard test was corrected to use a
+historical task snapshot for repeated-build validation while continuing to
+reject current M5 progress. Results are recorded in
+`models/qwen3-30b-a3b/m5.3-03-compute-profile-results-v1.json`, the aggregate
+JSON, `docs/reports/m5.3-03-compute-profile.md`, and ADR 0043.
+
+The selected next prototype is an isolated read-only mmap expert-access study.
+It is not implemented here and must remain feature-gated and outside the
+default runtime path.
+
+M5.3-04 is complete for review as an isolated read-only mmap expert-access
+prototype. The `clr-mmap` boundary maps complete expert shards lazily and
+copies validated ranges into owned expert storage; the reference reader remains
+default. Byte-equivalence, lifecycle, cleanup, deterministic trace, cache, KV,
+and bounded-memory gates passed, and all 16 reference/mmap full-runtime runs
+matched M5.2 simulation exactly. Mmap regressed all eight paired timing
+comparisons with a median `+5.92%` change and raised measured working set to
+29.46--39.00 GiB while mapping 108 GiB of virtual shard space. The prototype
+is classified `insufficient_runtime_value`; no mmap promotion or mapping-cache
+follow-up is selected. Evidence is recorded in
+`models/qwen3-30b-a3b/m5.3-04-mmap-results-v1.json`,
+`models/qwen3-30b-a3b/m5.3-04-mmap-benchmark-v1.json`,
+`docs/reports/m5.3-04-mmap-expert-access.md`, and ADR 0044.
+
+Exact next task after review: stop the current storage-access optimization path
+due insufficient runtime value. M5.3-04 is complete for review; mmap is
+rejected for production adoption. Do not start another storage-access
+optimization without a new reviewed, measurement-first proposal.
+
+M5.4-01 is complete as a deterministic, simulation-only resident-dense
+candidate study. It validates the complete eight-fixture M5.2 corpus and uses
+the six fixtures with recorded full-runtime dense-read evidence for the
+candidate matrix. Under total-RAM accounting and strict global LRU, resident
+dense models 40.43% total logical-read reduction at 8 GiB and 56.90% at
+16 GiB, compared with 16.31% and 21.36% for streamed dense in the same
+six-fixture subset. At 8 GiB resident dense leaves only 1.981 GiB for experts
+and records no simulated expert hits; at 16 GiB it retains 27.64% expert-byte
+hits. These are modeled logical-read results, not latency or throughput claims.
+Evidence is recorded in
+`models/qwen3-30b-a3b/m5.4-01-resident-dense-simulation-v1.json`,
+`docs/reports/m5.4-01-resident-dense-simulation.md`, and
+`scripts/simulate_m5_4_resident_dense.py`. No Rust runtime, artifact, cache
+policy, numerical path, or production default changed.
+
+The simulation selects resident dense plus strict global LRU for a separate
+measurement-only runtime prototype review. M5.4-02 is not authorized by this
+simulation result alone; it must preserve the frozen F32 invariants, explicit
+total-RAM accounting, and the reference reader unless a separate review
+approves a runtime change. The two corpus fixtures without M5.2 full-runtime
+dense-read evidence remain outside the candidate matrix.
 
 ## Standard verification commands
 
