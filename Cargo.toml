@@ -2,6 +2,7 @@
 resolver = "3"
 members = [
     "crates/clr-core",
+    "crates/clr-mmap",
     "crates/clr-storage",
     "crates/clr-qwen3-moe",
     "crates/clr-cli",

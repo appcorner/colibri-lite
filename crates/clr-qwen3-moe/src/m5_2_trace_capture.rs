@@ -7,7 +7,11 @@ use std::{
 };
 
 use clr_storage::CacheMetrics;
-#[cfg(any(feature = "m5-3-reusable-buffer", feature = "m5-3-compute-profiling"))]
+#[cfg(any(
+    feature = "m5-3-reusable-buffer",
+    feature = "m5-3-compute-profiling",
+    feature = "m5-3-mmap"
+))]
 use clr_storage::{ExpertPathMetrics, ReaderMetrics};
 
 use super::*;
@@ -481,7 +485,11 @@ fn representative_trace_capture() {
             &generated,
         );
     }
-    #[cfg(any(feature = "m5-3-reusable-buffer", feature = "m5-3-compute-profiling"))]
+    #[cfg(any(
+        feature = "m5-3-reusable-buffer",
+        feature = "m5-3-compute-profiling",
+        feature = "m5-3-mmap"
+    ))]
     if let Some(storage_output) = env::var_os("COLIBRI_M5_3_STORAGE_METRICS_OUTPUT") {
         write_m5_3_storage_metrics(&PathBuf::from(storage_output), &store, metrics);
     }
@@ -494,7 +502,11 @@ fn representative_trace_capture() {
     );
 }
 
-#[cfg(any(feature = "m5-3-reusable-buffer", feature = "m5-3-compute-profiling"))]
+#[cfg(any(
+    feature = "m5-3-reusable-buffer",
+    feature = "m5-3-compute-profiling",
+    feature = "m5-3-mmap"
+))]
 pub(super) fn write_m5_3_storage_metrics(
     path: &Path,
     store: &clr_storage::ExpertStore,
@@ -502,19 +514,28 @@ pub(super) fn write_m5_3_storage_metrics(
 ) {
     let reader = store.reader_metrics();
     let path_metrics = store.path_metrics();
-    let output = format_storage_metrics(store.reader_mode_name(), reader, path_metrics, cache);
+    let output = format_storage_metrics(store.reader_mode_name(), &reader, path_metrics, cache);
     fs::write(path, output).expect("write M5.3 storage metrics");
 }
 
-#[cfg(any(feature = "m5-3-reusable-buffer", feature = "m5-3-compute-profiling"))]
+#[cfg(any(
+    feature = "m5-3-reusable-buffer",
+    feature = "m5-3-compute-profiling",
+    feature = "m5-3-mmap"
+))]
 fn format_storage_metrics(
     reader_mode: &str,
-    reader: ReaderMetrics,
+    reader: &ReaderMetrics,
     path_metrics: ExpertPathMetrics,
     cache: CacheMetrics,
 ) -> String {
     format!(
-        "{{\"schema\":\"colibri-qwen3-moe-m5.3-02-storage-metrics-v1\",\"schema_version\":1,\"reader_mode\":\"{reader_mode}\",\"cache\":{{\"hits\":{},\"misses\":{},\"loads\":{},\"evictions\":{},\"bytes_read\":{},\"resident_bytes\":{},\"peak_resident_bytes\":{},\"peak_entry_count\":{},\"oversized_entry_events\":{},\"blocked_eviction_events\":{}}},\"path\":{{\"request_count\":{},\"cache_hit_count\":{},\"expert_load_count\":{},\"total_nanos\":{},\"cache_lookup_nanos\":{},\"expert_load_nanos\":{},\"bytes_copied_after_read\":{}}},\"reader\":{{\"tensor_reads\":{},\"file_open_count\":{},\"file_handle_reuse_count\":{},\"metadata_count\":{},\"seek_count\":{},\"read_call_count\":{},\"requested_read_bytes\":{},\"returned_read_bytes\":{},\"buffer_allocation_count\":{},\"allocated_bytes\":{},\"copied_bytes\":{},\"buffer_growth_events\":{},\"buffer_reuse_count\":{},\"bytes_read_into_reusable_buffers\":{},\"bytes_copied_after_read\":{},\"peak_buffer_capacity\":{},\"fallback_allocations\":{},\"alignment_failures\":{},\"hash_bytes\":{},\"open_nanos\":{},\"metadata_nanos\":{},\"seek_nanos\":{},\"read_nanos\":{},\"hash_nanos\":{}}}}}\n",
+        "{{\"schema\":\"{}\",\"schema_version\":1,\"reader_mode\":\"{reader_mode}\",\"cache\":{{\"hits\":{},\"misses\":{},\"loads\":{},\"evictions\":{},\"bytes_read\":{},\"resident_bytes\":{},\"peak_resident_bytes\":{},\"peak_entry_count\":{},\"oversized_entry_events\":{},\"blocked_eviction_events\":{}}},\"path\":{{\"request_count\":{},\"cache_hit_count\":{},\"expert_load_count\":{},\"total_nanos\":{},\"cache_lookup_nanos\":{},\"expert_load_nanos\":{},\"bytes_copied_after_read\":{}}},\"reader\":{{\"tensor_reads\":{},\"file_open_count\":{},\"file_handle_reuse_count\":{},\"metadata_count\":{},\"seek_count\":{},\"read_call_count\":{},\"requested_read_bytes\":{},\"returned_read_bytes\":{},\"buffer_allocation_count\":{},\"allocated_bytes\":{},\"copied_bytes\":{},\"buffer_growth_events\":{},\"buffer_reuse_count\":{},\"bytes_read_into_reusable_buffers\":{},\"bytes_copied_after_read\":{},\"peak_buffer_capacity\":{},\"fallback_allocations\":{},\"alignment_failures\":{},\"hash_bytes\":{},\"open_nanos\":{},\"metadata_nanos\":{},\"seek_nanos\":{},\"read_nanos\":{},\"hash_nanos\":{},\"mmap_mapping_count\":{},\"mmap_shard_reuse_count\":{},\"mmap_active_mapping_count\":{},\"mmap_peak_mapping_count\":{},\"mmap_mapped_virtual_bytes\":{},\"mmap_peak_mapped_virtual_bytes\":{},\"mmap_mapping_init_nanos\":{},\"mmap_first_touch_nanos\":{},\"mmap_access_nanos\":{},\"mmap_copy_nanos\":{},\"mmap_copy_bytes\":{}}}}}\n",
+        if reader_mode == "mmap_read_only" {
+            "colibri-qwen3-moe-m5.3-04-storage-metrics-v1"
+        } else {
+            "colibri-qwen3-moe-m5.3-02-storage-metrics-v1"
+        },
         cache.hits,
         cache.misses,
         cache.loads,
@@ -556,6 +577,17 @@ fn format_storage_metrics(
         reader.seek_nanos,
         reader.read_nanos,
         reader.hash_nanos,
+        reader.mmap_mapping_count,
+        reader.mmap_shard_reuse_count,
+        reader.mmap_active_mapping_count,
+        reader.mmap_peak_mapping_count,
+        reader.mmap_mapped_virtual_bytes,
+        reader.mmap_peak_mapped_virtual_bytes,
+        reader.mmap_mapping_init_nanos,
+        reader.mmap_first_touch_nanos,
+        reader.mmap_access_nanos,
+        reader.mmap_copy_nanos,
+        reader.mmap_copy_bytes,
     )
 }
 

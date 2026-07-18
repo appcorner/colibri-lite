@@ -4,12 +4,17 @@ use std::{
     path::{Path, PathBuf},
 };
 
-#[cfg(feature = "m5-3-instrumentation")]
+#[cfg(feature = "m5-3-mmap")]
+use std::collections::HashMap;
+
+#[cfg(any(feature = "m5-3-instrumentation", feature = "m5-3-mmap"))]
 use std::{
     sync::{Arc, Mutex},
     time::Instant,
 };
 
+#[cfg(feature = "m5-3-mmap")]
+use crate::mmap::ReadOnlyMappedShard;
 use crate::{ArtifactManifest, StorageError, TensorMetadata, hash::sha256};
 
 /// Validated bytes returned for one tensor.
@@ -53,6 +58,17 @@ pub struct ReaderMetrics {
     pub seek_nanos: u128,
     pub read_nanos: u128,
     pub hash_nanos: u128,
+    pub mmap_mapping_count: u64,
+    pub mmap_shard_reuse_count: u64,
+    pub mmap_active_mapping_count: u64,
+    pub mmap_peak_mapping_count: u64,
+    pub mmap_mapped_virtual_bytes: u64,
+    pub mmap_peak_mapped_virtual_bytes: u64,
+    pub mmap_mapping_init_nanos: u128,
+    pub mmap_first_touch_nanos: u128,
+    pub mmap_access_nanos: u128,
+    pub mmap_copy_nanos: u128,
+    pub mmap_copy_bytes: u64,
 }
 
 #[cfg(feature = "m5-3-instrumentation")]
@@ -82,6 +98,21 @@ impl ReaderMetrics {
         self.seek_nanos += delta.seek_nanos;
         self.read_nanos += delta.read_nanos;
         self.hash_nanos += delta.hash_nanos;
+        self.mmap_mapping_count += delta.mmap_mapping_count;
+        self.mmap_shard_reuse_count += delta.mmap_shard_reuse_count;
+        self.mmap_active_mapping_count = delta.mmap_active_mapping_count;
+        self.mmap_peak_mapping_count = self
+            .mmap_peak_mapping_count
+            .max(delta.mmap_peak_mapping_count);
+        self.mmap_mapped_virtual_bytes = delta.mmap_mapped_virtual_bytes;
+        self.mmap_peak_mapped_virtual_bytes = self
+            .mmap_peak_mapped_virtual_bytes
+            .max(delta.mmap_peak_mapped_virtual_bytes);
+        self.mmap_mapping_init_nanos += delta.mmap_mapping_init_nanos;
+        self.mmap_first_touch_nanos += delta.mmap_first_touch_nanos;
+        self.mmap_access_nanos += delta.mmap_access_nanos;
+        self.mmap_copy_nanos += delta.mmap_copy_nanos;
+        self.mmap_copy_bytes += delta.mmap_copy_bytes;
     }
 }
 
@@ -92,29 +123,38 @@ pub struct ArtifactReader {
     manifest: ArtifactManifest,
     #[cfg(feature = "m5-3-instrumentation")]
     metrics: Arc<Mutex<ReaderMetrics>>,
-    #[cfg(feature = "m5-3-reusable-buffer")]
+    #[cfg(any(feature = "m5-3-reusable-buffer", feature = "m5-3-mmap"))]
     mode: ReaderMode,
     #[cfg(feature = "m5-3-reusable-buffer")]
     reusable_buffer: Mutex<ReusableReadBuffer>,
+    #[cfg(feature = "m5-3-mmap")]
+    mapped_shards: Mutex<HashMap<PathBuf, Arc<ReadOnlyMappedShard>>>,
 }
 
-/// Controlled storage reader mode for the M5.3-02 prototype.
-#[cfg(feature = "m5-3-reusable-buffer")]
+/// Controlled storage reader mode for the M5.3 storage prototypes.
+#[cfg(any(feature = "m5-3-reusable-buffer", feature = "m5-3-mmap"))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReaderMode {
     /// Allocate the exact payload buffer for every read.
     Reference,
     /// Read into one synchronously leased reusable staging buffer.
+    #[cfg(feature = "m5-3-reusable-buffer")]
     ReusableAlignedBuffer,
+    /// Read exact payloads from lazily mapped, read-only complete shards.
+    #[cfg(feature = "m5-3-mmap")]
+    MmapReadOnly,
 }
 
-#[cfg(feature = "m5-3-reusable-buffer")]
+#[cfg(any(feature = "m5-3-reusable-buffer", feature = "m5-3-mmap"))]
 impl ReaderMode {
     #[must_use]
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::Reference => "reference_allocated",
+            #[cfg(feature = "m5-3-reusable-buffer")]
             Self::ReusableAlignedBuffer => "reusable_aligned_buffer",
+            #[cfg(feature = "m5-3-mmap")]
+            Self::MmapReadOnly => "mmap_read_only",
         }
     }
 }
@@ -207,15 +247,17 @@ impl ArtifactReader {
             manifest,
             #[cfg(feature = "m5-3-instrumentation")]
             metrics: Arc::new(Mutex::new(ReaderMetrics::default())),
-            #[cfg(feature = "m5-3-reusable-buffer")]
+            #[cfg(any(feature = "m5-3-reusable-buffer", feature = "m5-3-mmap"))]
             mode: ReaderMode::Reference,
             #[cfg(feature = "m5-3-reusable-buffer")]
             reusable_buffer: Mutex::new(ReusableReadBuffer::default()),
+            #[cfg(feature = "m5-3-mmap")]
+            mapped_shards: Mutex::new(HashMap::new()),
         })
     }
 
-    /// Opens a reader with an explicitly selected M5.3-02 mode.
-    #[cfg(feature = "m5-3-reusable-buffer")]
+    /// Opens a reader with an explicitly selected M5.3 prototype mode.
+    #[cfg(any(feature = "m5-3-reusable-buffer", feature = "m5-3-mmap"))]
     /// Opens an artifact reader with an explicitly selected reader mode.
     ///
     /// # Errors
@@ -233,14 +275,14 @@ impl ArtifactReader {
     }
 
     /// Returns the active reader mode for runtime evidence.
-    #[cfg(feature = "m5-3-reusable-buffer")]
+    #[cfg(any(feature = "m5-3-reusable-buffer", feature = "m5-3-mmap"))]
     #[must_use]
     pub const fn reader_mode_name(&self) -> &'static str {
         self.mode.as_str()
     }
 
     /// Returns the active reader mode for runtime evidence.
-    #[cfg(not(feature = "m5-3-reusable-buffer"))]
+    #[cfg(not(any(feature = "m5-3-reusable-buffer", feature = "m5-3-mmap")))]
     #[must_use]
     pub const fn reader_mode_name(&self) -> &'static str {
         "reference_allocated"
@@ -259,11 +301,11 @@ impl ArtifactReader {
     }
 
     #[cfg(feature = "m5-3-instrumentation")]
-    fn record(&self, delta: ReaderMetrics) {
+    fn record(&self, delta: &ReaderMetrics) {
         self.metrics
             .lock()
             .expect("reader metrics mutex")
-            .add_assign(delta);
+            .add_assign(*delta);
     }
 
     /// Reads and verifies one tensor payload by name.
@@ -275,6 +317,10 @@ impl ArtifactReader {
     /// Returns a structured error for unknown tensors, escaped paths, file I/O,
     /// truncation, or SHA-256 mismatch.
     pub fn read_tensor(&self, name: &str) -> Result<TensorBytes, StorageError> {
+        #[cfg(feature = "m5-3-mmap")]
+        if self.mode == ReaderMode::MmapReadOnly {
+            return self.read_tensor_mmap(name);
+        }
         #[cfg(feature = "m5-3-reusable-buffer")]
         if self.mode == ReaderMode::ReusableAlignedBuffer {
             let bytes = self.read_tensor_reusable_arc(name)?;
@@ -347,7 +393,7 @@ impl ArtifactReader {
         {
             delta.hash_bytes = tensor.location.length;
             delta.hash_nanos = hash_started.elapsed().as_nanos();
-            self.record(delta);
+            self.record(&delta);
         }
         if actual != tensor.sha256 {
             return Err(StorageError::HashMismatch {
@@ -360,6 +406,135 @@ impl ArtifactReader {
             name: tensor.name,
             bytes,
         })
+    }
+
+    #[cfg(feature = "m5-3-mmap")]
+    fn read_tensor_mmap(&self, name: &str) -> Result<TensorBytes, StorageError> {
+        let tensor = self
+            .manifest
+            .tensor(name)
+            .ok_or_else(|| StorageError::TensorNotFound {
+                name: name.to_owned(),
+            })?
+            .clone();
+        let path = self.canonical_tensor_path(&tensor)?;
+        let required_end = tensor
+            .location
+            .offset
+            .checked_add(tensor.location.length)
+            .ok_or_else(|| StorageError::ByteRangeOverflow {
+                tensor: tensor.name.clone(),
+            })?;
+        let (shard, newly_mapped, active_mappings, mapped_virtual_bytes) =
+            self.mapped_shard(&path)?;
+        let file_length = u64::try_from(shard.len()).unwrap_or(u64::MAX);
+        if file_length < required_end {
+            return Err(StorageError::TruncatedTensor {
+                tensor: tensor.name.clone(),
+                required_end,
+                file_length,
+            });
+        }
+
+        let access_started = Instant::now();
+        let bytes = shard
+            .range(tensor.location.offset, tensor.location.length)
+            .ok_or_else(|| StorageError::ByteRangeOverflow {
+                tensor: tensor.name.clone(),
+            })?;
+        let access_nanos = access_started.elapsed().as_nanos();
+        let touch_started = Instant::now();
+        let actual = sha256(bytes);
+        let hash_nanos = touch_started.elapsed().as_nanos();
+        let copy_started = Instant::now();
+        let owned = bytes.to_vec();
+        let copy_nanos = copy_started.elapsed().as_nanos();
+        let first_touch_nanos = if newly_mapped {
+            touch_started.elapsed().as_nanos()
+        } else {
+            0
+        };
+        let length = bytes.len();
+        self.record(&ReaderMetrics {
+            tensor_reads: 1,
+            file_handle_reuse_count: u64::from(!newly_mapped),
+            requested_read_bytes: tensor.location.length,
+            returned_read_bytes: tensor.location.length,
+            buffer_allocation_count: 1,
+            allocated_bytes: tensor.location.length,
+            copied_bytes: tensor.location.length,
+            bytes_copied_after_read: tensor.location.length,
+            peak_buffer_capacity: length,
+            hash_bytes: tensor.location.length,
+            hash_nanos,
+            mmap_shard_reuse_count: u64::from(!newly_mapped),
+            mmap_active_mapping_count: active_mappings,
+            mmap_peak_mapping_count: active_mappings,
+            mmap_mapped_virtual_bytes: mapped_virtual_bytes,
+            mmap_peak_mapped_virtual_bytes: mapped_virtual_bytes,
+            mmap_first_touch_nanos: first_touch_nanos,
+            mmap_access_nanos: access_nanos,
+            mmap_copy_nanos: copy_nanos,
+            mmap_copy_bytes: tensor.location.length,
+            ..ReaderMetrics::default()
+        });
+        if actual != tensor.sha256 {
+            return Err(StorageError::HashMismatch {
+                tensor: tensor.name,
+                expected: tensor.sha256,
+                actual,
+            });
+        }
+        Ok(TensorBytes {
+            name: tensor.name,
+            bytes: owned,
+        })
+    }
+
+    #[cfg(feature = "m5-3-mmap")]
+    fn mapped_shard(
+        &self,
+        path: &Path,
+    ) -> Result<(Arc<ReadOnlyMappedShard>, bool, u64, u64), StorageError> {
+        let mut mappings = self
+            .mapped_shards
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(existing) = mappings.get(path) {
+            let active = u64::try_from(mappings.len()).unwrap_or(u64::MAX);
+            let virtual_bytes = mappings.values().fold(0_u64, |total, mapping| {
+                total.saturating_add(u64::try_from(mapping.len()).unwrap_or(u64::MAX))
+            });
+            return Ok((Arc::clone(existing), false, active, virtual_bytes));
+        }
+
+        let mapping_started = Instant::now();
+        let mapping =
+            Arc::new(
+                ReadOnlyMappedShard::open(path).map_err(|source| StorageError::Io {
+                    action: "map read-only expert shard",
+                    path: path.to_owned(),
+                    source,
+                })?,
+            );
+        let mapping_nanos = mapping_started.elapsed().as_nanos();
+        mappings.insert(path.to_owned(), Arc::clone(&mapping));
+        let active = u64::try_from(mappings.len()).unwrap_or(u64::MAX);
+        let virtual_bytes = mappings.values().fold(0_u64, |total, item| {
+            total.saturating_add(u64::try_from(item.len()).unwrap_or(u64::MAX))
+        });
+        drop(mappings);
+        self.record(&ReaderMetrics {
+            file_open_count: 1,
+            mmap_mapping_count: 1,
+            mmap_active_mapping_count: active,
+            mmap_peak_mapping_count: active,
+            mmap_mapped_virtual_bytes: virtual_bytes,
+            mmap_peak_mapped_virtual_bytes: virtual_bytes,
+            mmap_mapping_init_nanos: mapping_nanos,
+            ..ReaderMetrics::default()
+        });
+        Ok((mapping, true, active, virtual_bytes))
     }
 
     #[cfg(feature = "m5-3-reusable-buffer")]
@@ -427,7 +602,7 @@ impl ArtifactReader {
         delta.hash_bytes = tensor.location.length;
         delta.hash_nanos = hash_nanos;
         if actual != tensor.sha256 {
-            self.record(delta);
+            self.record(&delta);
             return Err(StorageError::HashMismatch {
                 tensor: tensor.name,
                 expected: tensor.sha256,
@@ -435,7 +610,7 @@ impl ArtifactReader {
             });
         }
         let bytes: Arc<[u8]> = Arc::from(&buffer[..]);
-        self.record(delta);
+        self.record(&delta);
         Ok(bytes)
     }
 
@@ -730,6 +905,146 @@ mod tests {
             payload
         );
         fs::remove_file(path).expect("reusable reader releases file handle");
+    }
+
+    #[cfg(feature = "m5-3-mmap")]
+    #[test]
+    fn mmap_reader_is_byte_equivalent_across_shards_and_reuses_mappings() {
+        let directory = TestDirectory::new();
+        let first = [1_u8, 2, 3, 4, 5, 6, 7, 8];
+        let second = [9_u8, 10, 11, 12];
+        let third = [13_u8, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
+        let mut shard_a = vec![0xaa_u8; 4];
+        shard_a.extend_from_slice(&first);
+        shard_a.extend_from_slice(&second);
+        let mut shard_b = vec![0xbb_u8; 2];
+        shard_b.extend_from_slice(&third);
+        fs::write(directory.0.join("shard-a.bin"), shard_a).expect("write shard a");
+        fs::write(directory.0.join("shard-b.bin"), shard_b).expect("write shard b");
+
+        let manifest = ArtifactManifest::new(
+            ARTIFACT_FORMAT_VERSION,
+            ByteOrder::Little,
+            vec![
+                TensorMetadata {
+                    name: "a-first".to_owned(),
+                    shape: TensorShape::new([2]),
+                    data_type: DataType::F32,
+                    location: TensorLocation {
+                        path: "shard-a.bin".into(),
+                        offset: 4,
+                        length: 8,
+                    },
+                    sha256: sha256(&first),
+                },
+                TensorMetadata {
+                    name: "a-second".to_owned(),
+                    shape: TensorShape::new([1]),
+                    data_type: DataType::F32,
+                    location: TensorLocation {
+                        path: "shard-a.bin".into(),
+                        offset: 12,
+                        length: 4,
+                    },
+                    sha256: sha256(&second),
+                },
+                TensorMetadata {
+                    name: "b-third".to_owned(),
+                    shape: TensorShape::new([3]),
+                    data_type: DataType::F32,
+                    location: TensorLocation {
+                        path: "shard-b.bin".into(),
+                        offset: 2,
+                        length: 12,
+                    },
+                    sha256: sha256(&third),
+                },
+            ],
+        )
+        .expect("valid multi-shard manifest");
+        let reference = ArtifactReader::open(&directory.0, manifest.clone()).expect("reference");
+        let mmap = ArtifactReader::open_with_mode(&directory.0, manifest, ReaderMode::MmapReadOnly)
+            .expect("mmap");
+
+        for name in [
+            "a-first", "b-third", "a-second", "a-first", "b-third", "b-third",
+        ] {
+            assert_eq!(
+                mmap.read_tensor(name).expect("mmap read"),
+                reference.read_tensor(name).expect("reference read")
+            );
+        }
+        assert_eq!(mmap.reader_mode_name(), "mmap_read_only");
+        let metrics = mmap.metrics();
+        assert_eq!(metrics.tensor_reads, 6);
+        assert_eq!(metrics.file_open_count, 2);
+        assert_eq!(metrics.file_handle_reuse_count, 4);
+        assert_eq!(metrics.read_call_count, 0);
+        assert_eq!(metrics.mmap_mapping_count, 2);
+        assert_eq!(metrics.mmap_shard_reuse_count, 4);
+        assert_eq!(metrics.mmap_active_mapping_count, 2);
+        assert_eq!(metrics.mmap_peak_mapping_count, 2);
+        assert_eq!(metrics.mmap_mapped_virtual_bytes, 30);
+        assert_eq!(metrics.mmap_peak_mapped_virtual_bytes, 30);
+        assert_eq!(metrics.requested_read_bytes, 56);
+        assert_eq!(metrics.returned_read_bytes, 56);
+        assert_eq!(metrics.mmap_copy_bytes, 56);
+    }
+
+    #[cfg(feature = "m5-3-mmap")]
+    #[test]
+    fn mmap_reader_rejects_truncated_and_missing_shards() {
+        let directory = TestDirectory::new();
+        let payload = [1_u8, 2, 3, 4, 5, 6, 7, 8];
+        let path = directory.0.join("weights.bin");
+        fs::write(&path, [0_u8; 4]).expect("write truncated shard");
+        let reader = ArtifactReader::open_with_mode(
+            &directory.0,
+            manifest(&payload, 8, sha256(&payload)),
+            ReaderMode::MmapReadOnly,
+        )
+        .expect("open mmap reader");
+        assert!(matches!(
+            reader.read_tensor("layer.weight"),
+            Err(StorageError::TruncatedTensor { .. })
+        ));
+        drop(reader);
+
+        fs::remove_file(&path).expect("remove truncated shard");
+        let missing = ArtifactReader::open_with_mode(
+            &directory.0,
+            manifest(&payload, 8, sha256(&payload)),
+            ReaderMode::MmapReadOnly,
+        )
+        .expect("open mmap reader for missing shard");
+        assert!(matches!(
+            missing.read_tensor("layer.weight"),
+            Err(StorageError::Io { .. })
+        ));
+    }
+
+    #[cfg(feature = "m5-3-mmap")]
+    #[test]
+    fn mmap_reader_releases_file_and_mapping_after_drop() {
+        let directory = TestDirectory::new();
+        let payload = [1_u8, 2, 3, 4, 5, 6, 7, 8];
+        let path = directory.0.join("weights.bin");
+        let mut file_bytes = vec![0_u8; 4];
+        file_bytes.extend_from_slice(&payload);
+        fs::write(&path, file_bytes).expect("write test shard");
+        {
+            let reader = ArtifactReader::open_with_mode(
+                &directory.0,
+                manifest(&payload, 8, sha256(&payload)),
+                ReaderMode::MmapReadOnly,
+            )
+            .expect("open mmap reader");
+            assert_eq!(
+                reader.read_tensor("layer.weight").expect("mmap read").bytes,
+                payload
+            );
+        }
+        fs::remove_file(path).expect("mapping and file handle must be released after drop");
     }
 
     #[test]

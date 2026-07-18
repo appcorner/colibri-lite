@@ -5,6 +5,8 @@ mod error;
 mod expert;
 mod hash;
 mod manifest;
+#[cfg(feature = "m5-3-mmap")]
+mod mmap;
 mod reader;
 
 pub use converter::{
@@ -25,7 +27,7 @@ pub use manifest::{
 };
 #[cfg(feature = "m5-3-instrumentation")]
 pub use reader::ReaderMetrics;
-#[cfg(feature = "m5-3-reusable-buffer")]
+#[cfg(any(feature = "m5-3-reusable-buffer", feature = "m5-3-mmap"))]
 pub use reader::ReaderMode;
 pub use reader::{ArtifactReader, TensorBytes};
 

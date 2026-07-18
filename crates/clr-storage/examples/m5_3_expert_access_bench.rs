@@ -20,11 +20,16 @@ use clr_storage::{
 
 const PAYLOAD_BYTES: u64 = 18_874_368;
 const DEFAULT_PLAN: &str = "models/qwen3-30b-a3b/m4.2-04-layer47-expert-runtime-plan-v1.tsv";
+const DEFAULT_CROSS_SHARD_PLAN: &str =
+    "models/qwen3-30b-a3b/m4.2-02-layer0-selected-expert-runtime-plan-v1.tsv";
 const DEFAULT_SEQUENCE: &str = "models/qwen3-30b-a3b/m5.3-01-layer47-miss-sequence-v1.tsv";
 
 #[derive(Debug, Clone)]
 struct ExpertRange {
     name: String,
+    layer_index: u32,
+    expert_id: u32,
+    path: String,
     offset: u64,
     length: u64,
     hash: [u8; 32],
@@ -71,6 +76,9 @@ fn load_plan(path: &Path) -> Vec<ExpertRange> {
             assert_eq!(length, PAYLOAD_BYTES, "packed expert payload length");
             Some(ExpertRange {
                 name: fields[3].to_owned(),
+                layer_index: fields[1].parse().expect("expert layer index"),
+                expert_id: fields[2].parse().expect("expert ID"),
+                path: fields[4].to_owned(),
                 offset: fields[5].parse().expect("expert offset"),
                 length,
                 hash: decode_hash(fields[7]),
@@ -87,7 +95,7 @@ fn build_manifest(ranges: &[ExpertRange]) -> ArtifactManifest {
             shape: TensorShape::new([usize::try_from(range.length / 4).expect("F32 length")]),
             data_type: DataType::F32,
             location: TensorLocation {
-                path: "experts-layer-00047-of-00048.bin".into(),
+                path: range.path.clone().into(),
                 offset: range.offset,
                 length: range.length,
             },
@@ -114,11 +122,10 @@ fn build_reader_mode(
 fn build_store(artifact_root: &Path, ranges: &[ExpertRange], mode: ReaderMode) -> ExpertStore {
     let registrations = ranges
         .iter()
-        .enumerate()
-        .map(|(index, range)| ExpertRegistration {
+        .map(|range| ExpertRegistration {
             key: ExpertKey {
-                layer_index: 47,
-                expert_id: ExpertId(u32::try_from(index).expect("expert ID")),
+                layer_index: range.layer_index,
+                expert_id: ExpertId(range.expert_id),
             },
             tensor_name: range.name.clone(),
         })
@@ -145,7 +152,10 @@ fn read_current(reader: &ArtifactReader, ranges: &[ExpertRange], ids: &[usize]) 
     }
     RunResult {
         elapsed_nanos: started.elapsed().as_nanos(),
-        metrics: subtract_metrics(reader.metrics(), before),
+        metrics: {
+            let after = reader.metrics();
+            subtract_metrics(&after, &before)
+        },
     }
 }
 
@@ -223,8 +233,8 @@ fn run_store(
     for &id in ids {
         let lease = store
             .load(ExpertKey {
-                layer_index: 47,
-                expert_id: ExpertId(u32::try_from(id).expect("expert ID")),
+                layer_index: ranges[id].layer_index,
+                expert_id: ExpertId(ranges[id].expert_id),
             })
             .expect("expert store benchmark load");
         assert_eq!(
@@ -240,7 +250,7 @@ fn run_store(
     }
 }
 
-fn subtract_metrics(after: ReaderMetrics, before: ReaderMetrics) -> ReaderMetrics {
+fn subtract_metrics(after: &ReaderMetrics, before: &ReaderMetrics) -> ReaderMetrics {
     ReaderMetrics {
         tensor_reads: after.tensor_reads - before.tensor_reads,
         file_open_count: after.file_open_count - before.file_open_count,
@@ -267,12 +277,23 @@ fn subtract_metrics(after: ReaderMetrics, before: ReaderMetrics) -> ReaderMetric
         seek_nanos: after.seek_nanos - before.seek_nanos,
         read_nanos: after.read_nanos - before.read_nanos,
         hash_nanos: after.hash_nanos - before.hash_nanos,
+        mmap_mapping_count: after.mmap_mapping_count - before.mmap_mapping_count,
+        mmap_shard_reuse_count: after.mmap_shard_reuse_count - before.mmap_shard_reuse_count,
+        mmap_active_mapping_count: after.mmap_active_mapping_count,
+        mmap_peak_mapping_count: after.mmap_peak_mapping_count,
+        mmap_mapped_virtual_bytes: after.mmap_mapped_virtual_bytes,
+        mmap_peak_mapped_virtual_bytes: after.mmap_peak_mapped_virtual_bytes,
+        mmap_mapping_init_nanos: after.mmap_mapping_init_nanos - before.mmap_mapping_init_nanos,
+        mmap_first_touch_nanos: after.mmap_first_touch_nanos - before.mmap_first_touch_nanos,
+        mmap_access_nanos: after.mmap_access_nanos - before.mmap_access_nanos,
+        mmap_copy_nanos: after.mmap_copy_nanos - before.mmap_copy_nanos,
+        mmap_copy_bytes: after.mmap_copy_bytes - before.mmap_copy_bytes,
     }
 }
 
-fn metrics_json(metrics: ReaderMetrics) -> String {
+fn metrics_json(metrics: &ReaderMetrics) -> String {
     format!(
-        "{{\"tensor_reads\":{},\"file_open_count\":{},\"file_handle_reuse_count\":{},\"metadata_count\":{},\"seek_count\":{},\"read_call_count\":{},\"requested_read_bytes\":{},\"returned_read_bytes\":{},\"buffer_allocation_count\":{},\"allocated_bytes\":{},\"copied_bytes\":{},\"buffer_growth_events\":{},\"buffer_reuse_count\":{},\"bytes_read_into_reusable_buffers\":{},\"bytes_copied_after_read\":{},\"peak_buffer_capacity\":{},\"fallback_allocations\":{},\"alignment_failures\":{},\"hash_bytes\":{},\"open_nanos\":{},\"metadata_nanos\":{},\"seek_nanos\":{},\"read_nanos\":{},\"hash_nanos\":{}}}",
+        "{{\"tensor_reads\":{},\"file_open_count\":{},\"file_handle_reuse_count\":{},\"metadata_count\":{},\"seek_count\":{},\"read_call_count\":{},\"requested_read_bytes\":{},\"returned_read_bytes\":{},\"buffer_allocation_count\":{},\"allocated_bytes\":{},\"copied_bytes\":{},\"buffer_growth_events\":{},\"buffer_reuse_count\":{},\"bytes_read_into_reusable_buffers\":{},\"bytes_copied_after_read\":{},\"peak_buffer_capacity\":{},\"fallback_allocations\":{},\"alignment_failures\":{},\"hash_bytes\":{},\"open_nanos\":{},\"metadata_nanos\":{},\"seek_nanos\":{},\"read_nanos\":{},\"hash_nanos\":{},\"mmap_mapping_count\":{},\"mmap_shard_reuse_count\":{},\"mmap_active_mapping_count\":{},\"mmap_peak_mapping_count\":{},\"mmap_mapped_virtual_bytes\":{},\"mmap_peak_mapped_virtual_bytes\":{},\"mmap_mapping_init_nanos\":{},\"mmap_first_touch_nanos\":{},\"mmap_access_nanos\":{},\"mmap_copy_nanos\":{},\"mmap_copy_bytes\":{}}}",
         metrics.tensor_reads,
         metrics.file_open_count,
         metrics.file_handle_reuse_count,
@@ -297,15 +318,26 @@ fn metrics_json(metrics: ReaderMetrics) -> String {
         metrics.seek_nanos,
         metrics.read_nanos,
         metrics.hash_nanos,
+        metrics.mmap_mapping_count,
+        metrics.mmap_shard_reuse_count,
+        metrics.mmap_active_mapping_count,
+        metrics.mmap_peak_mapping_count,
+        metrics.mmap_mapped_virtual_bytes,
+        metrics.mmap_peak_mapped_virtual_bytes,
+        metrics.mmap_mapping_init_nanos,
+        metrics.mmap_first_touch_nanos,
+        metrics.mmap_access_nanos,
+        metrics.mmap_copy_nanos,
+        metrics.mmap_copy_bytes,
     )
 }
 
-fn current_run_json(requests: usize, result: RunResult) -> String {
+fn current_run_json(requests: usize, result: &RunResult) -> String {
     format!(
         "{{\"requests\":{},\"elapsed_nanos\":{},\"metrics\":{}}}",
         requests,
         result.elapsed_nanos,
-        metrics_json(result.metrics)
+        metrics_json(&result.metrics)
     )
 }
 
@@ -329,7 +361,7 @@ fn store_run_json(requests: usize, result: &StoreRunResult) -> String {
         path.cache_lookup_nanos,
         path.expert_load_nanos,
         path.bytes_copied_after_read,
-        metrics_json(reader),
+        metrics_json(&reader),
     )
 }
 
@@ -352,19 +384,54 @@ fn repeated_store_runs_json(
     output
 }
 
+fn scenario_store_runs_json(
+    artifact_root: &Path,
+    ranges: &[ExpertRange],
+    scenarios: &[(&str, &[usize])],
+    mode: ReaderMode,
+    repeats: usize,
+) -> String {
+    let mut output = String::from("{");
+    for (index, (name, ids)) in scenarios.iter().enumerate() {
+        if index != 0 {
+            output.push(',');
+        }
+        output.push('"');
+        output.push_str(name);
+        output.push_str("\":");
+        output.push_str(&repeated_store_runs_json(
+            artifact_root,
+            ranges,
+            ids,
+            mode,
+            repeats,
+        ));
+    }
+    output.push('}');
+    output
+}
+
+#[allow(clippy::too_many_lines)]
 fn main() {
     let artifact_root = env_path(
         "COLIBRI_ARTIFACT_ROOT",
         r"D:\models\colibri-lite\qwen3-30b-a3b\artifact-v1",
     );
     let plan_path = env_path("COLIBRI_M5_3_RUNTIME_PLAN", DEFAULT_PLAN);
+    let cross_shard_plan_path = env_path("COLIBRI_M5_3_CROSS_SHARD_PLAN", DEFAULT_CROSS_SHARD_PLAN);
     let sequence_path = env_path("COLIBRI_M5_3_SEQUENCE", DEFAULT_SEQUENCE);
     let output_path = std::env::var_os("COLIBRI_M5_3_BENCH_OUTPUT").map_or_else(
         || PathBuf::from("m5.3-01-storage-bench.json"),
         PathBuf::from,
     );
-    let ranges = load_plan(&plan_path);
+    let mut ranges = load_plan(&plan_path);
     assert_eq!(ranges.len(), 128, "layer-47 expert plan count");
+    let cross_shard_start = ranges.len();
+    ranges.extend(load_plan(&cross_shard_plan_path));
+    assert!(
+        ranges.len() > cross_shard_start,
+        "cross-shard plan must contain at least one expert"
+    );
     let reader = build_reader(&artifact_root, &ranges);
     let repeats = std::env::var("COLIBRI_M5_3_BENCH_REPEATS").map_or(2, |value| {
         value.parse().expect("valid benchmark repeat count")
@@ -373,6 +440,10 @@ fn main() {
     let repeated = vec![0; 3];
     let randomized: Vec<_> = (0..32).map(|index| (index * 73 + 19) % 128).collect();
     let authoritative = read_sequence(&sequence_path, &ranges);
+    let clustered: Vec<_> = (0..32).collect();
+    let cross_shard: Vec<_> = (0..8)
+        .flat_map(|index| [index, cross_shard_start + index])
+        .collect();
     let current_repeated = read_current(&reader, &ranges, &repeated);
     let current_randomized = read_current(&reader, &ranges, &randomized);
     let current_authoritative = read_current(&reader, &ranges, &authoritative);
@@ -392,15 +463,57 @@ fn main() {
         ReaderMode::ReusableAlignedBuffer,
         repeats,
     );
+    let scenarios = [
+        ("repeated_same_expert", repeated.as_slice()),
+        ("randomized_experts", randomized.as_slice()),
+        (
+            "authoritative_layer47_miss_subset",
+            authoritative.as_slice(),
+        ),
+        ("same_shard_clustered", clustered.as_slice()),
+        ("cross_shard_access", cross_shard.as_slice()),
+    ];
+    let reference_scenarios_json = scenario_store_runs_json(
+        &artifact_root,
+        &ranges,
+        &scenarios,
+        ReaderMode::Reference,
+        repeats,
+    );
+    let reusable_scenarios_json = scenario_store_runs_json(
+        &artifact_root,
+        &ranges,
+        &scenarios,
+        ReaderMode::ReusableAlignedBuffer,
+        repeats,
+    );
+    #[cfg(feature = "m5-3-mmap")]
+    let mmap_scenarios_json = scenario_store_runs_json(
+        &artifact_root,
+        &ranges,
+        &scenarios,
+        ReaderMode::MmapReadOnly,
+        repeats,
+    );
+    #[cfg(feature = "m5-3-mmap")]
+    let mmap_section = format!(",\"mmap_read_only\":{mmap_scenarios_json}");
+    #[cfg(not(feature = "m5-3-mmap"))]
+    let mmap_section = String::new();
+    #[cfg(feature = "m5-3-mmap")]
+    let schema = "colibri-qwen3-moe-m5.3-04-mmap-benchmark-v1";
+    #[cfg(not(feature = "m5-3-mmap"))]
+    let schema = "colibri-qwen3-moe-m5.3-02-reusable-buffer-benchmark-v1";
     let output = [
-        "{\"schema\":\"colibri-qwen3-moe-m5.3-02-reusable-buffer-benchmark-v1\",\"schema_version\":1,\"artifact_root_sha256\":\"f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2\",\"payload_bytes\":",
+        "{\"schema\":\"",
+        schema,
+        "\",\"schema_version\":1,\"artifact_root_sha256\":\"f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2\",\"payload_bytes\":",
         &PAYLOAD_BYTES.to_string(),
         ",\"warm_cache_state\":\"uncontrolled\",\"current_reader\":{\"repeated_same_expert\":",
-        &current_run_json(3, current_repeated),
+        &current_run_json(3, &current_repeated),
         ",\"randomized_experts\":",
-        &current_run_json(randomized.len(), current_randomized),
+        &current_run_json(randomized.len(), &current_randomized),
         ",\"authoritative_layer47_miss_subset\":",
-        &current_run_json(authoritative.len(), current_authoritative),
+        &current_run_json(authoritative.len(), &current_authoritative),
         "},\"isolated_same_range_access\":{\"authoritative_layer47_miss_subset\":{\"requests\":",
         &authoritative.len().to_string(),
         ",\"fresh_allocation_persistent_handle_elapsed_nanos\":",
@@ -413,6 +526,11 @@ fn main() {
         &reference_store_json,
         ",\"reusable_aligned_buffer\":",
         &reusable_store_json,
+        "},\"expert_store_scenarios\":{\"reference_allocated\":",
+        &reference_scenarios_json,
+        ",\"reusable_aligned_buffer\":",
+        &reusable_scenarios_json,
+        &mmap_section,
         "}}\n",
     ]
     .concat();

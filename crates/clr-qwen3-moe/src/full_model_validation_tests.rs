@@ -11,7 +11,7 @@ use std::{
 };
 
 use clr_core::{DataType, Tensor, TensorShape, ops::elementwise_add};
-#[cfg(feature = "m5-3-reusable-buffer")]
+#[cfg(any(feature = "m5-3-reusable-buffer", feature = "m5-3-mmap"))]
 use clr_storage::ReaderMode;
 use clr_storage::{
     ARTIFACT_FORMAT_VERSION, ArtifactManifest, ArtifactReader, ByteOrder, ExpertId, ExpertKey,
@@ -1194,17 +1194,20 @@ fn expert_store_from_plans(
     );
     let manifest = ArtifactManifest::new(ARTIFACT_FORMAT_VERSION, ByteOrder::Little, metadata)
         .expect("selected expert artifact manifest");
-    #[cfg(feature = "m5-3-reusable-buffer")]
+    #[cfg(any(feature = "m5-3-reusable-buffer", feature = "m5-3-mmap"))]
     let reader_mode = match env::var("COLIBRI_EXPERT_READER_MODE").as_deref() {
         Ok("reference_allocated") | Err(_) => ReaderMode::Reference,
+        #[cfg(feature = "m5-3-reusable-buffer")]
         Ok("reusable_aligned_buffer") => ReaderMode::ReusableAlignedBuffer,
+        #[cfg(feature = "m5-3-mmap")]
+        Ok("mmap_read_only") => ReaderMode::MmapReadOnly,
         Ok(other) => panic!("unsupported COLIBRI_EXPERT_READER_MODE: {other}"),
     };
-    #[cfg(feature = "m5-3-reusable-buffer")]
+    #[cfg(any(feature = "m5-3-reusable-buffer", feature = "m5-3-mmap"))]
     let reader =
         ArtifactReader::open_with_mode(artifact_root.join("experts"), manifest, reader_mode)
             .expect("canonical selected expert reader");
-    #[cfg(not(feature = "m5-3-reusable-buffer"))]
+    #[cfg(not(any(feature = "m5-3-reusable-buffer", feature = "m5-3-mmap")))]
     let reader = ArtifactReader::open(artifact_root.join("experts"), manifest)
         .expect("canonical selected expert reader");
     let budget = env::var("COLIBRI_EXPERT_CACHE_BUDGET_BYTES").map_or(18_874_368, |value| {
@@ -4986,7 +4989,11 @@ fn short_cached_generation_matches_transformers() {
             &generated,
         );
     }
-    #[cfg(any(feature = "m5-3-reusable-buffer", feature = "m5-3-compute-profiling"))]
+    #[cfg(any(
+        feature = "m5-3-reusable-buffer",
+        feature = "m5-3-compute-profiling",
+        feature = "m5-3-mmap"
+    ))]
     if let Some(storage_output) = env::var_os("COLIBRI_M5_3_STORAGE_METRICS_OUTPUT") {
         m5_2_trace_capture::write_m5_3_storage_metrics(Path::new(&storage_output), &store, metrics);
     }
