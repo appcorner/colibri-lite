@@ -426,7 +426,7 @@ reproducible report with known limitations.
 
 ### M5 - Memory hierarchy and performance recovery
 
-Status: review closure after M5.3-04. M5 evidence has confirmed the
+Status: review closure after M5.4-02. M5 evidence has confirmed the
 correctness-valid F32 path and the low-memory expert-streaming design, but has
 not established production-ready performance. This phase must not be described
 as a production-performance milestone.
@@ -453,20 +453,24 @@ Current closure findings:
 - The isolated mmap prototype is rejected for runtime adoption: it regressed
   all paired full-runtime comparisons (median +5.92%) and increased measured
   peak working set to 29.46--39.00 GiB.
+- M5.4-02 completed a 24-row paired resident-dense/streamed runtime matrix at
+  8 and 16 GiB. Correctness, strict global-LRU accounting, and total-RAM
+  enforcement passed, but timing is directional and physical I/O/page-cache
+  behavior were not measured; the candidate did not establish runtime value.
 - Strict global LRU remains the selected cache policy and the reference reader
   remains the default production path.
 
-The current storage-access optimization path is stopped pending decision
-review. A possible later candidate is resident dense weights plus strict global
-LRU, but it must begin with simulation and measurement, not runtime changes.
-It requires end-to-end improvement while retaining frozen F32 correctness and
-explicit memory limits. If no candidate clears those evidence gates, freeze the
-project as a research runtime rather than expand scope without evidence.
+The current storage-access optimization path is stopped after decision review.
+Resident dense weights plus strict global LRU remain a measurement-only,
+feature-gated prototype and are not a production/default candidate. The
+project remains a research runtime; reopening this path requires a separately
+reviewed experiment with controlled, repeatable end-to-end performance
+evidence and explicit physical-I/O/working-set measurement semantics.
 
 ### M5.4 - Resident-dense candidate study
 
-Status: M5.4-01 is complete for review; runtime implementation remains pending
-separate approval.
+Status: M5.4-01 simulation and M5.4-02 measurement-only runtime prototype are
+complete for review. Production/default adoption is not authorized.
 
 M5.4-01 is a simulation-only study over the validated M5.2 corpus and the six
 fixtures with recorded full-runtime dense-read evidence. It models resident
@@ -479,14 +483,19 @@ Recorded results show modeled total logical-read reduction of 40.43% at 8 GiB
 and 56.90% at 16 GiB for resident dense, compared with 16.31% and 21.36% for
 streamed dense under the same total-RAM accounting. The 8 GiB resident-dense
 case has no simulated expert hits because only 1.981 GiB remains for experts;
-the 16 GiB case retains 27.64% expert-byte hits. These results select a
-measurement-only runtime prototype for review, but do not authorize runtime
-implementation or a production preset.
+the 16 GiB case retains 27.64% expert-byte hits. These results selected a
+measurement-only runtime prototype for review. The follow-up M5.4-02 matrix
+completed all 24 eligible paired rows at 8 and 16 GiB, preserving the reference
+reader, frozen F32 checks, strict global LRU, and explicit total-RAM accounting.
+The prototype passed correctness and budget gates, but single-run timing
+remained directional, physical I/O/page-cache behavior was not measured, and
+the runtime evidence did not establish end-to-end value. Its classification is
+`prototype_insufficient_runtime_value`; the project remains frozen as a
+research runtime.
 
-M5.4-02, if approved, must validate resident-dense initialization, full-model
-F32 correctness, strict total-RAM enforcement, working-set semantics, and
-repeatable end-to-end improvement against the reference reader. Failure to
-clear those gates returns the project to research-runtime freeze.
+No further resident-dense implementation is authorized by M5.4. Reopening the
+candidate requires a new reviewed measurement protocol with repeatable
+performance evidence and explicit working-set and I/O semantics.
 
 ## Deferred until after M4
 
