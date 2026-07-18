@@ -320,6 +320,8 @@ the release boundary.
 - [x] M5.2-01 Capture broader representative expert traces.
 - [x] M5.2-02 Simulate cache policies and RAM budgets across the representative trace corpus.
 - [x] M5.2-03 Validate 8 GiB versus 16 GiB global LRU across representative full-model workloads.
+- [x] M5.3-01 Study mmap and coalesced expert access.
+- [ ] M5.3-02 Implement reusable aligned read-buffer prototype.
 
 M5.1-00 is complete as a deterministic measurement supplement. The ordered
 trace and validator are recorded in
@@ -391,8 +393,19 @@ and metrics, and `docs/reports/m5.2-03-representative-runtime-cache-validation.m
 ADR 0040 records the decision. No cache policy, runtime semantics, artifact,
 or numerical path changed.
 
-Exact next task after review: mmap/coalesced expert access study. Stop before
-starting it.
+Exact next task after review was the M5.3-01 mmap/coalesced expert access
+study; that task is now recorded below as complete for review.
+
+M5.3-01 is complete for review as a storage-path measurement and prototype
+selection study. The current reader was instrumented behind the
+`m5-3-instrumentation` feature, the canonical artifact layout was validated,
+authoritative miss ranges were replayed, and hash-checked layer-47 storage
+microbenchmarks were recorded. Exact-adjacent grouping gave only a small
+operation reduction; broad layer batching caused severe over-read. Persistent
+handles and mmap were not selected. The next selected prototype is reusable
+aligned read buffers, and it has not started. Evidence is recorded in
+`docs/reports/m5.3-01-expert-access-study.md`,
+`models/qwen3-30b-a3b/m5.3-01-expert-access-results-v1.json`, and ADR 0041.
 
 ## Standard verification commands
 

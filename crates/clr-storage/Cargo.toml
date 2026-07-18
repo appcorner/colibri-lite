@@ -8,6 +8,13 @@ repository.workspace = true
 rust-version.workspace = true
 description = "Storage and expert-cache subsystem for colibri-lite-rs"
 
+[features]
+m5-3-instrumentation = []
+
+[[example]]
+name = "m5_3_expert_access_bench"
+required-features = ["m5-3-instrumentation"]
+
 [dependencies]
 clr-core = { path = "../clr-core" }
 

@@ -1674,3 +1674,56 @@ Next:
 
 - Exact next task after review: mmap/coalesced expert access study. Do not start
   it in this task.
+
+## 2026-07-18 - M5.3-01 expert access study
+
+Completed:
+
+- M5.3-01 artifact-layout, current-reader instrumentation, range-grouping, mmap
+  feasibility, and controlled storage microbenchmark study.
+- Validated the canonical artifact root, 48 expert shards, 6,144 expert ranges,
+  contiguous gate/up/down payload layout, selected M5.2 trace hashes, ordinals,
+  layer/expert ranges, and payload sizes.
+- Selected reusable aligned read buffers as the next isolated storage-access
+  prototype. It was not implemented in this task.
+
+Changed:
+
+- Added feature-gated `m5-3-instrumentation` reader counters/timings and
+  `ExpertPathMetrics` in `clr-storage`; default runtime behavior is unchanged.
+- Added `crates/clr-storage/examples/m5_3_expert_access_bench.rs` with exact
+  payload-hash checks and isolated current/persistent-handle/buffer loops.
+- Added `scripts/analyze_m5_3_expert_ranges.py` and its three synthetic tests,
+  deterministic range results, and the layer-47 miss-sequence evidence.
+- Added the M5.3-01 report and ADR 0041; updated task status.
+
+Evidence:
+
+- Canonical artifact root SHA-256:
+  `f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2`.
+- Deterministic range results SHA-256:
+  `2d7cab4e69d6063bebbd9c392c5635aa56183ee8a2055ad6d28e8e7a210f0ca0`.
+- Storage benchmark evidence SHA-256:
+  `59fcc85be74158497492d4c05334a490e19fbbbb5cec1b0da2c2651ec67119c`.
+- The 64-request current-reader miss subset performed 64 opens, seeks, read
+  calls, allocations, and 1,207,959,552 payload bytes; measured wall time was
+  6.410 seconds, including 5.748 seconds of SHA-256 verification. Persistent
+  handle/fresh buffer was 6.367 seconds and reusable buffer was 5.996 seconds
+  in the same uncontrolled-cache run.
+- Exact-adjacent grouping reduced simulated operations by 3.5–6.5%; 1 MiB
+  bounded grouping added no further grouping. One-layer batching amplified
+  bytes by approximately 12.3–15.8x.
+- Python compilation, range tests, feature-gated storage tests, benchmark
+  compilation, and payload hash checks passed.
+
+Open issues:
+
+- Physical I/O and cold-cache behavior remain unmeasured.
+- Full-model matrix-compute timing was not isolated; storage-vs-compute
+  dominance remains unknown.
+- The selected reusable-buffer prototype needs repeated controlled comparison.
+
+Next:
+
+- Exact next task: implement and independently benchmark reusable aligned read
+  buffers. Do not start it in this task.

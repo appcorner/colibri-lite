@@ -48,6 +48,18 @@ pub struct ExpertLoadObservation {
     pub evictions: u64,
 }
 
+/// Runtime-only timing estimates for the existing expert load path.
+#[cfg(feature = "m5-3-instrumentation")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct ExpertPathMetrics {
+    pub request_count: u64,
+    pub cache_hit_count: u64,
+    pub expert_load_count: u64,
+    pub total_nanos: u128,
+    pub cache_lookup_nanos: u128,
+    pub expert_load_nanos: u128,
+}
+
 /// Pinned access to one cached expert payload.
 #[derive(Debug, Clone)]
 pub struct ExpertLease {
@@ -206,6 +218,8 @@ pub struct ExpertStore {
     reader: ArtifactReader,
     names: HashMap<ExpertKey, String>,
     cache: ExpertCache,
+    #[cfg(feature = "m5-3-instrumentation")]
+    path_metrics: ExpertPathMetrics,
 }
 
 impl ExpertStore {
@@ -233,6 +247,8 @@ impl ExpertStore {
             reader,
             names,
             cache: ExpertCache::new(budget),
+            #[cfg(feature = "m5-3-instrumentation")]
+            path_metrics: ExpertPathMetrics::default(),
         })
     }
 
@@ -247,9 +263,35 @@ impl ExpertStore {
             .get(&key)
             .ok_or(StorageError::ExpertNotRegistered { key })?
             .clone();
-        self.cache.get_or_load(key, || {
-            self.reader.read_tensor(&name).map(|tensor| tensor.bytes)
-        })
+        #[cfg(feature = "m5-3-instrumentation")]
+        let started = std::time::Instant::now();
+        #[cfg(feature = "m5-3-instrumentation")]
+        let mut expert_load_nanos = 0_u128;
+        let reader = &self.reader;
+        let lease = self.cache.get_or_load(key, || {
+            #[cfg(feature = "m5-3-instrumentation")]
+            let load_started = std::time::Instant::now();
+            let result = reader.read_tensor(&name).map(|tensor| tensor.bytes);
+            #[cfg(feature = "m5-3-instrumentation")]
+            {
+                expert_load_nanos = load_started.elapsed().as_nanos();
+            }
+            result
+        });
+        #[cfg(feature = "m5-3-instrumentation")]
+        if lease.is_ok() {
+            let total_nanos = started.elapsed().as_nanos();
+            self.path_metrics.request_count += 1;
+            self.path_metrics.total_nanos += total_nanos;
+            self.path_metrics.expert_load_nanos += expert_load_nanos;
+            self.path_metrics.cache_lookup_nanos += total_nanos.saturating_sub(expert_load_nanos);
+            if expert_load_nanos > 0 {
+                self.path_metrics.expert_load_count += 1;
+            } else {
+                self.path_metrics.cache_hit_count += 1;
+            }
+        }
+        lease
     }
 
     /// Loads an expert without changing cache behavior and reports the
@@ -289,6 +331,20 @@ impl ExpertStore {
     #[must_use]
     pub const fn budget(&self) -> usize {
         self.cache.budget()
+    }
+
+    /// Returns current reader instrumentation for the storage-path study.
+    #[cfg(feature = "m5-3-instrumentation")]
+    #[must_use]
+    pub fn reader_metrics(&self) -> crate::ReaderMetrics {
+        self.reader.metrics()
+    }
+
+    /// Returns runtime-only cache/load timing estimates.
+    #[cfg(feature = "m5-3-instrumentation")]
+    #[must_use]
+    pub const fn path_metrics(&self) -> ExpertPathMetrics {
+        self.path_metrics
     }
 }
 
@@ -494,6 +550,15 @@ mod tests {
         assert_eq!(store.metrics().misses, 1);
         assert_eq!(store.metrics().loads, 1);
         assert_eq!(store.metrics().bytes_read, 8);
+        #[cfg(feature = "m5-3-instrumentation")]
+        {
+            let path_metrics = store.path_metrics();
+            assert_eq!(path_metrics.request_count, 2);
+            assert_eq!(path_metrics.cache_hit_count, 1);
+            assert_eq!(path_metrics.expert_load_count, 1);
+            assert!(path_metrics.total_nanos >= path_metrics.expert_load_nanos);
+            assert!(path_metrics.cache_lookup_nanos > 0);
+        }
         assert!(matches!(
             store.load(key(1)),
             Err(StorageError::ExpertNotRegistered { .. })
