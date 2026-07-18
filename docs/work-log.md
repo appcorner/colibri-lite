@@ -1901,6 +1901,41 @@ Next:
 - Exact next task after review: stop the current storage-access optimization
   path due insufficient runtime value. Do not start it.
 
+## 2026-07-18 - M5.4-02 resident-dense runtime prototype implementation
+
+Completed:
+
+- Added a test-only, opt-in resident dense source guarded by the
+  `m5-4-resident-dense` feature and `COLIBRI_DENSE_RESIDENCY_MODE`.
+- Added focused validation for one-time loading, range rejection, explicit
+  over-budget rejection, and file release.
+- Preserved the streamed `File` path as the default and retained the existing
+  strict global-LRU `ExpertStore` for all experts.
+
+Changed:
+
+- `crates/clr-qwen3-moe/src/m5_4_resident_dense.rs` and the full-model
+  validation harness.
+- Added the M5.4-02 report and result record with unavailable runtime fields.
+
+Evidence:
+
+- `cargo test -p clr-qwen3-moe --features full-model-validation,m5-4-resident-dense m5_4_resident_dense`: 3 passed.
+- The full-model validation harness compiles with the prototype feature.
+- The canonical 122 GB artifact is not mounted in this workspace, so no
+  full-model measurement was executed and no timing or I/O claim was made.
+
+Open issues:
+
+- The six-fixture 8/16 GiB capture remains required on the registered canonical
+  artifact. The two M5.2 fixtures without dense-read evidence remain unavailable.
+
+Next:
+
+- Run the M5.4-02 six-fixture baseline/candidate matrix under the registered
+  canonical artifact; do not treat this measurement-only prototype as a
+  production adoption decision.
+
 ## 2026-07-18 - M5.4-01 resident-dense candidate simulation
 
 Completed:

@@ -19,6 +19,8 @@ use clr_storage::{
     TensorMetadata,
 };
 
+#[cfg(feature = "m5-4-resident-dense")]
+use crate::m5_4_resident_dense::{DenseSource, FIXED_RUNTIME_MEMORY_BYTES, ResidentDenseBudget};
 use crate::{
     KvCache, PINNED_QWEN3_30B_A3B_CONFIG,
     block::{
@@ -977,13 +979,58 @@ fn checkpoint_plan(plan: &str) -> HashMap<String, CheckpointRecord> {
     tensors
 }
 
-fn read_exact_range(file: &mut File, record: &RangeRecord, bytes_read: &mut u64) -> Vec<u8> {
-    file.seek(SeekFrom::Start(record.offset))
-        .expect("seek artifact");
+trait DenseReadAt {
+    fn read_exact_at(&mut self, offset: u64, destination: &mut [u8]);
+}
+
+impl DenseReadAt for File {
+    fn read_exact_at(&mut self, offset: u64, destination: &mut [u8]) {
+        self.seek(SeekFrom::Start(offset)).expect("seek artifact");
+        self.read_exact(destination).expect("read artifact range");
+    }
+}
+
+#[cfg(feature = "m5-4-resident-dense")]
+impl DenseReadAt for DenseSource {
+    fn read_exact_at(&mut self, offset: u64, destination: &mut [u8]) {
+        DenseSource::read_exact_at(self, offset, destination).expect("read resident dense range");
+    }
+}
+
+fn read_exact_range(
+    reader: &mut impl DenseReadAt,
+    record: &RangeRecord,
+    bytes_read: &mut u64,
+) -> Vec<u8> {
     let mut bytes = vec![0_u8; record.length];
-    file.read_exact(&mut bytes).expect("read artifact range");
+    reader.read_exact_at(record.offset, &mut bytes);
     *bytes_read += u64::try_from(bytes.len()).expect("range length fits u64");
     bytes
+}
+
+#[cfg(feature = "m5-4-resident-dense")]
+fn dense_source_for_generation(path: &Path, expert_cache_budget_bytes: usize) -> DenseSource {
+    match env::var("COLIBRI_DENSE_RESIDENCY_MODE").as_deref() {
+        Ok("resident_dense") => {
+            let total_budget_bytes = env::var("COLIBRI_TOTAL_RAM_BUDGET_BYTES")
+                .expect("resident dense requires COLIBRI_TOTAL_RAM_BUDGET_BYTES")
+                .parse::<usize>()
+                .expect("valid resident dense total budget");
+            DenseSource::resident(
+                path,
+                ResidentDenseBudget {
+                    total_budget: total_budget_bytes,
+                    expert_cache_budget: expert_cache_budget_bytes,
+                    fixed_runtime_memory: FIXED_RUNTIME_MEMORY_BYTES,
+                },
+            )
+            .expect("resident dense initialization")
+        }
+        Ok("streamed_dense") | Err(_) => {
+            DenseSource::streaming(path).expect("streamed dense initialization")
+        }
+        Ok(other) => panic!("unsupported COLIBRI_DENSE_RESIDENCY_MODE: {other}"),
+    }
 }
 
 fn f32_tensor(bytes: &[u8], shape: &[usize]) -> Tensor {
@@ -995,7 +1042,7 @@ fn f32_tensor(bytes: &[u8], shape: &[usize]) -> Tensor {
 }
 
 fn artifact_tensor(
-    file: &mut File,
+    reader: &mut impl DenseReadAt,
     plan: &RuntimePlan,
     name: &str,
     bytes_read: &mut u64,
@@ -1004,10 +1051,14 @@ fn artifact_tensor(
         .tensors
         .get(name)
         .unwrap_or_else(|| panic!("missing runtime tensor {name}"));
-    f32_tensor(&read_exact_range(file, record, bytes_read), &record.shape)
+    f32_tensor(&read_exact_range(reader, record, bytes_read), &record.shape)
 }
 
-fn embedding_rows(file: &mut File, plan: &RuntimePlan, bytes_read: &mut u64) -> Tensor {
+fn embedding_rows(
+    reader: &mut impl DenseReadAt,
+    plan: &RuntimePlan,
+    bytes_read: &mut u64,
+) -> Tensor {
     let record = &plan.tensors["model.embed_tokens.weight"];
     assert_eq!(record.shape, [151_936, 2048]);
     let row_bytes = 2048 * 4;
@@ -1019,13 +1070,13 @@ fn embedding_rows(file: &mut File, plan: &RuntimePlan, bytes_read: &mut u64) -> 
             length: row_bytes,
             shape: vec![2048],
         };
-        data.extend(f32_tensor(&read_exact_range(file, &row, bytes_read), &[2048]).into_data());
+        data.extend(f32_tensor(&read_exact_range(reader, &row, bytes_read), &[2048]).into_data());
     }
     Tensor::new(TensorShape::new([4, 2048]), data).expect("embedding rows")
 }
 
 fn embedding_row(
-    file: &mut File,
+    reader: &mut impl DenseReadAt,
     plan: &RuntimePlan,
     token_id: usize,
     bytes_read: &mut u64,
@@ -1038,11 +1089,11 @@ fn embedding_row(
         length: row_bytes,
         shape: vec![1, 2048],
     };
-    f32_tensor(&read_exact_range(file, &row, bytes_read), &[1, 2048])
+    f32_tensor(&read_exact_range(reader, &row, bytes_read), &[1, 2048])
 }
 
 fn streaming_language_model_head(
-    file: &mut File,
+    reader: &mut impl DenseReadAt,
     plan: &RuntimePlan,
     hidden: &Tensor,
     bytes_read: &mut u64,
@@ -1063,7 +1114,7 @@ fn streaming_language_model_head(
             shape: vec![row_count, HIDDEN],
         };
         let weights = f32_tensor(
-            &read_exact_range(file, &chunk, bytes_read),
+            &read_exact_range(reader, &chunk, bytes_read),
             &[row_count, HIDDEN],
         );
         logits.extend(weights.data().chunks_exact(HIDDEN).map(|row| {
@@ -1103,14 +1154,14 @@ struct LayerWeights {
 }
 
 fn layer_weights(
-    file: &mut File,
+    reader: &mut impl DenseReadAt,
     plan: &RuntimePlan,
     layer: usize,
     bytes_read: &mut u64,
 ) -> LayerWeights {
     let prefix = format!("model.layers.{layer}");
     let mut read =
-        |suffix: &str| artifact_tensor(file, plan, &format!("{prefix}.{suffix}"), bytes_read);
+        |suffix: &str| artifact_tensor(reader, plan, &format!("{prefix}.{suffix}"), bytes_read);
     LayerWeights {
         input_norm: read("input_layernorm.weight"),
         query: read("self_attn.q_proj.weight"),
@@ -3753,11 +3804,16 @@ fn short_cached_generation_matches_transformers() {
         plan.payload_length, final_plan.payload_length,
         "dense payload length"
     );
-    let mut payload = File::open(artifact_root.join(&plan.payload)).expect("open dense payload");
     assert_eq!(
-        payload.metadata().expect("dense payload metadata").len(),
+        fs::metadata(artifact_root.join(&plan.payload))
+            .expect("dense payload metadata")
+            .len(),
         plan.payload_length,
     );
+    #[cfg(feature = "m5-4-resident-dense")]
+    let mut payload = dense_source_for_generation(&artifact_root.join(&plan.payload), cache_budget);
+    #[cfg(not(feature = "m5-4-resident-dense"))]
+    let mut payload = File::open(artifact_root.join(&plan.payload)).expect("open dense payload");
     let config = PINNED_QWEN3_30B_A3B_CONFIG
         .map_to_f32_runtime()
         .expect("pinned runtime config")
@@ -4389,6 +4445,11 @@ fn short_cached_generation_matches_transformers() {
         &diagnostic_root.join("m4.2-04-rust-short-generation-evidence-v1.tsv"),
         evidence.as_bytes(),
     );
+    #[cfg(feature = "m5-4-resident-dense")]
+    let resident_dense_metrics = payload.metrics();
+    #[cfg(feature = "m5-4-resident-dense")]
+    let dense_residency_mode =
+        env::var("COLIBRI_DENSE_RESIDENCY_MODE").unwrap_or_else(|_| "streamed_dense".to_owned());
     if let Some(metrics_path) = metrics_output {
         let prefill_seconds = step_seconds[..4].iter().sum::<f64>();
         let decode_one_seconds = step_seconds[4];
@@ -4417,6 +4478,66 @@ fn short_cached_generation_matches_transformers() {
             filesystem_cache_assumption,
             "label",
         );
+        #[cfg(feature = "m5-4-resident-dense")]
+        {
+            record(
+                "configuration",
+                "total",
+                "dense_residency_mode",
+                dense_residency_mode,
+                "label",
+            );
+            record(
+                "io",
+                "initialization",
+                "resident_dense_bytes",
+                resident_dense_metrics.resident_dense_bytes.to_string(),
+                "bytes",
+            );
+            record(
+                "io",
+                "initialization",
+                "dense_payload_initialization_read_bytes",
+                resident_dense_metrics.initialization_bytes_read.to_string(),
+                "logical_bytes_not_physical_io",
+            );
+            record(
+                "io",
+                "total",
+                "dense_execution_access_bytes",
+                resident_dense_metrics.execution_bytes_accessed.to_string(),
+                "logical_bytes",
+            );
+            if resident_dense_metrics.resident_dense_bytes > 0 {
+                let total_budget = env::var("COLIBRI_TOTAL_RAM_BUDGET_BYTES")
+                    .expect("resident dense requires total budget metric")
+                    .parse::<usize>()
+                    .expect("valid resident dense total budget metric");
+                let accounted_peak = resident_dense_metrics
+                    .resident_dense_bytes
+                    .checked_add(FIXED_RUNTIME_MEMORY_BYTES)
+                    .and_then(|value| value.checked_add(metrics.peak_resident_bytes))
+                    .expect("resident dense accounted peak overflow");
+                assert!(
+                    accounted_peak <= total_budget,
+                    "resident dense accounted peak exceeds total budget"
+                );
+                record(
+                    "memory",
+                    "total",
+                    "configured_total_ram_budget_bytes",
+                    total_budget.to_string(),
+                    "bytes",
+                );
+                record(
+                    "memory",
+                    "total",
+                    "accounted_peak_resident_bytes",
+                    accounted_peak.to_string(),
+                    "bytes",
+                );
+            }
+        }
         record(
             "configuration",
             "total",
