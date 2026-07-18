@@ -78,13 +78,14 @@ def validate_storage(
     reader = storage["reader"]
     require(reader["tensor_reads"] == runtime["cache"]["loads"], "reader tensor count mismatch")
     require(reader["returned_read_bytes"] == reader["requested_read_bytes"], "reader byte mismatch")
-    require(reader["mmap_copy_bytes"] == reader["requested_read_bytes"], "mmap copy byte mismatch")
     if reader_mode == "mmap_read_only":
+        require(reader["mmap_copy_bytes"] == reader["requested_read_bytes"], "mmap copy byte mismatch")
         require(reader["read_call_count"] == 0, "mmap path unexpectedly used read calls")
         require(reader["mmap_mapping_count"] > 0, "mmap path created no mappings")
         require(reader["mmap_active_mapping_count"] == reader["mmap_mapping_count"], "mmap active count mismatch")
         require(reader["mmap_mapped_virtual_bytes"] > 0, "mmap virtual-byte accounting is empty")
     else:
+        require(reader["mmap_copy_bytes"] == 0, "reference path reported mmap copy bytes")
         require(reader["mmap_mapping_count"] == 0, "reference path reported mappings")
         require(reader["mmap_mapped_virtual_bytes"] == 0, "reference path reported mapped bytes")
         require(reader["read_call_count"] == runtime["cache"]["loads"], "reference read-call count mismatch")
