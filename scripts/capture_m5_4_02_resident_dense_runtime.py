@@ -221,6 +221,9 @@ def main() -> int:
                         "COLIBRI_EXPERT_TRACE_OUTPUT": str(trace_path),
                     })
                     if fixture_id == "tier_a_control":
+                        diagnostic_path = run_dir / "m4.2-04-rust-short-generation-evidence-v1.tsv"
+                        if diagnostic_path.exists():
+                            diagnostic_path.unlink()
                         environment.update({
                             "COLIBRI_RMS_DIAGNOSTIC_ROOT": str(run_dir),
                             "COLIBRI_FULL_LOGITS_ROOT": str(run_dir),
@@ -307,7 +310,19 @@ def main() -> int:
     finally:
         free_after = shutil.disk_usage(run_parent.anchor).free
         postflight = {"free_bytes_after": free_after, "run_directory_removed": True, "canonical_input_modified": False}
-        write_json_atomic(result_path, document(artifact, source_commit, preflight, postflight, runs, "complete" if len(runs) == 24 else "partial"))
+        passed_runs = sum(run.get("status", "passed") == "passed" for run in runs)
+        expected_runs = len(BUDGETS) * len(MODES) * len(m52.SELECTED_FIXTURES)
+        write_json_atomic(
+            result_path,
+            document(
+                artifact,
+                source_commit,
+                preflight,
+                postflight,
+                runs,
+                "complete" if passed_runs == expected_runs else "partial",
+            ),
+        )
         if run_dir.exists():
             shutil.rmtree(run_dir)
 
