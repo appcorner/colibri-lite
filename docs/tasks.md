@@ -319,6 +319,7 @@ the release boundary.
 - [x] M5.1-03 Validate the configurable expert cache on the canonical full model.
 - [x] M5.2-01 Capture broader representative expert traces.
 - [x] M5.2-02 Simulate cache policies and RAM budgets across the representative trace corpus.
+- [x] M5.2-03 Validate 8 GiB versus 16 GiB global LRU across representative full-model workloads.
 
 M5.1-00 is complete as a deterministic measurement supplement. The ordered
 trace and validator are recorded in
@@ -374,6 +375,24 @@ manifest, and
 `docs/reports/m5.2-02-corpus-cache-simulation.md`; ADR 0039 records the
 simulation policy contract and decision. No Rust runtime, ExpertCache,
 artifact, numerical path, or dense-residency implementation changed.
+
+M5.2-03 is complete for review as a representative full-runtime validation of
+the selected strict global-LRU policy at exact 8 GiB and 16 GiB payload
+budgets. Six workload classes were executed, with Tier-A, long-context, and
+long-decode repeated twice per budget. All 18 runs matched the exact M5.2-02
+simulation counters, retained deterministic generated IDs and request traces,
+preserved KV and bounded-memory invariants, and reported zero oversized-entry
+or blocked-eviction events. The cache remains
+`accepted_with_workload_limitations`: 8 GiB is useful for selected workloads,
+16 GiB is useful for cacheable workloads, and neither is a universal preset.
+Results are recorded in
+`models/qwen3-30b-a3b/m5.2-03-runtime-cache-results-v1.json`, validated traces
+and metrics, and `docs/reports/m5.2-03-representative-runtime-cache-validation.md`;
+ADR 0040 records the decision. No cache policy, runtime semantics, artifact,
+or numerical path changed.
+
+Exact next task after review: mmap/coalesced expert access study. Stop before
+starting it.
 
 ## Standard verification commands
 

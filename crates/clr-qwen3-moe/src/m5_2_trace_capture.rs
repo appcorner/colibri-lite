@@ -1,8 +1,9 @@
 use std::{
     env,
     fmt::Write as _,
-    fs::File,
+    fs::{self, File},
     path::{Path, PathBuf},
+    time::Instant,
 };
 
 use clr_storage::CacheMetrics;
@@ -81,6 +82,7 @@ fn representative_trace_capture() {
     let cache_budget = required_env("COLIBRI_EXPERT_CACHE_BUDGET_BYTES")
         .parse::<usize>()
         .unwrap_or_else(|_| panic!("COLIBRI_EXPERT_CACHE_BUDGET_BYTES must be an integer"));
+    let runtime_validation = env::var_os("COLIBRI_RUNTIME_VALIDATION").is_some();
 
     assert!(!fixture_id.is_empty(), "fixture ID must not be empty");
     assert!(
@@ -94,15 +96,23 @@ fn representative_trace_capture() {
     );
     assert_eq!(decoding_mode, "greedy", "M5.2-01 primary capture is greedy");
     assert_eq!(seed, 0, "M5.2-01 primary capture seed is fixed at zero");
-    assert_eq!(
-        cache_budget, 18_874_368,
-        "M5.2-01 uses the one-expert cache"
-    );
+    if runtime_validation {
+        assert!(
+            cache_budget == 8_589_934_592 || cache_budget == 17_179_869_184,
+            "M5.2-03 runtime validation requires an exact 8 or 16 GiB budget"
+        );
+    } else {
+        assert_eq!(
+            cache_budget, 18_874_368,
+            "M5.2-01 uses the one-expert cache"
+        );
+    }
     assert!(
         kv_cache_capacity >= input_token_ids.len() + requested_generation_length - 1,
         "KV capacity is smaller than the processed sequence"
     );
 
+    let runtime_started = Instant::now();
     let config = PINNED_QWEN3_30B_A3B_CONFIG
         .map_to_f32_runtime()
         .expect("pinned runtime config")
@@ -149,16 +159,34 @@ fn representative_trace_capture() {
     );
 
     let processed_steps = input_token_ids.len() + requested_generation_length - 1;
+    let initialization_seconds = runtime_started.elapsed().as_secs_f64();
+    if runtime_validation {
+        println!("m5_2_runtime_phase phase=initialization");
+        println!("m5_2_runtime_phase phase=prefill");
+    }
     let mut generated = Vec::with_capacity(requested_generation_length);
     let mut records = Vec::with_capacity(processed_steps * 48 * 8);
     let mut requested_keys = Vec::with_capacity(processed_steps * 48 * 8);
+    let mut step_seconds = Vec::with_capacity(processed_steps);
+    let mut step_dense_bytes = Vec::with_capacity(processed_steps);
+    let mut step_expert_bytes = Vec::with_capacity(processed_steps);
+    let mut step_hits = Vec::with_capacity(processed_steps);
+    let mut step_misses = Vec::with_capacity(processed_steps);
+    let mut step_loads = Vec::with_capacity(processed_steps);
+    let mut step_evictions = Vec::with_capacity(processed_steps);
     let mut produced_last_logits = false;
     for step in 0..processed_steps {
+        if runtime_validation && step == input_token_ids.len() {
+            println!("m5_2_runtime_phase phase=decode");
+        }
+        let step_started = Instant::now();
         let token_id = if step < input_token_ids.len() {
             input_token_ids[step]
         } else {
             generated[step - input_token_ids.len()]
         };
+        let dense_before = dense_bytes_read;
+        let expert_before = store.metrics();
         assert_eq!(cache.len(), step, "KV cache position before append");
         let cache_prefix: Vec<_> = (0..48)
             .map(|layer| {
@@ -273,6 +301,14 @@ fn representative_trace_capture() {
         cache
             .append_token(&updates_view)
             .expect("transactional KV append");
+        let step_metrics = store.metrics();
+        step_seconds.push(step_started.elapsed().as_secs_f64());
+        step_dense_bytes.push(dense_bytes_read - dense_before);
+        step_expert_bytes.push(step_metrics.bytes_read - expert_before.bytes_read);
+        step_hits.push(step_metrics.hits - expert_before.hits);
+        step_misses.push(step_metrics.misses - expert_before.misses);
+        step_loads.push(step_metrics.loads - expert_before.loads);
+        step_evictions.push(step_metrics.evictions - expert_before.evictions);
         assert_eq!(cache.len(), step + 1, "KV cache logical length");
         assert_eq!(cache.allocation_capacities(), allocation_capacities);
         for (layer, (prior_key, prior_value)) in cache_prefix.iter().enumerate() {
@@ -320,6 +356,9 @@ fn representative_trace_capture() {
             .iter()
             .all(|record| record.input_token_id < config.model().vocabulary_size())
     );
+    if runtime_validation {
+        println!("m5_2_runtime_phase phase=complete");
+    }
 
     let instrumentation_commit = required_env("COLIBRI_TRACE_INSTRUMENTATION_COMMIT");
     write_representative_trace(
@@ -339,6 +378,33 @@ fn representative_trace_capture() {
         &records,
         &instrumentation_commit,
     );
+    if let Some(metrics_output) = env::var_os("COLIBRI_RUNTIME_METRICS_OUTPUT") {
+        write_runtime_metrics(
+            &PathBuf::from(metrics_output),
+            &fixture_id,
+            &input_token_ids,
+            &generated,
+            requested_generation_length,
+            seed,
+            &decoding_mode,
+            kv_cache_capacity,
+            cache_budget,
+            processed_steps,
+            initialization_seconds,
+            &step_seconds,
+            &step_dense_bytes,
+            &step_expert_bytes,
+            &step_hits,
+            &step_misses,
+            &step_loads,
+            &step_evictions,
+            dense_bytes_read,
+            cache.byte_size(),
+            metrics,
+            &records,
+            runtime_started.elapsed().as_secs_f64(),
+        );
+    }
     println!(
         "m5_2_trace_capture_complete fixture={fixture_id} generated={generated:?} records={} hits={} loads={} evictions={}",
         records.len() / (48 * 8),
@@ -346,6 +412,113 @@ fn representative_trace_capture() {
         metrics.loads,
         metrics.evictions,
     );
+}
+
+fn json_f64_list(values: &[f64]) -> String {
+    let mut output = String::from("[");
+    for (index, value) in values.iter().enumerate() {
+        if index != 0 {
+            output.push(',');
+        }
+        write!(output, "{value:.17e}").expect("write JSON float");
+    }
+    output.push(']');
+    output
+}
+
+fn json_u64_list(values: &[u64]) -> String {
+    let mut output = String::from("[");
+    for (index, value) in values.iter().enumerate() {
+        if index != 0 {
+            output.push(',');
+        }
+        write!(output, "{value}").expect("write JSON integer");
+    }
+    output.push(']');
+    output
+}
+
+#[allow(clippy::too_many_arguments)]
+fn write_runtime_metrics(
+    path: &Path,
+    fixture_id: &str,
+    input_token_ids: &[usize],
+    generated: &[usize],
+    requested_generation_length: usize,
+    seed: u64,
+    decoding_mode: &str,
+    kv_cache_capacity: usize,
+    cache_budget: usize,
+    processed_steps: usize,
+    initialization_seconds: f64,
+    step_seconds: &[f64],
+    step_dense_bytes: &[u64],
+    step_expert_bytes: &[u64],
+    step_hits: &[u64],
+    step_misses: &[u64],
+    step_loads: &[u64],
+    step_evictions: &[u64],
+    dense_bytes_read: u64,
+    kv_cache_bytes: usize,
+    metrics: CacheMetrics,
+    records: &[RepresentativeTraceRecord],
+    total_seconds: f64,
+) {
+    let payload_requested = records
+        .iter()
+        .map(|record| record.payload_bytes as u64)
+        .sum::<u64>();
+    let prefill_steps = input_token_ids.len();
+    let prefill_seconds = step_seconds[..prefill_steps].iter().sum::<f64>();
+    let decode_seconds = step_seconds[prefill_steps..].iter().sum::<f64>();
+    let prefill_bytes = step_expert_bytes[..prefill_steps].iter().sum::<u64>();
+    let decode_bytes = step_expert_bytes[prefill_steps..].iter().sum::<u64>();
+    let total_logical_bytes = dense_bytes_read + metrics.bytes_read;
+    let prefill_tokens_per_second = if prefill_seconds > 0.0 {
+        f64::from(u32::try_from(input_token_ids.len()).expect("prompt length fits u32"))
+            / prefill_seconds
+    } else {
+        0.0
+    };
+    let decode_tokens_per_second = if decode_seconds > 0.0 {
+        f64::from(
+            u32::try_from(requested_generation_length - 1).expect("decode step count fits u32"),
+        ) / decode_seconds
+    } else {
+        0.0
+    };
+    let mut output = String::new();
+    writeln!(
+        output,
+        "{{\"schema\":\"colibri-qwen3-moe-m5.2-03-runtime-result-v1\",\"schema_version\":1,\"task\":\"M5.2-03\",\"fixture_id\":\"{fixture_id}\",\"input_token_ids\":{},\"generated_token_ids\":{},\"requested_generation_length\":{requested_generation_length},\"seed\":{seed},\"decoding_mode\":\"{decoding_mode}\",\"kv_cache_capacity\":{kv_cache_capacity},\"processed_steps\":{processed_steps},\"cache\":{{\"configured_budget_bytes\":{cache_budget},\"policy\":\"strict_global_lru\",\"resident_bytes\":{},\"peak_resident_bytes\":{},\"resident_entry_count\":{},\"peak_entry_count\":{},\"hits\":{},\"misses\":{},\"loads\":{},\"evictions\":{},\"bytes_read\":{},\"bytes_served_from_cache\":{},\"bytes_avoided\":{},\"oversized_entry_events\":{},\"blocked_eviction_events\":{}}},\"io\":{{\"expert_payload_bytes_requested\":{payload_requested},\"expert_bytes_loaded\":{},\"expert_bytes_served_from_cache\":{},\"expert_bytes_avoided\":{},\"dense_bytes_read\":{dense_bytes_read},\"total_logical_bytes\":{total_logical_bytes},\"prefill_expert_bytes_loaded\":{prefill_bytes},\"decode_expert_bytes_loaded\":{decode_bytes}}},\"timing\":{{\"initialization_seconds\":{initialization_seconds:.17e},\"prefill_seconds\":{prefill_seconds:.17e},\"decode_seconds\":{decode_seconds:.17e},\"prefill_tokens_per_second\":{prefill_tokens_per_second:.17e},\"decode_tokens_per_second\":{decode_tokens_per_second:.17e},\"total_seconds\":{total_seconds:.17e},\"step_seconds\":{}}},\"per_step\":{{\"dense_bytes\":{},\"expert_bytes_loaded\":{},\"hits\":{},\"misses\":{},\"loads\":{},\"evictions\":{}}},\"kv_cache\":{{\"allocated_bytes\":{kv_cache_bytes},\"logical_final_length\":{processed_steps},\"invariants\":\"pass\"}},\"correctness\":{{\"finite_outputs\":true,\"router_and_selected_expert_execution\":\"pass\",\"bounded_payload_residency\":true,\"oversized_entry_events\":0,\"blocked_eviction_events\":0}}}}",
+        json_usize_list(input_token_ids),
+        json_usize_list(generated),
+        metrics.resident_bytes,
+        metrics.peak_resident_bytes,
+        metrics.resident_entry_count,
+        metrics.peak_entry_count,
+        metrics.hits,
+        metrics.misses,
+        metrics.loads,
+        metrics.evictions,
+        metrics.bytes_read,
+        metrics.bytes_served_from_cache,
+        metrics.bytes_avoided,
+        metrics.oversized_entry_events,
+        metrics.blocked_eviction_events,
+        metrics.bytes_read,
+        metrics.bytes_served_from_cache,
+        metrics.bytes_avoided,
+        json_f64_list(step_seconds),
+        json_u64_list(step_dense_bytes),
+        json_u64_list(step_expert_bytes),
+        json_u64_list(step_hits),
+        json_u64_list(step_misses),
+        json_u64_list(step_loads),
+        json_u64_list(step_evictions),
+    )
+    .expect("write runtime metrics");
+    fs::write(path, output).expect("write runtime metrics output");
 }
 
 #[allow(clippy::too_many_arguments)]

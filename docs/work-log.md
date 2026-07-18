@@ -1615,3 +1615,62 @@ Open issues:
 Next:
 
 - M5.2-03. Stop before running the selected full-runtime validation matrix.
+
+## 2026-07-18 - M5.2-03 representative full-runtime cache validation
+
+Completed:
+
+- M5.2-03 exact 8 GiB versus 16 GiB strict global-LRU validation.
+- Six representative full-model fixtures, 18 runs total; Tier-A,
+  long-context, and long-decode repeated twice per budget.
+- Exact simulation/runtime counter comparison, process-memory sampling,
+  logical-read accounting, timing capture, deterministic trace checks, and
+  correctness/invariant validation.
+
+Changed:
+
+- Added runtime-only timing, phase, process-memory, and machine-metrics
+  instrumentation around the existing full-model validation path.
+- Added deterministic one-fixture-at-a-time harness
+  `scripts/capture_m5_2_03_runtime_validation.py`.
+- Added runtime evidence, results JSON, report, ADR 0040, task status, and
+  this work-log entry. No cache policy, cache semantics, artifact, or
+  numerical execution changed.
+
+Evidence:
+
+- All 18 runs matched M5.2-02 exact-budget simulation fields: requests, hits,
+  misses, loads, evictions, expert bytes loaded/avoided, and peak resident
+  payload bytes.
+- All generated IDs, router/request traces, finite-output, KV-cache, and
+  bounded-residency checks passed. Oversized-entry and blocked-eviction events
+  were zero.
+- Selected-subset macro/micro byte hit rates were 19.1488%/27.3838% at 8 GiB
+  and 24.8884%/36.1178% at 16 GiB; Thai and special-token workloads had zero
+  hits at both budgets.
+- Canonical artifact root was revalidated at
+  `f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2`.
+- Evidence hashes: results JSON
+  `0a0b964eaca9de55f3244f45b275b8d386b66b448a701a35377fbf85631ae870`,
+  report `18cdbe6c9b1868050d87dcfe14858f1fa1c6490d85b5e1010b2f427da823772`,
+  ADR `d587f2b5fa8205103ad3a82aa49518fc8aed19772d69a8c0f6ef3f434ebdc127`,
+  and harness
+  `9934dc3f8e0541863bacc4d4074df8a997e2d18f94ebdd7b6ebc1d0930d1dce6`.
+- `cargo fmt --all --check`, `cargo check --workspace`, `cargo test --workspace`
+  (126 tests), workspace Clippy, feature-gated Clippy, CLI smoke, Python
+  compilation, Python reference tests (60), M5.1 control validation, and
+  simulator unit tests (8) passed.
+
+Open issues:
+
+- Filesystem cache state was uncontrolled; timing remains directional and no
+  physical-I/O or throughput claim is made.
+- Short English and repeated-pattern fixtures were omitted from full-model
+  execution but remain in the eight-fixture simulation corpus.
+- Persistent cache was not run in full runtime; M5.2-02 persistent results are
+  order-sensitive simulation evidence.
+
+Next:
+
+- Exact next task after review: mmap/coalesced expert access study. Do not start
+  it in this task.

@@ -3722,6 +3722,10 @@ fn short_cached_generation_matches_transformers() {
     // Reference evidence is prepared before this boundary and is excluded from
     // the storage-aware Rust runtime timings below.
     let runtime_started = Instant::now();
+    let cache_budget = env::var("COLIBRI_EXPERT_CACHE_BUDGET_BYTES").map_or(18_874_368, |value| {
+        value.parse::<usize>().expect("valid expert cache budget")
+    });
+    let runtime_validation = env::var_os("COLIBRI_RUNTIME_VALIDATION").is_some();
     let plan = runtime_plan(LAYER47_RUNTIME_PLAN);
     let final_plan = runtime_plan(GENERATION_FINAL_DENSE_RUNTIME_PLAN);
     assert_eq!(plan.payload, final_plan.payload, "dense payload identity");
@@ -3787,8 +3791,15 @@ fn short_cached_generation_matches_transformers() {
     let mut expert_request_sequence = Vec::with_capacity(6 * 48 * 8);
     let mut ordered_expert_trace = Vec::with_capacity(6 * 48 * 8);
     let mut repeated_requests_within_token = 0_usize;
+    if runtime_validation {
+        println!("m5_2_runtime_phase phase=initialization");
+        println!("m5_2_runtime_phase phase=prefill");
+    }
 
     for (step, &token_id) in GENERATION_INPUT_TOKENS.iter().enumerate() {
+        if runtime_validation && step == 4 {
+            println!("m5_2_runtime_phase phase=decode");
+        }
         let step_started = Instant::now();
         assert_eq!(cache.len(), step, "decode position before append");
         let dense_before = dense_bytes_read;
@@ -4176,9 +4187,6 @@ fn short_cached_generation_matches_transformers() {
 
     assert_eq!(generated, [1096, 374], "short greedy sequence");
     let metrics = store.metrics();
-    let cache_budget = env::var("COLIBRI_EXPERT_CACHE_BUDGET_BYTES").map_or(18_874_368, |value| {
-        value.parse::<usize>().expect("valid expert cache budget")
-    });
     if cache_budget == 18_874_368 {
         assert_eq!(metrics.hits, 0, "one-expert cache expected zero hits");
     } else {
@@ -4199,6 +4207,9 @@ fn short_cached_generation_matches_transformers() {
     assert_eq!(step_misses.iter().sum::<u64>(), metrics.misses);
     assert_eq!(step_loads.iter().sum::<u64>(), metrics.loads);
     assert_eq!(step_evictions.iter().sum::<u64>(), metrics.evictions);
+    if runtime_validation {
+        println!("m5_2_runtime_phase phase=complete");
+    }
 
     let expert_payload_bytes = expert_layout.total_byte_length;
     assert_eq!(expert_payload_bytes, 18_874_368);
@@ -4885,6 +4896,8 @@ fn short_cached_generation_matches_transformers() {
             Path::new(&trace_path),
             &ordered_expert_trace,
             &instrumentation_commit,
+            cache_budget,
+            env::var_os("COLIBRI_RUNTIME_VALIDATION").is_some(),
         );
     }
     println!(
@@ -4898,11 +4911,23 @@ fn write_ordered_expert_trace(
     path: &Path,
     records: &[OrderedExpertTraceRecord],
     instrumentation_commit: &str,
+    cache_budget: usize,
+    runtime_validation: bool,
 ) {
+    let trace_budget = if runtime_validation {
+        cache_budget
+    } else {
+        18_874_368
+    };
+    let trace_policy = if runtime_validation {
+        "strict_global_lru"
+    } else {
+        "strict_lru"
+    };
     let mut output = String::with_capacity(records.len() * 220 + 1800);
     writeln!(
         output,
-        "{{\"schema\":\"colibri-qwen3-moe-m5.1-00-ordered-expert-trace-v1\",\"schema_version\":1,\"trace_id\":\"m4-tier-a-short-generation-ordered-expert-requests-v1\",\"classification\":\"M5 measurement supplement replaying the frozen M4 baseline configuration\",\"baseline_id\":\"qwen3-30b-a3b-colibri-f32-windows-x64-v1\",\"release_id\":\"colibri-lite-rs-m4-qwen3-30b-a3b-f32-v1\",\"release_tag\":\"m4-full-qwen3-baseline-v1\",\"baseline_runtime_source_commit\":\"80099f05246a4450ded6f42baf6b8db5a4b2e623\",\"trace_instrumentation_commit\":\"{instrumentation_commit}\",\"model_repository\":\"Qwen/Qwen3-30B-A3B\",\"model_revision\":\"ad44e777bcd18fa416d9da3bd8f70d33ebb85d39\",\"canonical_artifact_root_sha256\":\"f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2\",\"tokenizer_identity\":\"Qwen2Tokenizer:a66c5b39331656b1a3befd2d695265f15bdc5f16226fbbf7794bfb5ae9220c5e\",\"input_token_ids\":[9707,11,1879,0],\"expected_generated_token_ids\":[1096,374],\"cache_budget_bytes\":18874368,\"cache_policy\":\"strict_lru\",\"runtime_configuration\":{{\"compute_dtype\":\"F32\",\"kv_cache_capacity\":6,\"threads\":8,\"target\":\"x86_64-pc-windows-msvc\",\"build_profile\":\"release\"}},\"requested_trace_count\":{},\"serialization\":\"UTF-8 JSON object with fixed header and record field order, compact separators, trailing newline, no timestamp or local path\",\"records\":[",
+        "{{\"schema\":\"colibri-qwen3-moe-m5.1-00-ordered-expert-trace-v1\",\"schema_version\":1,\"trace_id\":\"m4-tier-a-short-generation-ordered-expert-requests-v1\",\"classification\":\"M5 measurement supplement replaying the frozen M4 baseline configuration\",\"baseline_id\":\"qwen3-30b-a3b-colibri-f32-windows-x64-v1\",\"release_id\":\"colibri-lite-rs-m4-qwen3-30b-a3b-f32-v1\",\"release_tag\":\"m4-full-qwen3-baseline-v1\",\"baseline_runtime_source_commit\":\"80099f05246a4450ded6f42baf6b8db5a4b2e623\",\"trace_instrumentation_commit\":\"{instrumentation_commit}\",\"model_repository\":\"Qwen/Qwen3-30B-A3B\",\"model_revision\":\"ad44e777bcd18fa416d9da3bd8f70d33ebb85d39\",\"canonical_artifact_root_sha256\":\"f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2\",\"tokenizer_identity\":\"Qwen2Tokenizer:a66c5b39331656b1a3befd2d695265f15bdc5f16226fbbf7794bfb5ae9220c5e\",\"input_token_ids\":[9707,11,1879,0],\"expected_generated_token_ids\":[1096,374],\"cache_budget_bytes\":{trace_budget},\"cache_policy\":\"{trace_policy}\",\"runtime_configuration\":{{\"compute_dtype\":\"F32\",\"kv_cache_capacity\":6,\"threads\":8,\"target\":\"x86_64-pc-windows-msvc\",\"build_profile\":\"release\"}},\"requested_trace_count\":{},\"serialization\":\"UTF-8 JSON object with fixed header and record field order, compact separators, trailing newline, no timestamp or local path\",\"records\":[",
         records.len()
     )
     .expect("write trace header");
