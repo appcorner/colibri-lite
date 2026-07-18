@@ -23,6 +23,11 @@ from python.reference.build_m4_release_provenance import (
 ROOT = Path(__file__).resolve().parents[2]
 MODEL_ROOT = ROOT / "models" / "qwen3-30b-a3b"
 PROVENANCE = MODEL_ROOT / "m4-release-provenance-v1.json"
+HISTORICAL_M4_TASKS = """# M4-era task-state fixture used only for deterministic provenance rebuilds.
+- [ ] M5.1-00 Capture authoritative ordered expert trace.
+- [ ] M5.2-01 Capture broader representative expert traces.
+- [ ] M5.3-03 Compute profiling.
+"""
 
 
 class M4ReleaseProvenanceTests(unittest.TestCase):
@@ -68,12 +73,16 @@ class M4ReleaseProvenanceTests(unittest.TestCase):
     def test_repeated_build_is_byte_identical(self) -> None:
         expected = PROVENANCE.read_bytes()
         with tempfile.TemporaryDirectory() as directory:
-            first = canonical_bytes(build(ROOT))
-            second = canonical_bytes(build(ROOT))
+            first = canonical_bytes(build(ROOT, tasks_text=HISTORICAL_M4_TASKS))
+            second = canonical_bytes(build(ROOT, tasks_text=HISTORICAL_M4_TASKS))
             Path(directory, "first.json").write_bytes(first)
             self.assertEqual(first, second)
             self.assertEqual(first, expected)
             self.assertEqual(hashlib.sha256(first).hexdigest(), hashlib.sha256(second).hexdigest())
+
+    def test_current_m5_progress_is_rejected_by_historical_guard(self) -> None:
+        with self.assertRaisesRegex(ValueError, "an M5 implementation task is marked started or complete"):
+            build(ROOT)
 
 
 if __name__ == "__main__":

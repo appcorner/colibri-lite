@@ -69,8 +69,15 @@ def reference(root: Path, role: str, path_text: str) -> dict[str, Any]:
     return {"role": role, "path": path_text, "bytes": path.stat().st_size, "sha256": sha256(path)}
 
 
-def validate_no_started_m5(root: Path) -> None:
-    tasks = (root / "docs" / "tasks.md").read_text(encoding="utf-8")
+def validate_no_started_m5(root: Path, tasks_text: str | None = None) -> None:
+    """Reject post-M4 M5 progress unless a historical task snapshot is supplied.
+
+    The committed M4 provenance record must be reproducible from an M4-era
+    task state.  The optional text is a test-only input for that historical
+    snapshot; the normal builder invocation always reads the current task
+    file and therefore retains the release guard.
+    """
+    tasks = tasks_text if tasks_text is not None else (root / "docs" / "tasks.md").read_text(encoding="utf-8")
     for line in tasks.splitlines():
         # M5.1-00 through M5.1-03 and M5.2-01/M5.2-02 are post-release
         # evidence tasks.
@@ -109,7 +116,7 @@ def validate_tag(root: Path, expected_commit: str | None) -> None:
         raise ValueError(f"release tag points to {target}, expected {expected_commit}")
 
 
-def build(root: Path) -> dict[str, Any]:
+def build(root: Path, *, tasks_text: str | None = None) -> dict[str, Any]:
     refs = {role: reference(root, role, path) for role, path in PATHS.items()}
     baseline = read_json(root / PATHS["baseline"])
     f32_baseline = read_json(root / PATHS["f32_baseline_manifest"])
@@ -146,7 +153,7 @@ def build(root: Path) -> dict[str, Any]:
         raise ValueError("investment decision changed")
     if ik_env["model"]["quantization"] != "Q4_K_M" or ik_env["repository"]["commit"] != "1fddd12ba861c4815a8633f14d9c5670692099cc":
         raise ValueError("external reference identity changed")
-    validate_no_started_m5(root)
+    validate_no_started_m5(root, tasks_text=tasks_text)
     validate_unique_release_id(root)
 
     source_files = {item["path"]: item for item in source["files"]}
