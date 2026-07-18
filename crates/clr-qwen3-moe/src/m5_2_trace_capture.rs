@@ -1,7 +1,9 @@
+#[cfg(not(feature = "m5-4-resident-dense"))]
+use std::fs::File;
 use std::{
     env,
     fmt::Write as _,
-    fs::{self, File},
+    fs,
     path::{Path, PathBuf},
     time::Instant,
 };
@@ -107,6 +109,20 @@ fn representative_trace_capture() {
     assert_eq!(decoding_mode, "greedy", "M5.2-01 primary capture is greedy");
     assert_eq!(seed, 0, "M5.2-01 primary capture seed is fixed at zero");
     if runtime_validation {
+        #[cfg(feature = "m5-4-resident-dense")]
+        if env::var_os("COLIBRI_TOTAL_RAM_BUDGET_BYTES").is_some() {
+            let total_budget = parse_required_usize("COLIBRI_TOTAL_RAM_BUDGET_BYTES");
+            assert!(
+                cache_budget < total_budget,
+                "M5.4 total-RAM accounting must reserve bytes before expert cache"
+            );
+        } else {
+            assert!(
+                cache_budget == 8_589_934_592 || cache_budget == 17_179_869_184,
+                "M5.2-03 runtime validation requires an exact 8 or 16 GiB expert cache budget"
+            );
+        }
+        #[cfg(not(feature = "m5-4-resident-dense"))]
         assert!(
             cache_budget == 8_589_934_592 || cache_budget == 17_179_869_184,
             "M5.2-03 runtime validation requires an exact 8 or 16 GiB budget"
@@ -136,11 +152,16 @@ fn representative_trace_capture() {
     let expert_layout = PackedExpertLayout::for_config(config);
     let plan = runtime_plan(LAYER47_RUNTIME_PLAN);
     let final_plan = runtime_plan(GENERATION_FINAL_DENSE_RUNTIME_PLAN);
-    let mut payload = File::open(artifact_root.join(&plan.payload)).expect("open dense payload");
     assert_eq!(
-        payload.metadata().expect("dense payload metadata").len(),
+        fs::metadata(artifact_root.join(&plan.payload))
+            .expect("dense payload metadata")
+            .len(),
         plan.payload_length
     );
+    #[cfg(feature = "m5-4-resident-dense")]
+    let mut payload = dense_source_for_generation(&artifact_root.join(&plan.payload), cache_budget);
+    #[cfg(not(feature = "m5-4-resident-dense"))]
+    let mut payload = File::open(artifact_root.join(&plan.payload)).expect("open dense payload");
     let mut dense_bytes_read = 0_u64;
     let final_norm_weight = artifact_tensor(
         &mut payload,

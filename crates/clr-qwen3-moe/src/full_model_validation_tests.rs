@@ -4317,9 +4317,14 @@ fn short_cached_generation_matches_transformers() {
 
     assert_eq!(generated, [1096, 374], "short greedy sequence");
     let metrics = store.metrics();
+    #[cfg(feature = "m5-4-resident-dense")]
+    let requires_cache_hit =
+        env::var("COLIBRI_DENSE_RESIDENCY_MODE").as_deref() != Ok("resident_dense");
+    #[cfg(not(feature = "m5-4-resident-dense"))]
+    let requires_cache_hit = true;
     if cache_budget == 18_874_368 {
         assert_eq!(metrics.hits, 0, "one-expert cache expected zero hits");
-    } else {
+    } else if requires_cache_hit {
         assert!(metrics.hits > 0, "larger cache should produce cache hits");
     }
     assert_eq!(metrics.loads, metrics.misses, "every miss loads one expert");
