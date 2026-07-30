@@ -47,6 +47,12 @@ class M6ReferenceContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ReferenceContractError, "argmax_token_id mismatch"):
             validate_reference_contract(ROOT, self.reference, quality)
 
+    def test_rejects_changed_finite_counts(self) -> None:
+        quality = copy.deepcopy(self.quality)
+        quality["fixtures"][0]["expected"]["logits"]["finite_counts"]["nan"] = 1
+        with self.assertRaisesRegex(ReferenceContractError, "finite counts mismatch"):
+            validate_reference_contract(ROOT, self.reference, quality)
+
 
 if __name__ == "__main__":
     unittest.main()

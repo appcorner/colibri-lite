@@ -59,6 +59,13 @@ def validate_reference_contract(root: Path, reference: dict[str, Any], quality: 
         for field in ("argmax_logit", "argmax_token_id", "fixed_indices", "fixed_logits", "top1_margin", "top20_token_ids", "vocabulary_size"):
             if logits[field] != source["logits"][field]:
                 raise ReferenceContractError(f"{field} mismatch for {fixture['fixture_id']}")
+        finite_counts = logits["finite_counts"]
+        if finite_counts != {
+            "nan": source["logits"]["nan_count"],
+            "negative_infinity": source["logits"]["negative_infinity_count"],
+            "positive_infinity": source["logits"]["positive_infinity_count"],
+        }:
+            raise ReferenceContractError(f"finite counts mismatch for {fixture['fixture_id']}")
     return {
         "fixture_ids": [fixture["fixture_id"] for fixture in fixtures],
         "model_revision": quality["model"]["revision"],

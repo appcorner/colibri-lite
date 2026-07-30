@@ -64,8 +64,15 @@ impl ComparisonTolerance {
         &self.source
     }
 
-    fn allowed_error(&self, reference: f32) -> f32 {
-        self.absolute + self.relative * reference.abs()
+    fn allowed_error(&self, reference: f32) -> Result<f32, RuntimeError> {
+        let allowed_error = self.absolute + self.relative * reference.abs();
+        if !allowed_error.is_finite() {
+            return Err(contract_error(
+                "comparison tolerance",
+                "allowed error must remain finite for the reference value",
+            ));
+        }
+        Ok(allowed_error)
     }
 }
 
@@ -239,7 +246,7 @@ impl DifferentialReport {
 
         let mut status = DifferentialStatus::ExactMatch;
         for (stage_index, stage) in stages.iter().enumerate() {
-            match compare_stage(stage_index, stage) {
+            match compare_stage(stage_index, stage)? {
                 StageOutcome::Exact => {}
                 StageOutcome::WithinTolerance => status = DifferentialStatus::WithinTolerance,
                 StageOutcome::Diverged(first_divergence) => {
@@ -292,33 +299,36 @@ struct DivergenceDetails {
     allowed_error: Option<f32>,
 }
 
-fn compare_stage(stage_index: usize, stage: &StageComparison<'_>) -> StageOutcome {
+fn compare_stage(
+    stage_index: usize,
+    stage: &StageComparison<'_>,
+) -> Result<StageOutcome, RuntimeError> {
     if stage.reference_descriptor != stage.candidate_descriptor {
-        return StageOutcome::Diverged(divergence(
+        return Ok(StageOutcome::Diverged(divergence(
             stage_index,
             stage,
             DivergenceKind::TensorMetadataMismatch,
             DivergenceDetails::default(),
-        ));
+        )));
     }
 
     let Ok(expected_length) = stage.reference_descriptor.shape().element_count() else {
-        return StageOutcome::Diverged(divergence(
+        return Ok(StageOutcome::Diverged(divergence(
             stage_index,
             stage,
             DivergenceKind::ValueLengthMismatch,
             DivergenceDetails::default(),
-        ));
+        )));
     };
     if stage.reference_values.len() != expected_length
         || stage.candidate_values.len() != expected_length
     {
-        return StageOutcome::Diverged(divergence(
+        return Ok(StageOutcome::Diverged(divergence(
             stage_index,
             stage,
             DivergenceKind::ValueLengthMismatch,
             DivergenceDetails::default(),
-        ));
+        )));
     }
 
     let mut within_tolerance = false;
@@ -329,7 +339,7 @@ fn compare_stage(stage_index: usize, stage: &StageComparison<'_>) -> StageOutcom
         .enumerate()
     {
         if !reference.is_finite() {
-            return StageOutcome::Diverged(divergence(
+            return Ok(StageOutcome::Diverged(divergence(
                 stage_index,
                 stage,
                 DivergenceKind::NonFiniteReference,
@@ -339,10 +349,10 @@ fn compare_stage(stage_index: usize, stage: &StageComparison<'_>) -> StageOutcom
                     candidate_value: Some(candidate),
                     ..DivergenceDetails::default()
                 },
-            ));
+            )));
         }
         if !candidate.is_finite() {
-            return StageOutcome::Diverged(divergence(
+            return Ok(StageOutcome::Diverged(divergence(
                 stage_index,
                 stage,
                 DivergenceKind::NonFiniteCandidate,
@@ -352,12 +362,12 @@ fn compare_stage(stage_index: usize, stage: &StageComparison<'_>) -> StageOutcom
                     candidate_value: Some(candidate),
                     ..DivergenceDetails::default()
                 },
-            ));
+            )));
         }
         let absolute_error = (reference - candidate).abs();
-        let allowed_error = stage.tolerance.allowed_error(reference);
+        let allowed_error = stage.tolerance.allowed_error(reference)?;
         if absolute_error > allowed_error {
-            return StageOutcome::Diverged(divergence(
+            return Ok(StageOutcome::Diverged(divergence(
                 stage_index,
                 stage,
                 DivergenceKind::NumericalToleranceExceeded,
@@ -368,16 +378,16 @@ fn compare_stage(stage_index: usize, stage: &StageComparison<'_>) -> StageOutcom
                     absolute_error: Some(absolute_error),
                     allowed_error: Some(allowed_error),
                 },
-            ));
+            )));
         }
         if absolute_error != 0.0 {
             within_tolerance = true;
         }
     }
     if within_tolerance {
-        StageOutcome::WithinTolerance
+        Ok(StageOutcome::WithinTolerance)
     } else {
-        StageOutcome::Exact
+        Ok(StageOutcome::Exact)
     }
 }
 
@@ -535,6 +545,28 @@ mod tests {
             Err(RuntimeError::BackendContractViolation {
                 context: "differential comparison",
                 reason: "at least one comparison stage is required",
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_tolerance_that_overflows_for_a_finite_reference_value() {
+        let descriptor = descriptor([1]);
+        let stage = StageComparison::new(
+            "large_reference",
+            descriptor.clone(),
+            descriptor,
+            &[f32::MAX],
+            &[f32::MAX],
+            ComparisonTolerance::new(f32::MAX, 1.0, "overflow-test").expect("valid terms"),
+        )
+        .expect("valid stage");
+
+        assert_eq!(
+            DifferentialReport::compare(&[stage]),
+            Err(RuntimeError::BackendContractViolation {
+                context: "comparison tolerance",
+                reason: "allowed error must remain finite for the reference value",
             })
         );
     }
