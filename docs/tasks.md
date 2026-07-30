@@ -571,7 +571,7 @@ tests, and all standard commands. See `docs/reports/m6.0-review-remediation.md`.
 - [x] M6.1-05 Implement `doctor` and `profile-model` with machine-readable,
   reproducible output and explicit confidence/limitations.
 
-- [ ] M6.1-06 Validate profile schema, invalid inputs, repeatability bounds,
+- [x] M6.1-06 Validate profile schema, invalid inputs, repeatability bounds,
   and Windows resource-release behavior.
 
 M6.1-01 is complete. `hardware-profile-v1` defines versioned host, CPU, RAM,
@@ -623,6 +623,15 @@ has partial confidence and keeps all unavailable GPU/transfer budgets at zero.
 Both emitted profiles passed Draft 2020-12 schema validation. See
 docs/reports/m6.1-05-doctor-and-profile-model.md. The exact next task is
 M6.1-06.
+
+M6.1-06 is complete. The tracked doctor and model profiles passed their Draft
+2020-12 schemas. Missing evidence and missing-required-option cases both
+returned CLI exit code 2. With fixed input paths, timestamp, and runtime commit,
+two doctor runs and two profile-model runs were byte-identical. The Windows
+handle-release test successfully renamed a JSON input after reading and a JSON
+output after writing, then cleaned its unique temporary directory. See
+docs/reports/m6.1-06-profile-validation.md. M6.1 is complete; the exact next
+task is M6.2-01.
 
 ### M6.2 - First placement planner
 

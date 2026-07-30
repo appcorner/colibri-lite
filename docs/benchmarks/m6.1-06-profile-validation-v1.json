@@ -1,0 +1,43 @@
+{
+  "schema": "colibri-lite-m6.1-06-profile-validation-v1",
+  "schema_version": 1,
+  "profile_inputs": {
+    "doctor": "docs/benchmarks/m6.1-05-doctor-v1.json",
+    "model": "docs/benchmarks/m6.1-05-model-profile-v1.json"
+  },
+  "schema_validation": {
+    "hardware_profile_v1": "passed",
+    "model_profile_v1": "passed"
+  },
+  "invalid_inputs": [
+    {
+      "case_id": "doctor_missing_cpu_input",
+      "command_exit_code": 2,
+      "error_category": "failed to read input"
+    },
+    {
+      "case_id": "doctor_missing_required_option",
+      "command_exit_code": 2,
+      "error_category": "missing required option"
+    }
+  ],
+  "repeatability": {
+    "created_at": "2026-07-30T12:45:00Z",
+    "runtime_commit": "b452e5572d930fa0849974317b325cbfe6fd3d1f",
+    "doctor": {
+      "repeat_count": 2,
+      "byte_identical": true,
+      "sha256": "c748ef765eebe20ca3266b8c6972b8c1c6a1c9b0538f9d580db24682f1346012"
+    },
+    "model": {
+      "repeat_count": 2,
+      "byte_identical": true,
+      "sha256": "aca8aa7de6df5ce4e7960fff4772d5361b252ea692a3c3c835787a92cd5abce1"
+    }
+  },
+  "windows_resource_release": {
+    "test": "read JSON then rename input; write JSON then rename output",
+    "result": "passed",
+    "scope": "clr-cli profile helper handles"
+  }
+}

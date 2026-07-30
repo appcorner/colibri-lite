@@ -512,4 +512,30 @@ mod tests {
             Err("unknown option --unknown".to_string())
         );
     }
+
+    #[test]
+    fn profile_json_helpers_release_windows_file_handles() {
+        let unique = format!(
+            "clr-cli-profile-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("clock")
+                .as_nanos()
+        );
+        let directory = std::env::temp_dir().join(unique);
+        std::fs::create_dir(&directory).expect("temporary directory");
+        let input = directory.join("input.json");
+        let renamed_input = directory.join("input-renamed.json");
+        let output = directory.join("output.json");
+        let renamed_output = directory.join("output-renamed.json");
+        std::fs::write(&input, "{\"value\": 1}\n").expect("input");
+
+        let parsed = read_json(input.to_str().expect("UTF-8 path")).expect("read JSON");
+        assert_eq!(number(&parsed, "/value"), Ok(1));
+        std::fs::rename(&input, &renamed_input).expect("input handle released");
+        write_json(output.to_str().expect("UTF-8 path"), &json!({"ok": true})).expect("write JSON");
+        std::fs::rename(&output, &renamed_output).expect("output handle released");
+
+        std::fs::remove_dir_all(&directory).expect("temporary directory cleanup");
+    }
 }
