@@ -27,8 +27,10 @@ $computer = Get-CimInstance -ClassName Win32_ComputerSystem
 $videoControllers = @(Get-CimInstance -ClassName Win32_VideoController)
 $totalRamBytes = [int64]$computer.TotalPhysicalMemory
 $availableRamBytes = [int64]$operatingSystem.FreePhysicalMemory * 1KB
-$safetyReserveBytes = [int64][math]::Max(4GB, [math]::Ceiling($totalRamBytes * 0.15))
-$safeRamBudgetBytes = [int64][math]::Max(0, $availableRamBytes - $safetyReserveBytes)
+$percentSafetyReserveBytes = [int64][math]::Ceiling($totalRamBytes * 0.15)
+$minimumSafetyReserveBytes = [int64]4GB
+$safetyReserveBytes = if ($percentSafetyReserveBytes -gt $minimumSafetyReserveBytes) { $percentSafetyReserveBytes } else { $minimumSafetyReserveBytes }
+$safeRamBudgetBytes = if ($availableRamBytes -gt $safetyReserveBytes) { $availableRamBytes - $safetyReserveBytes } else { [int64]0 }
 
 $adapters = @(
     foreach ($controller in $videoControllers) {
