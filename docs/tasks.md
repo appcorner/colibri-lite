@@ -633,6 +633,10 @@ output after writing, then cleaned its unique temporary directory. See
 docs/reports/m6.1-06-profile-validation.md. M6.1 is complete; the exact next
 task is M6.2-01.
 
+M6.1 review is accepted after remediation. Profile-model now rejects the
+doctor-only --rust-version option, and the complete M6.1 verification passed
+again. See docs/reports/m6.1-review-remediation.md.
+
 ### M6.2 - First placement planner
 
 - [ ] M6.2-01 Define planner input, candidate-plan, estimate, and rejection
