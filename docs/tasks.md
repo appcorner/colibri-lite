@@ -504,7 +504,7 @@ remains the authoritative oracle. Do not start M6.1 before M6.0 is accepted.
   contracts without leaking Qwen or storage policy into `clr-core`.
 - [x] M6.0-03 Define a differential report that identifies the first divergent
   stage and records comparison tolerance.
-- [ ] M6.0-04 Freeze deterministic English and Thai quality fixtures and
+- [x] M6.0-04 Freeze deterministic English and Thai quality fixtures and
   expected reference outputs.
 - [ ] M6.0-05 Add contract, failure-mode, and repeatability tests; run standard
   verification and record the baseline.
@@ -536,6 +536,13 @@ ADR 0048 records why router/semantic-margin and quality gates remain separate.
 `cargo fmt --all --check`, `cargo check --workspace`, `cargo test --workspace`
 (135 tests), `cargo clippy --workspace --all-targets -- -D warnings`, and
 `cargo run -p clr-cli` passed. The exact next task is `M6.0-04`.
+
+M6.0-04 is complete. `m6.0-04-quality-fixtures-v1.json` freezes the existing
+Tier-B `short_english` and `short_thai` reference inputs and outputs: token
+IDs, expected argmax, compact logits, top-20 IDs, finite counts, final-norm
+digest, safe-margin router IDs, and integrity records. It does not rerun the
+model or widen a numerical/quality gate. Eleven fixture, F32-manifest, and
+baseline-bundle integrity tests passed. The exact next task is `M6.0-05`.
 
 ### M6.1 - Hardware and model profiler
 
