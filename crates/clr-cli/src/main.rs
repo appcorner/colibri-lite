@@ -1,5 +1,7 @@
 use clr_core::runtime_info;
 use clr_qwen3_moe::{GenerationSession, frozen_tiny_model};
+use serde_json::{Value, json};
+use std::path::Path;
 
 fn main() {
     let arguments: Vec<String> = std::env::args().skip(1).collect();
@@ -20,11 +22,97 @@ fn execute(arguments: &[String]) -> Result<String, String> {
             info.name, info.version, info.architecture, info.operating_system
         ));
     }
-    if arguments.first().map(String::as_str) != Some("generate") {
-        return Err(format!("unknown command '{}'", arguments[0]));
+    match arguments[0].as_str() {
+        "generate" => {
+            let options = GenerateOptions::parse(&arguments[1..])?;
+            generate(&options)
+        }
+        "doctor" => compose_doctor(&ProfileOptions::parse(
+            &arguments[1..],
+            ProfileKind::Doctor,
+        )?),
+        "profile-model" => {
+            compose_model_profile(&ProfileOptions::parse(&arguments[1..], ProfileKind::Model)?)
+        }
+        _ => Err(format!("unknown command '{}'", arguments[0])),
     }
-    let options = GenerateOptions::parse(&arguments[1..])?;
-    generate(&options)
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ProfileKind {
+    Doctor,
+    Model,
+}
+
+#[derive(Debug, PartialEq)]
+struct ProfileOptions {
+    inputs: Vec<(String, String)>,
+    output: String,
+    created_at: String,
+    runtime_commit: String,
+    rust_version: Option<String>,
+}
+
+impl ProfileOptions {
+    fn parse(arguments: &[String], kind: ProfileKind) -> Result<Self, String> {
+        let expected_inputs: &[&str] = match kind {
+            ProfileKind::Doctor => &["--cpu-ram", "--storage", "--memory-gpu"],
+            ProfileKind::Model => &["--reference", "--quality", "--release"],
+        };
+        let mut values = std::collections::BTreeMap::new();
+        let mut index = 0;
+        while index < arguments.len() {
+            let flag = &arguments[index];
+            let value = arguments
+                .get(index + 1)
+                .ok_or_else(|| format!("missing value for {flag}"))?;
+            if values.insert(flag.clone(), value.clone()).is_some() {
+                return Err(format!("duplicate option {flag}"));
+            }
+            index += 2;
+        }
+        let required = |flag: &str| {
+            values
+                .get(flag)
+                .cloned()
+                .ok_or_else(|| format!("missing required {flag}"))
+        };
+        let mut inputs = Vec::new();
+        for flag in expected_inputs {
+            inputs.push(((*flag).to_string(), required(flag)?));
+        }
+        let rust_version = match kind {
+            ProfileKind::Doctor => Some(required("--rust-version")?),
+            ProfileKind::Model => None,
+        };
+        let allowed: Vec<&str> = expected_inputs
+            .iter()
+            .copied()
+            .chain([
+                "--output",
+                "--created-at",
+                "--runtime-commit",
+                "--rust-version",
+            ])
+            .collect();
+        if let Some(flag) = values.keys().find(|flag| !allowed.contains(&flag.as_str())) {
+            return Err(format!("unknown option {flag}"));
+        }
+        Ok(Self {
+            inputs,
+            output: required("--output")?,
+            created_at: required("--created-at")?,
+            runtime_commit: required("--runtime-commit")?,
+            rust_version,
+        })
+    }
+
+    fn input(&self, flag: &str) -> Result<&str, String> {
+        self.inputs
+            .iter()
+            .find_map(|(name, value)| (name == flag).then_some(value.as_str()))
+            .ok_or_else(|| format!("missing input {flag}"))
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -134,6 +222,188 @@ fn join_tokens(tokens: &[usize]) -> String {
         .map(usize::to_string)
         .collect::<Vec<_>>()
         .join(",")
+}
+
+fn compose_doctor(options: &ProfileOptions) -> Result<String, String> {
+    let cpu = read_json(options.input("--cpu-ram")?)?;
+    let storage = read_json(options.input("--storage")?)?;
+    let memory = read_json(options.input("--memory-gpu")?)?;
+    let cpu_distribution = distribution(&cpu, "/results/cpu_kernel_gflops")?;
+    let ram_distribution = distribution(&cpu, "/results/ram_copy_gib_per_second")?;
+    let sequential_distribution =
+        distribution(&storage, "/results/sequential_read/warm_throughput")?;
+    let random_distribution = distribution(
+        &storage,
+        "/results/expert_sized_random_read/warm_throughput",
+    )?;
+    let cpu_semantics = value(&cpu, "/measurement_semantics/cpu_kernel")?;
+    let ram_semantics = value(&cpu, "/measurement_semantics/ram_copy")?;
+    let storage_path = string(&storage, "/storage_target/path")?;
+    let logical_cores = number(&cpu, "/host/logical_core_count")?;
+    let document = json!({
+        "schema": "colibri-lite-hardware-profile-v1",
+        "schema_version": 1,
+        "profile_id": format!("{}-doctor", string(&memory, "/profile_id")?),
+        "created_at": options.created_at,
+        "runtime": {"name": "colibri-lite-rs", "commit": options.runtime_commit, "rust_version": options.rust_version.as_deref().unwrap_or_default(), "target": "x86_64-pc-windows-msvc", "build_profile": "release"},
+        "host": {
+            "operating_system": {"name": string(&cpu, "/host/os_name")?, "version": string(&cpu, "/host/os_version")?},
+            "cpu": {"model": string(&cpu, "/host/cpu_model")?, "logical_core_count": logical_cores},
+            "ram": {"total_bytes": number(&memory, "/ram/total_physical_bytes")?, "safe_budget_bytes": number(&memory, "/ram/usable_budget_bytes")?, "safety_reserve_bytes": number(&memory, "/ram/safety_reserve_bytes")?}
+        },
+        "measurements": {
+            "cpu_kernels": [{"kernel_id": string(cpu_semantics, "/kernel_id")?, "benchmark": measured("GFLOP/s", "not_applicable", number(cpu_semantics, "/matrix_rows")? * number(cpu_semantics, "/matrix_columns")? * 4, number(cpu_semantics, "/sample_count")?, &cpu_distribution)}],
+            "ram_bandwidth": measured("GiB/s", "not_applicable", number(ram_semantics, "/payload_bytes")?, number(ram_semantics, "/sample_count")?, &ram_distribution),
+            "storage": [{"target_id": "m6.1-03-primary", "path": storage_path, "sequential_read": measured("GiB/s", "warm", number(&storage, "/results/sequential_read/payload_bytes")?, number(&storage, "/results/sequential_read/repetitions")?, &sequential_distribution), "expert_sized_random_read": measured("MiB/s", "unknown", number(&storage, "/results/expert_sized_random_read/payload_bytes")?, number(&storage, "/results/expert_sized_random_read/repetitions_per_cache_state")?, &random_distribution)}],
+            "backends": backends(&memory)?
+        },
+        "recommendations": {"ram_budget_bytes": number(&memory, "/recommendations/ram_budget_bytes")?, "vram_budget_bytes": 0, "confidence": "partial"},
+        "limitations": [
+            "Composed from the explicit M6.1-02, M6.1-03, and M6.1-04 evidence inputs.",
+            "Storage first-touch readings do not claim cold-device semantics; the schema exposes the likely-warm throughput distribution.",
+            "No colibri GPU backend is usable before M6.3 review, so VRAM and transfer budgets remain zero."
+        ]
+    });
+    write_json(&options.output, &document)?;
+    Ok(format!("wrote {}", options.output))
+}
+
+fn compose_model_profile(options: &ProfileOptions) -> Result<String, String> {
+    let reference = read_json(options.input("--reference")?)?;
+    let quality = read_json(options.input("--quality")?)?;
+    let release = read_json(options.input("--release")?)?;
+    let dimensions = value(&release, "/canonical_artifact/dimensions")?;
+    let artifact = value(&release, "/canonical_artifact")?;
+    let expert_bytes = number(artifact, "/experts/bytes")?;
+    let layers = number(dimensions, "/layers")?;
+    let experts = number(dimensions, "/experts")?;
+    let per_expert_bytes = 18_874_368_u64;
+    let per_layer_bytes = per_expert_bytes * experts;
+    let per_layer_payload_bytes = vec![
+        per_layer_bytes;
+        usize::try_from(layers)
+            .map_err(|_| "layer count does not fit usize")?
+    ];
+    let document = json!({
+        "schema": "colibri-lite-model-profile-v1",
+        "schema_version": 1,
+        "profile_id": "qwen3-30b-a3b-f32-reference-v1",
+        "created_at": options.created_at,
+        "runtime": {"name": "colibri-lite-rs", "commit": options.runtime_commit, "target": "x86_64-pc-windows-msvc"},
+        "model": {
+            "id": string(&reference, "/model/model_id")?, "revision": string(&reference, "/model/revision")?, "architecture": string(&reference, "/model/architecture")?,
+            "layers": layers, "hidden_size": number(dimensions, "/hidden_size")?, "vocabulary_size": number(dimensions, "/vocabulary_size")?,
+            "routing": {"expert_count": experts, "experts_per_token": number(dimensions, "/experts_per_token")?}
+        },
+        "artifact": {
+            "format": string(artifact, "/format")?, "format_version": number(artifact, "/version")?, "root_manifest_sha256": string(artifact, "/root_manifest_sha256")?, "storage_dtype": string(artifact, "/dtype/storage")?,
+            "dense": {"bytes": number(artifact, "/dense/bytes")?, "tensor_count": number(artifact, "/dense/tensor_count")?},
+            "experts": {"bytes": expert_bytes, "tensor_count": number(artifact, "/experts/source_tensor_count")?, "logical_expert_count": number(artifact, "/experts/logical_expert_count")?, "shard_count": number(artifact, "/experts/shard_count")?, "per_layer_payload_bytes": per_layer_payload_bytes}
+        },
+        "execution": {
+            "kv_cache": {"bytes_per_token": 196_608, "context_lengths": [128, 512, 2048, 8192]},
+            "precision_candidates": [{"candidate_id": "reference-f32-v1", "status": "accepted_reference", "weight_dtype": "F32", "evidence": "reference-f32-v1 frozen manifest"}],
+            "estimated_bytes_per_routed_token": per_expert_bytes * layers * number(dimensions, "/experts_per_token")?
+        },
+        "quality_reference": {
+            "reference_id": "reference-f32-v1",
+            "manifest_sha256": integrity_hash(&quality, "reference_f32_manifest")?,
+            "bilingual_fixture_manifest_sha256": file_sha256(options.input("--quality")?)?
+        },
+        "limitations": [
+            "This profile describes the frozen F32 reference artifact only.",
+            "No quantized format or GPU backend is authorized by this profile.",
+            "Estimated routed-token bytes are logical expert payload demand before cache reuse."
+        ]
+    });
+    write_json(&options.output, &document)?;
+    Ok(format!("wrote {}", options.output))
+}
+
+fn read_json(path: &str) -> Result<Value, String> {
+    let source =
+        std::fs::read_to_string(path).map_err(|error| format!("failed to read {path}: {error}"))?;
+    serde_json::from_str(&source).map_err(|error| format!("invalid JSON in {path}: {error}"))
+}
+fn write_json(path: &str, document: &Value) -> Result<(), String> {
+    if let Some(parent) = Path::new(path)
+        .parent()
+        .filter(|path| !path.as_os_str().is_empty())
+    {
+        std::fs::create_dir_all(parent)
+            .map_err(|error| format!("failed to create {}: {error}", parent.display()))?;
+    }
+    let output = serde_json::to_string_pretty(document).map_err(|error| error.to_string())?;
+    std::fs::write(path, format!("{output}\n"))
+        .map_err(|error| format!("failed to write {path}: {error}"))
+}
+fn value<'a>(root: &'a Value, pointer: &str) -> Result<&'a Value, String> {
+    root.pointer(pointer)
+        .ok_or_else(|| format!("missing {pointer}"))
+}
+fn string<'a>(root: &'a Value, pointer: &str) -> Result<&'a str, String> {
+    value(root, pointer)?
+        .as_str()
+        .ok_or_else(|| format!("{pointer} must be a string"))
+}
+fn number(root: &Value, pointer: &str) -> Result<u64, String> {
+    value(root, pointer)?
+        .as_u64()
+        .ok_or_else(|| format!("{pointer} must be an unsigned integer"))
+}
+fn distribution(root: &Value, pointer: &str) -> Result<Value, String> {
+    let source = value(root, pointer)?;
+    let sample_count = source
+        .pointer("/samples")
+        .and_then(Value::as_array)
+        .map(|values| values.len() as u64)
+        .ok_or_else(|| format!("{pointer}/samples missing"))?;
+    Ok(
+        json!({"sample_count": sample_count, "median": value(source, "/median")?, "p10": value(source, "/p10")?, "p90": value(source, "/p90")?}),
+    )
+}
+fn measured(
+    unit: &str,
+    cache_state: &str,
+    payload_bytes: u64,
+    repetitions: u64,
+    distribution: &Value,
+) -> Value {
+    json!({"status": "measured", "unit": unit, "cache_state": cache_state, "payload_bytes": payload_bytes, "repetitions": repetitions, "distribution": distribution})
+}
+fn backends(memory: &Value) -> Result<Vec<Value>, String> {
+    value(memory, "/backends")?.as_array().ok_or_else(|| "/backends must be an array".to_string())?.iter().map(|backend| {
+        Ok(json!({"backend_id": string(backend, "/backend_id")?, "availability": string(backend, "/availability")?, "device_name": "", "vram": {"total_bytes": 0, "safe_budget_bytes": 0}, "compute": {"status":"not_run","unit":"GFLOP/s","cache_state":"not_applicable","payload_bytes":0,"repetitions":0,"reason":"No usable colibri backend in M6.1."}, "host_to_device": value(backend, "/host_to_device")?, "device_to_host": value(backend, "/device_to_host")?}))
+    }).collect()
+}
+fn integrity_hash<'a>(quality: &'a Value, role: &str) -> Result<&'a str, String> {
+    value(quality, "/integrity_records")?
+        .as_array()
+        .and_then(|records| {
+            records
+                .iter()
+                .find(|record| record.get("role").and_then(Value::as_str) == Some(role))
+        })
+        .and_then(|record| record.get("sha256"))
+        .and_then(Value::as_str)
+        .ok_or_else(|| format!("missing integrity hash for {role}"))
+}
+fn file_sha256(path: &str) -> Result<String, String> {
+    let output = std::process::Command::new("certutil")
+        .args(["-hashfile", path, "SHA256"])
+        .output()
+        .map_err(|error| format!("failed to run certutil: {error}"))?;
+    if !output.status.success() {
+        return Err("certutil SHA256 failed".to_string());
+    }
+    String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .find_map(|line| {
+            let hash = line.replace(' ', "");
+            (hash.len() == 64 && hash.bytes().all(|byte| byte.is_ascii_hexdigit()))
+                .then(|| hash.to_ascii_lowercase())
+        })
+        .ok_or_else(|| "certutil did not emit a SHA256 value".to_string())
 }
 
 #[cfg(test)]
