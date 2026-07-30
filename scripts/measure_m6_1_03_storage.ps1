@@ -7,7 +7,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $TaskId = "m6.1-03"
-$ExpertPayloadBytes = 18_874_368
+$ExpertPayloadBytes = 18874368
 $ExpertPayloadCount = 56
 $PayloadBytes = [int64]$ExpertPayloadBytes * $ExpertPayloadCount
 $SequentialBufferBytes = 4MB
