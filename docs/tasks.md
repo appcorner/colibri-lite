@@ -564,7 +564,7 @@ tests, and all standard commands. See `docs/reports/m6.0-review-remediation.md`.
 
 - [x] M6.1-01 Define versioned hardware-profile and model-profile schemas.
 - [x] M6.1-02 Measure CPU backend kernel throughput and RAM bandwidth.
-- [ ] M6.1-03 Measure SSD sequential and expert-sized random-read latency and
+- [x] M6.1-03 Measure SSD sequential and expert-sized random-read latency and
   throughput with controlled cache-state semantics.
 - [ ] M6.1-04 Detect usable RAM, available GPU backends, usable VRAM, and
   measured host/device transfer without assuming a GPU is present.
@@ -592,6 +592,17 @@ machine-readable record, and its two failure-mode tests passed. This is not an
 end-to-end inference claim and does not select a backend. See
 `docs/reports/m6.1-02-cpu-ram-benchmark.md`. The exact next task is
 `M6.1-03`.
+
+M6.1-03 is complete. The release-build storage evidence uses an opaque,
+1,056,964,608-byte temporary payload comprising 56 exact F32 expert-sized
+records (18,874,368 bytes each). It records a first-touch sequential result of
+2.026 GiB/s and a likely-warm sequential median of 2.985 GiB/s. Expert-sized
+random reads recorded first-touch medians of 4.521 ms and 3,984.1 MiB/s, plus
+likely-warm medians of 4.812 ms and 3,758.1 MiB/s. Windows physical cache
+eviction was not requested, so neither first-touch result claims cold-device
+latency. Preflight and cleanup accounting passed; the unique run directory was
+removed. The JSON validator and its two failure-mode tests passed. See
+docs/reports/m6.1-03-storage-benchmark.md. The exact next task is M6.1-04.
 
 ### M6.2 - First placement planner
 
