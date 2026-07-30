@@ -502,7 +502,7 @@ remains the authoritative oracle. Do not start M6.1 before M6.0 is accepted.
   fixture hashes, tolerances, router selections, and baseline data.
 - [x] M6.0-02 Define backend-neutral tensor, operation, and execution
   contracts without leaking Qwen or storage policy into `clr-core`.
-- [ ] M6.0-03 Define a differential report that identifies the first divergent
+- [x] M6.0-03 Define a differential report that identifies the first divergent
   stage and records comparison tolerance.
 - [ ] M6.0-04 Freeze deterministic English and Thai quality fixtures and
   expected reference outputs.
@@ -527,6 +527,15 @@ or quantization layouts. ADR 0047 records the boundary. `cargo fmt --all
 --check`, `cargo check --workspace`, `cargo test --workspace` (131 tests),
 `cargo clippy --workspace --all-targets -- -D warnings`, and `cargo run -p
 clr-cli` passed. The exact next task is `M6.0-03`.
+
+M6.0-03 is complete. `clr-core::DifferentialReport` compares ordered stages,
+checks tensor metadata and value lengths before values, stops at the first
+divergence, and records its stage ID/index, category, element/value diagnostics
+where applicable, and the exact absolute/relative tolerance plus source used.
+ADR 0048 records why router/semantic-margin and quality gates remain separate.
+`cargo fmt --all --check`, `cargo check --workspace`, `cargo test --workspace`
+(135 tests), `cargo clippy --workspace --all-targets -- -D warnings`, and
+`cargo run -p clr-cli` passed. The exact next task is `M6.0-04`.
 
 ### M6.1 - Hardware and model profiler
 

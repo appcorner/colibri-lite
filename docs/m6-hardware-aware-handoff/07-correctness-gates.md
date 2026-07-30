@@ -9,5 +9,6 @@
    deltas.
 5. Repeat candidate execution and require deterministic applicable outputs.
 
-The report must name the first failed stage. Tolerances are inherited from the
-reference registry or added by ADR with numerical justification.
+The report must name the first failed stage and carry the selected absolute,
+relative, and source tolerance. Tolerances are inherited from the reference
+registry or added by ADR with numerical justification.
