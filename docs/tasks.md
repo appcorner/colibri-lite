@@ -563,7 +563,7 @@ tests, and all standard commands. See `docs/reports/m6.0-review-remediation.md`.
 ### M6.1 - Hardware and model profiler
 
 - [x] M6.1-01 Define versioned hardware-profile and model-profile schemas.
-- [ ] M6.1-02 Measure CPU backend kernel throughput and RAM bandwidth.
+- [x] M6.1-02 Measure CPU backend kernel throughput and RAM bandwidth.
 - [ ] M6.1-03 Measure SSD sequential and expert-sized random-read latency and
   throughput with controlled cache-state semantics.
 - [ ] M6.1-04 Detect usable RAM, available GPU backends, usable VRAM, and
@@ -582,6 +582,16 @@ records. `measured`, `unavailable`, and `not_run` are distinct states, so
 unmeasured inputs cannot be interpreted as performance data. Two schema
 contract tests passed; no hardware or model measurement ran. The exact next
 task is `M6.1-02`.
+
+M6.1-02 is complete. The tracked release-build evidence records a safe `f32`
+1024×4096 matrix-vector median of 1.861 GFLOP/s and a 128 MiB streaming-copy
+RAM proxy median of 65.581 GiB/s on the Windows x64 host, including all nine
+sorted samples, warm-ups, repetitions, clock semantics, checksums, and known
+limits. `python/reference/validate_m6_1_02_cpu_ram_benchmark.py` validated the
+machine-readable record, and its two failure-mode tests passed. This is not an
+end-to-end inference claim and does not select a backend. See
+`docs/reports/m6.1-02-cpu-ram-benchmark.md`. The exact next task is
+`M6.1-03`.
 
 ### M6.2 - First placement planner
 

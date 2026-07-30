@@ -1,0 +1,25 @@
+{
+  "schema": "colibri-lite-m6.1-02-cpu-ram-benchmark-v1",
+  "schema_version": 1,
+  "profile_id": "windows-x64-anusorn-nb-m6.1-02",
+  "created_at": "2026-07-30T12:17:06.6174208Z",
+  "runtime": {"name": "colibri-lite-rs", "commit": "9469942d51fd6a6fa7fe462f3719d2f3aeb13cc3", "target_arch": "x86_64", "build_profile": "release"},
+  "host": {"os_name": "Microsoft Windows 11 Enterprise", "os_version": "10.0.26200", "cpu_model": "11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz", "logical_core_count": 8, "ram_total_bytes": 51249209344},
+  "measurement_semantics": {
+    "clock": "std::time::Instant monotonic elapsed clock",
+    "sample_percentiles": "nearest sample after ascending sort; index=round((n-1)*p)",
+    "cpu_kernel": {"kernel_id": "safe_f32_matrix_vector", "matrix_rows": 1024, "matrix_columns": 4096, "fma_equivalent_operations_per_element": 2, "warmup_samples": 3, "sample_count": 9, "inner_repetitions": 16},
+    "ram_copy": {"operation": "Vec<u8>::copy_from_slice", "payload_bytes": 134217728, "traffic_accounting": "one payload read plus one payload write per copy", "warmup_samples": 2, "sample_count": 9, "inner_repetitions": 4}
+  },
+  "results": {
+    "cpu_kernel_gflops": {"samples": [1.561436, 1.605836, 1.723535, 1.754558, 1.861400, 1.982247, 2.053276, 2.102899, 2.123440], "minimum": 1.561436, "p10": 1.605836, "median": 1.861400, "p90": 2.102899, "maximum": 2.123440},
+    "ram_copy_gib_per_second": {"samples": [62.647221, 63.398676, 64.293384, 64.926633, 65.581081, 67.725900, 68.292949, 70.273081, 71.191605], "minimum": 62.647221, "p10": 63.398676, "median": 65.581081, "p90": 70.273081, "maximum": 71.191605}
+  },
+  "checksums": {"cpu_output_sum": -5473.148453772, "ram_probe_sum": 1405},
+  "limitations": [
+    "This is a controlled microbenchmark, not end-to-end inference throughput.",
+    "The benchmark does not select or require explicit SIMD, FFI, or a GPU backend.",
+    "RAM copy throughput is a streaming-copy proxy and is not a latency measurement.",
+    "The host was not isolated or clock-pinned; background activity can affect dispersion."
+  ]
+}
