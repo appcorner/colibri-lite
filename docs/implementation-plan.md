@@ -511,6 +511,8 @@ performance backend.
 
 #### M6.0 - Freeze reference runtime
 
+Status: complete.
+
 Freeze the current validated artifacts, fixture hashes, router selections,
 intermediate checkpoints, tolerances, and baseline performance report under a
 single `reference-f32-v1` identity. Define backend-neutral execution and

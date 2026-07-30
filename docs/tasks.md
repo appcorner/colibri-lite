@@ -506,7 +506,7 @@ remains the authoritative oracle. Do not start M6.1 before M6.0 is accepted.
   stage and records comparison tolerance.
 - [x] M6.0-04 Freeze deterministic English and Thai quality fixtures and
   expected reference outputs.
-- [ ] M6.0-05 Add contract, failure-mode, and repeatability tests; run standard
+- [x] M6.0-05 Add contract, failure-mode, and repeatability tests; run standard
   verification and record the baseline.
 
 M6.0-01 is complete. `models/qwen3-30b-a3b/reference-f32-v1-manifest.json`
@@ -543,6 +543,16 @@ IDs, expected argmax, compact logits, top-20 IDs, finite counts, final-norm
 digest, safe-margin router IDs, and integrity records. It does not rerun the
 model or widen a numerical/quality gate. Eleven fixture, F32-manifest, and
 baseline-bundle integrity tests passed. The exact next task is `M6.0-05`.
+
+M6.0-05 is complete. The M6 reference-contract validator covers deterministic
+repeatability plus wrong-reference-ID, corrupted-SHA-256, and changed-expected-
+output failures. The verification baseline records `reference-f32-v1`, the
+bilingual fixtures, and the historical M4 performance baseline without claiming
+a new measurement. Python contract/oracle tests passed 20 tests. Standard
+verification passed: `cargo fmt --all --check`, `cargo check --workspace`,
+`cargo test --workspace` (135 tests), `cargo clippy --workspace --all-targets
+-- -D warnings`, and `cargo run -p clr-cli`. M6.0 is complete. The exact next
+task is `M6.1-01`.
 
 ### M6.1 - Hardware and model profiler
 

@@ -1,0 +1,27 @@
+{
+  "baseline_id": "m6.0-reference-contract-baseline-v1",
+  "baseline_kind": "contract_verification_not_a_new_performance_measurement",
+  "created_date": "2026-07-30",
+  "model": {"id": "Qwen/Qwen3-30B-A3B", "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39"},
+  "reference": {
+    "id": "reference-f32-v1",
+    "quality_fixtures": {"bytes": 4106, "path": "models/qwen3-30b-a3b/m6.0-04-quality-fixtures-v1.json", "sha256": "c91a0d1f7d20c4fb54afc09cbcdc98348c08bebfb8ebd80f678a40e511580b82"},
+    "reference_manifest": {"bytes": 4152, "path": "models/qwen3-30b-a3b/reference-f32-v1-manifest.json", "sha256": "76f53fb7f18adb17b7ec380cb4ebcab4f6414cb0ff0a9ffed728379fc1aa113d"},
+    "tier_a_generated_token_ids": [1096, 374]
+  },
+  "runtime_source": {"commit": "dcc088a0928254976746b3188ccd3df133a85ab7", "target": "x86_64-pc-windows-msvc"},
+  "verification": {
+    "commands": ["cargo fmt --all --check", "cargo check --workspace", "cargo test --workspace", "cargo clippy --workspace --all-targets -- -D warnings", "cargo run -p clr-cli"],
+    "expected_workspace_test_count": 135,
+    "python_contract_test_modules": ["python.reference.test_m6_reference_contract", "python.reference.test_m6_0_04_quality_fixtures", "python.reference.test_reference_f32_manifest", "python.reference.test_m4_3_f32_baseline", "python.reference.test_m4_release_provenance"]
+  },
+  "performance_reference": {
+    "baseline_id": "qwen3-30b-a3b-colibri-f32-windows-x64-v1",
+    "note": "Reused M4 F32 performance evidence only; M6.0 did not rerun a hardware or throughput benchmark.",
+    "path": "models/qwen3-30b-a3b/m4.4-performance-baseline-v1.json",
+    "sha256": "29b2d95fa9eb74c1085cb31d2f63adbaa711fe8739d3051fa04f7b2b1c27ce9d"
+  },
+  "schema": "colibri-qwen3-moe-m6-reference-contract-baseline-v1",
+  "schema_version": 1,
+  "status": "verified"
+}
