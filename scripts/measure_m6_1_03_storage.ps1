@@ -18,7 +18,7 @@ $Commit = (git rev-parse HEAD).Trim()
 $RunId = [guid]::NewGuid().ToString("N")
 
 function Assert-RunDirectory([string]$Candidate, [string]$Root, [string]$ExpectedLeaf) {
-    $resolvedRoot = [System.IO.Path]::GetFullPath($Root).TrimEnd("\\", "/")
+    $resolvedRoot = [System.IO.Path]::GetFullPath($Root).TrimEnd('\', '/')
     $resolvedCandidate = [System.IO.Path]::GetFullPath($Candidate)
     if (-not $resolvedCandidate.StartsWith("$resolvedRoot\", [System.StringComparison]::OrdinalIgnoreCase)) {
         throw "run directory must remain under temp root: $resolvedCandidate"
@@ -123,7 +123,7 @@ New-Item -ItemType Directory -Force -Path $TempRoot | Out-Null
 $runLeaf = "$TaskId-$RunId"
 $runDirectory = Join-Path $TempRoot $runLeaf
 Assert-RunDirectory $runDirectory $TempRoot $runLeaf
-$drive = Get-PSDrive -Name ([System.IO.Path]::GetPathRoot([System.IO.Path]::GetFullPath($TempRoot)).TrimEnd(':', '\\'))
+$drive = Get-PSDrive -Name ([System.IO.Path]::GetPathRoot([System.IO.Path]::GetFullPath($TempRoot)).TrimEnd(':', '\'))
 $safetyReserveBytes = [int64][math]::Max(1GB, [math]::Ceiling($PayloadBytes * 0.05))
 $requiredFreeBytes = $PayloadBytes + $safetyReserveBytes
 if ($drive.Free -lt $requiredFreeBytes) {
