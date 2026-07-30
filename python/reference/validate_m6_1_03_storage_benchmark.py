@@ -63,7 +63,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=Path, required=True)
     arguments = parser.parse_args()
-    errors = validate(json.loads(arguments.input.read_text(encoding="utf-8")))
+    errors = validate(json.loads(arguments.input.read_text(encoding="utf-8-sig")))
     if errors:
         for error in errors:
             print(f"ERROR: {error}")

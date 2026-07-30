@@ -102,20 +102,24 @@ function Get-RandomOrder([int]$Count, [int]$Seed) {
 
 function Write-Payload([string]$Path, [int64]$Bytes, [int]$BufferBytes) {
     $buffer = New-Object byte[] $BufferBytes
-    for ($index = 0; $index -lt $buffer.Length; $index++) { $buffer[$index] = [byte](($index * 31 + 17) % 251) }
     $written = [int64]0
+    $random = [System.Security.Cryptography.RandomNumberGenerator]::Create()
     $stream = [System.IO.FileStream]::new(
         $Path, [System.IO.FileMode]::CreateNew, [System.IO.FileAccess]::Write,
         [System.IO.FileShare]::None, $BufferBytes, [System.IO.FileOptions]::WriteThrough)
     try {
         while ($written -lt $Bytes) {
             $count = [int][math]::Min($buffer.Length, $Bytes - $written)
+            $random.GetBytes($buffer)
             $stream.Write($buffer, 0, $count)
             $written += $count
         }
         $stream.Flush($true)
     }
-    finally { $stream.Dispose() }
+    finally {
+        $stream.Dispose()
+        $random.Dispose()
+    }
     return $written
 }
 
@@ -124,10 +128,11 @@ $runLeaf = "$TaskId-$RunId"
 $runDirectory = Join-Path $TempRoot $runLeaf
 Assert-RunDirectory $runDirectory $TempRoot $runLeaf
 $drive = Get-PSDrive -Name ([System.IO.Path]::GetPathRoot([System.IO.Path]::GetFullPath($TempRoot)).TrimEnd(':', '\'))
+$freeBytesBefore = $drive.Free
 $safetyReserveBytes = [int64][math]::Max(1GB, [math]::Ceiling($PayloadBytes * 0.05))
 $requiredFreeBytes = $PayloadBytes + $safetyReserveBytes
-if ($drive.Free -lt $requiredFreeBytes) {
-    throw "disk preflight failed: free=$($drive.Free), required=$requiredFreeBytes"
+if ($freeBytesBefore -lt $requiredFreeBytes) {
+    throw "disk preflight failed: free=$freeBytesBefore, required=$requiredFreeBytes"
 }
 
 $payloadPath = Join-Path $runDirectory "storage-payload.bin"
@@ -135,6 +140,7 @@ $success = $false
 try {
     New-Item -ItemType Directory -Path $runDirectory | Out-Null
     $writtenBytes = Write-Payload $payloadPath $PayloadBytes $SequentialBufferBytes
+    $freeBytesAfterPayloadWrite = (Get-PSDrive -Name $drive.Name).Free
 
     $firstSequential = Read-Sequential $payloadPath $SequentialBufferBytes
     $warmSequentialThroughputs = [System.Collections.Generic.List[double]]::new()
@@ -163,14 +169,17 @@ try {
         $randomChecksum += $sample.checksum
     }
 
-    $postTaskFreeBytes = (Get-PSDrive -Name $drive.Name).Free
+    Assert-RunDirectory $runDirectory $TempRoot $runLeaf
+    Remove-Item -LiteralPath $runDirectory -Recurse -Force
+    $runDirectoryRemoved = -not (Test-Path -LiteralPath $runDirectory)
+    $freeBytesAfterCleanup = (Get-PSDrive -Name $drive.Name).Free
     $document = [ordered]@{
         schema = "colibri-lite-m6.1-03-storage-benchmark-v1"
         schema_version = 1
         profile_id = "windows-x64-$($env:COMPUTERNAME.ToLowerInvariant())-m6.1-03"
         created_at = $CreatedAt
         runtime = [ordered]@{ name = "colibri-lite-rs"; commit = $Commit; target_arch = "x86_64"; build_profile = "release" }
-        storage_target = [ordered]@{ path = [System.IO.Path]::GetPathRoot([System.IO.Path]::GetFullPath($TempRoot)); free_bytes_before = $drive.Free; free_bytes_after_payload_write = $postTaskFreeBytes }
+        storage_target = [ordered]@{ path = [System.IO.Path]::GetPathRoot([System.IO.Path]::GetFullPath($TempRoot)); free_bytes_before = $freeBytesBefore; free_bytes_after_payload_write = $freeBytesAfterPayloadWrite; free_bytes_after_cleanup = $freeBytesAfterCleanup }
         preflight = [ordered]@{ expected_new_output_bytes = $PayloadBytes; expected_peak_temporary_bytes = 0; safety_reserve_bytes = $safetyReserveBytes; required_free_bytes = $requiredFreeBytes; passed = $true }
         test_payload = [ordered]@{ logical_bytes = $PayloadBytes; expert_payload_bytes = $ExpertPayloadBytes; expert_payload_count = $ExpertPayloadCount; write_mode = "FileOptions.WriteThrough followed by Flush(true)"; created_in_unique_flat_run_directory = $true }
         cache_semantics = [ordered]@{
@@ -201,7 +210,7 @@ try {
             }
         }
         checksums = [ordered]@{ sequential = $sequentialChecksum; random = $randomChecksum }
-        cleanup = [ordered]@{ run_directory = $runDirectory; payload_bytes_removed = $PayloadBytes; run_directory_removed = $true; retained_debug = $false }
+        cleanup = [ordered]@{ run_directory = $runDirectory; payload_bytes_removed = $PayloadBytes; run_directory_removed = $runDirectoryRemoved; retained_debug = $false }
         limitations = @(
             "This is a storage microbenchmark, not end-to-end model inference throughput.",
             "Windows physical filesystem-cache eviction was not requested, so first-touch is not claimed as a cold-device measurement.",
@@ -211,7 +220,10 @@ try {
     }
     $outputDirectory = Split-Path -Parent $OutputPath
     if ($outputDirectory) { New-Item -ItemType Directory -Force -Path $outputDirectory | Out-Null }
-    $document | ConvertTo-Json -Depth 12 | Set-Content -Encoding utf8 $OutputPath
+    [System.IO.File]::WriteAllText(
+        [System.IO.Path]::GetFullPath($OutputPath),
+        ($document | ConvertTo-Json -Depth 12),
+        [System.Text.UTF8Encoding]::new($false))
     $success = $true
 }
 finally {
