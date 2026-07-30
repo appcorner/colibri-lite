@@ -121,7 +121,8 @@ the branch is not a substitute for the commit policy in `AGENTS.md`.
 
 #### M0.1 - Workspace bootstrap
 
-Status: complete.
+Status: complete and review-accepted after remediation recorded in
+`docs/reports/m6.0-review-remediation.md`.
 
 Deliverables:
 

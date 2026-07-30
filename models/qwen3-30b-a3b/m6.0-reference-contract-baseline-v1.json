@@ -9,10 +9,10 @@
     "reference_manifest": {"bytes": 4152, "path": "models/qwen3-30b-a3b/reference-f32-v1-manifest.json", "sha256": "76f53fb7f18adb17b7ec380cb4ebcab4f6414cb0ff0a9ffed728379fc1aa113d"},
     "tier_a_generated_token_ids": [1096, 374]
   },
-  "runtime_source": {"commit": "dcc088a0928254976746b3188ccd3df133a85ab7", "target": "x86_64-pc-windows-msvc"},
+  "runtime_source": {"commit": "84f0cff09ed089f4bae84652f9dd800b05ac8990", "target": "x86_64-pc-windows-msvc"},
   "verification": {
     "commands": ["cargo fmt --all --check", "cargo check --workspace", "cargo test --workspace", "cargo clippy --workspace --all-targets -- -D warnings", "cargo run -p clr-cli"],
-    "expected_workspace_test_count": 135,
+    "expected_workspace_test_count": 136,
     "python_contract_test_modules": ["python.reference.test_m6_reference_contract", "python.reference.test_m6_0_04_quality_fixtures", "python.reference.test_reference_f32_manifest", "python.reference.test_m4_3_f32_baseline", "python.reference.test_m4_release_provenance"]
   },
   "performance_reference": {

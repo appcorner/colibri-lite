@@ -554,6 +554,12 @@ verification passed: `cargo fmt --all --check`, `cargo check --workspace`,
 -- -D warnings`, and `cargo run -p clr-cli`. M6.0 is complete. The exact next
 task is `M6.1-01`.
 
+M6.0 review is accepted after remediation. The comparator now rejects a
+non-finite calculated allowed error, and the cross-contract validator compares
+all frozen finite counts to Tier-B source evidence. Reverification on commit
+`84f0cff09ed089f4bae84652f9dd800b05ac8990` passed 21 Python tests, 136 Rust
+tests, and all standard commands. See `docs/reports/m6.0-review-remediation.md`.
+
 ### M6.1 - Hardware and model profiler
 
 - [ ] M6.1-01 Define versioned hardware-profile and model-profile schemas.
