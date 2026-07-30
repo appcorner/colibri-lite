@@ -566,7 +566,7 @@ tests, and all standard commands. See `docs/reports/m6.0-review-remediation.md`.
 - [x] M6.1-02 Measure CPU backend kernel throughput and RAM bandwidth.
 - [x] M6.1-03 Measure SSD sequential and expert-sized random-read latency and
   throughput with controlled cache-state semantics.
-- [ ] M6.1-04 Detect usable RAM, available GPU backends, usable VRAM, and
+- [x] M6.1-04 Detect usable RAM, available GPU backends, usable VRAM, and
   measured host/device transfer without assuming a GPU is present.
 - [ ] M6.1-05 Implement `doctor` and `profile-model` with machine-readable,
   reproducible output and explicit confidence/limitations.
@@ -603,6 +603,16 @@ eviction was not requested, so neither first-touch result claims cold-device
 latency. Preflight and cleanup accounting passed; the unique run directory was
 removed. The JSON validator and its two failure-mode tests passed. See
 docs/reports/m6.1-03-storage-benchmark.md. The exact next task is M6.1-04.
+
+M6.1-04 is complete. A Windows snapshot recorded 47.73 GiB installed RAM,
+23.71 GiB available RAM, a 7.16 GiB reserve, and a 16.55 GiB advisory usable
+RAM budget. NVIDIA T500 (4 GiB reported by nvidia-smi) and Intel Iris Xe were
+detected; CUDA/Vulkan tooling and the DirectML system library are present.
+They are inventory only: no colibri GPU backend has passed the M6.3 review, so
+all backend availability records are unavailable, usable VRAM and the VRAM
+recommendation are zero, and both transfer directions are explicit not_run.
+The machine-readable validator and its two failure-mode tests passed. See
+docs/reports/m6.1-04-memory-gpu-profile.md. The exact next task is M6.1-05.
 
 ### M6.2 - First placement planner
 

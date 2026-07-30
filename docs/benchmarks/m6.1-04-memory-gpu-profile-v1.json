@@ -1,0 +1,135 @@
+{
+    "schema":  "colibri-lite-m6.1-04-memory-gpu-profile-v1",
+    "schema_version":  1,
+    "profile_id":  "windows-x64-anusorn-nb-m6.1-04",
+    "created_at":  "2026-07-30T12:37:48.0184686Z",
+    "runtime":  {
+                    "name":  "colibri-lite-rs",
+                    "commit":  "7e8f2258627dd2cec67f0672f9c870b525d75841",
+                    "target_arch":  "x86_64",
+                    "build_profile":  "release"
+                },
+    "ram":  {
+                "total_physical_bytes":  51249209344,
+                "available_physical_bytes":  25456168960,
+                "safety_reserve_bytes":  7687381402,
+                "usable_budget_bytes":  17768787558,
+                "measurement_semantics":  "Win32_OperatingSystem.FreePhysicalMemory snapshot minus max(4 GiB, 15% of installed RAM); advisory only"
+            },
+    "adapters":  [
+                     {
+                         "name":  "NVIDIA T500",
+                         "driver_version":  "32.0.15.9672",
+                         "pnp_device_id":  "PCI\\VEN_10DE\u0026DEV_1FBB\u0026SUBSYS_22CB17AA\u0026REV_A1\\4\u00261501E241\u00260\u002600E8",
+                         "reported_adapter_ram_bytes":  4293918720,
+                         "classification":  "detection_only; reported adapter RAM is not admitted as usable VRAM without a measured colibri backend"
+                     },
+                     {
+                         "name":  "Intel(R) Iris(R) Xe Graphics",
+                         "driver_version":  "32.0.101.7085",
+                         "pnp_device_id":  "PCI\\VEN_8086\u0026DEV_9A49\u0026SUBSYS_22CB17AA\u0026REV_01\\3\u002611583659\u00260\u002610",
+                         "reported_adapter_ram_bytes":  2147479552,
+                         "classification":  "detection_only; reported adapter RAM is not admitted as usable VRAM without a measured colibri backend"
+                     }
+                 ],
+    "backends":  [
+                     {
+                         "backend_id":  "cuda",
+                         "availability":  "unavailable",
+                         "detection":  {
+                                           "probe":  "Get-Command nvidia-smi",
+                                           "command_present":  true,
+                                           "nvidia_smi_devices":  [
+                                                                      {
+                                                                          "name":  "NVIDIA T500",
+                                                                          "driver_version":  "596.72",
+                                                                          "reported_vram_bytes":  4294967296,
+                                                                          "source":  "nvidia-smi query"
+                                                                      }
+                                                                  ],
+                                           "result":  "CUDA runtime tooling reported device telemetry, but colibri has no CUDA backend in M6.1"
+                                       },
+                         "usable_vram_bytes":  0,
+                         "host_to_device":  {
+                                                "status":  "not_run",
+                                                "unit":  "GiB/s",
+                                                "cache_state":  "not_applicable",
+                                                "payload_bytes":  0,
+                                                "repetitions":  0,
+                                                "reason":  "No usable colibri CUDA backend was detected; transfer measurement is not meaningful."
+                                            },
+                         "device_to_host":  {
+                                                "status":  "not_run",
+                                                "unit":  "GiB/s",
+                                                "cache_state":  "not_applicable",
+                                                "payload_bytes":  0,
+                                                "repetitions":  0,
+                                                "reason":  "No usable colibri CUDA backend was detected; transfer measurement is not meaningful."
+                                            }
+                     },
+                     {
+                         "backend_id":  "directml",
+                         "availability":  "unavailable",
+                         "detection":  {
+                                           "probe":  "DirectML.dll presence plus video-controller inventory",
+                                           "directml_library_present":  true,
+                                           "detected_adapter_count":  2,
+                                           "result":  "No colibri DirectML backend exists in M6.1; detected adapters are inventory only."
+                                       },
+                         "usable_vram_bytes":  0,
+                         "host_to_device":  {
+                                                "status":  "not_run",
+                                                "unit":  "GiB/s",
+                                                "cache_state":  "not_applicable",
+                                                "payload_bytes":  0,
+                                                "repetitions":  0,
+                                                "reason":  "No usable colibri DirectML backend was detected; transfer measurement is not meaningful."
+                                            },
+                         "device_to_host":  {
+                                                "status":  "not_run",
+                                                "unit":  "GiB/s",
+                                                "cache_state":  "not_applicable",
+                                                "payload_bytes":  0,
+                                                "repetitions":  0,
+                                                "reason":  "No usable colibri DirectML backend was detected; transfer measurement is not meaningful."
+                                            }
+                     },
+                     {
+                         "backend_id":  "vulkan",
+                         "availability":  "unavailable",
+                         "detection":  {
+                                           "probe":  "Get-Command vulkaninfo",
+                                           "command_present":  true,
+                                           "result":  "Vulkan tooling may be installed, but colibri has no Vulkan backend in M6.1"
+                                       },
+                         "usable_vram_bytes":  0,
+                         "host_to_device":  {
+                                                "status":  "not_run",
+                                                "unit":  "GiB/s",
+                                                "cache_state":  "not_applicable",
+                                                "payload_bytes":  0,
+                                                "repetitions":  0,
+                                                "reason":  "No usable colibri Vulkan backend was detected; transfer measurement is not meaningful."
+                                            },
+                         "device_to_host":  {
+                                                "status":  "not_run",
+                                                "unit":  "GiB/s",
+                                                "cache_state":  "not_applicable",
+                                                "payload_bytes":  0,
+                                                "repetitions":  0,
+                                                "reason":  "No usable colibri Vulkan backend was detected; transfer measurement is not meaningful."
+                                            }
+                     }
+                 ],
+    "recommendations":  {
+                            "ram_budget_bytes":  17768787558,
+                            "vram_budget_bytes":  0,
+                            "confidence":  "partial"
+                        },
+    "limitations":  [
+                        "Adapter inventory does not make a backend usable.",
+                        "No GPU backend is implemented in colibri during M6.1, so usable VRAM is zero and host/device transfer is not run.",
+                        "RAM availability is a point-in-time OS snapshot; runtime admission must still enforce the user\u0027s explicit budget.",
+                        "No GPU compute or transfer benchmark was attempted before M6.3 backend review."
+                    ]
+}
