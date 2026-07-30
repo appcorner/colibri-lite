@@ -1,12 +1,13 @@
 # colibri-lite-rs
 
-A Rust-first, storage-aware inference runtime for low-memory
-Mixture-of-Experts models.
+A Rust-first, hardware-aware inference runtime for Mixture-of-Experts models.
+It targets the highest measured tokens/s within explicit RAM, VRAM, I/O,
+context, quality, and correctness budgets.
 
 ## Initial target
 
 - Windows x64
-- CPU-first
+- Hardware-aware CPU-first baseline
 - Tiny Qwen3-MoE correctness
 - Qwen3-30B-A3B
 - On-demand expert loading
@@ -14,8 +15,12 @@ Mixture-of-Experts models.
 
 ## Current milestone
 
-M0--M4 are complete. M5.1--M5.3-04 have completed their recorded evidence
-work, and M5.4-01 has completed the resident-dense simulation for review. The
+M6 is planned and starts with freezing `reference-f32-v1` plus backend-neutral
+correctness contracts. The direction is hardware-aware planning and validated
+quantized execution, rather than minimum RAM alone. See the
+[M6 handoff pack](docs/m6-hardware-aware-handoff/01-project-charter.md).
+
+M0--M4 are complete and M5 is closed as research evidence. The
 Qwen3-30B-A3B F32 path
 executes all 48 layers and generates deterministic tokens with streamed experts
 and a byte-budgeted strict global-LRU cache. It is correctness-valid and
@@ -266,18 +271,19 @@ Every optimization must preserve the frozen F32 correctness invariants, determin
 
 `colibri-lite-rs` is no longer a proof that asks whether the model can run. M4 has established a tagged, reproducible, correctness-valid F32 baseline for Qwen3-30B-A3B on Windows x64.
 
-The project is at M5.4 review closure. Its validated F32 runtime remains a
-research runtime: strict global LRU and the reference reader are retained,
-while reusable-buffer, mmap, and resident-dense paths are not production
-defaults. No further storage-access implementation is authorized without a
-new reviewed, measurement-first proposal; deferred GPU, server, web UI, and
-quantized-runtime work remains out of scope.
+M5 is closed. Its validated F32 runtime remains a research runtime: strict
+global LRU and the reference reader are retained, while reusable-buffer, mmap,
+and resident-dense paths are not production defaults. M6 now starts with a
+frozen F32 oracle and backend-neutral contracts, followed by measured hardware
+profiles, planning, and a one-layer quantized vertical-slice decision. GPU,
+server, web UI, and all-layer quantized execution remain gated by that plan.
 
 In short:
 
 ```text
 M4: Can the full model run correctly with bounded RAM?  YES
-M5: Is a production-performance recovery path proven?   NO -- RESEARCH RUNTIME REVIEW CLOSURE
+M5: Is a storage-path performance recovery proven?      NO -- RESEARCH REVIEW CLOSURE
+M6: Is a hardware-aware performance plan validated?     NEXT
 ```
 
 ## Project documents
@@ -292,3 +298,4 @@ M5: Is a production-performance recovery path proven?   NO -- RESEARCH RUNTIME R
 - [M3 autoregressive generation report](docs/reports/m3.md)
 - [M4 release closure](docs/reports/m4-release-closure.md)
 - [M5.3 phase closure](docs/reports/m5.3-phase-closure.md)
+- [M6 hardware-aware handoff](docs/m6-hardware-aware-handoff/01-project-charter.md)

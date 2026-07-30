@@ -4,7 +4,7 @@
 
 The only primary objective is:
 
-> Build `colibri-lite-rs`, a Rust-first, CPU-first, storage-aware inference runtime for low-memory Mixture-of-Experts models.
+> Build `colibri-lite-rs`, a Rust-first, hardware-aware inference runtime for Mixture-of-Experts models that maximizes measured tokens/s within explicit resource, quality, and correctness budgets.
 
 The first supported architecture is Qwen3-MoE.
 The first full-size target is Qwen3-30B-A3B on Windows x64.
@@ -12,12 +12,12 @@ The first full-size target is Qwen3-30B-A3B on Windows x64.
 The agent must optimize for:
 
 1. Numerical correctness
-2. Predictable memory usage
-3. On-demand expert residency
-4. Reproducible evidence
+2. Reproducible evidence
+3. Predictable, budget-enforced RAM and VRAM use
+4. Hardware-aware expert placement and backend selection
 5. Maintainable Rust code
 
-Do not broaden the project into a general-purpose inference framework before M4 is complete.
+Do not broaden the project into a general-purpose inference framework before M6 is complete.
 
 ---
 
@@ -53,14 +53,12 @@ Rules:
 Current priority:
 
 ```text
-M0.2
-→ M0.3
-→ M1.1
-→ M1.2
-→ M1.3
-→ M2
-→ M3
-→ M4
+M6.0
+→ M6.1
+→ M6.2
+→ M6.3
+→ M6.4
+→ M6.5
 ```
 
 ---
@@ -71,17 +69,17 @@ Before implementing any new idea, classify it as one of:
 
 * `NOW`: required to close the current milestone
 * `NEXT`: required by the immediately following milestone
-* `BACKLOG`: useful after M4
+* `BACKLOG`: useful after M6
 * `OUT-OF-SCOPE`: not aligned with the product mission
 
 Only `NOW` work may be implemented without changing the plan.
 
 Ideas classified as `NEXT` or `BACKLOG` must be recorded in `docs/backlog.md` and not implemented.
 
-The following are deferred until after M4:
+The following are deferred pending the stated M6 gate:
 
-* GPU backends
-* CUDA, Vulkan, Metal, or DirectML
+* GPU backends other than the single backend selected by M6.1/M6.2 evidence
+* CUDA, Vulkan, Metal, or DirectML before M6.3 review approves one candidate
 * HTTP or OpenAI-compatible server
 * Web UI
 * Agent frameworks
@@ -131,7 +129,8 @@ Before an optimization:
 6. Re-run the same benchmark.
 7. Record whether the optimization was retained or reverted.
 
-Never introduce these before correctness is established:
+Never introduce these before the applicable reference correctness path and a
+reviewed M6.3 candidate are established:
 
 * SIMD intrinsics
 * FFI kernels
@@ -248,7 +247,7 @@ Reference implementations are architectural and benchmarking references, not aut
 
 ## 11. Windows x64 rules
 
-Windows x64 with the MSVC Rust toolchain is the primary platform through M4.
+Windows x64 with the MSVC Rust toolchain is the primary platform through M6.
 
 The agent must:
 

@@ -2,13 +2,15 @@
 
 ## Purpose
 
-Build a Rust-first, CPU-first, storage-aware inference runtime for low-memory
-Mixture-of-Experts models.
+Build a Rust-first, hardware-aware inference runtime for Mixture-of-Experts
+models that maximizes measured tokens per second within explicit RAM, VRAM,
+storage-I/O, context, quality, and correctness budgets.
 
 The first supported architecture is Qwen3-MoE. The first full-size target is
 Qwen3-30B-A3B on Windows x64. The runtime must prioritize numerical
-correctness, predictable memory use, and on-demand expert residency before
-performance optimization.
+correctness and reproducible evidence. It may use RAM, VRAM, SSD, and a
+selected compute backend when measurement shows a performance benefit; minimum
+RAM is no longer the primary objective.
 
 This document defines milestone scope and engineering gates. Executable work
 items and status are tracked in [tasks.md](tasks.md).
@@ -22,9 +24,10 @@ the configured resident-memory budget.
 North-star capability:
 
 ```text
-Load a Qwen3-MoE model, keep dense tensors resident, load routed experts on
-demand, enforce a byte-level RAM budget, and produce numerically validated
-tokens on Windows x64.
+Given a Qwen3-MoE model and hardware budgets, measure the machine, choose a
+reproducible placement/execution plan, enforce RAM and VRAM limits, and
+produce numerically validated tokens at the highest supported tokens/s on
+Windows x64.
 ```
 
 ## Reference roles
@@ -51,7 +54,8 @@ without an explicit license and provenance review.
 7. Prefer safe Rust; isolate and document unavoidable `unsafe`.
 8. Optimize only after a profiler or benchmark identifies a bottleneck.
 9. Add one architecture first; do not create a premature general model zoo.
-10. Do not let UI, server, agent, GPU, or speculative-decoding work enter MVP.
+10. Do not promote a backend, placement, or precision policy without
+    repeatable end-to-end evidence and differential correctness gates.
 
 ## Workspace boundaries
 
@@ -497,9 +501,74 @@ No further resident-dense implementation is authorized by M5.4. Reopening the
 candidate requires a new reviewed measurement protocol with repeatable
 performance evidence and explicit working-set and I/O semantics.
 
-## Deferred until after M4
+### M6 - Hardware-aware performance runtime
 
-- GPU backends.
+Status: planned. M5 is closed as research evidence. M6 formally changes the
+optimization objective from minimizing RAM to maximizing measured tokens/s
+within user-supplied resource and quality constraints. The F32 runtime is
+retained as `reference-f32-v1`; it is a correctness oracle, not the production
+performance backend.
+
+#### M6.0 - Freeze reference runtime
+
+Freeze the current validated artifacts, fixture hashes, router selections,
+intermediate checkpoints, tolerances, and baseline performance report under a
+single `reference-f32-v1` identity. Define backend-neutral execution and
+comparison contracts without changing the default execution path.
+
+Exit condition: a candidate backend can be compared layer-by-layer and its
+first numerical divergence can be identified deterministically.
+
+#### M6.1 - Hardware and model profiling
+
+Add `colibri-lite doctor` and `colibri-lite profile-model`. The profiler must
+measure rather than infer CPU kernel throughput, RAM bandwidth, SSD sequential
+and expert-sized random reads, usable RAM/VRAM, GPU/backend availability, and
+host/device transfer where available. Model profiling must record dense and
+expert footprint, routing parameters, KV-cache requirements, and supported
+precision candidates.
+
+Exit condition: versioned, reproducible profile documents have bounded
+measurement semantics and are sufficient inputs to a first planner.
+
+#### M6.2 - First placement planner
+
+Add `colibri-lite plan` accepting RAM budget, VRAM budget, context, and target
+workload. It must enumerate and rank supported candidates with estimated
+tokens/s, resource use, disk bytes/token, startup cost, and quality risk.
+Initial cost models may be analytical but may not hard-code hardware results.
+
+Exit condition: every recommendation is reproducible from profile inputs,
+within explicit budgets, and states its confidence and unsupported assumptions.
+
+#### M6.3 - Native quantized vertical slice
+
+Implement and validate one Qwen3-MoE layer only. It may use an optimized CPU
+backend for directly consumed quantized expert weights while retaining F32
+router, norms, sensitive operations, and an independently executable F32
+reference path. Quantization and backend selection require an ADR and must
+validate English and Thai fixtures, exact safe-margin router selections, layer
+checkpoints, logit drift, cold/warm throughput, RAM, and physical I/O.
+
+Stop condition: do not extend to 48 layers unless the slice directly consumes
+quantized weights, has repeatable material end-to-end benefit, and passes the
+defined correctness/quality gates without hidden full-expert F32 expansion.
+
+#### M6.4 - Full hardware-aware runtime
+
+Only after M6.3 passes, extend the validated plan to all 48 layers with tiered
+placement, reserved per-layer capacity, a global hot-expert pool, bounded
+prefetch/overlap where measured, runtime telemetry, and plan re-evaluation.
+
+#### M6.5 - Product surface
+
+Only after the full runtime meets the approved interactive threshold, add
+tokenizer/chat integration and a minimal product surface. Serving is not
+authorized until a separate post-M6 scope review.
+
+## Deferred pending an explicit M6 decision
+
+- GPU backends other than the single backend justified by M6 evidence.
 - OpenAI-compatible HTTP server.
 - Web UI.
 - Continuous batching.

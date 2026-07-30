@@ -490,6 +490,74 @@ total-RAM accounting, and the reference reader unless a separate review
 approves a runtime change. The two corpus fixtures without M5.2 full-runtime
 dense-read evidence remain outside the candidate matrix.
 
+## M6 - Hardware-aware performance runtime
+
+M6 is the approved pivot: maximize measured tokens/s within explicit RAM,
+VRAM, I/O, context, quality, and correctness constraints. `reference-f32-v1`
+remains the authoritative oracle. Do not start M6.1 before M6.0 is accepted.
+
+### M6.0 - Freeze reference runtime and backend-neutral contracts
+
+- [x] M6.0-01 Create a `reference-f32-v1` manifest pinning source, artifacts,
+  fixture hashes, tolerances, router selections, and baseline data.
+- [ ] M6.0-02 Define backend-neutral tensor, operation, and execution
+  contracts without leaking Qwen or storage policy into `clr-core`.
+- [ ] M6.0-03 Define a differential report that identifies the first divergent
+  stage and records comparison tolerance.
+- [ ] M6.0-04 Freeze deterministic English and Thai quality fixtures and
+  expected reference outputs.
+- [ ] M6.0-05 Add contract, failure-mode, and repeatability tests; run standard
+  verification and record the baseline.
+
+M6.0-01 is complete. `models/qwen3-30b-a3b/reference-f32-v1-manifest.json`
+pins the M4 release provenance, canonical artifact identity, F32 baseline,
+comparison schema, tolerance registry, deterministic Tier-A generation,
+intermediate evidence, and Tier-B English/Thai evidence. Its 12 integrity
+records passed byte-size and SHA-256 validation in
+`python.reference.test_reference_f32_manifest`; the existing frozen F32 bundle
+and release-provenance tests also passed. No payload was copied, regenerated,
+or downloaded. The exact next task is `M6.0-02`.
+
+### M6.1 - Hardware and model profiler
+
+- [ ] M6.1-01 Define versioned hardware-profile and model-profile schemas.
+- [ ] M6.1-02 Measure CPU backend kernel throughput and RAM bandwidth.
+- [ ] M6.1-03 Measure SSD sequential and expert-sized random-read latency and
+  throughput with controlled cache-state semantics.
+- [ ] M6.1-04 Detect usable RAM, available GPU backends, usable VRAM, and
+  measured host/device transfer without assuming a GPU is present.
+- [ ] M6.1-05 Implement `doctor` and `profile-model` with machine-readable,
+  reproducible output and explicit confidence/limitations.
+- [ ] M6.1-06 Validate profile schema, invalid inputs, repeatability bounds,
+  and Windows resource-release behavior.
+
+### M6.2 - First placement planner
+
+- [ ] M6.2-01 Define planner input, candidate-plan, estimate, and rejection
+  contracts.
+- [ ] M6.2-02 Implement analytical cost-model calculations from profile data;
+  no hard-coded machine performance values.
+- [ ] M6.2-03 Enumerate supported RAM, VRAM, and SSD placement candidates.
+- [ ] M6.2-04 Enforce RAM/VRAM/context constraints and explain rejections.
+- [ ] M6.2-05 Implement `plan` and test deterministic ranking and boundary
+  budgets.
+- [ ] M6.2-06 Compare selected estimates against a recorded benchmark set and
+  report error rather than silently retuning the model.
+
+### M6.3 - Native quantized vertical slice
+
+- [ ] M6.3-01 Propose one precision/backend candidate with dependency,
+  licensing, unsafe-boundary, and provenance review.
+- [ ] M6.3-02 Implement direct quantized expert consumption for one layer;
+  prohibit whole-expert expansion to F32 in the candidate path.
+- [ ] M6.3-03 Preserve F32 router, norms, sensitive operations, and the
+  executable reference comparison path.
+- [ ] M6.3-04 Compare router IDs, checkpoints, logits, Thai/English fixtures,
+  and quality metrics against `reference-f32-v1`.
+- [ ] M6.3-05 Benchmark cold/warm throughput, TTFT, RAM, VRAM, physical reads,
+  cache hit rate, and bytes/token with repeated runs.
+- [ ] M6.3-06 Hold a stop/go review before all-layer implementation.
+
 ## Standard verification commands
 
 Run before closing every milestone:
