@@ -1,0 +1,61 @@
+{
+  "artifact": {
+    "canonical_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "format": "colibri-lite-model",
+    "format_version": 1,
+    "storage_dtype": "F32",
+    "total_bytes": 122147666917
+  },
+  "comparison_contract": {
+    "first_divergence_reporting": "required",
+    "schema": "models/qwen3-30b-a3b/m4.3-01-comparison-schema-v1.json",
+    "tolerance_registry": "models/qwen3-30b-a3b/m4.2-tolerance-contract-registry-v1.json"
+  },
+  "created_date": "2026-07-30",
+  "fixture_contract": {
+    "authoritative_generation": {
+      "generated_token_ids": [1096, 374],
+      "input_token_ids": [9707, 11, 1879, 0]
+    },
+    "coverage": ["English", "Thai", "prefill", "cached_decode"],
+    "fixture_manifest": "models/qwen3-30b-a3b/m4.3-01-fixtures-v1.json",
+    "tier_b_fixture_count": 6
+  },
+  "freeze_policy": {
+    "candidate_backends_must_compare_against": "this_manifest",
+    "mutable_runtime_defaults_are_not_part_of_reference": true,
+    "no_model_payload_is_copied": true,
+    "reference_execution": "safe_scalar_ordered_F32",
+    "status": "frozen"
+  },
+  "integrity_records": [
+    {"bytes": 16833, "path": "models/qwen3-30b-a3b/m4-release-provenance-v1.json", "role": "authoritative_release_provenance", "sha256": "cc515a805b6b21b5cb8f59740ecb5759d5bdd9d809e36fe51ca3aa4adb7dab74"},
+    {"bytes": 6732, "path": "models/qwen3-30b-a3b/m4.3-01-f32-baseline-manifest-v1.json", "role": "f32_baseline_bundle", "sha256": "5e36071de4f4385f8d4ea3310b3beef138ab65ac4627ea53a575ab5e627b71b4"},
+    {"bytes": 12764, "path": "models/qwen3-30b-a3b/m4.3-01-fixtures-v1.json", "role": "fixture_manifest", "sha256": "adf2fe3f16876a780e9ed1d5c4c6270dc05dbc8d17ab3f2b589e91a49310a287"},
+    {"bytes": 2257, "path": "models/qwen3-30b-a3b/m4.3-01-comparison-schema-v1.json", "role": "comparison_schema", "sha256": "58a6b741dcbff9a07d489b852b0abc25077f1de98a4e07a7366511168be26973"},
+    {"bytes": 21273, "path": "models/qwen3-30b-a3b/m4.2-tolerance-contract-registry-v1.json", "role": "tolerance_registry", "sha256": "e5b5e76294489b4bdb24bf85139659844b91e7a8ab5307c9fe964a57296e2b8b"},
+    {"bytes": 11189, "path": "models/qwen3-30b-a3b/m4.2-03-rust-intermediate-evidence-v1.tsv", "role": "rust_intermediate_checkpoints", "sha256": "c09853525a2747e137d6cbec0d15fb41a839694f31f6860d8c09071f286a33b0"},
+    {"bytes": 6723, "path": "models/qwen3-30b-a3b/m4.2-04-rust-short-generation-evidence-v1.tsv", "role": "rust_generation_evidence", "sha256": "8b8bbffa3931af311cd5af7bbed3270e047fbc91e9a8efecf2a61ce78312ba24"},
+    {"bytes": 3661, "path": "models/qwen3-30b-a3b/m4.3-01-rust-tier-b-evidence-v1.tsv", "role": "rust_bilingual_forward_evidence", "sha256": "5632f63acd29b4af09709904d0ffcef12336628a9af51c1b4a8514c857d976f2"},
+    {"bytes": 19191, "path": "models/qwen3-30b-a3b/m4.3-01-tier-b-transformers-f32-v1.json", "role": "transformers_f32_bilingual_evidence", "sha256": "5ca68e70d2c3d7a9d09f77a36eeb0dc0854abfccdd7034acd493a5fb58b4f6c5"},
+    {"bytes": 20982, "path": "models/qwen3-30b-a3b/m4.4-performance-baseline-v1.json", "role": "f32_performance_baseline", "sha256": "29b2d95fa9eb74c1085cb31d2f63adbaa711fe8739d3051fa04f7b2b1c27ce9d"},
+    {"bytes": 11395, "path": "models/qwen3-30b-a3b/model-manifest-v1.json", "role": "canonical_model_manifest", "sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2"},
+    {"bytes": 361, "path": "models/qwen3-30b-a3b/canonical-root-registry-v1.json", "role": "canonical_root_registry", "sha256": "81c1346700dc3cbb3cc5c3d3332303e6a1f81453907cd882c6b32e8e1c984550"}
+  ],
+  "model": {
+    "architecture": "Qwen3MoeForCausalLM",
+    "license": "Apache-2.0",
+    "model_id": "Qwen/Qwen3-30B-A3B",
+    "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+    "source_dtype": "BF16"
+  },
+  "reference_id": "reference-f32-v1",
+  "release": {
+    "release_id": "colibri-lite-rs-m4-qwen3-30b-a3b-f32-v1",
+    "release_tag": "m4-full-qwen3-baseline-v1",
+    "runtime_commit": "a230074959fc3b55ff73e8f4eb24e377a0a6b79f",
+    "target": "x86_64-pc-windows-msvc"
+  },
+  "schema": "colibri-qwen3-moe-reference-f32-manifest-v1",
+  "schema_version": 1
+}

@@ -106,6 +106,7 @@
 !/models/qwen3-30b-a3b/m4.3-02-quantized-expert-artifact-schema-v1.json
 !/models/qwen3-30b-a3b/m4.3-02-runtime-kernel-contract-v1.json
 !/models/qwen3-30b-a3b/m4.3-02-provisional-correctness-gates-v1.json
+!/models/qwen3-30b-a3b/reference-f32-v1-manifest.json
 /.idea/
 /.vscode/
 *.pdb
