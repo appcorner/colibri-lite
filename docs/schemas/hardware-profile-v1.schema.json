@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://colibri-lite-rs.local/schemas/hardware-profile-v1.schema.json",
+  "title": "colibri-lite hardware profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "profile_id", "created_at", "runtime", "host", "measurements", "recommendations"],
+  "properties": {
+    "schema": {"const": "colibri-lite-hardware-profile-v1"},
+    "schema_version": {"const": 1},
+    "profile_id": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "format": "date-time"},
+    "runtime": {"$ref": "#/$defs/runtime_identity"},
+    "host": {"$ref": "#/$defs/host"},
+    "measurements": {"$ref": "#/$defs/measurements"},
+    "recommendations": {"$ref": "#/$defs/recommendations"},
+    "limitations": {"type": "array", "items": {"type": "string", "minLength": 1}}
+  },
+  "$defs": {
+    "non_negative_integer": {"type": "integer", "minimum": 0},
+    "positive_integer": {"type": "integer", "minimum": 1},
+    "finite_number": {"type": "number", "minimum": 0},
+    "runtime_identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "commit", "rust_version", "target", "build_profile"],
+      "properties": {
+        "name": {"const": "colibri-lite-rs"}, "commit": {"type": "string", "minLength": 7},
+        "rust_version": {"type": "string", "minLength": 1}, "target": {"type": "string", "minLength": 1},
+        "build_profile": {"type": "string", "minLength": 1}
+      }
+    },
+    "host": {
+      "type": "object", "additionalProperties": false,
+      "required": ["operating_system", "cpu", "ram"],
+      "properties": {
+        "operating_system": {"type": "object", "additionalProperties": false, "required": ["name", "version"], "properties": {"name": {"type": "string", "minLength": 1}, "version": {"type": "string", "minLength": 1}}},
+        "cpu": {"type": "object", "additionalProperties": false, "required": ["model", "logical_core_count"], "properties": {"model": {"type": "string", "minLength": 1}, "logical_core_count": {"$ref": "#/$defs/positive_integer"}, "instruction_sets": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}}},
+        "ram": {"type": "object", "additionalProperties": false, "required": ["total_bytes", "safe_budget_bytes", "safety_reserve_bytes"], "properties": {"total_bytes": {"$ref": "#/$defs/positive_integer"}, "safe_budget_bytes": {"$ref": "#/$defs/non_negative_integer"}, "safety_reserve_bytes": {"$ref": "#/$defs/non_negative_integer"}}}
+      }
+    },
+    "measurement_status": {"enum": ["measured", "unavailable", "not_run"]},
+    "timing_distribution": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sample_count", "median", "p10", "p90"],
+      "properties": {"sample_count": {"$ref": "#/$defs/positive_integer"}, "median": {"$ref": "#/$defs/finite_number"}, "p10": {"$ref": "#/$defs/finite_number"}, "p90": {"$ref": "#/$defs/finite_number"}}
+    },
+    "benchmark": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "unit", "cache_state", "payload_bytes", "repetitions"],
+      "properties": {
+        "status": {"$ref": "#/$defs/measurement_status"}, "unit": {"type": "string", "minLength": 1},
+        "cache_state": {"enum": ["cold", "warm", "not_applicable", "unknown"]}, "payload_bytes": {"$ref": "#/$defs/non_negative_integer"},
+        "repetitions": {"$ref": "#/$defs/non_negative_integer"}, "distribution": {"$ref": "#/$defs/timing_distribution"},
+        "reason": {"type": "string", "minLength": 1}
+      },
+      "allOf": [
+        {"if": {"properties": {"status": {"const": "measured"}}}, "then": {"required": ["distribution"]}},
+        {"if": {"properties": {"status": {"enum": ["unavailable", "not_run"]}}}, "then": {"required": ["reason"]}}
+      ]
+    },
+    "storage_target": {
+      "type": "object", "additionalProperties": false,
+      "required": ["target_id", "path", "sequential_read", "expert_sized_random_read"],
+      "properties": {"target_id": {"type": "string", "minLength": 1}, "path": {"type": "string", "minLength": 1}, "device_model": {"type": "string"}, "sequential_read": {"$ref": "#/$defs/benchmark"}, "expert_sized_random_read": {"$ref": "#/$defs/benchmark"}}
+    },
+    "backend": {
+      "type": "object", "additionalProperties": false,
+      "required": ["backend_id", "availability", "device_name", "vram", "compute", "host_to_device", "device_to_host"],
+      "properties": {
+        "backend_id": {"type": "string", "minLength": 1}, "availability": {"$ref": "#/$defs/measurement_status"}, "device_name": {"type": "string"}, "driver": {"type": "string"},
+        "vram": {"type": "object", "additionalProperties": false, "required": ["total_bytes", "safe_budget_bytes"], "properties": {"total_bytes": {"$ref": "#/$defs/non_negative_integer"}, "safe_budget_bytes": {"$ref": "#/$defs/non_negative_integer"}}},
+        "compute": {"$ref": "#/$defs/benchmark"}, "host_to_device": {"$ref": "#/$defs/benchmark"}, "device_to_host": {"$ref": "#/$defs/benchmark"}
+      }
+    },
+    "measurements": {
+      "type": "object", "additionalProperties": false,
+      "required": ["cpu_kernels", "ram_bandwidth", "storage", "backends"],
+      "properties": {"cpu_kernels": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["kernel_id", "benchmark"], "properties": {"kernel_id": {"type": "string", "minLength": 1}, "benchmark": {"$ref": "#/$defs/benchmark"}}}}, "ram_bandwidth": {"$ref": "#/$defs/benchmark"}, "storage": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/storage_target"}}, "backends": {"type": "array", "items": {"$ref": "#/$defs/backend"}}}
+    },
+    "recommendations": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ram_budget_bytes", "vram_budget_bytes", "confidence"],
+      "properties": {"ram_budget_bytes": {"$ref": "#/$defs/non_negative_integer"}, "vram_budget_bytes": {"$ref": "#/$defs/non_negative_integer"}, "confidence": {"enum": ["measured", "partial", "unknown"]}}
+    }
+  }
+}

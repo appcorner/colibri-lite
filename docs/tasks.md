@@ -562,7 +562,7 @@ tests, and all standard commands. See `docs/reports/m6.0-review-remediation.md`.
 
 ### M6.1 - Hardware and model profiler
 
-- [ ] M6.1-01 Define versioned hardware-profile and model-profile schemas.
+- [x] M6.1-01 Define versioned hardware-profile and model-profile schemas.
 - [ ] M6.1-02 Measure CPU backend kernel throughput and RAM bandwidth.
 - [ ] M6.1-03 Measure SSD sequential and expert-sized random-read latency and
   throughput with controlled cache-state semantics.
@@ -570,8 +570,18 @@ tests, and all standard commands. See `docs/reports/m6.0-review-remediation.md`.
   measured host/device transfer without assuming a GPU is present.
 - [ ] M6.1-05 Implement `doctor` and `profile-model` with machine-readable,
   reproducible output and explicit confidence/limitations.
+
 - [ ] M6.1-06 Validate profile schema, invalid inputs, repeatability bounds,
   and Windows resource-release behavior.
+
+M6.1-01 is complete. `hardware-profile-v1` defines versioned host, CPU, RAM,
+storage, backend, benchmark-distribution, and safe-budget records.
+`model-profile-v1` defines versioned pinned model/artifact, routed-expert,
+KV-cache, precision-inventory, and `reference-f32-v1` quality-reference
+records. `measured`, `unavailable`, and `not_run` are distinct states, so
+unmeasured inputs cannot be interpreted as performance data. Two schema
+contract tests passed; no hardware or model measurement ran. The exact next
+task is `M6.1-02`.
 
 ### M6.2 - First placement planner
 
