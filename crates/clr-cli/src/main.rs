@@ -85,16 +85,14 @@ impl ProfileOptions {
             ProfileKind::Doctor => Some(required("--rust-version")?),
             ProfileKind::Model => None,
         };
-        let allowed: Vec<&str> = expected_inputs
+        let mut allowed: Vec<&str> = expected_inputs
             .iter()
             .copied()
-            .chain([
-                "--output",
-                "--created-at",
-                "--runtime-commit",
-                "--rust-version",
-            ])
+            .chain(["--output", "--created-at", "--runtime-commit"])
             .collect();
+        if kind == ProfileKind::Doctor {
+            allowed.push("--rust-version");
+        }
         if let Some(flag) = values.keys().find(|flag| !allowed.contains(&flag.as_str())) {
             return Err(format!("unknown option {flag}"));
         }
@@ -504,12 +502,12 @@ mod tests {
                     "2026-07-30T00:00:00Z",
                     "--runtime-commit",
                     "abcdef0",
-                    "--unknown",
+                    "--rust-version",
                     "value",
                 ]),
                 ProfileKind::Model,
             ),
-            Err("unknown option --unknown".to_string())
+            Err("unknown option --rust-version".to_string())
         );
     }
 
