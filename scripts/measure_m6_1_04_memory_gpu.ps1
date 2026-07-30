@@ -47,6 +47,20 @@ $adapters = @(
 $cudaDetected = Test-CommandAvailable "nvidia-smi"
 $vulkanDetected = Test-CommandAvailable "vulkaninfo"
 $directMlLibrary = Join-Path $env:WINDIR "System32\DirectML.dll"
+$nvidiaTelemetry = @()
+if ($cudaDetected) {
+    foreach ($line in @(& nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader,nounits 2>$null)) {
+        $parts = $line.Split(",")
+        if ($parts.Count -eq 3) {
+            $nvidiaTelemetry += [ordered]@{
+                name = $parts[0].Trim()
+                driver_version = $parts[1].Trim()
+                reported_vram_bytes = [int64]([int64]$parts[2].Trim() * 1MB)
+                source = "nvidia-smi query"
+            }
+        }
+    }
+}
 
 $backends = @(
     [ordered]@{
@@ -55,7 +69,8 @@ $backends = @(
         detection = [ordered]@{
             probe = "Get-Command nvidia-smi"
             command_present = $cudaDetected
-            result = if ($cudaDetected) { "CUDA runtime tooling may be installed, but colibri has no CUDA backend in M6.1" } else { "nvidia-smi was not found" }
+            nvidia_smi_devices = $nvidiaTelemetry
+            result = if ($cudaDetected) { "CUDA runtime tooling reported device telemetry, but colibri has no CUDA backend in M6.1" } else { "nvidia-smi was not found" }
         }
         usable_vram_bytes = 0
         host_to_device = New-NotRunBenchmark "No usable colibri CUDA backend was detected; transfer measurement is not meaningful."
