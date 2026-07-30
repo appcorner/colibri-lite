@@ -66,6 +66,13 @@ pub enum RuntimeError {
         /// Human-readable explanation of the violated invariant.
         reason: &'static str,
     },
+    /// A backend-neutral execution contract is internally inconsistent.
+    BackendContractViolation {
+        /// Contract component that failed validation.
+        context: &'static str,
+        /// Human-readable explanation of the violated invariant.
+        reason: &'static str,
+    },
 }
 
 impl fmt::Display for RuntimeError {
@@ -121,6 +128,12 @@ impl fmt::Display for RuntimeError {
                     "invalid model configuration field '{field}': {reason}"
                 )
             }
+            Self::BackendContractViolation { context, reason } => {
+                write!(
+                    formatter,
+                    "invalid backend contract for {context}: {reason}"
+                )
+            }
         }
     }
 }
@@ -150,6 +163,13 @@ mod tests {
     #[test]
     fn display_messages_include_actionable_context() {
         let cases = [
+            (
+                RuntimeError::BackendContractViolation {
+                    context: "operation descriptor",
+                    reason: "input count is invalid",
+                },
+                "invalid backend contract for operation descriptor: input count is invalid",
+            ),
             (
                 RuntimeError::InvalidShape {
                     reason: "rank is unsupported",

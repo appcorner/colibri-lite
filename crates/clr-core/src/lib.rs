@@ -1,5 +1,6 @@
 #![doc = "Core runtime abstractions for colibri-lite-rs."]
 
+mod backend;
 mod config;
 mod dtype;
 mod error;
@@ -8,6 +9,10 @@ mod runtime;
 mod shape;
 mod tensor;
 
+pub use backend::{
+    ExecutionBudget, ExecutionMetrics, ExecutionRequest, ExecutionResult, OperationDescriptor,
+    OperationKind, TensorDescriptor,
+};
 pub use config::{ModelConfig, ModelConfigSpec};
 pub use dtype::DataType;
 pub use error::RuntimeError;

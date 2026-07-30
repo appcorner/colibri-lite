@@ -500,7 +500,7 @@ remains the authoritative oracle. Do not start M6.1 before M6.0 is accepted.
 
 - [x] M6.0-01 Create a `reference-f32-v1` manifest pinning source, artifacts,
   fixture hashes, tolerances, router selections, and baseline data.
-- [ ] M6.0-02 Define backend-neutral tensor, operation, and execution
+- [x] M6.0-02 Define backend-neutral tensor, operation, and execution
   contracts without leaking Qwen or storage policy into `clr-core`.
 - [ ] M6.0-03 Define a differential report that identifies the first divergent
   stage and records comparison tolerance.
@@ -517,6 +517,16 @@ records passed byte-size and SHA-256 validation in
 `python.reference.test_reference_f32_manifest`; the existing frozen F32 bundle
 and release-provenance tests also passed. No payload was copied, regenerated,
 or downloaded. The exact next task is `M6.0-02`.
+
+M6.0-02 is complete. `clr-core` now exposes metadata-only tensor, operation,
+budget, request, metrics, and result contracts. The contracts validate generic
+operation signatures, exact output metadata, and admitted host/device byte
+limits through `RuntimeError::BackendContractViolation`; they do not include
+model fields, payload ownership, files, cache policy, device APIs, threading,
+or quantization layouts. ADR 0047 records the boundary. `cargo fmt --all
+--check`, `cargo check --workspace`, `cargo test --workspace` (131 tests),
+`cargo clippy --workspace --all-targets -- -D warnings`, and `cargo run -p
+clr-cli` passed. The exact next task is `M6.0-03`.
 
 ### M6.1 - Hardware and model profiler
 
