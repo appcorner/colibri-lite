@@ -568,7 +568,7 @@ tests, and all standard commands. See `docs/reports/m6.0-review-remediation.md`.
   throughput with controlled cache-state semantics.
 - [x] M6.1-04 Detect usable RAM, available GPU backends, usable VRAM, and
   measured host/device transfer without assuming a GPU is present.
-- [ ] M6.1-05 Implement `doctor` and `profile-model` with machine-readable,
+- [x] M6.1-05 Implement `doctor` and `profile-model` with machine-readable,
   reproducible output and explicit confidence/limitations.
 
 - [ ] M6.1-06 Validate profile schema, invalid inputs, repeatability bounds,
@@ -613,6 +613,16 @@ all backend availability records are unavailable, usable VRAM and the VRAM
 recommendation are zero, and both transfer directions are explicit not_run.
 The machine-readable validator and its two failure-mode tests passed. See
 docs/reports/m6.1-04-memory-gpu-profile.md. The exact next task is M6.1-05.
+
+M6.1-05 is complete. clr-cli doctor composes explicit CPU/RAM, storage, and
+memory/GPU evidence paths into the versioned hardware-profile-v1 schema, while
+profile-model composes the pinned reference, quality, and release evidence into
+model-profile-v1. Both require explicit timestamp, runtime commit, and output
+path; no model payload is copied or downloaded. The recorded hardware profile
+has partial confidence and keeps all unavailable GPU/transfer budgets at zero.
+Both emitted profiles passed Draft 2020-12 schema validation. See
+docs/reports/m6.1-05-doctor-and-profile-model.md. The exact next task is
+M6.1-06.
 
 ### M6.2 - First placement planner
 

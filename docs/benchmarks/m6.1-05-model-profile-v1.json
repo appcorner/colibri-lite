@@ -1,0 +1,119 @@
+{
+  "artifact": {
+    "dense": {
+      "bytes": 6164520354,
+      "tensor_count": 435
+    },
+    "experts": {
+      "bytes": 115967247918,
+      "logical_expert_count": 6144,
+      "per_layer_payload_bytes": [
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104,
+        2415919104
+      ],
+      "shard_count": 48,
+      "tensor_count": 18432
+    },
+    "format": "colibri-lite-model",
+    "format_version": 1,
+    "root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "storage_dtype": "F32"
+  },
+  "created_at": "2026-07-30T12:45:00Z",
+  "execution": {
+    "estimated_bytes_per_routed_token": 7247757312,
+    "kv_cache": {
+      "bytes_per_token": 196608,
+      "context_lengths": [
+        128,
+        512,
+        2048,
+        8192
+      ]
+    },
+    "precision_candidates": [
+      {
+        "candidate_id": "reference-f32-v1",
+        "evidence": "reference-f32-v1 frozen manifest",
+        "status": "accepted_reference",
+        "weight_dtype": "F32"
+      }
+    ]
+  },
+  "limitations": [
+    "This profile describes the frozen F32 reference artifact only.",
+    "No quantized format or GPU backend is authorized by this profile.",
+    "Estimated routed-token bytes are logical expert payload demand before cache reuse."
+  ],
+  "model": {
+    "architecture": "Qwen3MoeForCausalLM",
+    "hidden_size": 2048,
+    "id": "Qwen/Qwen3-30B-A3B",
+    "layers": 48,
+    "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+    "routing": {
+      "expert_count": 128,
+      "experts_per_token": 8
+    },
+    "vocabulary_size": 151936
+  },
+  "profile_id": "qwen3-30b-a3b-f32-reference-v1",
+  "quality_reference": {
+    "bilingual_fixture_manifest_sha256": "c91a0d1f7d20c4fb54afc09cbcdc98348c08bebfb8ebd80f678a40e511580b82",
+    "manifest_sha256": "76f53fb7f18adb17b7ec380cb4ebcab4f6414cb0ff0a9ffed728379fc1aa113d",
+    "reference_id": "reference-f32-v1"
+  },
+  "runtime": {
+    "commit": "b452e5572d930fa0849974317b325cbfe6fd3d1f",
+    "name": "colibri-lite-rs",
+    "target": "x86_64-pc-windows-msvc"
+  },
+  "schema": "colibri-lite-model-profile-v1",
+  "schema_version": 1
+}

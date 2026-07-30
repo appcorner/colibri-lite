@@ -466,4 +466,50 @@ mod tests {
             Err("duplicate option --tokens".to_string())
         );
     }
+
+    #[test]
+    fn profile_commands_require_explicit_reproducibility_inputs() {
+        assert_eq!(
+            ProfileOptions::parse(
+                &arguments(&[
+                    "--cpu-ram",
+                    "cpu.json",
+                    "--storage",
+                    "storage.json",
+                    "--memory-gpu",
+                    "gpu.json",
+                    "--output",
+                    "doctor.json",
+                    "--created-at",
+                    "2026-07-30T00:00:00Z",
+                    "--runtime-commit",
+                    "abcdef0",
+                ]),
+                ProfileKind::Doctor,
+            ),
+            Err("missing required --rust-version".to_string())
+        );
+        assert_eq!(
+            ProfileOptions::parse(
+                &arguments(&[
+                    "--reference",
+                    "reference.json",
+                    "--quality",
+                    "quality.json",
+                    "--release",
+                    "release.json",
+                    "--output",
+                    "model.json",
+                    "--created-at",
+                    "2026-07-30T00:00:00Z",
+                    "--runtime-commit",
+                    "abcdef0",
+                    "--unknown",
+                    "value",
+                ]),
+                ProfileKind::Model,
+            ),
+            Err("unknown option --unknown".to_string())
+        );
+    }
 }

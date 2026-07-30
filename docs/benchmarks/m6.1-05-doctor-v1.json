@@ -1,0 +1,204 @@
+{
+  "created_at": "2026-07-30T12:45:00Z",
+  "host": {
+    "cpu": {
+      "logical_core_count": 8,
+      "model": "11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz"
+    },
+    "operating_system": {
+      "name": "Microsoft Windows 11 Enterprise",
+      "version": "10.0.26200"
+    },
+    "ram": {
+      "safe_budget_bytes": 17768787558,
+      "safety_reserve_bytes": 7687381402,
+      "total_bytes": 51249209344
+    }
+  },
+  "limitations": [
+    "Composed from the explicit M6.1-02, M6.1-03, and M6.1-04 evidence inputs.",
+    "Storage first-touch readings do not claim cold-device semantics; the schema exposes the likely-warm throughput distribution.",
+    "No colibri GPU backend is usable before M6.3 review, so VRAM and transfer budgets remain zero."
+  ],
+  "measurements": {
+    "backends": [
+      {
+        "availability": "unavailable",
+        "backend_id": "cuda",
+        "compute": {
+          "cache_state": "not_applicable",
+          "payload_bytes": 0,
+          "reason": "No usable colibri backend in M6.1.",
+          "repetitions": 0,
+          "status": "not_run",
+          "unit": "GFLOP/s"
+        },
+        "device_name": "",
+        "device_to_host": {
+          "cache_state": "not_applicable",
+          "payload_bytes": 0,
+          "reason": "No usable colibri CUDA backend was detected; transfer measurement is not meaningful.",
+          "repetitions": 0,
+          "status": "not_run",
+          "unit": "GiB/s"
+        },
+        "host_to_device": {
+          "cache_state": "not_applicable",
+          "payload_bytes": 0,
+          "reason": "No usable colibri CUDA backend was detected; transfer measurement is not meaningful.",
+          "repetitions": 0,
+          "status": "not_run",
+          "unit": "GiB/s"
+        },
+        "vram": {
+          "safe_budget_bytes": 0,
+          "total_bytes": 0
+        }
+      },
+      {
+        "availability": "unavailable",
+        "backend_id": "directml",
+        "compute": {
+          "cache_state": "not_applicable",
+          "payload_bytes": 0,
+          "reason": "No usable colibri backend in M6.1.",
+          "repetitions": 0,
+          "status": "not_run",
+          "unit": "GFLOP/s"
+        },
+        "device_name": "",
+        "device_to_host": {
+          "cache_state": "not_applicable",
+          "payload_bytes": 0,
+          "reason": "No usable colibri DirectML backend was detected; transfer measurement is not meaningful.",
+          "repetitions": 0,
+          "status": "not_run",
+          "unit": "GiB/s"
+        },
+        "host_to_device": {
+          "cache_state": "not_applicable",
+          "payload_bytes": 0,
+          "reason": "No usable colibri DirectML backend was detected; transfer measurement is not meaningful.",
+          "repetitions": 0,
+          "status": "not_run",
+          "unit": "GiB/s"
+        },
+        "vram": {
+          "safe_budget_bytes": 0,
+          "total_bytes": 0
+        }
+      },
+      {
+        "availability": "unavailable",
+        "backend_id": "vulkan",
+        "compute": {
+          "cache_state": "not_applicable",
+          "payload_bytes": 0,
+          "reason": "No usable colibri backend in M6.1.",
+          "repetitions": 0,
+          "status": "not_run",
+          "unit": "GFLOP/s"
+        },
+        "device_name": "",
+        "device_to_host": {
+          "cache_state": "not_applicable",
+          "payload_bytes": 0,
+          "reason": "No usable colibri Vulkan backend was detected; transfer measurement is not meaningful.",
+          "repetitions": 0,
+          "status": "not_run",
+          "unit": "GiB/s"
+        },
+        "host_to_device": {
+          "cache_state": "not_applicable",
+          "payload_bytes": 0,
+          "reason": "No usable colibri Vulkan backend was detected; transfer measurement is not meaningful.",
+          "repetitions": 0,
+          "status": "not_run",
+          "unit": "GiB/s"
+        },
+        "vram": {
+          "safe_budget_bytes": 0,
+          "total_bytes": 0
+        }
+      }
+    ],
+    "cpu_kernels": [
+      {
+        "benchmark": {
+          "cache_state": "not_applicable",
+          "distribution": {
+            "median": 1.8614,
+            "p10": 1.605836,
+            "p90": 2.102899,
+            "sample_count": 9
+          },
+          "payload_bytes": 16777216,
+          "repetitions": 9,
+          "status": "measured",
+          "unit": "GFLOP/s"
+        },
+        "kernel_id": "safe_f32_matrix_vector"
+      }
+    ],
+    "ram_bandwidth": {
+      "cache_state": "not_applicable",
+      "distribution": {
+        "median": 65.581081,
+        "p10": 63.398676,
+        "p90": 70.273081,
+        "sample_count": 9
+      },
+      "payload_bytes": 134217728,
+      "repetitions": 9,
+      "status": "measured",
+      "unit": "GiB/s"
+    },
+    "storage": [
+      {
+        "expert_sized_random_read": {
+          "cache_state": "unknown",
+          "distribution": {
+            "median": 3758.06417938493,
+            "p10": 3221.3612040732323,
+            "p90": 4666.355576294914,
+            "sample_count": 56
+          },
+          "payload_bytes": 18874368,
+          "repetitions": 56,
+          "status": "measured",
+          "unit": "MiB/s"
+        },
+        "path": "D:\\",
+        "sequential_read": {
+          "cache_state": "warm",
+          "distribution": {
+            "median": 2.984856713232706,
+            "p10": 2.288585818451762,
+            "p90": 3.1851497841459384,
+            "sample_count": 9
+          },
+          "payload_bytes": 1056964608,
+          "repetitions": 9,
+          "status": "measured",
+          "unit": "GiB/s"
+        },
+        "target_id": "m6.1-03-primary"
+      }
+    ]
+  },
+  "profile_id": "windows-x64-anusorn-nb-m6.1-04-doctor",
+  "recommendations": {
+    "confidence": "partial",
+    "ram_budget_bytes": 17768787558,
+    "vram_budget_bytes": 0
+  },
+  "runtime": {
+    "build_profile": "release",
+    "commit": "b452e5572d930fa0849974317b325cbfe6fd3d1f",
+    "name": "colibri-lite-rs",
+    "rust_version": "1.96.1",
+    "target": "x86_64-pc-windows-msvc"
+  },
+  "schema": "colibri-lite-hardware-profile-v1",
+  "schema_version": 1
+}
