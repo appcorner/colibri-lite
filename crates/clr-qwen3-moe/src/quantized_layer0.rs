@@ -4,7 +4,12 @@
 //! value and its F32 group scale inside the accumulation loop. Router and
 //! block integration remain on the frozen F32 path until later M6.3 tasks.
 
-use clr_core::RuntimeError;
+use clr_core::{RuntimeError, Tensor, TensorView};
+
+use crate::{
+    Qwen3MoeConfig,
+    block::{RouterOutput, combine_routed_experts},
+};
 
 const INPUT_GROUP_SIZE: usize = 128;
 
@@ -150,6 +155,39 @@ impl<'a> Layer0QuantizedExpert<'a> {
     }
 }
 
+/// Combines Layer-0 direct-consumption experts using a router produced by the
+/// unchanged F32 pre-router path.
+pub(crate) fn routed_layer0_quantized_experts(
+    hidden_states: TensorView<'_>,
+    router: &RouterOutput,
+    config: Qwen3MoeConfig,
+    experts: &[Layer0QuantizedExpert<'_>],
+) -> Result<Tensor, RuntimeError> {
+    if experts.len() != config.expert_count() {
+        return Err(contract_error(
+            "Layer-0 group-128 routed experts",
+            "quantized expert count must match the F32 router configuration",
+        ));
+    }
+    combine_routed_experts(hidden_states, router, config, |expert_id, occurrences| {
+        let expert = experts.get(expert_id).ok_or_else(|| {
+            contract_error(
+                "Layer-0 group-128 routed experts",
+                "F32 router selected an expert outside the quantized layer",
+            )
+        })?;
+        occurrences
+            .iter()
+            .map(|(token_index, _)| {
+                let hidden_size = config.model().hidden_size();
+                let input = &hidden_states.data()
+                    [token_index * hidden_size..(token_index + 1) * hidden_size];
+                expert.evaluate(input).map(|output| output.down_projection)
+            })
+            .collect()
+    })
+}
+
 /// Checkpoints and direct-consumption evidence from one expert evaluation.
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct DirectQuantizedExpertOutput {
@@ -173,7 +211,13 @@ fn contract_error(context: &'static str, reason: &'static str) -> RuntimeError {
 
 #[cfg(test)]
 mod tests {
-    use super::{Group128Projection, Layer0QuantizedExpert};
+    use clr_core::{DataType, ModelConfig, ModelConfigSpec, Tensor, TensorShape};
+
+    use super::{Group128Projection, Layer0QuantizedExpert, routed_layer0_quantized_experts};
+    use crate::{
+        Qwen3MoeConfig, Qwen3MoeConfigSpec,
+        block::{RouterOutput, routed_experts},
+    };
 
     fn projection_values(rows: usize, columns: usize) -> Vec<i8> {
         (0..rows * columns)
@@ -192,6 +236,42 @@ mod tests {
                                 * scales[row * (input.len() / 128) + group])
                     })
                     .sum()
+            })
+            .collect()
+    }
+
+    fn config() -> Qwen3MoeConfig {
+        let model = ModelConfig::new(ModelConfigSpec {
+            vocabulary_size: 16,
+            hidden_size: 128,
+            layer_count: 1,
+            attention_head_count: 1,
+            key_value_head_count: 1,
+            head_dimension: 128,
+            intermediate_size: 128,
+            max_sequence_length: 4,
+            data_type: DataType::F32,
+        })
+        .expect("valid generic config");
+        Qwen3MoeConfig::new(Qwen3MoeConfigSpec {
+            model,
+            rms_norm_epsilon: 1e-6,
+            rope_theta: 10_000.0,
+            expert_count: 2,
+            experts_per_token: 1,
+            moe_intermediate_size: 128,
+            normalize_topk_probabilities: true,
+        })
+        .expect("valid Qwen config")
+    }
+
+    fn dequantized(values: &[i8], scales: &[f32], rows: usize, columns: usize) -> Vec<f32> {
+        (0..rows)
+            .flat_map(|row| {
+                (0..columns).map(move |column| {
+                    f32::from(values[row * columns + column])
+                        * scales[row * (columns / 128) + column / 128]
+                })
             })
             .collect()
     }
@@ -245,5 +325,70 @@ mod tests {
 
         let projection = Group128Projection::new(&[0; 128], &[1.0], 1, 128).expect("projection");
         assert!(projection.apply(&[f32::INFINITY; 128]).is_err());
+    }
+
+    #[test]
+    fn routed_candidate_reuses_f32_router_and_keeps_f32_reference_executable() {
+        let config = config();
+        let input = Tensor::new(TensorShape::new([1, 128]), vec![0.5; 128]).expect("input");
+        let router = RouterOutput {
+            logits: Tensor::new(TensorShape::new([1, 2]), vec![0.25, 0.75]).expect("router logits"),
+            weights: Tensor::new(TensorShape::new([1, 1]), vec![0.75]).expect("routing weight"),
+            selected_experts: vec![1],
+        };
+        let gate_zero = projection_values(128, 128);
+        let up_zero = projection_values(128, 128);
+        let down_zero = projection_values(128, 128);
+        let gate_one = projection_values(128, 128);
+        let up_one = projection_values(128, 128);
+        let down_one = projection_values(128, 128);
+        let scales_zero = vec![0.125; 128];
+        let scales_one = vec![0.25; 128];
+        let experts = [
+            Layer0QuantizedExpert::new(
+                Group128Projection::new(&gate_zero, &scales_zero, 128, 128).expect("gate zero"),
+                Group128Projection::new(&up_zero, &scales_zero, 128, 128).expect("up zero"),
+                Group128Projection::new(&down_zero, &scales_zero, 128, 128).expect("down zero"),
+            )
+            .expect("expert zero"),
+            Layer0QuantizedExpert::new(
+                Group128Projection::new(&gate_one, &scales_one, 128, 128).expect("gate one"),
+                Group128Projection::new(&up_one, &scales_one, 128, 128).expect("up one"),
+                Group128Projection::new(&down_one, &scales_one, 128, 128).expect("down one"),
+            )
+            .expect("expert one"),
+        ];
+
+        let candidate = routed_layer0_quantized_experts(input.view(), &router, config, &experts)
+            .expect("candidate routed experts");
+        let gate_up = [
+            dequantized(&gate_zero, &scales_zero, 128, 128),
+            dequantized(&up_zero, &scales_zero, 128, 128),
+            dequantized(&gate_one, &scales_one, 128, 128),
+            dequantized(&up_one, &scales_one, 128, 128),
+        ]
+        .concat();
+        let down = [
+            dequantized(&down_zero, &scales_zero, 128, 128),
+            dequantized(&down_one, &scales_one, 128, 128),
+        ]
+        .concat();
+        let reference = routed_experts(
+            input.view(),
+            Tensor::new(TensorShape::new([2, 256, 128]), gate_up)
+                .expect("F32 gate/up")
+                .view(),
+            Tensor::new(TensorShape::new([2, 128, 128]), down)
+                .expect("F32 down")
+                .view(),
+            &router,
+            config,
+        )
+        .expect("F32 routed experts");
+
+        assert_eq!(router.selected_experts, [1]);
+        assert_eq!(router.weights.data(), [0.75]);
+        assert_eq!(router.logits.data(), [0.25, 0.75]);
+        assert_eq!(candidate, reference);
     }
 }
