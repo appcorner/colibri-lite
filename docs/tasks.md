@@ -692,6 +692,33 @@ throughput has no material end-to-end benefit, and physical per-process I/O and
 working-set peak evidence are missing. M6.4 is blocked and must not start. See
 `docs/reports/m6.3-06-stop-go-review.md` and ADR 0057.
 
+### M6.3-R1 - Measurable re-entry and candidate admission
+
+Status: approved re-entry plan; no task below is complete until its evidence
+passes. The stopped M6.3 group-128 candidate remains stopped and cannot be
+reused as the default candidate.
+
+- [ ] M6.3-R1.0 Implement and validate a release-process telemetry harness for
+  working set/private bytes, logical reads, process-correlated physical I/O,
+  cache-state labels, and collector failure states using the unchanged
+  `reference-f32-v1` path.
+- [ ] M6.3-R1.1 Run a deterministic candidate-admission study; select exactly
+  one Qwen3 expert layout or record `no_candidate_admitted`, with pre-registered
+  numerical gates, provenance, hashes, and direct-consumption proof.
+- [ ] M6.3-R1.2 Compare the admitted candidate with `reference-f32-v1` using
+  stage-level errors, exact safe-margin router IDs, deterministic English/Thai
+  quality fixtures, fixed top-20/greedy/multi-token outputs, and repeatability.
+- [ ] M6.3-R1.3 Run five paired release-process F32/candidate measurements for
+  each declared runtime-cache condition; record TTFT, throughput, working set,
+  private bytes, logical and physical I/O, bytes/token, and cache metrics.
+- [ ] M6.3-R1.4 Hold a re-entry review. Reject the candidate when a numerical,
+  telemetry, working-set, or physical-I/O gate fails. An admitted Layer-0 slice
+  is not authorization to begin M6.4; review the all-layer plan separately.
+
+The complete re-entry protocol is
+`docs/reports/m6.3-r1-reentry-proposal.md`. The exact next task is
+`M6.3-R1.0`.
+
 ## Standard verification commands
 
 Run before closing every milestone:

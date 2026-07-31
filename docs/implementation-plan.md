@@ -557,11 +557,48 @@ Stop condition: do not extend to 48 layers unless the slice directly consumes
 quantized weights, has repeatable material end-to-end benefit, and passes the
 defined correctness/quality gates without hidden full-expert F32 expansion.
 
+Status: the original group-128 INT8 candidate stopped at the M6.3-06 NO-GO
+review. Its result remains authoritative; it must not be reopened or promoted.
+The reviewed re-entry work is defined separately in M6.3-R1 below.
+
+#### M6.3-R1 - Measurable re-entry and candidate admission
+
+Before creating another quantized candidate, validate a release-process
+measurement harness on `reference-f32-v1`. It must record process working-set
+and private-byte peaks, logical artifact reads, and process-correlated physical
+storage evidence with explicit filesystem-cache semantics. Unavailable physical
+I/O remains `not_measured`, never zero.
+
+Only after that telemetry gate passes may a deterministic study select exactly
+one candidate layout. The candidate must directly consume packed values and
+scales without whole-expert F32 expansion, preserve F32 router/norm/routing
+weight/residual/activation/accumulation paths, and use a candidate-specific
+numerical admission envelope proposed before final fixture execution. It must
+pass exact safe-margin router checks, bilingual deterministic fixtures,
+stage-level first-divergence comparison, fixed top-20/greedy/multi-token
+agreement, and repeated execution.
+
+The selected candidate must then run in paired F32/candidate release processes
+with working-set, private-byte, logical-I/O, physical-I/O, cache, TTFT, and
+throughput evidence. A missing telemetry collector invalidates the condition.
+This re-entry may establish only a Layer-0 slice result; it must not extrapolate
+payload reduction or local speed into a full-model benefit.
+
+Exit condition: a separately reviewed record either rejects all layouts or
+admits one measured Layer-0 candidate. The existing M6.3 full-runtime-benefit
+condition remains in force. Therefore an admitted slice alone does not open
+M6.4; doing so requires an explicit all-layer plan review. The detailed
+protocol is `docs/reports/m6.3-r1-reentry-proposal.md`.
+
 #### M6.4 - Full hardware-aware runtime
 
-Only after M6.3 passes, extend the validated plan to all 48 layers with tiered
-placement, reserved per-layer capacity, a global hot-expert pool, bounded
-prefetch/overlap where measured, runtime telemetry, and plan re-evaluation.
+Only after M6.3-R1 admits a candidate *and* a dedicated all-layer plan review
+authorizes implementation, extend the validated plan to all 48 layers with
+tiered placement, reserved per-layer capacity, a global hot-expert pool,
+bounded positional reads and hit-first overlap where measured, runtime
+telemetry, and plan re-evaluation. The all-layer runtime must independently
+prove material end-to-end benefit within its quality, working-set, and physical
+I/O budgets; no slice result is a substitute.
 
 #### M6.5 - Product surface
 
