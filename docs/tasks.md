@@ -639,7 +639,7 @@ again. See docs/reports/m6.1-review-remediation.md.
 
 ### M6.2 - First placement planner
 
-- [ ] M6.2-01 Define planner input, candidate-plan, estimate, and rejection
+- [x] M6.2-01 Define planner input, candidate-plan, estimate, and rejection
   contracts.
 - [ ] M6.2-02 Implement analytical cost-model calculations from profile data;
   no hard-coded machine performance values.

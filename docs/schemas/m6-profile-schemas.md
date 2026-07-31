@@ -14,3 +14,7 @@ Hardware profile byte recommendations are advisory safe budgets; runtime plan
 admission remains responsible for enforcing user-selected RAM/VRAM budgets.
 Model profiles describe pinned artifact facts and possible precision inventory;
 they do not authorize a quantized format or backend implementation.
+
+M6.2 planner requests and results are defined separately in
+`planner-contract-v1.schema.json`. They cite these immutable profile IDs and
+document hashes, then carry only explicit workload and budget inputs.
