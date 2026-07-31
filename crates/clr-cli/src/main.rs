@@ -1,4 +1,8 @@
-use clr_core::runtime_info;
+use clr_core::{
+    AnalyticalCostModel, BudgetAdmission, CandidateResourceRequirements, MeasuredRate,
+    PlacementCapabilities, PlacementTier, PlannerBudgets, PlannerRejectionCode, PlannerWorkload,
+    ProfileMeasurementStatus, TokenWork, admit_candidate, runtime_info,
+};
 use clr_qwen3_moe::{GenerationSession, frozen_tiny_model};
 use serde_json::{Value, json};
 use std::path::Path;
@@ -34,7 +38,87 @@ fn execute(arguments: &[String]) -> Result<String, String> {
         "profile-model" => {
             compose_model_profile(&ProfileOptions::parse(&arguments[1..], ProfileKind::Model)?)
         }
+        "plan" => plan(&PlanOptions::parse(&arguments[1..])?),
         _ => Err(format!("unknown command '{}'", arguments[0])),
+    }
+}
+
+#[derive(Debug, PartialEq)]
+struct PlanOptions {
+    hardware_profile: String,
+    model_profile: String,
+    ram_budget_bytes: u64,
+    vram_budget_bytes: u64,
+    context_tokens: u64,
+    prefill_tokens: u64,
+    decode_tokens: u64,
+    compute_gflop_per_token: f64,
+    request_id: String,
+    result_id: String,
+    output: String,
+}
+
+impl PlanOptions {
+    fn parse(arguments: &[String]) -> Result<Self, String> {
+        let mut values = std::collections::BTreeMap::new();
+        let mut index = 0;
+        while index < arguments.len() {
+            let flag = &arguments[index];
+            let value = arguments
+                .get(index + 1)
+                .ok_or_else(|| format!("missing value for {flag}"))?;
+            if values.insert(flag.clone(), value.clone()).is_some() {
+                return Err(format!("duplicate option {flag}"));
+            }
+            index += 2;
+        }
+        let required = |flag: &str| {
+            values
+                .get(flag)
+                .cloned()
+                .ok_or_else(|| format!("missing required {flag}"))
+        };
+        let allowed = [
+            "--hardware-profile",
+            "--model-profile",
+            "--ram-budget-bytes",
+            "--vram-budget-bytes",
+            "--context-tokens",
+            "--prefill-tokens",
+            "--decode-tokens",
+            "--compute-gflop-per-token",
+            "--request-id",
+            "--result-id",
+            "--output",
+        ];
+        if let Some(flag) = values.keys().find(|flag| !allowed.contains(&flag.as_str())) {
+            return Err(format!("unknown option {flag}"));
+        }
+        let compute_gflop_per_token: f64 = parse_value(
+            &required("--compute-gflop-per-token")?,
+            "--compute-gflop-per-token",
+        )?;
+        if !compute_gflop_per_token.is_finite() || compute_gflop_per_token <= 0.0 {
+            return Err(
+                "--compute-gflop-per-token must be finite and greater than zero".to_string(),
+            );
+        }
+        Ok(Self {
+            hardware_profile: required("--hardware-profile")?,
+            model_profile: required("--model-profile")?,
+            ram_budget_bytes: parse_value(&required("--ram-budget-bytes")?, "--ram-budget-bytes")?,
+            vram_budget_bytes: parse_value(
+                &required("--vram-budget-bytes")?,
+                "--vram-budget-bytes",
+            )?,
+            context_tokens: parse_value(&required("--context-tokens")?, "--context-tokens")?,
+            prefill_tokens: parse_value(&required("--prefill-tokens")?, "--prefill-tokens")?,
+            decode_tokens: parse_value(&required("--decode-tokens")?, "--decode-tokens")?,
+            compute_gflop_per_token,
+            request_id: required("--request-id")?,
+            result_id: required("--result-id")?,
+            output: required("--output")?,
+        })
     }
 }
 
@@ -318,6 +402,264 @@ fn compose_model_profile(options: &ProfileOptions) -> Result<String, String> {
     Ok(format!("wrote {}", options.output))
 }
 
+fn plan(options: &PlanOptions) -> Result<String, String> {
+    let hardware = read_json(&options.hardware_profile)?;
+    let model = read_json(&options.model_profile)?;
+    let hardware_hash = file_sha256(&options.hardware_profile)?;
+    let model_hash = file_sha256(&options.model_profile)?;
+    let document = plan_document(options, &hardware, &model, &hardware_hash, &model_hash)?;
+    write_json(&options.output, &document)?;
+    Ok(format!("wrote {}", options.output))
+}
+
+#[allow(clippy::too_many_lines)] // Keeps profile validation and emitted provenance at one CLI boundary.
+fn plan_document(
+    options: &PlanOptions,
+    hardware: &Value,
+    model: &Value,
+    hardware_hash: &str,
+    model_hash: &str,
+) -> Result<Value, String> {
+    require_schema(hardware, "colibri-lite-hardware-profile-v1")?;
+    require_schema(model, "colibri-lite-model-profile-v1")?;
+    let hardware_profile_id = string(hardware, "/profile_id")?;
+    let model_profile_id = string(model, "/profile_id")?;
+    let cpu_benchmark = value(hardware, "/measurements/cpu_kernels/0/benchmark")?;
+    let ram_benchmark = value(hardware, "/measurements/ram_bandwidth")?;
+    let storage_benchmark = value(hardware, "/measurements/storage/0/expert_sized_random_read")?;
+    let compute = measured_rate(cpu_benchmark, "measurements.cpu_kernels[0].benchmark")?;
+    let ram = measured_rate(ram_benchmark, "measurements.ram_bandwidth")?;
+    let storage = measured_rate(
+        storage_benchmark,
+        "measurements.storage[0].expert_sized_random_read",
+    )?;
+    let capabilities = PlacementCapabilities::new(
+        "cpu",
+        profile_status(cpu_benchmark)?,
+        ProfileMeasurementStatus::Unavailable,
+        profile_status(ram_benchmark)?,
+        ProfileMeasurementStatus::Unavailable,
+        profile_status(storage_benchmark)?,
+        ProfileMeasurementStatus::NotRun,
+    )
+    .map_err(|error| error.to_string())?;
+    let cost_model = AnalyticalCostModel::new(compute, ram, storage);
+    let workload = PlannerWorkload::new(options.prefill_tokens, options.decode_tokens)
+        .map_err(|error| error.to_string())?;
+    let budgets = PlannerBudgets::new(
+        options.ram_budget_bytes,
+        options.vram_budget_bytes,
+        options.context_tokens,
+    );
+    let dense_bytes = number(model, "/artifact/dense/bytes")?;
+    let expert_bytes = number(model, "/artifact/experts/bytes")?;
+    let kv_bytes_per_token = number(model, "/execution/kv_cache/bytes_per_token")?;
+    let routed_bytes_per_token = number(model, "/execution/estimated_bytes_per_routed_token")?;
+    let max_context_tokens = value(model, "/execution/kv_cache/context_lengths")?
+        .as_array()
+        .ok_or_else(|| "/execution/kv_cache/context_lengths must be an array".to_string())?
+        .iter()
+        .filter_map(Value::as_u64)
+        .max()
+        .ok_or_else(|| {
+            "/execution/kv_cache/context_lengths must contain a token length".to_string()
+        })?;
+    let precision_candidate_id = accepted_reference_precision(model)?;
+    let quality_reference = string(model, "/quality_reference/reference_id")?;
+    let kv_bytes = kv_bytes_per_token
+        .checked_mul(options.context_tokens)
+        .ok_or_else(|| "KV-cache byte requirement overflowed".to_string())?;
+    let resident_base_bytes = dense_bytes
+        .checked_add(kv_bytes)
+        .ok_or_else(|| "resident RAM requirement overflowed".to_string())?;
+    let request = json!({
+        "schema": "colibri-lite-planner-request-v1",
+        "schema_version": 1,
+        "request_id": options.request_id,
+        "hardware_profile": {"profile_id": hardware_profile_id, "document_sha256": hardware_hash},
+        "model_profile": {"profile_id": model_profile_id, "document_sha256": model_hash},
+        "workload": {"workload_id": "explicit-cli-workload-v1", "prefill_tokens": options.prefill_tokens, "decode_tokens": options.decode_tokens, "context_tokens": options.context_tokens},
+        "budgets": {"ram_budget_bytes": options.ram_budget_bytes, "vram_budget_bytes": options.vram_budget_bytes}
+    });
+    let mut feasible = Vec::new();
+    let mut rejections = Vec::new();
+    for candidate in capabilities.enumerate_supported() {
+        let experts_in_ram = candidate.expert_location() == PlacementTier::Ram;
+        let expert_cache_bytes = if experts_in_ram { expert_bytes } else { 0 };
+        let ram_bytes = resident_base_bytes
+            .checked_add(expert_cache_bytes)
+            .ok_or_else(|| "candidate RAM requirement overflowed".to_string())?;
+        let disk_bytes_per_token = if candidate.expert_location() == PlacementTier::Ssd {
+            routed_bytes_per_token
+        } else {
+            0
+        };
+        let startup_storage_bytes = dense_bytes
+            .checked_add(expert_cache_bytes)
+            .ok_or_else(|| "candidate startup storage requirement overflowed".to_string())?;
+        let work = TokenWork::new(
+            options.compute_gflop_per_token,
+            routed_bytes_per_token,
+            disk_bytes_per_token,
+        )
+        .map_err(|error| error.to_string())?;
+        let estimate = cost_model
+            .estimate(workload, work, work, startup_storage_bytes)
+            .map_err(|error| error.to_string())?;
+        let requirements = CandidateResourceRequirements::new(ram_bytes, 0, max_context_tokens);
+        match admit_candidate(&candidate, requirements, budgets) {
+            BudgetAdmission::Admitted => feasible.push(json!({
+                "plan_id": candidate.plan_id(),
+                "placement": {"backend_id": candidate.backend_id(), "dense_location": tier_name(candidate.dense_location()), "expert_location": tier_name(candidate.expert_location())},
+                "precision_candidate_id": precision_candidate_id,
+                "resources": {"ram_bytes": ram_bytes, "vram_bytes": 0, "expert_cache_bytes": expert_cache_bytes, "max_context_tokens": max_context_tokens, "disk_bytes_per_token": disk_bytes_per_token, "startup_seconds": estimate.startup_seconds()},
+                "estimate": {"status": "available", "method": "analytical-v1", "confidence": "measured_inputs", "prefill_tokens_per_second": 1.0 / estimate.prefill_per_token().total_seconds(), "decode_tokens_per_second": estimate.decode_tokens_per_second(), "measurement_references": [
+                    {"profile_kind": "hardware", "profile_id": hardware_profile_id, "document_sha256": hardware_hash, "measurement_id": "measurements.cpu_kernels[0].benchmark"},
+                    {"profile_kind": "hardware", "profile_id": hardware_profile_id, "document_sha256": hardware_hash, "measurement_id": "measurements.ram_bandwidth"},
+                    {"profile_kind": "hardware", "profile_id": hardware_profile_id, "document_sha256": hardware_hash, "measurement_id": "measurements.storage[0].expert_sized_random_read"}
+                ]},
+                "quality_risk": {"level": "none", "reference_id": quality_reference, "evidence": "accepted_reference precision candidate"}
+            })),
+            BudgetAdmission::Rejected(items) => {
+                rejections.extend(items.iter().map(rejection_value));
+            }
+        }
+    }
+    rank_candidate_plans(&mut feasible)?;
+    let ranking: Vec<Value> = feasible
+        .iter()
+        .map(|candidate| value(candidate, "/plan_id").cloned())
+        .collect::<Result<_, _>>()?;
+    Ok(json!({
+        "schema": "colibri-lite-planner-result-v1",
+        "schema_version": 1,
+        "result_id": options.result_id,
+        "request": request,
+        "candidate_plans": feasible,
+        "rejections": rejections,
+        "ranking": ranking
+    }))
+}
+
+fn require_schema(document: &Value, expected: &str) -> Result<(), String> {
+    if string(document, "/schema")? != expected || number(document, "/schema_version")? != 1 {
+        return Err(format!("expected {expected} schema version 1"));
+    }
+    Ok(())
+}
+
+fn profile_status(benchmark: &Value) -> Result<ProfileMeasurementStatus, String> {
+    match string(benchmark, "/status")? {
+        "measured" => Ok(ProfileMeasurementStatus::Measured),
+        "unavailable" => Ok(ProfileMeasurementStatus::Unavailable),
+        "not_run" => Ok(ProfileMeasurementStatus::NotRun),
+        status => Err(format!("unsupported profile measurement status '{status}'")),
+    }
+}
+
+fn measured_rate(benchmark: &Value, measurement_id: &str) -> Result<MeasuredRate, String> {
+    if profile_status(benchmark)? != ProfileMeasurementStatus::Measured {
+        return Err(format!("{measurement_id} is not measured"));
+    }
+    let median = decimal_number(benchmark, "/distribution/median")?;
+    MeasuredRate::new(median, measurement_id).map_err(|error| error.to_string())
+}
+
+fn accepted_reference_precision(model: &Value) -> Result<&str, String> {
+    value(model, "/execution/precision_candidates")?
+        .as_array()
+        .and_then(|candidates| {
+            candidates.iter().find_map(|candidate| {
+                (candidate.pointer("/status").and_then(Value::as_str) == Some("accepted_reference"))
+                    .then(|| candidate.pointer("/candidate_id").and_then(Value::as_str))
+                    .flatten()
+            })
+        })
+        .ok_or_else(|| "missing accepted reference precision candidate".to_string())
+}
+
+fn tier_name(tier: PlacementTier) -> &'static str {
+    match tier {
+        PlacementTier::Ram => "ram",
+        PlacementTier::Vram => "vram",
+        PlacementTier::Ssd => "ssd",
+    }
+}
+
+fn rejection_value(rejection: &clr_core::PlannerRejection) -> Value {
+    let (code, reason, unit) = match rejection.code() {
+        PlannerRejectionCode::RamBudgetExceeded => (
+            "ram_budget_exceeded",
+            "required RAM exceeds the requested RAM budget",
+            "bytes",
+        ),
+        PlannerRejectionCode::VramBudgetExceeded => (
+            "vram_budget_exceeded",
+            "required VRAM exceeds the requested VRAM budget",
+            "bytes",
+        ),
+        PlannerRejectionCode::ContextLimitExceeded => (
+            "context_limit_exceeded",
+            "requested context exceeds candidate capacity",
+            "tokens",
+        ),
+    };
+    json!({"plan_id": rejection.plan_id(), "code": code, "reason": reason, "required": rejection.required(), "limit": rejection.limit(), "unit": unit})
+}
+
+fn rank_candidate_plans(candidates: &mut [Value]) -> Result<(), String> {
+    for candidate in &*candidates {
+        let _ = decimal_number(candidate, "/estimate/decode_tokens_per_second")?;
+        let _ = decimal_number(candidate, "/resources/startup_seconds")?;
+        let _ = string(candidate, "/plan_id")?;
+        match candidate
+            .pointer("/quality_risk/level")
+            .and_then(Value::as_str)
+        {
+            Some("none" | "unvalidated" | "known_degradation") => {}
+            _ => return Err("candidate plan has an invalid quality risk level".to_string()),
+        }
+    }
+    candidates.sort_by(|left, right| {
+        let left_decode = decimal_number(left, "/estimate/decode_tokens_per_second")
+            .expect("ranking candidates are validated before sorting");
+        let right_decode = decimal_number(right, "/estimate/decode_tokens_per_second")
+            .expect("ranking candidates are validated before sorting");
+        right_decode
+            .total_cmp(&left_decode)
+            .then_with(|| quality_risk_rank(left).cmp(&quality_risk_rank(right)))
+            .then_with(|| {
+                decimal_number(left, "/resources/startup_seconds")
+                    .expect("ranking candidates are validated before sorting")
+                    .total_cmp(
+                        &decimal_number(right, "/resources/startup_seconds")
+                            .expect("ranking candidates are validated before sorting"),
+                    )
+            })
+            .then_with(|| {
+                string(left, "/plan_id")
+                    .expect("ranking candidates are validated before sorting")
+                    .cmp(
+                        string(right, "/plan_id")
+                            .expect("ranking candidates are validated before sorting"),
+                    )
+            })
+    });
+    Ok(())
+}
+
+fn quality_risk_rank(candidate: &Value) -> u8 {
+    match candidate
+        .pointer("/quality_risk/level")
+        .and_then(Value::as_str)
+    {
+        Some("none") => 0,
+        Some("unvalidated") => 1,
+        Some("known_degradation") => 2,
+        _ => u8::MAX,
+    }
+}
+
 fn read_json(path: &str) -> Result<Value, String> {
     let source =
         std::fs::read_to_string(path).map_err(|error| format!("failed to read {path}: {error}"))?;
@@ -348,6 +690,15 @@ fn number(root: &Value, pointer: &str) -> Result<u64, String> {
     value(root, pointer)?
         .as_u64()
         .ok_or_else(|| format!("{pointer} must be an unsigned integer"))
+}
+fn decimal_number(root: &Value, pointer: &str) -> Result<f64, String> {
+    let number = value(root, pointer)?
+        .as_f64()
+        .ok_or_else(|| format!("{pointer} must be a finite number"))?;
+    if !number.is_finite() {
+        return Err(format!("{pointer} must be a finite number"));
+    }
+    Ok(number)
 }
 fn distribution(root: &Value, pointer: &str) -> Result<Value, String> {
     let source = value(root, pointer)?;
@@ -535,5 +886,149 @@ mod tests {
         std::fs::rename(&output, &renamed_output).expect("output handle released");
 
         std::fs::remove_dir_all(&directory).expect("temporary directory cleanup");
+    }
+
+    #[test]
+    fn plan_is_reproducible_and_ranks_the_feasible_ssd_candidate() {
+        let (hardware, model) = planner_profiles();
+        let options = planner_options(planner_base_ram_bytes(&model));
+        let hardware_hash = "a".repeat(64);
+        let model_hash = "b".repeat(64);
+
+        let first = plan_document(&options, &hardware, &model, &hardware_hash, &model_hash)
+            .expect("first plan");
+        let second = plan_document(&options, &hardware, &model, &hardware_hash, &model_hash)
+            .expect("second plan");
+        assert_eq!(first, second);
+        assert_eq!(
+            first.pointer("/ranking/0").and_then(Value::as_str),
+            Some("backend:cpu/dense:ram/experts:ssd")
+        );
+        assert_eq!(
+            first
+                .pointer("/candidate_plans/0/estimate/method")
+                .and_then(Value::as_str),
+            Some("analytical-v1")
+        );
+        assert_eq!(
+            first
+                .pointer("/request/hardware_profile/document_sha256")
+                .and_then(Value::as_str),
+            Some(hardware_hash.as_str())
+        );
+    }
+
+    #[test]
+    fn plan_admits_exact_ram_boundary_and_explains_one_byte_shortfall() {
+        let (hardware, model) = planner_profiles();
+        let exact_ram = planner_base_ram_bytes(&model);
+        let exact = plan_document(
+            &planner_options(exact_ram),
+            &hardware,
+            &model,
+            &"a".repeat(64),
+            &"b".repeat(64),
+        )
+        .expect("exact boundary plan");
+        assert_eq!(
+            exact
+                .pointer("/ranking")
+                .and_then(Value::as_array)
+                .map(Vec::len),
+            Some(1)
+        );
+
+        let one_byte_short = plan_document(
+            &planner_options(exact_ram - 1),
+            &hardware,
+            &model,
+            &"a".repeat(64),
+            &"b".repeat(64),
+        )
+        .expect("short budget plan");
+        assert!(
+            one_byte_short
+                .pointer("/ranking")
+                .and_then(Value::as_array)
+                .is_some_and(Vec::is_empty)
+        );
+        assert!(
+            one_byte_short
+                .pointer("/rejections")
+                .and_then(Value::as_array)
+                .is_some_and(|items| items.iter().any(|item| {
+                    item.pointer("/plan_id").and_then(Value::as_str)
+                        == Some("backend:cpu/dense:ram/experts:ssd")
+                        && item.pointer("/code").and_then(Value::as_str)
+                            == Some("ram_budget_exceeded")
+                        && item.pointer("/limit").and_then(Value::as_u64) == Some(exact_ram - 1)
+                }))
+        );
+    }
+
+    #[test]
+    fn ranking_is_deterministic_across_throughput_quality_startup_and_plan_id() {
+        let mut candidates = vec![
+            ranking_candidate("a", 2.0, "known_degradation", 0.0),
+            ranking_candidate("b", 2.0, "none", 3.0),
+            ranking_candidate("c", 2.0, "none", 1.0),
+            ranking_candidate("d", 3.0, "known_degradation", 9.0),
+            ranking_candidate("e", 2.0, "none", 1.0),
+        ];
+        rank_candidate_plans(&mut candidates).expect("ranking");
+        let ids: Vec<_> = candidates
+            .iter()
+            .map(|candidate| string(candidate, "/plan_id"))
+            .collect::<Result<_, _>>()
+            .expect("plan IDs");
+        assert_eq!(ids, ["d", "c", "e", "b", "a"]);
+    }
+
+    fn planner_profiles() -> (Value, Value) {
+        (
+            serde_json::from_str(include_str!(
+                "../../../docs/benchmarks/m6.1-05-doctor-v1.json"
+            ))
+            .expect("hardware profile"),
+            serde_json::from_str(include_str!(
+                "../../../docs/benchmarks/m6.1-05-model-profile-v1.json"
+            ))
+            .expect("model profile"),
+        )
+    }
+
+    fn planner_options(ram_budget_bytes: u64) -> PlanOptions {
+        PlanOptions {
+            hardware_profile: "hardware.json".to_string(),
+            model_profile: "model.json".to_string(),
+            ram_budget_bytes,
+            vram_budget_bytes: 0,
+            context_tokens: 128,
+            prefill_tokens: 16,
+            decode_tokens: 32,
+            compute_gflop_per_token: 1.0,
+            request_id: "planner-request-test-v1".to_string(),
+            result_id: "planner-result-test-v1".to_string(),
+            output: "plan.json".to_string(),
+        }
+    }
+
+    fn planner_base_ram_bytes(model: &Value) -> u64 {
+        number(model, "/artifact/dense/bytes").expect("dense bytes")
+            + number(model, "/execution/kv_cache/bytes_per_token").expect("KV bytes") * 128
+    }
+
+    fn ranking_candidate(
+        plan_id: &str,
+        decode_tokens_per_second: f64,
+        quality: &str,
+        startup_seconds: f64,
+    ) -> Value {
+        json!({
+            "plan_id": plan_id,
+            "estimate": {"decode_tokens_per_second": decode_tokens_per_second},
+            "quality_risk": {"level": quality},
+            "resources": {"startup_seconds": startup_seconds}
+        })
     }
 }

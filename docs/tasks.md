@@ -645,7 +645,7 @@ again. See docs/reports/m6.1-review-remediation.md.
   no hard-coded machine performance values.
 - [x] M6.2-03 Enumerate supported RAM, VRAM, and SSD placement candidates.
 - [x] M6.2-04 Enforce RAM/VRAM/context constraints and explain rejections.
-- [ ] M6.2-05 Implement `plan` and test deterministic ranking and boundary
+- [x] M6.2-05 Implement `plan` and test deterministic ranking and boundary
   budgets.
 - [ ] M6.2-06 Compare selected estimates against a recorded benchmark set and
   report error rather than silently retuning the model.

@@ -51,7 +51,7 @@ class M62PlannerContractTests(unittest.TestCase):
                 "plan_id": "cpu-ram-reference-f32",
                 "placement": {"backend_id": "cpu", "dense_location": "ram", "expert_location": "ram"},
                 "precision_candidate_id": "reference-f32-v1",
-                "resources": {"ram_bytes": 1000, "vram_bytes": 0, "expert_cache_bytes": 0, "max_context_tokens": 128, "disk_bytes_per_token": 0, "startup_seconds": 0},
+                "resources": {"ram_bytes": 1000, "vram_bytes": 0, "expert_cache_bytes": 0, "max_context_tokens": 128, "disk_bytes_per_token": 0, "startup_seconds": 0.5},
                 "estimate": {"status": "available", "method": "analytical-v1", "confidence": "measured_inputs", "prefill_tokens_per_second": 1.0, "decode_tokens_per_second": 1.0, "measurement_references": [{"profile_kind": "hardware", "profile_id": "doctor-v1", "document_sha256": SHA, "measurement_id": "cpu-kernels.scalar"}]},
                 "quality_risk": {"level": "none", "reference_id": "reference-f32-v1"},
             }],

@@ -78,7 +78,7 @@
             "expert_cache_bytes": {"$ref": "#/$defs/non_negative_integer"},
             "max_context_tokens": {"$ref": "#/$defs/non_negative_integer"},
             "disk_bytes_per_token": {"$ref": "#/$defs/non_negative_integer"},
-            "startup_seconds": {"$ref": "#/$defs/non_negative_integer"}
+            "startup_seconds": {"type": "number", "minimum": 0}
           }
         },
         "estimate": {

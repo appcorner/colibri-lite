@@ -16,6 +16,8 @@ it must not replace them with ambient host observations.
 Each candidate identifies its backend, dense/expert placement, and precision
 inventory entry. Its resource record is always explicit, including context
 capacity, expert cache, disk bytes per routed token, and startup seconds.
+Startup time is a non-negative number of seconds so an analytical estimate does
+not need to round a sub-second prediction.
 
 `estimate.status=available` requires positive prefill/decode throughput and
 at least one measurement reference. `incomplete` requires named missing
@@ -47,5 +49,12 @@ and human-readable evidence. The schema deliberately does not make an
 unsupported or incomplete candidate feasible.
 
 The result's ranking is a unique ordered list of feasible plan IDs. M6.2-05
-will enforce that each ranked ID exists and that ordering follows the recorded
-deterministic ranking policy.
+enforces that each ranked ID exists and that ordering follows the recorded
+deterministic ranking policy: estimated decode tok/s descending, lower quality
+risk, lower startup cost, then stable plan ID.
+
+`clr-cli plan` requires explicit `--hardware-profile`, `--model-profile`,
+RAM/VRAM/context budgets, prefill/decode lengths, request/result IDs, output,
+and `--compute-gflop-per-token`. The final term is explicit because the M6.1
+model profile has no FLOP-per-token fact. The command hashes both profiles and
+labels the result as `analytical-v1`; it is not a measured throughput claim.
