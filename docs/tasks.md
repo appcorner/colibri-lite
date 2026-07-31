@@ -656,7 +656,7 @@ complete M6.2 verification again. See `docs/reports/m6.2-review-remediation.md`.
 
 ### M6.3 - Native quantized vertical slice
 
-- [ ] M6.3-01 Propose one precision/backend candidate with dependency,
+- [x] M6.3-01 Propose one precision/backend candidate with dependency,
   licensing, unsafe-boundary, and provenance review.
 - [ ] M6.3-02 Implement direct quantized expert consumption for one layer;
   prohibit whole-expert expansion to F32 in the candidate path.
