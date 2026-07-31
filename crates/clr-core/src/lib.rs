@@ -6,6 +6,7 @@ mod config;
 mod dtype;
 mod error;
 pub mod ops;
+mod planner;
 mod runtime;
 mod shape;
 mod tensor;
@@ -21,6 +22,10 @@ pub use comparison::{
 pub use config::{ModelConfig, ModelConfigSpec};
 pub use dtype::DataType;
 pub use error::RuntimeError;
+pub use planner::{
+    AnalyticalCostModel, AnalyticalEstimate, MeasuredRate, PlannerWorkload, TokenCostEstimate,
+    TokenWork,
+};
 pub use runtime::{RuntimeInfo, runtime_info};
 pub use shape::TensorShape;
 pub use tensor::{Tensor, TensorView, TensorViewMut};

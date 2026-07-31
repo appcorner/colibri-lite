@@ -23,6 +23,11 @@ assumptions. `analytical-v1` means a derived prediction, not a measured
 end-to-end throughput claim. Later M6.2 tasks must retain provenance for every
 derived estimate and report prediction error against recorded benchmarks.
 
+M6.2-02 implements the initial `analytical-v1` math in `clr-core`: model work
+per token divided by matching profile rates for compute, RAM, and storage. The
+M6.1 model profile does not contain a FLOP count, so that term remains an
+explicit model-derived input rather than an implicit architecture constant.
+
 ## Rejections and ranking
 
 Resource rejection codes require the calculated requirement, the requested

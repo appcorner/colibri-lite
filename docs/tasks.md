@@ -641,7 +641,7 @@ again. See docs/reports/m6.1-review-remediation.md.
 
 - [x] M6.2-01 Define planner input, candidate-plan, estimate, and rejection
   contracts.
-- [ ] M6.2-02 Implement analytical cost-model calculations from profile data;
+- [x] M6.2-02 Implement analytical cost-model calculations from profile data;
   no hard-coded machine performance values.
 - [ ] M6.2-03 Enumerate supported RAM, VRAM, and SSD placement candidates.
 - [ ] M6.2-04 Enforce RAM/VRAM/context constraints and explain rejections.
