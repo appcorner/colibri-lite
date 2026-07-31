@@ -662,11 +662,20 @@ complete M6.2 verification again. See `docs/reports/m6.2-review-remediation.md`.
   prohibit whole-expert expansion to F32 in the candidate path.
 - [x] M6.3-03 Preserve F32 router, norms, sensitive operations, and the
   executable reference comparison path.
-- [ ] M6.3-04 Compare router IDs, checkpoints, logits, Thai/English fixtures,
+- [x] M6.3-04 Compare router IDs, checkpoints, logits, Thai/English fixtures,
   and quality metrics against `reference-f32-v1`.
 - [ ] M6.3-05 Benchmark cold/warm throughput, TTFT, RAM, VRAM, physical reads,
   cache hit rate, and bytes/token with repeated runs.
 - [ ] M6.3-06 Hold a stop/go review before all-layer implementation.
+
+M6.3-04 is complete. The temporary direct-consumption Layer-0 group-128
+artifact was generated from the canonical F32 Layer-0 experts under the
+temporary-artifact policy, then compared end-to-end against the frozen English
+and Thai fixtures. The final router IDs, argmax IDs, and frozen top-20 IDs all
+matched; Layer-0 checkpoint and logit drift are recorded without applying the
+F32 tolerance registry to the quantized candidate. See
+`docs/reports/m6.3-04-reference-f32-comparison.md`. The exact next task is
+M6.3-05.
 
 ## Standard verification commands
 

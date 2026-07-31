@@ -29,6 +29,9 @@ use crate::{
     },
     cache::LayerKvUpdate,
     generation::greedy_token,
+    quantized_layer0::{
+        Group128Projection, Layer0QuantizedExpert, routed_layer0_quantized_experts_with_loader,
+    },
     streaming::{
         PackedExpertLayout, streaming_routed_experts_with_observer,
         streaming_routed_experts_with_request_observer,
@@ -182,6 +185,10 @@ const GENERATION_F32_CHECKPOINTS: &[u8] = include_bytes!(concat!(
 const TIER_B_F32_REFERENCE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../../models/qwen3-30b-a3b/m4.3-01-tier-b-transformers-f32-v1.tsv"
+));
+const M6_3_04_GROUP128_ARTIFACT_CONTRACT: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../models/qwen3-30b-a3b/m6.3-04-layer0-group128-artifact-contract-v1.json"
 ));
 const GENERATION_INPUT_TOKENS: [usize; 6] = [9707, 11, 1879, 0, 1096, 374];
 const GENERATION_GUARD_LAYERS: [usize; 3] = [0, 24, 47];
@@ -5365,6 +5372,501 @@ fn f32_little_endian_bytes(values: &[f32]) -> Vec<u8> {
         .iter()
         .flat_map(|value| value.to_le_bytes())
         .collect()
+}
+
+const M6_3_04_GROUP_SIZE: usize = 128;
+const M6_3_04_GATE_UP_ROWS: usize = 768;
+const M6_3_04_HIDDEN_SIZE: usize = 2048;
+const M6_3_04_EXPERT_COUNT: usize = 128;
+
+#[derive(Debug)]
+struct M6_3_04OwnedExpert {
+    gate_values: Vec<i8>,
+    gate_scales: Vec<f32>,
+    up_values: Vec<i8>,
+    up_scales: Vec<f32>,
+    down_values: Vec<i8>,
+    down_scales: Vec<f32>,
+}
+
+impl M6_3_04OwnedExpert {
+    fn view(&self) -> Layer0QuantizedExpert<'_> {
+        Layer0QuantizedExpert::new(
+            Group128Projection::new(
+                &self.gate_values,
+                &self.gate_scales,
+                M6_3_04_GATE_UP_ROWS,
+                M6_3_04_HIDDEN_SIZE,
+            )
+            .expect("validated Layer-0 gate projection"),
+            Group128Projection::new(
+                &self.up_values,
+                &self.up_scales,
+                M6_3_04_GATE_UP_ROWS,
+                M6_3_04_HIDDEN_SIZE,
+            )
+            .expect("validated Layer-0 up projection"),
+            Group128Projection::new(
+                &self.down_values,
+                &self.down_scales,
+                M6_3_04_HIDDEN_SIZE,
+                M6_3_04_GATE_UP_ROWS,
+            )
+            .expect("validated Layer-0 down projection"),
+        )
+        .expect("validated Layer-0 expert")
+    }
+}
+
+fn m6_3_04_projection_bytes(rows: usize, columns: usize) -> usize {
+    rows * columns + rows * (columns / M6_3_04_GROUP_SIZE) * size_of::<f32>()
+}
+
+fn m6_3_04_expert_bytes() -> usize {
+    m6_3_04_projection_bytes(M6_3_04_GATE_UP_ROWS, M6_3_04_HIDDEN_SIZE) * 2
+        + m6_3_04_projection_bytes(M6_3_04_HIDDEN_SIZE, M6_3_04_GATE_UP_ROWS)
+}
+
+fn m6_3_04_sha256_hex(hasher: Sha256Hasher) -> String {
+    hasher
+        .finalize()
+        .iter()
+        .fold(String::with_capacity(64), |mut output, byte| {
+            write!(output, "{byte:02x}").expect("write SHA-256 hex");
+            output
+        })
+}
+
+#[allow(clippy::cast_possible_truncation)]
+fn m6_3_04_quantize(value: f32, scale: f32) -> i8 {
+    if scale == 0.0 {
+        return 0;
+    }
+    let quantized = (value / scale).round().clamp(-127.0, 127.0);
+    assert!(quantized.is_finite());
+    quantized as i8
+}
+
+fn m6_3_04_write_projection(
+    source: &mut File,
+    source_offset: u64,
+    rows: usize,
+    columns: usize,
+    output: &mut File,
+    source_hasher: &mut Sha256Hasher,
+    output_hasher: &mut Sha256Hasher,
+) {
+    assert_eq!(columns % M6_3_04_GROUP_SIZE, 0);
+    source
+        .seek(SeekFrom::Start(source_offset))
+        .expect("seek Layer-0 F32 projection");
+    let mut row_bytes = vec![0_u8; columns * size_of::<f32>()];
+    let mut scales = Vec::with_capacity(rows * (columns / M6_3_04_GROUP_SIZE));
+    for _ in 0..rows {
+        source
+            .read_exact(&mut row_bytes)
+            .expect("read Layer-0 F32 projection row");
+        source_hasher.update(&row_bytes);
+        let values = row_bytes
+            .chunks_exact(size_of::<f32>())
+            .map(|bytes| f32::from_le_bytes(bytes.try_into().expect("F32 source value")))
+            .collect::<Vec<_>>();
+        assert!(values.iter().all(|value| value.is_finite()));
+        let mut quantized = Vec::with_capacity(columns);
+        for group in values.chunks_exact(M6_3_04_GROUP_SIZE) {
+            let maximum = group
+                .iter()
+                .map(|value| value.abs())
+                .fold(0.0_f32, f32::max);
+            let scale = maximum / 127.0;
+            scales.push(scale);
+            quantized.extend(group.iter().map(|value| m6_3_04_quantize(*value, scale)));
+        }
+        let bytes = quantized
+            .iter()
+            .map(|value| value.to_ne_bytes()[0])
+            .collect::<Vec<_>>();
+        output.write_all(&bytes).expect("write group-128 values");
+        output_hasher.update(&bytes);
+    }
+    for scale in scales {
+        let bytes = scale.to_le_bytes();
+        output.write_all(&bytes).expect("write group-128 scale");
+        output_hasher.update(&bytes);
+    }
+}
+
+fn m6_3_04_convert_layer0_group128(source_path: &Path, output_path: &Path) -> (String, String) {
+    let layout = PackedExpertLayout::for_config(
+        PINNED_QWEN3_30B_A3B_CONFIG
+            .map_to_f32_runtime()
+            .expect("pinned configuration")
+            .runtime_config(),
+    );
+    assert_eq!(
+        layout.gate_length,
+        M6_3_04_GATE_UP_ROWS * M6_3_04_HIDDEN_SIZE * 4
+    );
+    assert_eq!(layout.up_length, layout.gate_length);
+    assert_eq!(layout.down_length, layout.gate_length);
+    let mut source = File::open(source_path).expect("open canonical Layer-0 experts");
+    let mut output = File::create(output_path).expect("create incomplete group-128 artifact");
+    let mut source_hasher = Sha256Hasher::new();
+    let mut output_hasher = Sha256Hasher::new();
+    for expert in 0..M6_3_04_EXPERT_COUNT {
+        let expert_offset =
+            u64::try_from(expert * layout.total_byte_length).expect("expert offset");
+        m6_3_04_write_projection(
+            &mut source,
+            expert_offset + u64::try_from(layout.gate_offset).expect("gate offset"),
+            M6_3_04_GATE_UP_ROWS,
+            M6_3_04_HIDDEN_SIZE,
+            &mut output,
+            &mut source_hasher,
+            &mut output_hasher,
+        );
+        m6_3_04_write_projection(
+            &mut source,
+            expert_offset + u64::try_from(layout.up_offset).expect("up offset"),
+            M6_3_04_GATE_UP_ROWS,
+            M6_3_04_HIDDEN_SIZE,
+            &mut output,
+            &mut source_hasher,
+            &mut output_hasher,
+        );
+        m6_3_04_write_projection(
+            &mut source,
+            expert_offset + u64::try_from(layout.down_offset).expect("down offset"),
+            M6_3_04_HIDDEN_SIZE,
+            M6_3_04_GATE_UP_ROWS,
+            &mut output,
+            &mut source_hasher,
+            &mut output_hasher,
+        );
+    }
+    output
+        .sync_all()
+        .expect("sync incomplete group-128 artifact");
+    assert_eq!(
+        output.metadata().expect("group-128 metadata").len(),
+        u64::try_from(m6_3_04_expert_bytes() * M6_3_04_EXPERT_COUNT).expect("artifact length")
+    );
+    (
+        m6_3_04_sha256_hex(source_hasher),
+        m6_3_04_sha256_hex(output_hasher),
+    )
+}
+
+fn m6_3_04_read_exact(file: &mut File, offset: u64, length: usize) -> Vec<u8> {
+    file.seek(SeekFrom::Start(offset))
+        .expect("seek group-128 artifact");
+    let mut bytes = vec![0_u8; length];
+    file.read_exact(&mut bytes)
+        .expect("read group-128 artifact");
+    bytes
+}
+
+fn m6_3_04_load_expert(file: &mut File, expert: usize) -> M6_3_04OwnedExpert {
+    assert!(expert < M6_3_04_EXPERT_COUNT);
+    let base = u64::try_from(expert * m6_3_04_expert_bytes()).expect("expert base");
+    let gate_values_len = M6_3_04_GATE_UP_ROWS * M6_3_04_HIDDEN_SIZE;
+    let gate_scales_len = M6_3_04_GATE_UP_ROWS * (M6_3_04_HIDDEN_SIZE / M6_3_04_GROUP_SIZE);
+    let down_values_len = M6_3_04_HIDDEN_SIZE * M6_3_04_GATE_UP_ROWS;
+    let down_scales_len = M6_3_04_HIDDEN_SIZE * (M6_3_04_GATE_UP_ROWS / M6_3_04_GROUP_SIZE);
+    let mut offset = base;
+    let read_values = |file: &mut File, offset: &mut u64, length: usize| {
+        let bytes = m6_3_04_read_exact(file, *offset, length);
+        *offset += u64::try_from(length).expect("value range");
+        bytes
+            .into_iter()
+            .map(|value| i8::from_ne_bytes([value]))
+            .collect::<Vec<_>>()
+    };
+    let read_scales = |file: &mut File, offset: &mut u64, count: usize| {
+        let length = count * size_of::<f32>();
+        let bytes = m6_3_04_read_exact(file, *offset, length);
+        *offset += u64::try_from(length).expect("scale range");
+        bytes
+            .chunks_exact(size_of::<f32>())
+            .map(|value| f32::from_le_bytes(value.try_into().expect("F32 scale")))
+            .collect::<Vec<_>>()
+    };
+    let gate_values = read_values(file, &mut offset, gate_values_len);
+    let gate_scales = read_scales(file, &mut offset, gate_scales_len);
+    let up_values = read_values(file, &mut offset, gate_values_len);
+    let up_scales = read_scales(file, &mut offset, gate_scales_len);
+    let down_values = read_values(file, &mut offset, down_values_len);
+    let down_scales = read_scales(file, &mut offset, down_scales_len);
+    assert_eq!(
+        offset - base,
+        u64::try_from(m6_3_04_expert_bytes()).expect("expert bytes")
+    );
+    M6_3_04OwnedExpert {
+        gate_values,
+        gate_scales,
+        up_values,
+        up_scales,
+        down_values,
+        down_scales,
+    }
+}
+
+struct M6_3_04RunCleanup(PathBuf);
+
+impl Drop for M6_3_04RunCleanup {
+    fn drop(&mut self) {
+        if env::var_os("COLIBRI_M63_RETAIN_DEBUG").is_none() {
+            fs::remove_dir_all(&self.0).expect("remove successful M6.3-04 run directory");
+        }
+    }
+}
+
+fn m6_3_04_top20_overlap(candidate: &[usize], reference: &[usize]) -> usize {
+    candidate.iter().filter(|id| reference.contains(id)).count()
+}
+
+#[test]
+fn m6_3_04_layer0_group128_matches_reference_f32() {
+    assert!(M6_3_04_GROUP128_ARTIFACT_CONTRACT.contains("group128-artifact-v1"));
+    assert!(
+        M6_3_04_GROUP128_ARTIFACT_CONTRACT
+            .contains("f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2")
+    );
+    let run_root = PathBuf::from(
+        env::var_os("COLIBRI_M63_RUN_ROOT").expect("M6.3-04 requires a unique run root"),
+    );
+    assert!(run_root.is_absolute(), "M6.3-04 run root must be absolute");
+    assert!(
+        run_root.is_dir(),
+        "M6.3-04 run root must exist after preflight"
+    );
+    assert!(
+        fs::read_dir(&run_root)
+            .expect("read M6.3-04 run root")
+            .next()
+            .is_none(),
+        "M6.3-04 run root must be empty before conversion"
+    );
+    let expected_output = u64::try_from(m6_3_04_expert_bytes() * M6_3_04_EXPERT_COUNT)
+        .expect("expected group-128 output bytes");
+    let safety_reserve = 1024_u64 * 1024 * 1024;
+    let free_bytes = env::var("COLIBRI_M63_FREE_BYTES")
+        .expect("M6.3-04 requires recorded disk free bytes")
+        .parse::<u64>()
+        .expect("recorded disk free bytes");
+    assert!(
+        free_bytes >= expected_output + safety_reserve,
+        "M6.3-04 preflight requires output plus one-GiB reserve"
+    );
+    let _cleanup = M6_3_04RunCleanup(run_root.clone());
+    let artifact_root = PathBuf::from(
+        env::var_os("COLIBRI_ARTIFACT_ROOT")
+            .expect("COLIBRI_ARTIFACT_ROOT must name the stable canonical artifact"),
+    );
+    let source_path = artifact_root.join("experts/experts-layer-00000-of-00048.bin");
+    let incomplete_path = run_root.join("layer0-group128-int8-v1.bin.incomplete");
+    let candidate_path = run_root.join("layer0-group128-int8-v1.bin");
+    let (source_sha256, output_sha256) =
+        m6_3_04_convert_layer0_group128(&source_path, &incomplete_path);
+    fs::rename(&incomplete_path, &candidate_path).expect("atomically promote group-128 artifact");
+    let generation_date = env::var("COLIBRI_M63_GENERATION_DATE")
+        .expect("M6.3-04 requires an ISO-8601 generation date");
+    let tool_versions =
+        env::var("COLIBRI_M63_TOOL_VERSIONS").expect("M6.3-04 requires recorded tool versions");
+    let conversion_command =
+        env::var("COLIBRI_M63_COMMAND").expect("M6.3-04 requires the exact conversion command");
+    let manifest = format!(
+        "{{\"schema\":\"colibri-qwen3-moe-layer0-group128-artifact-v1\",\"schema_version\":1,\"model_id\":\"Qwen/Qwen3-30B-A3B\",\"model_revision\":\"ad44e777bcd18fa416d9da3bd8f70d33ebb85d39\",\"license\":\"Apache-2.0\",\"canonical_f32_root_manifest_sha256\":\"f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2\",\"source_relative_path\":\"experts/experts-layer-00000-of-00048.bin\",\"source_sha256\":\"{source_sha256}\",\"output_relative_path\":\"layer0-group128-int8-v1.bin\",\"output_sha256\":\"{output_sha256}\",\"output_bytes\":{expected_output},\"group_axis\":\"input_columns\",\"group_size\":128,\"rounding\":\"IEEE-754 f32 round-half-away-from-zero\",\"saturation\":\"[-127,127]\",\"byte_order\":\"little-endian\",\"conversion_command\":\"{conversion_command}\",\"tool_versions\":\"{tool_versions}\",\"generation_date\":\"{generation_date}\"}}\n"
+    );
+    fs::write(
+        run_root.join("layer0-group128-int8-v1.manifest.json"),
+        manifest,
+    )
+    .expect("write group-128 provenance manifest");
+
+    let plan = runtime_plan(LAYER47_RUNTIME_PLAN);
+    let final_plan = runtime_plan(GENERATION_FINAL_DENSE_RUNTIME_PLAN);
+    assert_eq!(plan.payload, final_plan.payload, "dense payload identity");
+    let mut payload =
+        File::open(artifact_root.join(&plan.payload)).expect("open canonical dense payload");
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("pinned runtime config")
+        .runtime_config();
+    let expert_layout = PackedExpertLayout::for_config(config);
+    let mut dense_bytes_read = 0_u64;
+    let final_norm_weight = artifact_tensor(
+        &mut payload,
+        &final_plan,
+        "model.norm.weight",
+        &mut dense_bytes_read,
+    );
+    let mut evidence = String::from(
+        "fixture\ttoken_ids\trouter_ids_exact\tlayer0_moe_max_abs_error\tfixed_logit_max_abs_error\ttop20_logit_max_abs_error\targmax\treference_argmax\ttop20_overlap\tselected_quantized_experts\n",
+    );
+    for fixture in tier_b_references()
+        .into_iter()
+        .filter(|fixture| fixture.name == "short_english" || fixture.name == "short_thai")
+    {
+        let mut store = expert_store_from_plans(
+            &[
+                LAYER47_EXPERT_RUNTIME_PLAN,
+                GENERATION_LAYER47_EXPERT_RUNTIME_PLAN,
+            ],
+            &artifact_root,
+            48 * 128,
+        );
+        let mut candidate_file = File::open(&candidate_path).expect("open group-128 candidate");
+        let mut candidate_experts = HashMap::<usize, M6_3_04OwnedExpert>::new();
+        let mut cache = KvCache::new(48, fixture.token_ids.len(), 4, 128).expect("Tier B KV cache");
+        let mut current = None;
+        let mut layer0_moe_error = 0.0_f32;
+        let mut router_records = Vec::new();
+        for (position, &token_id) in fixture.token_ids.iter().enumerate() {
+            let mut hidden = embedding_row(&mut payload, &plan, token_id, &mut dense_bytes_read);
+            let mut updates = Vec::with_capacity(48);
+            for layer in 0..48 {
+                let weights = layer_weights(&mut payload, &plan, layer, &mut dense_bytes_read);
+                let input_norm = rms_norm(
+                    hidden.view(),
+                    weights.input_norm.view(),
+                    config.rms_norm_epsilon(),
+                )
+                .expect("candidate input norm");
+                let attention = cached_attention_with_weights(
+                    input_norm.view(),
+                    config,
+                    weights.query.view(),
+                    weights.key.view(),
+                    weights.value.view(),
+                    weights.output.view(),
+                    weights.query_norm.view(),
+                    weights.key_norm.view(),
+                    cache.layer(layer).expect("KV layer view"),
+                )
+                .expect("candidate attention");
+                let residual = elementwise_add(hidden.view(), attention.output.view())
+                    .expect("candidate attention residual");
+                let post_norm = rms_norm(
+                    residual.view(),
+                    weights.post_norm.view(),
+                    config.rms_norm_epsilon(),
+                )
+                .expect("candidate post-attention norm");
+                let router = route_tokens(post_norm.view(), weights.router.view(), config)
+                    .expect("candidate F32 router");
+                let moe = if layer == 0 {
+                    router_records.push(format!(
+                        "{position}:{}",
+                        comma_separated(&router.selected_experts)
+                    ));
+                    for expert in &router.selected_experts {
+                        candidate_experts
+                            .entry(*expert)
+                            .or_insert_with(|| m6_3_04_load_expert(&mut candidate_file, *expert));
+                    }
+                    let candidate = routed_layer0_quantized_experts_with_loader(
+                        post_norm.view(),
+                        &router,
+                        config,
+                        |expert| Ok(candidate_experts[&expert].view()),
+                    )
+                    .expect("direct Layer-0 group-128 experts");
+                    let reference = streaming_routed_experts_with_observer(
+                        post_norm.view(),
+                        &router,
+                        config,
+                        layer,
+                        &mut store,
+                        expert_layout,
+                        |_, _, _, _| {},
+                    )
+                    .expect("independent F32 Layer-0 reference");
+                    layer0_moe_error = layer0_moe_error.max(
+                        candidate
+                            .data()
+                            .iter()
+                            .zip(reference.data())
+                            .map(|(left, right)| (left - right).abs())
+                            .fold(0.0_f32, f32::max),
+                    );
+                    candidate
+                } else {
+                    streaming_routed_experts_with_observer(
+                        post_norm.view(),
+                        &router,
+                        config,
+                        layer,
+                        &mut store,
+                        expert_layout,
+                        |_, _, _, _| {},
+                    )
+                    .expect("F32 non-Layer-0 experts")
+                };
+                hidden = elementwise_add(residual.view(), moe.view()).expect("candidate block");
+                updates.push((attention.key, attention.value));
+            }
+            let updates_view = updates
+                .iter()
+                .map(|(key, value)| LayerKvUpdate { key, value })
+                .collect::<Vec<_>>();
+            cache
+                .append_token(&updates_view)
+                .expect("candidate KV append");
+            current = Some(hidden);
+        }
+        assert_eq!(
+            router_records.last().expect("Layer-0 router record"),
+            &format!(
+                "{}:{}",
+                fixture.token_ids.len() - 1,
+                comma_separated(&fixture.guard_ids[&0])
+            ),
+            "final Layer-0 router IDs must remain exact"
+        );
+        let normalized = rms_norm(
+            current.expect("non-empty candidate fixture").view(),
+            final_norm_weight.view(),
+            config.rms_norm_epsilon(),
+        )
+        .expect("candidate final RMSNorm");
+        let logits = streaming_language_model_head(
+            &mut payload,
+            &final_plan,
+            &normalized,
+            &mut dense_bytes_read,
+        );
+        assert!(
+            logits.data().iter().all(|value| value.is_finite()),
+            "candidate logits finite"
+        );
+        let top20 = deterministic_top_ids(&logits, 20);
+        let argmax = greedy_token(logits.view()).expect("candidate greedy token");
+        let fixed_logit_error = maximum_indexed_difference(
+            logits.data(),
+            &fixture.fixed_logit_indices,
+            &fixture.fixed_logits,
+        );
+        let top20_logit_error =
+            maximum_indexed_difference(logits.data(), &fixture.top20_ids, &fixture.top20_logits);
+        let mut selected_quantized_experts = candidate_experts.keys().copied().collect::<Vec<_>>();
+        selected_quantized_experts.sort_unstable();
+        writeln!(
+            evidence,
+            "{}\t{}\t{}\t{layer0_moe_error:.17e}\t{fixed_logit_error:.17e}\t{top20_logit_error:.17e}\t{argmax}\t{}\t{}\t{}",
+            fixture.name,
+            comma_separated(&fixture.token_ids),
+            router_records.join("|"),
+            fixture.argmax,
+            m6_3_04_top20_overlap(&top20, &fixture.top20_ids),
+            comma_separated(&selected_quantized_experts),
+        )
+        .expect("write M6.3-04 evidence");
+    }
+    fs::write(run_root.join("m6.3-04-evidence-v1.tsv"), &evidence).expect("write M6.3-04 evidence");
+    println!(
+        "m6_3_04 artifact_bytes={expected_output} source_sha256={source_sha256} output_sha256={output_sha256}\n{evidence}"
+    );
 }
 
 #[test]

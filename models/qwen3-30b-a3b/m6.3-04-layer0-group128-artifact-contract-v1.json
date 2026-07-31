@@ -1,0 +1,46 @@
+{
+  "schema": "colibri-qwen3-moe-layer0-group128-artifact-v1",
+  "schema_version": 1,
+  "artifact_scope": {
+    "model_id": "Qwen/Qwen3-30B-A3B",
+    "model_revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+    "license": "Apache-2.0",
+    "canonical_f32_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "layer_index": 0,
+    "expert_count": 128
+  },
+  "source": {
+    "relative_path": "experts/experts-layer-00000-of-00048.bin",
+    "data_type": "F32",
+    "expert_payload_layout": [
+      "gate:[768,2048] row-major F32",
+      "up:[768,2048] row-major F32",
+      "down:[2048,768] row-major F32"
+    ]
+  },
+  "output": {
+    "relative_path": "layer0-group128-int8-v1.bin",
+    "byte_order": "little-endian",
+    "quantized_data_type": "I8",
+    "scale_data_type": "F32",
+    "group_axis": "input_columns",
+    "group_size": 128,
+    "scale_layout": "one row-major scale per output-row/input-group",
+    "projection_layout": "values followed by scales, ordered gate, up, down for each expert",
+    "rounding": "IEEE-754 f32 round-half-away-from-zero",
+    "saturation": "clamp to [-127,127]; -128 is forbidden",
+    "normal_execution": "direct INT8-times-F32-scale accumulation; no F32 projection or whole-expert materialization"
+  },
+  "conversion": {
+    "implementation": "clr-qwen3-moe full-model validation harness",
+    "command_template": "cargo test -p clr-qwen3-moe --release --features full-model-validation -- m6_3_04_layer0_group128_matches_reference_f32 --nocapture",
+    "tool_versions_recorded_at_run": ["rustc", "cargo", "Windows"],
+    "generation_date": "recorded in run evidence",
+    "source_sha256": "recorded in run evidence",
+    "output_sha256": "recorded in run evidence"
+  },
+  "lifecycle": {
+    "temporary_run_policy": "docs/temp-artifact-policy.md",
+    "final_artifact": "validation-only temporary output; removed after successful evidence capture"
+  }
+}

@@ -169,13 +169,30 @@ pub(crate) fn routed_layer0_quantized_experts(
             "quantized expert count must match the F32 router configuration",
         ));
     }
-    combine_routed_experts(hidden_states, router, config, |expert_id, occurrences| {
-        let expert = experts.get(expert_id).ok_or_else(|| {
+    routed_layer0_quantized_experts_with_loader(hidden_states, router, config, |expert_id| {
+        experts.get(expert_id).copied().ok_or_else(|| {
             contract_error(
                 "Layer-0 group-128 routed experts",
                 "F32 router selected an expert outside the quantized layer",
             )
-        })?;
+        })
+    })
+}
+
+/// Combines Layer-0 direct-consumption experts from a bounded caller-owned
+/// loader. The loader is invoked only for experts selected by the frozen F32
+/// router, so it can retain only the small fixture-selected working set.
+pub(crate) fn routed_layer0_quantized_experts_with_loader<'a, F>(
+    hidden_states: TensorView<'_>,
+    router: &RouterOutput,
+    config: Qwen3MoeConfig,
+    mut load_expert: F,
+) -> Result<Tensor, RuntimeError>
+where
+    F: FnMut(usize) -> Result<Layer0QuantizedExpert<'a>, RuntimeError>,
+{
+    combine_routed_experts(hidden_states, router, config, |expert_id, occurrences| {
+        let expert = load_expert(expert_id)?;
         occurrences
             .iter()
             .map(|(token_index, _)| {
