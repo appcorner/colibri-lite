@@ -22,6 +22,7 @@ def request() -> dict[str, object]:
         "hardware_profile": {"profile_id": "doctor-v1", "document_sha256": SHA},
         "model_profile": {"profile_id": "model-v1", "document_sha256": SHA},
         "workload": {"workload_id": "interactive-v1", "prefill_tokens": 16, "decode_tokens": 32, "context_tokens": 128},
+        "compute_work": {"gflop_per_token": 1.25, "source": "frozen model-work evidence v1"},
         "budgets": {"ram_budget_bytes": 1024, "vram_budget_bytes": 0},
     }
 
@@ -40,6 +41,14 @@ class M62PlannerContractTests(unittest.TestCase):
         missing_budget = request()
         del missing_budget["budgets"]
         self.assertTrue(self.errors(missing_budget))
+
+    def test_request_requires_reproducible_compute_work_and_positive_context(self) -> None:
+        missing_compute_work = request()
+        del missing_compute_work["compute_work"]
+        self.assertTrue(self.errors(missing_compute_work))
+        zero_context = request()
+        zero_context["workload"]["context_tokens"] = 0  # type: ignore[index]
+        self.assertTrue(self.errors(zero_context))
 
     def test_result_accepts_measured_input_estimate_and_budget_rejection(self) -> None:
         result = {

@@ -17,7 +17,7 @@
     },
     "request": {
       "type": "object", "additionalProperties": false,
-      "required": ["schema", "schema_version", "request_id", "hardware_profile", "model_profile", "workload", "budgets"],
+      "required": ["schema", "schema_version", "request_id", "hardware_profile", "model_profile", "workload", "compute_work", "budgets"],
       "properties": {
         "schema": {"const": "colibri-lite-planner-request-v1"},
         "schema_version": {"const": 1},
@@ -32,6 +32,14 @@
             "prefill_tokens": {"$ref": "#/$defs/non_negative_integer"},
             "decode_tokens": {"$ref": "#/$defs/positive_integer"},
             "context_tokens": {"$ref": "#/$defs/positive_integer"}
+          }
+        },
+        "compute_work": {
+          "type": "object", "additionalProperties": false,
+          "required": ["gflop_per_token", "source"],
+          "properties": {
+            "gflop_per_token": {"$ref": "#/$defs/positive_number"},
+            "source": {"type": "string", "minLength": 1}
           }
         },
         "budgets": {

@@ -650,6 +650,10 @@ again. See docs/reports/m6.1-review-remediation.md.
 - [x] M6.2-06 Compare selected estimates against a recorded benchmark set and
   report error rather than silently retuning the model.
 
+M6.2 review remediation is complete. Planner results now preserve required
+compute-work provenance, reject zero context at the CLI boundary, and pass the
+complete M6.2 verification again. See `docs/reports/m6.2-review-remediation.md`.
+
 ### M6.3 - Native quantized vertical slice
 
 - [ ] M6.3-01 Propose one precision/backend candidate with dependency,

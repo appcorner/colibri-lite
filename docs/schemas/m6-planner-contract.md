@@ -8,8 +8,11 @@ placements nor calculates an estimate.
 
 A request cites immutable hardware and model profile IDs and SHA-256 document
 hashes. It also carries the explicit RAM and VRAM budgets plus the workload's
-prefill, decode, and context sizes. A planner must use those cited documents;
-it must not replace them with ambient host observations.
+prefill, decode, and context sizes. `context_tokens` is always greater than
+zero. Because M6.1 has no FLOP-per-token fact, every request also records the
+positive model-derived compute work and a non-empty source/provenance string.
+A planner must use those cited documents and compute-work evidence; it must not
+replace them with ambient host observations.
 
 ## Candidate plans and estimates
 
@@ -55,9 +58,11 @@ risk, lower startup cost, then stable plan ID.
 
 `clr-cli plan` requires explicit `--hardware-profile`, `--model-profile`,
 RAM/VRAM/context budgets, prefill/decode lengths, request/result IDs, output,
-and `--compute-gflop-per-token`. The final term is explicit because the M6.1
-model profile has no FLOP-per-token fact. The command hashes both profiles and
-labels the result as `analytical-v1`; it is not a measured throughput claim.
+and `--compute-gflop-per-token` plus `--compute-work-source`. The final term
+and source are explicit because the M6.1 model profile has no FLOP-per-token
+fact. The command hashes both profiles and preserves the complete compute-work
+input in the result request, then labels the result as `analytical-v1`; it is
+not a measured throughput claim.
 
 M6.2-06 records prediction error as `(predicted - observed) / observed` and
 does not retune the cost model from a single observation. A comparison with

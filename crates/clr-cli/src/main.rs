@@ -53,6 +53,7 @@ struct PlanOptions {
     prefill_tokens: u64,
     decode_tokens: u64,
     compute_gflop_per_token: f64,
+    compute_work_source: String,
     request_id: String,
     result_id: String,
     output: String,
@@ -87,6 +88,7 @@ impl PlanOptions {
             "--prefill-tokens",
             "--decode-tokens",
             "--compute-gflop-per-token",
+            "--compute-work-source",
             "--request-id",
             "--result-id",
             "--output",
@@ -103,6 +105,14 @@ impl PlanOptions {
                 "--compute-gflop-per-token must be finite and greater than zero".to_string(),
             );
         }
+        let context_tokens: u64 = parse_value(&required("--context-tokens")?, "--context-tokens")?;
+        if context_tokens == 0 {
+            return Err("--context-tokens must be greater than zero".to_string());
+        }
+        let compute_work_source = required("--compute-work-source")?;
+        if compute_work_source.trim().is_empty() {
+            return Err("--compute-work-source must not be empty".to_string());
+        }
         Ok(Self {
             hardware_profile: required("--hardware-profile")?,
             model_profile: required("--model-profile")?,
@@ -111,10 +121,11 @@ impl PlanOptions {
                 &required("--vram-budget-bytes")?,
                 "--vram-budget-bytes",
             )?,
-            context_tokens: parse_value(&required("--context-tokens")?, "--context-tokens")?,
+            context_tokens,
             prefill_tokens: parse_value(&required("--prefill-tokens")?, "--prefill-tokens")?,
             decode_tokens: parse_value(&required("--decode-tokens")?, "--decode-tokens")?,
             compute_gflop_per_token,
+            compute_work_source,
             request_id: required("--request-id")?,
             result_id: required("--result-id")?,
             output: required("--output")?,
@@ -479,6 +490,7 @@ fn plan_document(
         "hardware_profile": {"profile_id": hardware_profile_id, "document_sha256": hardware_hash},
         "model_profile": {"profile_id": model_profile_id, "document_sha256": model_hash},
         "workload": {"workload_id": "explicit-cli-workload-v1", "prefill_tokens": options.prefill_tokens, "decode_tokens": options.decode_tokens, "context_tokens": options.context_tokens},
+        "compute_work": {"gflop_per_token": options.compute_gflop_per_token, "source": options.compute_work_source},
         "budgets": {"ram_budget_bytes": options.ram_budget_bytes, "vram_budget_bytes": options.vram_budget_bytes}
     });
     let mut feasible = Vec::new();
@@ -916,6 +928,18 @@ mod tests {
                 .and_then(Value::as_str),
             Some(hardware_hash.as_str())
         );
+        assert_eq!(
+            first
+                .pointer("/request/compute_work/gflop_per_token")
+                .and_then(Value::as_f64),
+            Some(1.0)
+        );
+        assert_eq!(
+            first
+                .pointer("/request/compute_work/source")
+                .and_then(Value::as_str),
+            Some("frozen planner test work")
+        );
     }
 
     #[test]
@@ -967,6 +991,48 @@ mod tests {
     }
 
     #[test]
+    fn plan_options_reject_zero_context_and_missing_compute_work_provenance() {
+        let arguments = |context_tokens: &str, include_source: bool| {
+            let mut values = vec![
+                "--hardware-profile",
+                "hardware.json",
+                "--model-profile",
+                "model.json",
+                "--ram-budget-bytes",
+                "1",
+                "--vram-budget-bytes",
+                "0",
+                "--context-tokens",
+                context_tokens,
+                "--prefill-tokens",
+                "0",
+                "--decode-tokens",
+                "1",
+                "--compute-gflop-per-token",
+                "1",
+                "--request-id",
+                "request",
+                "--result-id",
+                "result",
+                "--output",
+                "output.json",
+            ];
+            if include_source {
+                values.extend(["--compute-work-source", "frozen evidence"]);
+            }
+            values.into_iter().map(str::to_string).collect::<Vec<_>>()
+        };
+        assert_eq!(
+            PlanOptions::parse(&arguments("0", true)),
+            Err("--context-tokens must be greater than zero".to_string())
+        );
+        assert_eq!(
+            PlanOptions::parse(&arguments("1", false)),
+            Err("missing required --compute-work-source".to_string())
+        );
+    }
+
+    #[test]
     fn ranking_is_deterministic_across_throughput_quality_startup_and_plan_id() {
         let mut candidates = vec![
             ranking_candidate("a", 2.0, "known_degradation", 0.0),
@@ -1007,6 +1073,7 @@ mod tests {
             prefill_tokens: 16,
             decode_tokens: 32,
             compute_gflop_per_token: 1.0,
+            compute_work_source: "frozen planner test work".to_string(),
             request_id: "planner-request-test-v1".to_string(),
             result_id: "planner-result-test-v1".to_string(),
             output: "plan.json".to_string(),
