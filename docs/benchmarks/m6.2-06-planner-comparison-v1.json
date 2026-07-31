@@ -1,0 +1,71 @@
+{
+  "schema": "colibri-lite-m6.2-06-planner-comparison-v1",
+  "schema_version": 1,
+  "comparison_id": "m6.2-06-long-decode-ssd-directional-v1",
+  "planner_input": {
+    "hardware_profile": {
+      "path": "docs/benchmarks/m6.1-05-doctor-v1.json",
+      "profile_id": "windows-x64-anusorn-nb-m6.1-04-doctor",
+      "sha256": "c748ef765eebe20ca3266b8c6972b8c1c6a1c9b0538f9d580db24682f1346012"
+    },
+    "model_profile": {
+      "path": "docs/benchmarks/m6.1-05-model-profile-v1.json",
+      "profile_id": "qwen3-30b-a3b-f32-reference-v1",
+      "sha256": "aca8aa7de6df5ce4e7960fff4772d5361b252ea692a3c3c835787a92cd5abce1"
+    },
+    "plan_id": "backend:cpu/dense:ram/experts:ssd",
+    "precision_candidate_id": "reference-f32-v1",
+    "workload": {
+      "prefill_tokens": 2,
+      "decode_tokens": 3,
+      "context_tokens": 6
+    },
+    "budgets": {
+      "ram_budget_bytes": 8589934592,
+      "vram_budget_bytes": 0
+    },
+    "compute_gflop_per_token": {
+      "value": 5.460983808,
+      "source": "sum of estimated_flops for each decode_* phase in the recorded M5.3 profile evidence"
+    },
+    "predicted_decode_tokens_per_second": 0.20508717148571368,
+    "method": "analytical-v1"
+  },
+  "recorded_benchmark": {
+    "runtime_path": "models/qwen3-30b-a3b/m5.3-04-runtime-evidence/mmap_read_only__long_decode_english__8gib.runtime.json",
+    "runtime_sha256": "f82c7c715868f1b209cc0c15fd3b65cf40e06b0c97a6e13de333faff3e64368d",
+    "profile_path": "models/qwen3-30b-a3b/m5.3-04-runtime-evidence/mmap_read_only__long_decode_english__8gib.profile.json",
+    "profile_sha256": "8ec848b669567027b69f64a095d1befb865fc7ba3dbd06789f8df460cbb0ef85",
+    "fixture_id": "long_decode_english",
+    "observed_decode_tokens_per_second": 0.032605410338116377,
+    "decode_seconds": 92.0092699,
+    "decode_tokens": 3,
+    "cache_budget_bytes": 8589934592,
+    "cache_state": "runtime cache with 584 hits and 1336 misses"
+  },
+  "error": {
+    "absolute_tokens_per_second": 0.17248176114759731,
+    "relative_to_observed": 5.289973638085538,
+    "percent_relative_to_observed": 528.9973638085538,
+    "formula": "(predicted_decode_tokens_per_second - observed_decode_tokens_per_second) / observed_decode_tokens_per_second"
+  },
+  "comparability": {
+    "status": "partial_not_promotable",
+    "matching_facts": [
+      "Qwen3-30B-A3B F32 reference candidate",
+      "CPU dense plus SSD-backed experts",
+      "two-token prefill and three-token decode workload"
+    ],
+    "mismatches": [
+      "The recorded runtime predates M6.1 hardware-profile measurement and is not cited by the planner input.",
+      "The recorded runtime uses an 8 GiB expert cache; the M6.2 SSD candidate records zero resident expert-cache bytes.",
+      "The recorded mmap path includes prior reader and hashing behavior that the M6.1 storage microbenchmark does not model.",
+      "The recorded benchmark does not provide M6.1 profile hashes or repeated cold/warm distributions."
+    ]
+  },
+  "decision": {
+    "cost_model_retuned": false,
+    "prediction_accepted_for_promotion": false,
+    "reason": "The material error is recorded without retuning because this is only a directional, partially comparable historical benchmark."
+  }
+}

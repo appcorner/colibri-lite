@@ -58,3 +58,8 @@ RAM/VRAM/context budgets, prefill/decode lengths, request/result IDs, output,
 and `--compute-gflop-per-token`. The final term is explicit because the M6.1
 model profile has no FLOP-per-token fact. The command hashes both profiles and
 labels the result as `analytical-v1`; it is not a measured throughput claim.
+
+M6.2-06 records prediction error as `(predicted - observed) / observed` and
+does not retune the cost model from a single observation. A comparison with
+different profile, cache, or storage contracts is retained as directional and
+non-promotable rather than being presented as validation.
