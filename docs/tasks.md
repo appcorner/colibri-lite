@@ -666,7 +666,7 @@ complete M6.2 verification again. See `docs/reports/m6.2-review-remediation.md`.
   and quality metrics against `reference-f32-v1`.
 - [x] M6.3-05 Benchmark cold/warm throughput, TTFT, RAM, VRAM, physical reads,
   cache hit rate, and bytes/token with repeated runs.
-- [ ] M6.3-06 Hold a stop/go review before all-layer implementation.
+- [x] M6.3-06 Hold a stop/go review before all-layer implementation.
 
 M6.3-04 is complete. The temporary direct-consumption Layer-0 group-128
 artifact was generated from the canonical F32 Layer-0 experts under the
@@ -685,6 +685,12 @@ accounting, cache metrics, zero admitted VRAM, and the unavailable
 per-process physical-read metric are recorded without claiming cold-device I/O.
 See `docs/reports/m6.3-05-cold-warm-benchmark.md`. The exact next task is
 M6.3-06.
+
+M6.3-06 is complete with a NO-GO decision. The slice must not extend to 48
+layers: English logit drift lacks a justified candidate admission rule, warm
+throughput has no material end-to-end benefit, and physical per-process I/O and
+working-set peak evidence are missing. M6.4 is blocked and must not start. See
+`docs/reports/m6.3-06-stop-go-review.md` and ADR 0057.
 
 ## Standard verification commands
 

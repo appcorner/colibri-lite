@@ -2,9 +2,9 @@
 
 ## Status
 
-Accepted for M6.3-01 proposal only. This authorizes investigation in M6.3-02;
-it does not authorize all-layer rollout, a production precision policy, or a
-throughput claim.
+Stopped after M6.3-06 review. The proposal authorized the M6.3 investigation
+only; its evidence does not authorize an all-layer rollout, a production
+precision policy, or a throughput claim.
 
 ## Decision
 
@@ -66,3 +66,24 @@ The first slice is admitted only if it reads the new INT8/scales directly,
 keeps a bounded working set, and preserves the executable F32 comparison path.
 M6.3-04 and M6.3-05 must supply the correctness and repeated cold/warm evidence
 before M6.3-06 may make a stop/go decision.
+
+## M6.3-06 review outcome
+
+The slice directly consumed the group-128 values/scales, kept its F32-sensitive
+path intact, and preserved the frozen bilingual router IDs, argmax IDs, and
+top-20 IDs. It did not pass the all-layer admission condition:
+
+- English fixed-logit drift was `1.69116020202636719e-1`, material relative to
+  F32 reference numerical noise. No candidate-specific numerical admission
+  tolerance was justified or approved.
+- Repeated warm decode median was only `0.0209938461` tok/s, compared with
+  cold `0.0203946244` tok/s. This is not repeatable material end-to-end
+  benefit; the remaining 47 scalar F32 layers dominate execution.
+- The benchmark records logical bytes and explicit payload accounting, but not
+  physical per-process disk reads or a process working-set peak. It cannot
+  establish the required physical-I/O and RAM evidence.
+
+The decision is **NO-GO**: do not extend this candidate to 48 layers and do not
+begin M6.4 from it. Any future proposal needs a new ADR review with an explicit
+quality admission rule, complete resource telemetry, and measured material
+end-to-end benefit.
