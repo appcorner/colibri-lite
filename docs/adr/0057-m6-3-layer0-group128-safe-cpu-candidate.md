@@ -54,8 +54,8 @@ third-party code attribution or dependency license to add for this proposal.
 
 ## Provenance and admission requirements
 
-M6.3-02 must create an additive, versioned group-128 artifact that cites the
-canonical F32 root manifest
+Before any model-derived group-128 artifact is created, its additive,
+versioned contract must cite the canonical F32 root manifest
 `f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2`, the
 pinned model revision, Apache-2.0 license, conversion command, tool versions,
 source and output hashes, tensor names/shapes, group axis/size, scale layout,

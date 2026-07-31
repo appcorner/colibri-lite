@@ -658,7 +658,7 @@ complete M6.2 verification again. See `docs/reports/m6.2-review-remediation.md`.
 
 - [x] M6.3-01 Propose one precision/backend candidate with dependency,
   licensing, unsafe-boundary, and provenance review.
-- [ ] M6.3-02 Implement direct quantized expert consumption for one layer;
+- [x] M6.3-02 Implement direct quantized expert consumption for one layer;
   prohibit whole-expert expansion to F32 in the candidate path.
 - [ ] M6.3-03 Preserve F32 router, norms, sensitive operations, and the
   executable reference comparison path.
