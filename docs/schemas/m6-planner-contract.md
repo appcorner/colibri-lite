@@ -28,6 +28,12 @@ per token divided by matching profile rates for compute, RAM, and storage. The
 M6.1 model profile does not contain a FLOP count, so that term remains an
 explicit model-derived input rather than an implicit architecture constant.
 
+M6.2-03 enumerates the dense locations `ram`/`vram` and expert locations
+`ram`/`vram`/`ssd` only when the profile marks every required resource as
+`measured`. Mixed RAM/VRAM locations additionally require a measured transfer.
+`unavailable` and `not_run` produce no candidate and will be explained by the
+later rejection/admission stage.
+
 ## Rejections and ranking
 
 Resource rejection codes require the calculated requirement, the requested

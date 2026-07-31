@@ -150,6 +150,185 @@ impl PlannerWorkload {
     }
 }
 
+/// Availability state copied from a versioned profile measurement.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ProfileMeasurementStatus {
+    /// The required path has a matching measured profile record.
+    Measured,
+    /// The profile explicitly says the path is unavailable.
+    Unavailable,
+    /// The measurement was intentionally not run.
+    NotRun,
+}
+
+impl ProfileMeasurementStatus {
+    #[must_use]
+    const fn is_measured(self) -> bool {
+        matches!(self, Self::Measured)
+    }
+}
+
+/// Memory tier used by a dense or expert component of a candidate plan.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PlacementTier {
+    /// Host RAM.
+    Ram,
+    /// Device VRAM.
+    Vram,
+    /// SSD-backed expert storage.
+    Ssd,
+}
+
+impl PlacementTier {
+    const DENSE_TIERS: [Self; 2] = [Self::Ram, Self::Vram];
+    const EXPERT_TIERS: [Self; 3] = [Self::Ram, Self::Vram, Self::Ssd];
+
+    const fn identifier(self) -> &'static str {
+        match self {
+            Self::Ram => "ram",
+            Self::Vram => "vram",
+            Self::Ssd => "ssd",
+        }
+    }
+}
+
+/// Profile-derived evidence needed to admit a placement before budget checks.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PlacementCapabilities {
+    backend_id: Box<str>,
+    ram_compute: ProfileMeasurementStatus,
+    vram_compute: ProfileMeasurementStatus,
+    ram_access: ProfileMeasurementStatus,
+    vram_access: ProfileMeasurementStatus,
+    ssd_access: ProfileMeasurementStatus,
+    host_to_device_transfer: ProfileMeasurementStatus,
+}
+
+impl PlacementCapabilities {
+    /// Creates evidence-backed capabilities for one backend identifier.
+    ///
+    /// A tier is eligible only when the matching status is [`ProfileMeasurementStatus::Measured`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RuntimeError::BackendContractViolation`] when `backend_id` is
+    /// empty.
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        backend_id: impl Into<Box<str>>,
+        ram_compute: ProfileMeasurementStatus,
+        vram_compute: ProfileMeasurementStatus,
+        ram_access: ProfileMeasurementStatus,
+        vram_access: ProfileMeasurementStatus,
+        ssd_access: ProfileMeasurementStatus,
+        host_to_device_transfer: ProfileMeasurementStatus,
+    ) -> Result<Self, RuntimeError> {
+        let backend_id = backend_id.into();
+        if backend_id.trim().is_empty() {
+            return Err(contract_error(
+                "planner placement capabilities",
+                "backend identifier must not be empty",
+            ));
+        }
+        Ok(Self {
+            backend_id,
+            ram_compute,
+            vram_compute,
+            ram_access,
+            vram_access,
+            ssd_access,
+            host_to_device_transfer,
+        })
+    }
+
+    /// Enumerates all and only placements whose required evidence is measured.
+    #[must_use]
+    pub fn enumerate_supported(&self) -> Box<[CandidatePlacement]> {
+        let mut candidates = Vec::new();
+        for dense_location in PlacementTier::DENSE_TIERS {
+            for expert_location in PlacementTier::EXPERT_TIERS {
+                if self.supports(dense_location, expert_location) {
+                    candidates.push(CandidatePlacement {
+                        backend_id: self.backend_id.clone(),
+                        dense_location,
+                        expert_location,
+                    });
+                }
+            }
+        }
+        candidates.into_boxed_slice()
+    }
+
+    fn supports(&self, dense_location: PlacementTier, expert_location: PlacementTier) -> bool {
+        self.supports_dense(dense_location)
+            && self.supports_experts(expert_location)
+            && (!requires_host_to_device_transfer(dense_location, expert_location)
+                || self.host_to_device_transfer.is_measured())
+    }
+
+    const fn supports_dense(&self, location: PlacementTier) -> bool {
+        match location {
+            PlacementTier::Ram => self.ram_compute.is_measured(),
+            PlacementTier::Vram => self.vram_compute.is_measured(),
+            PlacementTier::Ssd => false,
+        }
+    }
+
+    const fn supports_experts(&self, location: PlacementTier) -> bool {
+        match location {
+            PlacementTier::Ram => self.ram_access.is_measured(),
+            PlacementTier::Vram => self.vram_access.is_measured(),
+            PlacementTier::Ssd => self.ssd_access.is_measured(),
+        }
+    }
+}
+
+/// A deterministic, evidence-supported dense/expert placement candidate.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CandidatePlacement {
+    backend_id: Box<str>,
+    dense_location: PlacementTier,
+    expert_location: PlacementTier,
+}
+
+impl CandidatePlacement {
+    /// Returns the backend identifier whose measurements admitted this candidate.
+    #[must_use]
+    pub fn backend_id(&self) -> &str {
+        &self.backend_id
+    }
+
+    /// Returns the dense component memory tier.
+    #[must_use]
+    pub const fn dense_location(&self) -> PlacementTier {
+        self.dense_location
+    }
+
+    /// Returns the expert component memory tier.
+    #[must_use]
+    pub const fn expert_location(&self) -> PlacementTier {
+        self.expert_location
+    }
+
+    /// Returns the stable candidate identifier used by later ranking steps.
+    #[must_use]
+    pub fn plan_id(&self) -> String {
+        format!(
+            "backend:{}/dense:{}/experts:{}",
+            self.backend_id,
+            self.dense_location.identifier(),
+            self.expert_location.identifier()
+        )
+    }
+}
+
+const fn requires_host_to_device_transfer(
+    dense_location: PlacementTier,
+    expert_location: PlacementTier,
+) -> bool {
+    matches!(dense_location, PlacementTier::Vram) != matches!(expert_location, PlacementTier::Vram)
+}
+
 /// Measured profile rates used by the initial analytical model.
 #[derive(Debug, Clone, PartialEq)]
 pub struct AnalyticalCostModel {
@@ -472,6 +651,103 @@ mod tests {
                     0,
                 )
                 .is_err()
+        );
+    }
+
+    #[test]
+    fn enumerates_cpu_ram_and_ssd_candidates_from_measured_profile_statuses() {
+        let capabilities = PlacementCapabilities::new(
+            "cpu",
+            ProfileMeasurementStatus::Measured,
+            ProfileMeasurementStatus::Unavailable,
+            ProfileMeasurementStatus::Measured,
+            ProfileMeasurementStatus::Unavailable,
+            ProfileMeasurementStatus::Measured,
+            ProfileMeasurementStatus::NotRun,
+        )
+        .unwrap();
+
+        let plan_ids: Vec<_> = capabilities
+            .enumerate_supported()
+            .iter()
+            .map(CandidatePlacement::plan_id)
+            .collect();
+        assert_eq!(
+            plan_ids,
+            [
+                "backend:cpu/dense:ram/experts:ram",
+                "backend:cpu/dense:ram/experts:ssd",
+            ]
+        );
+    }
+
+    #[test]
+    fn enumerates_vram_only_when_compute_access_and_transfers_are_measured() {
+        let capabilities = PlacementCapabilities::new(
+            "gpu",
+            ProfileMeasurementStatus::Measured,
+            ProfileMeasurementStatus::Measured,
+            ProfileMeasurementStatus::Measured,
+            ProfileMeasurementStatus::Measured,
+            ProfileMeasurementStatus::Measured,
+            ProfileMeasurementStatus::Measured,
+        )
+        .unwrap();
+
+        let plan_ids: Vec<_> = capabilities
+            .enumerate_supported()
+            .iter()
+            .map(CandidatePlacement::plan_id)
+            .collect();
+        assert_eq!(
+            plan_ids,
+            [
+                "backend:gpu/dense:ram/experts:ram",
+                "backend:gpu/dense:ram/experts:vram",
+                "backend:gpu/dense:ram/experts:ssd",
+                "backend:gpu/dense:vram/experts:ram",
+                "backend:gpu/dense:vram/experts:vram",
+                "backend:gpu/dense:vram/experts:ssd",
+            ]
+        );
+    }
+
+    #[test]
+    fn omits_mixed_vram_candidates_without_transfer_evidence_and_rejects_empty_backend() {
+        assert!(
+            PlacementCapabilities::new(
+                " ",
+                ProfileMeasurementStatus::Measured,
+                ProfileMeasurementStatus::Measured,
+                ProfileMeasurementStatus::Measured,
+                ProfileMeasurementStatus::Measured,
+                ProfileMeasurementStatus::Measured,
+                ProfileMeasurementStatus::Measured,
+            )
+            .is_err()
+        );
+
+        let capabilities = PlacementCapabilities::new(
+            "gpu",
+            ProfileMeasurementStatus::Measured,
+            ProfileMeasurementStatus::Measured,
+            ProfileMeasurementStatus::Measured,
+            ProfileMeasurementStatus::Measured,
+            ProfileMeasurementStatus::NotRun,
+            ProfileMeasurementStatus::NotRun,
+        )
+        .unwrap();
+        let plan_ids: Vec<_> = capabilities
+            .enumerate_supported()
+            .iter()
+            .map(CandidatePlacement::plan_id)
+            .collect();
+        assert_eq!(
+            plan_ids,
+            [
+                "backend:gpu/dense:ram/experts:ram",
+                "backend:gpu/dense:vram/experts:vram",
+            ]
         );
     }
 
