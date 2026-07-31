@@ -5611,6 +5611,284 @@ fn m6_3_04_load_expert(file: &mut File, expert: usize) -> M6_3_04OwnedExpert {
     }
 }
 
+#[derive(Debug, Default)]
+struct M6_3_05CandidateCacheMetrics {
+    hits: u64,
+    misses: u64,
+    logical_bytes_read: u64,
+    peak_resident_bytes: usize,
+}
+
+struct M6_3_05CandidateCache {
+    file: File,
+    experts: HashMap<usize, M6_3_04OwnedExpert>,
+    metrics: M6_3_05CandidateCacheMetrics,
+}
+
+impl M6_3_05CandidateCache {
+    fn open(path: &Path) -> Self {
+        Self {
+            file: File::open(path).expect("open Layer-0 group-128 candidate"),
+            experts: HashMap::new(),
+            metrics: M6_3_05CandidateCacheMetrics::default(),
+        }
+    }
+
+    fn clear_for_cold_run(&mut self) {
+        self.experts.clear();
+    }
+
+    fn prepare(&mut self, selected_experts: &[usize]) {
+        for &expert in selected_experts {
+            if self.experts.contains_key(&expert) {
+                self.metrics.hits += 1;
+                continue;
+            }
+            self.metrics.misses += 1;
+            self.metrics.logical_bytes_read +=
+                u64::try_from(m6_3_04_expert_bytes()).expect("candidate expert bytes");
+            self.experts
+                .insert(expert, m6_3_04_load_expert(&mut self.file, expert));
+            self.metrics.peak_resident_bytes = self
+                .metrics
+                .peak_resident_bytes
+                .max(self.experts.len() * m6_3_04_expert_bytes());
+        }
+    }
+
+    fn expert(&self, expert: usize) -> Layer0QuantizedExpert<'_> {
+        self.experts[&expert].view()
+    }
+}
+
+#[derive(Debug)]
+struct M6_3_05Sample {
+    ttft_seconds: f64,
+    prefill_tokens_per_second: f64,
+    decode_tokens_per_second: f64,
+    dense_logical_bytes: u64,
+    f32_expert_logical_bytes: u64,
+    candidate_logical_bytes: u64,
+    cache_hits: u64,
+    cache_misses: u64,
+    candidate_peak_resident_bytes: usize,
+    f32_peak_resident_bytes: usize,
+    kv_cache_bytes: usize,
+}
+
+fn m6_3_05_short_english_sample(
+    artifact_root: &Path,
+    candidate_cache: &mut M6_3_05CandidateCache,
+) -> M6_3_05Sample {
+    const TOKENS: [usize; 2] = [9707, 1879];
+    let plan = runtime_plan(LAYER47_RUNTIME_PLAN);
+    let final_plan = runtime_plan(GENERATION_FINAL_DENSE_RUNTIME_PLAN);
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("pinned runtime configuration")
+        .runtime_config();
+    let expert_layout = PackedExpertLayout::for_config(config);
+    let mut payload = File::open(artifact_root.join(&plan.payload)).expect("open dense payload");
+    let mut dense_bytes_read = 0_u64;
+    let final_norm_weight = artifact_tensor(
+        &mut payload,
+        &final_plan,
+        "model.norm.weight",
+        &mut dense_bytes_read,
+    );
+    let mut store = expert_store_from_plans(
+        &[
+            LAYER47_EXPERT_RUNTIME_PLAN,
+            GENERATION_LAYER47_EXPERT_RUNTIME_PLAN,
+        ],
+        artifact_root,
+        48 * 128,
+    );
+    let mut cache = KvCache::new(48, TOKENS.len(), 4, 128).expect("benchmark KV cache");
+    let candidate_before_hits = candidate_cache.metrics.hits;
+    let candidate_before_misses = candidate_cache.metrics.misses;
+    let candidate_before_bytes = candidate_cache.metrics.logical_bytes_read;
+    let mut step_seconds = Vec::with_capacity(TOKENS.len());
+    let mut last_argmax = None;
+    for (position, &token_id) in TOKENS.iter().enumerate() {
+        let step_started = Instant::now();
+        let mut hidden = embedding_row(&mut payload, &plan, token_id, &mut dense_bytes_read);
+        let mut updates = Vec::with_capacity(48);
+        for layer in 0..48 {
+            let weights = layer_weights(&mut payload, &plan, layer, &mut dense_bytes_read);
+            let input_norm = rms_norm(
+                hidden.view(),
+                weights.input_norm.view(),
+                config.rms_norm_epsilon(),
+            )
+            .expect("benchmark input norm");
+            let attention = cached_attention_with_weights(
+                input_norm.view(),
+                config,
+                weights.query.view(),
+                weights.key.view(),
+                weights.value.view(),
+                weights.output.view(),
+                weights.query_norm.view(),
+                weights.key_norm.view(),
+                cache.layer(layer).expect("benchmark KV layer"),
+            )
+            .expect("benchmark attention");
+            let residual = elementwise_add(hidden.view(), attention.output.view())
+                .expect("benchmark attention residual");
+            let post_norm = rms_norm(
+                residual.view(),
+                weights.post_norm.view(),
+                config.rms_norm_epsilon(),
+            )
+            .expect("benchmark post norm");
+            let router = route_tokens(post_norm.view(), weights.router.view(), config)
+                .expect("benchmark F32 router");
+            let moe = if layer == 0 {
+                candidate_cache.prepare(&router.selected_experts);
+                routed_layer0_quantized_experts_with_loader(
+                    post_norm.view(),
+                    &router,
+                    config,
+                    |expert| Ok(candidate_cache.expert(expert)),
+                )
+                .expect("benchmark Layer-0 candidate")
+            } else {
+                streaming_routed_experts_with_observer(
+                    post_norm.view(),
+                    &router,
+                    config,
+                    layer,
+                    &mut store,
+                    expert_layout,
+                    |_, _, _, _| {},
+                )
+                .expect("benchmark F32 experts")
+            };
+            hidden = elementwise_add(residual.view(), moe.view()).expect("benchmark block");
+            updates.push((attention.key, attention.value));
+        }
+        let normalized = rms_norm(
+            hidden.view(),
+            final_norm_weight.view(),
+            config.rms_norm_epsilon(),
+        )
+        .expect("benchmark final norm");
+        let logits = streaming_language_model_head(
+            &mut payload,
+            &final_plan,
+            &normalized,
+            &mut dense_bytes_read,
+        );
+        last_argmax = Some(greedy_token(logits.view()).expect("benchmark greedy token"));
+        let updates_view = updates
+            .iter()
+            .map(|(key, value)| LayerKvUpdate { key, value })
+            .collect::<Vec<_>>();
+        cache
+            .append_token(&updates_view)
+            .expect("benchmark KV append");
+        assert_eq!(cache.len(), position + 1);
+        step_seconds.push(step_started.elapsed().as_secs_f64());
+    }
+    assert_eq!(last_argmax, Some(0), "short-English candidate argmax");
+    let f32 = store.metrics();
+    let candidate_hits = candidate_cache.metrics.hits - candidate_before_hits;
+    let candidate_misses = candidate_cache.metrics.misses - candidate_before_misses;
+    M6_3_05Sample {
+        ttft_seconds: step_seconds[0],
+        prefill_tokens_per_second: 1.0 / step_seconds[0],
+        decode_tokens_per_second: 1.0 / step_seconds[1],
+        dense_logical_bytes: dense_bytes_read,
+        f32_expert_logical_bytes: f32.bytes_read,
+        candidate_logical_bytes: candidate_cache.metrics.logical_bytes_read
+            - candidate_before_bytes,
+        cache_hits: f32.hits + candidate_hits,
+        cache_misses: f32.misses + candidate_misses,
+        candidate_peak_resident_bytes: candidate_cache.metrics.peak_resident_bytes,
+        f32_peak_resident_bytes: f32.peak_resident_bytes,
+        kv_cache_bytes: cache.byte_size(),
+    }
+}
+
+#[test]
+fn m6_3_05_layer0_group128_cold_warm_benchmark() {
+    let run_root = PathBuf::from(
+        env::var_os("COLIBRI_M63_RUN_ROOT").expect("M6.3-05 requires a unique run root"),
+    );
+    assert!(run_root.is_absolute() && run_root.is_dir());
+    assert!(
+        fs::read_dir(&run_root)
+            .expect("read M6.3-05 run root")
+            .next()
+            .is_none(),
+        "M6.3-05 run root must be empty after preflight"
+    );
+    let expected_output = u64::try_from(m6_3_04_expert_bytes() * M6_3_04_EXPERT_COUNT)
+        .expect("candidate output bytes");
+    let free_bytes = env::var("COLIBRI_M63_FREE_BYTES")
+        .expect("M6.3-05 requires recorded disk free bytes")
+        .parse::<u64>()
+        .expect("recorded disk free bytes");
+    assert!(
+        free_bytes >= expected_output + 1024 * 1024 * 1024,
+        "M6.3-05 preflight requires output plus one-GiB reserve"
+    );
+    let _cleanup = M6_3_04RunCleanup(run_root.clone());
+    let artifact_root = PathBuf::from(
+        env::var_os("COLIBRI_ARTIFACT_ROOT").expect("M6.3-05 requires canonical artifact root"),
+    );
+    let incomplete_path = run_root.join("layer0-group128-int8-v1.bin.incomplete");
+    let candidate_path = run_root.join("layer0-group128-int8-v1.bin");
+    let (source_sha256, output_sha256) = m6_3_04_convert_layer0_group128(
+        &artifact_root.join("experts/experts-layer-00000-of-00048.bin"),
+        &incomplete_path,
+    );
+    fs::rename(&incomplete_path, &candidate_path).expect("promote benchmark candidate artifact");
+    let mut cache = M6_3_05CandidateCache::open(&candidate_path);
+    let repetitions = env::var("COLIBRI_M63_BENCHMARK_REPETITIONS").map_or(3, |value| {
+        value
+            .parse::<usize>()
+            .expect("valid benchmark repetition count")
+    });
+    assert!(repetitions > 0, "benchmark repetitions must be positive");
+    let mut evidence = String::from(
+        "condition\trepetition\tttft_seconds\tprefill_tokens_per_second\tdecode_tokens_per_second\tdense_logical_bytes\tf32_expert_logical_bytes\tcandidate_logical_bytes\tbytes_per_token\tcache_hits\tcache_misses\tcache_hit_rate\tcandidate_peak_resident_bytes\tf32_peak_resident_bytes\tkv_cache_bytes\tvram_bytes\tphysical_read_bytes_status\n",
+    );
+    for repetition in 0..repetitions {
+        cache.clear_for_cold_run();
+        for condition in ["runtime_cache_cold", "runtime_cache_warm"] {
+            let sample = m6_3_05_short_english_sample(&artifact_root, &mut cache);
+            let total_bytes = sample.dense_logical_bytes
+                + sample.f32_expert_logical_bytes
+                + sample.candidate_logical_bytes;
+            let requests = sample.cache_hits + sample.cache_misses;
+            writeln!(
+                evidence,
+                "{condition}\t{repetition}\t{:.17e}\t{:.17e}\t{:.17e}\t{}\t{}\t{}\t{:.17e}\t{}\t{}\t{:.17e}\t{}\t{}\t{}\t0\tnot_measured",
+                sample.ttft_seconds,
+                sample.prefill_tokens_per_second,
+                sample.decode_tokens_per_second,
+                sample.dense_logical_bytes,
+                sample.f32_expert_logical_bytes,
+                sample.candidate_logical_bytes,
+                reporting_ratio(total_bytes, 2),
+                sample.cache_hits,
+                sample.cache_misses,
+                if requests == 0 { 0.0 } else { reporting_ratio(sample.cache_hits, requests) },
+                sample.candidate_peak_resident_bytes,
+                sample.f32_peak_resident_bytes,
+                sample.kv_cache_bytes,
+            )
+            .expect("write M6.3-05 evidence");
+        }
+    }
+    fs::write(run_root.join("m6.3-05-evidence-v1.tsv"), &evidence).expect("write M6.3-05 evidence");
+    println!(
+        "m6_3_05 artifact_bytes={expected_output} source_sha256={source_sha256} output_sha256={output_sha256}\n{evidence}"
+    );
+}
+
 struct M6_3_04RunCleanup(PathBuf);
 
 impl Drop for M6_3_04RunCleanup {

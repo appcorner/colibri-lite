@@ -664,7 +664,7 @@ complete M6.2 verification again. See `docs/reports/m6.2-review-remediation.md`.
   executable reference comparison path.
 - [x] M6.3-04 Compare router IDs, checkpoints, logits, Thai/English fixtures,
   and quality metrics against `reference-f32-v1`.
-- [ ] M6.3-05 Benchmark cold/warm throughput, TTFT, RAM, VRAM, physical reads,
+- [x] M6.3-05 Benchmark cold/warm throughput, TTFT, RAM, VRAM, physical reads,
   cache hit rate, and bytes/token with repeated runs.
 - [ ] M6.3-06 Hold a stop/go review before all-layer implementation.
 
@@ -676,6 +676,15 @@ matched; Layer-0 checkpoint and logit drift are recorded without applying the
 F32 tolerance registry to the quantized candidate. See
 `docs/reports/m6.3-04-reference-f32-comparison.md`. The exact next task is
 M6.3-05.
+
+M6.3-05 is complete. Three independent cold/warm pairs measured the candidate
+with conversion excluded from timing. Warm candidate payload reads fell to zero
+for the frozen two-token fixture, but median decode remained about 0.021 tok/s
+because Layers 1--47 remain scalar F32. Logical I/O, explicit payload RAM
+accounting, cache metrics, zero admitted VRAM, and the unavailable
+per-process physical-read metric are recorded without claiming cold-device I/O.
+See `docs/reports/m6.3-05-cold-warm-benchmark.md`. The exact next task is
+M6.3-06.
 
 ## Standard verification commands
 
