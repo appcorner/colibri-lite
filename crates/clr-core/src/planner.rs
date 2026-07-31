@@ -322,6 +322,194 @@ impl CandidatePlacement {
     }
 }
 
+/// Explicit resource limits selected for one planner request.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PlannerBudgets {
+    ram_bytes: u64,
+    vram_bytes: u64,
+    context_tokens: u64,
+}
+
+impl PlannerBudgets {
+    /// Creates RAM, VRAM, and requested-context limits without host inference.
+    #[must_use]
+    pub const fn new(ram_bytes: u64, vram_bytes: u64, context_tokens: u64) -> Self {
+        Self {
+            ram_bytes,
+            vram_bytes,
+            context_tokens,
+        }
+    }
+
+    /// Returns the user-selected RAM limit in bytes.
+    #[must_use]
+    pub const fn ram_bytes(self) -> u64 {
+        self.ram_bytes
+    }
+
+    /// Returns the user-selected VRAM limit in bytes.
+    #[must_use]
+    pub const fn vram_bytes(self) -> u64 {
+        self.vram_bytes
+    }
+
+    /// Returns the requested context length in tokens.
+    #[must_use]
+    pub const fn context_tokens(self) -> u64 {
+        self.context_tokens
+    }
+}
+
+/// Calculated resources required by a candidate before admission.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CandidateResourceRequirements {
+    ram_bytes: u64,
+    vram_bytes: u64,
+    max_context_tokens: u64,
+}
+
+impl CandidateResourceRequirements {
+    /// Creates calculated RAM/VRAM demand and supported context capacity.
+    #[must_use]
+    pub const fn new(ram_bytes: u64, vram_bytes: u64, max_context_tokens: u64) -> Self {
+        Self {
+            ram_bytes,
+            vram_bytes,
+            max_context_tokens,
+        }
+    }
+
+    /// Returns required RAM in bytes.
+    #[must_use]
+    pub const fn ram_bytes(self) -> u64 {
+        self.ram_bytes
+    }
+
+    /// Returns required VRAM in bytes.
+    #[must_use]
+    pub const fn vram_bytes(self) -> u64 {
+        self.vram_bytes
+    }
+
+    /// Returns the candidate's maximum supported context length in tokens.
+    #[must_use]
+    pub const fn max_context_tokens(self) -> u64 {
+        self.max_context_tokens
+    }
+}
+
+/// Machine-readable reason a candidate cannot be admitted.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PlannerRejectionCode {
+    /// Required RAM exceeds the explicit RAM budget.
+    RamBudgetExceeded,
+    /// Required VRAM exceeds the explicit VRAM budget.
+    VramBudgetExceeded,
+    /// Requested context exceeds the candidate capacity.
+    ContextLimitExceeded,
+}
+
+/// One ordered resource rejection with calculated requirement and limit.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PlannerRejection {
+    plan_id: Box<str>,
+    code: PlannerRejectionCode,
+    required: u64,
+    limit: u64,
+}
+
+impl PlannerRejection {
+    /// Returns the stable candidate identifier.
+    #[must_use]
+    pub fn plan_id(&self) -> &str {
+        &self.plan_id
+    }
+
+    /// Returns the machine-readable rejection code.
+    #[must_use]
+    pub const fn code(&self) -> PlannerRejectionCode {
+        self.code
+    }
+
+    /// Returns the calculated required bytes or requested tokens.
+    #[must_use]
+    pub const fn required(&self) -> u64 {
+        self.required
+    }
+
+    /// Returns the applicable budget bytes or capacity tokens.
+    #[must_use]
+    pub const fn limit(&self) -> u64 {
+        self.limit
+    }
+}
+
+/// Result of admitting one evidence-supported placement against explicit limits.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BudgetAdmission {
+    /// Every RAM, VRAM, and context constraint is satisfied.
+    Admitted,
+    /// One or more ordered constraints were exceeded.
+    Rejected(Box<[PlannerRejection]>),
+}
+
+impl BudgetAdmission {
+    /// Returns whether the candidate is admissible.
+    #[must_use]
+    pub const fn is_admitted(&self) -> bool {
+        matches!(self, Self::Admitted)
+    }
+
+    /// Returns all ordered rejection explanations, if any.
+    #[must_use]
+    pub fn rejections(&self) -> &[PlannerRejection] {
+        match self {
+            Self::Admitted => &[],
+            Self::Rejected(rejections) => rejections,
+        }
+    }
+}
+
+/// Enforces RAM, VRAM, and context constraints for one candidate placement.
+#[must_use]
+pub fn admit_candidate(
+    candidate: &CandidatePlacement,
+    requirements: CandidateResourceRequirements,
+    budgets: PlannerBudgets,
+) -> BudgetAdmission {
+    let mut rejections = Vec::new();
+    let plan_id = candidate.plan_id();
+    if requirements.ram_bytes() > budgets.ram_bytes() {
+        rejections.push(PlannerRejection {
+            plan_id: plan_id.clone().into_boxed_str(),
+            code: PlannerRejectionCode::RamBudgetExceeded,
+            required: requirements.ram_bytes(),
+            limit: budgets.ram_bytes(),
+        });
+    }
+    if requirements.vram_bytes() > budgets.vram_bytes() {
+        rejections.push(PlannerRejection {
+            plan_id: plan_id.clone().into_boxed_str(),
+            code: PlannerRejectionCode::VramBudgetExceeded,
+            required: requirements.vram_bytes(),
+            limit: budgets.vram_bytes(),
+        });
+    }
+    if budgets.context_tokens() > requirements.max_context_tokens() {
+        rejections.push(PlannerRejection {
+            plan_id: plan_id.into_boxed_str(),
+            code: PlannerRejectionCode::ContextLimitExceeded,
+            required: budgets.context_tokens(),
+            limit: requirements.max_context_tokens(),
+        });
+    }
+    if rejections.is_empty() {
+        BudgetAdmission::Admitted
+    } else {
+        BudgetAdmission::Rejected(rejections.into_boxed_slice())
+    }
+}
+
 const fn requires_host_to_device_transfer(
     dense_location: PlacementTier,
     expert_location: PlacementTier,
@@ -749,6 +937,68 @@ mod tests {
                 "backend:gpu/dense:vram/experts:vram",
             ]
         );
+    }
+
+    #[test]
+    fn admits_exact_ram_vram_and_context_boundaries() {
+        let candidate = cpu_candidate();
+        let requirements = CandidateResourceRequirements::new(100, 0, 128);
+        let admission = admit_candidate(&candidate, requirements, PlannerBudgets::new(100, 0, 128));
+
+        assert!(admission.is_admitted());
+        assert!(admission.rejections().is_empty());
+    }
+
+    #[test]
+    fn reports_every_exceeded_budget_with_stable_plan_id_and_order() {
+        let candidate = cpu_candidate();
+        let admission = admit_candidate(
+            &candidate,
+            CandidateResourceRequirements::new(101, 202, 127),
+            PlannerBudgets::new(100, 200, 128),
+        );
+
+        assert!(!admission.is_admitted());
+        let rejections = admission.rejections();
+        assert_eq!(rejections.len(), 3);
+        assert_eq!(
+            rejections[0].code(),
+            PlannerRejectionCode::RamBudgetExceeded
+        );
+        assert_eq!(rejections[0].required(), 101);
+        assert_eq!(rejections[0].limit(), 100);
+        assert_eq!(
+            rejections[1].code(),
+            PlannerRejectionCode::VramBudgetExceeded
+        );
+        assert_eq!(rejections[1].required(), 202);
+        assert_eq!(rejections[1].limit(), 200);
+        assert_eq!(
+            rejections[2].code(),
+            PlannerRejectionCode::ContextLimitExceeded
+        );
+        assert_eq!(rejections[2].required(), 128);
+        assert_eq!(rejections[2].limit(), 127);
+        for rejection in rejections {
+            assert_eq!(rejection.plan_id(), "backend:cpu/dense:ram/experts:ram");
+        }
+    }
+
+    fn cpu_candidate() -> CandidatePlacement {
+        PlacementCapabilities::new(
+            "cpu",
+            ProfileMeasurementStatus::Measured,
+            ProfileMeasurementStatus::Unavailable,
+            ProfileMeasurementStatus::Measured,
+            ProfileMeasurementStatus::Unavailable,
+            ProfileMeasurementStatus::Unavailable,
+            ProfileMeasurementStatus::NotRun,
+        )
+        .unwrap()
+        .enumerate_supported()
+        .into_iter()
+        .next()
+        .unwrap()
     }
 
     fn assert_close(actual: f64, expected: f64) {

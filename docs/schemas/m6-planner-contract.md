@@ -34,6 +34,11 @@ M6.2-03 enumerates the dense locations `ram`/`vram` and expert locations
 `unavailable` and `not_run` produce no candidate and will be explained by the
 later rejection/admission stage.
 
+M6.2-04 compares each enumerated candidate with the caller's exact RAM/VRAM
+limits and requested context. A candidate exactly at a byte or token limit is
+admitted. All exceeded constraints are emitted in the stable order RAM, VRAM,
+then context with the candidate plan ID, calculated requirement, and limit.
+
 ## Rejections and ranking
 
 Resource rejection codes require the calculated requirement, the requested

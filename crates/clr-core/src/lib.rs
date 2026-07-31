@@ -23,9 +23,10 @@ pub use config::{ModelConfig, ModelConfigSpec};
 pub use dtype::DataType;
 pub use error::RuntimeError;
 pub use planner::{
-    AnalyticalCostModel, AnalyticalEstimate, CandidatePlacement, MeasuredRate,
-    PlacementCapabilities, PlacementTier, PlannerWorkload, ProfileMeasurementStatus,
-    TokenCostEstimate, TokenWork,
+    AnalyticalCostModel, AnalyticalEstimate, BudgetAdmission, CandidatePlacement,
+    CandidateResourceRequirements, MeasuredRate, PlacementCapabilities, PlacementTier,
+    PlannerBudgets, PlannerRejection, PlannerRejectionCode, PlannerWorkload,
+    ProfileMeasurementStatus, TokenCostEstimate, TokenWork, admit_candidate,
 };
 pub use runtime::{RuntimeInfo, runtime_info};
 pub use shape::TensorShape;
