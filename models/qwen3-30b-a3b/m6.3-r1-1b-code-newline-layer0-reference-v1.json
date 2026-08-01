@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "reference_id": "m6.3-r1-1b-code-newline-layer0-v1",
+  "model_id": "Qwen/Qwen3-30B-A3B",
+  "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+  "source_registry": "models/qwen3-30b-a3b/minimal-oracle-source-registry-v1.json",
+  "source_registry_sha256": "d8817772da800ce83cc240c480eeb5568aa906605ea5ecd50829ce6207ef3231",
+  "fixture": {"id":"code_newline","token_ids":[87,28,16,198],"existing_layer0_guard_ids":[16,114,1,98,84,100,52,53],"m4_3_evidence":"models/qwen3-30b-a3b/m4.3-01-tier-b-transformers-f32-v1.json","m4_3_evidence_sha256":"5ca68e70d2c3d7a9d09f77a36eeb0dc0854abfccdd7034acd493a5fb58b4f6c5"},
+  "checkpoint_file": {"path":"models/qwen3-30b-a3b/m6.3-r1-1b-code-newline-layer0-checkpoints-v1.bin","bytes":330811,"sha256":"6a614737eab3c775fac1ed02f3eeabbf5f0d69eb7ab20ba9010bba0c1b9b0978","encoding":"little-endian-contiguous"},
+  "checkpoints": [
+    {"name":"layer0.post_attention_rmsnorm","semantics":"post-attention RMSNorm / expert input","dtype":"F32","shape":[4,2048],"bytes":32768,"tolerance_ids":["post_attention_rmsnorm","expert_input"]},
+    {"name":"layer0.router_logits","semantics":"router logits","dtype":"F32","shape":[4,128],"bytes":2048,"tolerance_ids":["router_logits"]},
+    {"name":"layer0.selected_expert_ids","semantics":"selected expert IDs","dtype":"I64","shape":[4,8],"bytes":256,"comparison":"exact"},
+    {"name":"layer0.routing_weights","semantics":"normalized selected routing weights","dtype":"F32","shape":[4,8],"bytes":128,"tolerance_ids":["routing_weights"]},
+    {"name":"layer0.selected_expert_output","semantics":"selected expert down projection before routing weight","dtype":"F32","shape":[4,8,2048],"bytes":262144,"tolerance_ids":["expert_down_projection"]},
+    {"name":"layer0.aggregated_moe_output","semantics":"weighted aggregated Layer-0 MoE output","dtype":"F32","shape":[4,2048],"bytes":32768,"tolerance_ids":["aggregated_moe_output"]}
+  ],
+  "existing_final_norm_and_fixed_logit_linkage": "code_newline final_norm and fixed logits in m4.3-01-tier-b-transformers-f32-v1.json",
+  "determinism": {"device":"cpu","eval":true,"no_grad":true,"seed":20260714,"deterministic_algorithms":true,"intra_op_threads":1,"inter_op_threads":1,"transformers":"5.12.1","torch":"2.12.1+cpu","safetensors":"0.8.0"},
+  "generation_command": "python python/reference/generate_r1_1b_code_newline.py <canonical-root> models/qwen3-30b-a3b/source-manifest-v1.json <output>",
+  "repeated_run_sha256": ["6a614737eab3c775fac1ed02f3eeabbf5f0d69eb7ab20ba9010bba0c1b9b0978","6a614737eab3c775fac1ed02f3eeabbf5f0d69eb7ab20ba9010bba0c1b9b0978"],
+  "generation_date_utc": "2026-08-01T00:00:00Z"
+}

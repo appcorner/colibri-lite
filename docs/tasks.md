@@ -710,6 +710,11 @@ reused as the default candidate.
   method; this is not a 26-file Transformers snapshot and does not start R1.1b,
   R1.2, or M6.4.
 
+- [x] M6.3-R1.1b Freeze code_newline Layer-0 Checkpoint References: frozen
+  offline Transformers-F32 Layer-0 router/expert/MoE checkpoint payload,
+  existing router guard, tolerance linkage, and byte-identical two-process
+  hashes are recorded in ADR 0063 and the versioned reference record.
+
 - [x] M6.3-R1.0 Implement and validate a release-process telemetry harness for
   working set/private bytes, logical reads, process-correlated physical I/O,
   cache-state labels, and collector failure states using the unchanged
