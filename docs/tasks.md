@@ -720,6 +720,15 @@ reused as the default candidate.
   was the repository root. ADR 0066 now requires and pre-validates the crate
   working directory; the failed run was fully cleaned and is not admission
   evidence. See `docs/reports/m6.3-r1-1a-group64-run1-working-directory-failure.md`.
+  The next group-64 run reached checkpoint/logit comparison and passed the
+  fixed-logit cap, but its 805 logical candidate reads produced no correlated
+  Kernel-Disk bytes, so it is invalid admission evidence rather than a zero-I/O
+  pass. ADR 0067 now pre-registers a reboot-bound, metadata-only arm and
+  one-shot ETW authorization without weakening the physical-I/O or numerical
+  gates. The invalid run was removed by reviewed cleanup. The exact next step
+  is a fresh group-64 conversion followed by cold-cache Phase A. The protocol
+  validator, one-shot ETW binding, telemetry failure tests, and required
+  workspace verification pass; group-32 and R1.2 remain blocked.
 
 - [x] M6.3-R1.1c Verified M4 Pinned-Source Recovery: the verified 17-file
   Safetensors subset was atomically promoted as the read-only canonical minimal

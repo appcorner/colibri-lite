@@ -85,6 +85,33 @@ foreach ($name in $requiredEnvironment) {
         throw "required environment binding is missing: $name"
     }
 }
+$isCandidateRun = $Environment.ContainsKey('COLIBRI_R1_1A_CANDIDATE_ID') -or
+    $Environment.ContainsKey('COLIBRI_R1_1A_CANDIDATE_PATH')
+$coldCacheAuthorization = $null
+if ($isCandidateRun) {
+    if ($Artifact.Count -ne 1) {
+        throw 'candidate capture requires exactly one artifact file'
+    }
+    foreach ($name in @(
+        'COLIBRI_ARTIFACT_ROOT',
+        'COLIBRI_R1_1A_CANDIDATE_ID',
+        'COLIBRI_R1_1A_CANDIDATE_PATH',
+        'COLIBRI_R1_1A_COLD_CACHE_AUTHORIZATION'
+    )) {
+        if (-not $requiredEnvironment.Contains($name) -or -not $Environment.ContainsKey($name) -or
+            [string]::IsNullOrWhiteSpace([string]$Environment[$name])) {
+            throw "candidate configuration requires binding: $name"
+        }
+    }
+    $coldCacheAuthorization = [IO.Path]::GetFullPath([string]$Environment['COLIBRI_R1_1A_COLD_CACHE_AUTHORIZATION'])
+    if (-not (Test-Path -LiteralPath $coldCacheAuthorization -PathType Leaf)) {
+        throw 'cold-cache authorization file is missing'
+    }
+    if ([IO.Path]::GetFullPath([string]$Environment['COLIBRI_R1_1A_CANDIDATE_PATH']) -ne
+        [IO.Path]::GetFullPath($Artifact[0])) {
+        throw 'candidate path must equal the captured artifact path'
+    }
+}
 if ($ValidateConfigOnly) {
     [ordered]@{
         status = 'passed'
@@ -99,6 +126,21 @@ $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
 $principal = [Security.Principal.WindowsPrincipal]::new($identity)
 if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     throw 'capture_m6_3_r1_etw.ps1 requires an elevated Administrator PowerShell'
+}
+$coldCacheConsumption = $null
+if ($isCandidateRun) {
+    $coldCacheTool = Join-Path $PSScriptRoot 'm6_3_r1_1a_cold_cache.py'
+    $coldCacheContract = Join-Path $repo 'models\qwen3-30b-a3b\m6.3-r1-1a-cold-cache-contract-v1.json'
+    $coldCacheOutput = & $Python $coldCacheTool verify-launch `
+        --contract $coldCacheContract `
+        --authorization $coldCacheAuthorization `
+        --candidate-id ([string]$Environment['COLIBRI_R1_1A_CANDIDATE_ID']) `
+        --artifact ([string]$Environment['COLIBRI_R1_1A_CANDIDATE_PATH']) `
+        --consume
+    if ($LASTEXITCODE -ne 0) {
+        throw "cold-cache authorization validation failed: $($coldCacheOutput | Out-String)"
+    }
+    $coldCacheConsumption = $coldCacheOutput | ConvertFrom-Json
 }
 $parser = Join-Path $PSScriptRoot 'parse_m6_3_r1_etw.py'
 $providerFile = Join-Path $PSScriptRoot 'm6_3_r1_etw-providers.txt'
@@ -201,6 +243,13 @@ try {
         arguments = $ArgumentString
         working_directory = $WorkingDirectory
         environment = $Environment
+        cold_cache = if ($isCandidateRun) {
+            [ordered]@{
+                authorization_path = $coldCacheAuthorization
+                consumption_path = $coldCacheConsumption.consumed_path
+                status = 'consumed_before_etw_launch'
+            }
+        } else { $null }
         exit_code = $process.ExitCode
         samples = [Math]::Max(1, $samples)
         memory = [ordered]@{

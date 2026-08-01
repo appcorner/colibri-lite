@@ -1,0 +1,45 @@
+{
+  "schema": "m6.3-r1.1a-cold-cache-contract-v1",
+  "schema_version": 1,
+  "status": "pre_registered_after_invalid_warm_cache_run",
+  "temp_root": "D:\\tmp\\colibri-lite-runs",
+  "candidates": [
+    {
+      "candidate_id": "cpu-safe-rust-int8-group64-layer0-r1-1a",
+      "artifact_bytes": 641728512,
+      "artifact_sha256": "35a3ef6aba723d302fb1a7fded6ede4543a0c3dfcd35651596b78f1c5158cad2"
+    },
+    {
+      "candidate_id": "cpu-safe-rust-int8-group32-layer0-r1-1a",
+      "artifact_bytes": 679477248,
+      "artifact_sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2"
+    }
+  ],
+  "prepare_phase": {
+    "full_sha256_required": true,
+    "read_only_required": true,
+    "stable_file_identity_required": true
+  },
+  "reboot_boundary": {
+    "minimum_boot_time_separation_seconds": 5,
+    "maximum_arm_uptime_seconds": 1800
+  },
+  "arm_phase": {
+    "payload_reads_permitted": false,
+    "metadata_identity_only": true,
+    "one_shot_authorization": true
+  },
+  "execution_phase": {
+    "etw_must_start_before_candidate_process": true,
+    "full_hash_occurs_inside_correlated_process": true,
+    "authorization_reuse": "prohibited"
+  },
+  "physical_io_gate": {
+    "status": "correlated",
+    "minimum_candidate_disk_read_bytes": 1,
+    "total_events_lost": 0
+  },
+  "numerical_contract_changed": false,
+  "authorizes_group32_before_group64_closure": false,
+  "authorizes_r1_2": false
+}

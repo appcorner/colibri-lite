@@ -569,6 +569,15 @@ and private-byte peaks, logical artifact reads, and process-correlated physical
 storage evidence with explicit filesystem-cache semantics. Unavailable physical
 I/O remains `not_measured`, never zero.
 
+On Windows, a fresh conversion may warm the filesystem cache before the
+candidate process starts. Candidate characterization therefore uses the
+reviewed ADR 0067 two-phase protocol: hash and freeze the fresh artifact,
+cross a recorded reboot boundary, perform metadata-only identity validation,
+and consume a one-shot launch authorization before ETW. The candidate's full
+verification read must occur inside the correlated process. Logical reads,
+post-result cache eviction, unbuffered access, or authorization reuse cannot
+substitute for the physical-I/O gate.
+
 Only after that telemetry gate passes may a deterministic study select exactly
 one candidate layout. The candidate must directly consume packed values and
 scales without whole-expert F32 expansion, preserve F32 router/norm/routing

@@ -83,6 +83,17 @@ def validate_run(record: dict, contract: dict) -> None:
         fail("packed expert peak mismatch")
     if direct["complete_f32_weight_materializations"] != 0:
         fail("complete F32 weight materialization")
+    cold = record["cold_cache"]
+    if cold["status"] != "consumed_before_etw_launch" or cold["authorization_reused"]:
+        fail("cold-cache authorization mismatch")
+    if cold["prelaunch_payload_reads"] != 0 or cold["prepared_sha256"] != artifact["sha256"]:
+        fail("cold-cache artifact preparation mismatch")
+    if PureWindowsPath(cold["authorization_path"]).parent != run_root:
+        fail("cold-cache authorization is outside flat run directory")
+    if PureWindowsPath(cold["consumption_path"]).parent != run_root:
+        fail("cold-cache consumption evidence is outside flat run directory")
+    if cold["boot_time_separation_seconds"] < 5:
+        fail("cold-cache reboot boundary missing")
     memory = record["process_memory"]
     if memory["samples"] < 1 or memory["sample_interval_ms"] != 100:
         fail("memory sampling mismatch")

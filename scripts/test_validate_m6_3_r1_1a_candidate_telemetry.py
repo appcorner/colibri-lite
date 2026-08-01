@@ -34,6 +34,15 @@ class CandidateTelemetryValidatorTests(unittest.TestCase):
                 "peak_packed_expert_bytes": 5013504,
                 "complete_f32_weight_materializations": 0,
             },
+            "cold_cache": {
+                "status": "consumed_before_etw_launch",
+                "authorization_path": "D:\\tmp\\colibri-lite-runs\\run-1\\cold-cache-authorization.json",
+                "consumption_path": "D:\\tmp\\colibri-lite-runs\\run-1\\cold-cache-authorization.json.consumed.json",
+                "prepared_sha256": "35a3ef6aba723d302fb1a7fded6ede4543a0c3dfcd35651596b78f1c5158cad2",
+                "boot_time_separation_seconds": 60,
+                "prelaunch_payload_reads": 0,
+                "authorization_reused": False,
+            },
             "process_memory": {
                 "samples": 10, "sample_interval_ms": 100,
                 "working_set_peak_bytes": 1, "private_bytes_peak": 1,
@@ -73,6 +82,16 @@ class CandidateTelemetryValidatorTests(unittest.TestCase):
         record = copy.deepcopy(self.valid_record)
         record["physical_io"]["pid"] = 43
         with self.assertRaisesRegex(ValueError, "PID"):
+            validate_run(record, self.contract)
+
+    def test_rejects_missing_reboot_or_reused_authorization(self) -> None:
+        record = copy.deepcopy(self.valid_record)
+        record["cold_cache"]["boot_time_separation_seconds"] = 0
+        with self.assertRaisesRegex(ValueError, "reboot"):
+            validate_run(record, self.contract)
+        record = copy.deepcopy(self.valid_record)
+        record["cold_cache"]["authorization_reused"] = True
+        with self.assertRaisesRegex(ValueError, "authorization"):
             validate_run(record, self.contract)
         record = copy.deepcopy(self.valid_record)
         record["physical_io"]["status"] = "not_measured"
