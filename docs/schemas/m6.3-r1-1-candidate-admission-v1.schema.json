@@ -1,0 +1,27 @@
+{
+  "schema": "m6.3-r1-1-candidate-admission-v1",
+  "schema_version": 1,
+  "purpose": "Deterministic, pre-registered admission record for one Qwen3 Layer-0 routed-expert candidate, or no_candidate_admitted.",
+  "required_top_level_fields": [
+    "schema", "schema_version", "created_at", "reference", "tooling", "characterization_set",
+    "held_out_bilingual_validation_set", "numerical_gates", "candidates", "selection"
+  ],
+  "selection_outcomes": ["no_candidate_admitted", "exactly_one_candidate"],
+  "forbidden_candidate_ids": ["cpu-safe-rust-int8-group128-layer0-v1"],
+  "required_candidate_fields": [
+    "candidate_id", "status", "layout", "conversion", "artifact", "direct_consumption",
+    "characterization", "repeated_execution", "final_validation"
+  ],
+  "candidate_statuses": ["not_run", "rejected", "admitted"],
+  "direct_consumption_required_values": {
+    "packed_values_and_scales_consumed_directly": true,
+    "complete_f32_projection_materializations": 0,
+    "complete_f32_expert_materializations": 0
+  },
+  "invariants": [
+    "Numerical gates are registered before final_validation is executed.",
+    "An admitted candidate has byte-identical reconversion, deterministic repeated execution, exact structural checks, and direct-consumption proof.",
+    "An admitted candidate's observed logit envelope is no greater than the pre-registered cap and one quarter of every relevant frozen held-out top-1 margin.",
+    "no_candidate_admitted is valid only when no candidate is marked admitted."
+  ]
+}

@@ -702,9 +702,13 @@ reused as the default candidate.
   working set/private bytes, logical reads, process-correlated physical I/O,
   cache-state labels, and collector failure states using the unchanged
   `reference-f32-v1` path.
-- [ ] M6.3-R1.1 Run a deterministic candidate-admission study; select exactly
+- [x] M6.3-R1.1 Run a deterministic candidate-admission study; select exactly
   one Qwen3 expert layout or record `no_candidate_admitted`, with pre-registered
-  numerical gates, provenance, hashes, and direct-consumption proof.
+  numerical gates, provenance, hashes, and direct-consumption proof. Completed
+  with the valid outcome `no_candidate_admitted`: the required read-only
+  canonical Layer-0 F32 shard is absent, so neither newly proposed group-64 nor
+  group-32 candidate was converted or admitted. See ADR 0058 and
+  `docs/reports/m6.3-r1-1-candidate-admission.md`; R1.2 remains blocked.
 - [ ] M6.3-R1.2 Compare the admitted candidate with `reference-f32-v1` using
   stage-level errors, exact safe-margin router IDs, deterministic English/Thai
   quality fixtures, fixed top-20/greedy/multi-token outputs, and repeatability.
@@ -717,7 +721,8 @@ reused as the default candidate.
 
 The complete re-entry protocol is
 `docs/reports/m6.3-r1-reentry-proposal.md`. The exact next task is
-`M6.3-R1.0`.
+`M6.3-R1.2` only if a future R1.1 record admits exactly one candidate; with the
+current `no_candidate_admitted` outcome, do not begin R1.2.
 
 ## Standard verification commands
 

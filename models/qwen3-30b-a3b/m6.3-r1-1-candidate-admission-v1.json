@@ -1,0 +1,92 @@
+{
+  "schema": "m6.3-r1-1-candidate-admission-v1",
+  "schema_version": 1,
+  "created_at": "2026-08-01T13:29:23+07:00",
+  "reference": {
+    "reference_id": "reference-f32-v1",
+    "manifest_path": "models/qwen3-30b-a3b/reference-f32-v1-manifest.json",
+    "canonical_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "model_id": "Qwen/Qwen3-30B-A3B",
+    "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+    "license": "Apache-2.0",
+    "source_layer0_shard": {
+      "path": "experts/experts-layer-00000-of-00048.bin",
+      "sha256": "73c9afd85e34498480faa50460f040f6e3d3d48de9aa3590d5ac2ef6dfff9d23",
+      "bytes": 2415919104,
+      "dtype": "F32",
+      "availability": "not_present_in_workspace"
+    }
+  },
+  "tooling": {
+    "conversion_command": "cargo test -p clr-qwen3-moe --release --features full-model-validation -- m6_3_r1_1_characterize_<candidate_id> --nocapture",
+    "rustc": "1.96.1 (31fca3adb 2026-06-26)",
+    "cargo": "1.96.1 (356927216 2026-06-26)",
+    "python": "3.12.10",
+    "generation_date": "2026-08-01",
+    "run_policy": "one flat D:\\tmp\\colibri-lite-runs\\m6.3-r1-1-<run-id>; read-only canonical input; disk preflight; .incomplete then atomic promotion; hash/provenance/post-task accounting; automatic cleanup"
+  },
+  "characterization_set": {
+    "fixture_ids": ["tier_a_control", "tier_b_code_newline"],
+    "role": "format/group-size characterization only; not final bilingual validation",
+    "frozen_before_execution": true
+  },
+  "held_out_bilingual_validation_set": {
+    "fixture_ids": ["short_english", "short_thai"],
+    "manifest": "models/qwen3-30b-a3b/m6.0-04-quality-fixtures-v1.json",
+    "minimum_frozen_top1_margin": 0.20189857482910156,
+    "role": "held out from characterization and reserved for M6.3-R1.2"
+  },
+  "numerical_gates": {
+    "registered_before_final_fixture_execution": true,
+    "structural": ["source_hash", "output_hash", "offsets", "alignment", "tensor_names", "shapes", "dtypes", "finite_values"],
+    "reconversion": "two independent conversions must produce byte-identical artifact SHA-256 and size",
+    "repeated_execution": "three identical candidate executions must have byte-identical Layer-0 checkpoints and logits",
+    "router": "safe-margin IDs exact; a near tie is recorded ambiguous and never treated as a pass by tolerance relaxation",
+    "first_divergence": "record the first Layer-0 stage among post-attention norm, router, selected experts, MoE output, residual, and logits",
+    "logit_max_abs_cap": 0.05,
+    "logit_cap_rule": "characterization-derived proposed envelope must be <= 0.05 and <= one quarter of every relevant frozen held-out top-1 margin",
+    "held_out_predeclared_gates": ["finite logits", "top20 IDs exact", "greedy IDs exact", "predeclared multi-token outputs exact"],
+    "supplementary_only": ["delta_nll", "top_k_overlap", "endpoint_agreement"],
+    "post_hoc_threshold_change": "reject"
+  },
+  "candidates": [
+    {
+      "candidate_id": "cpu-safe-rust-int8-group64-layer0-r1-1",
+      "status": "not_run",
+      "layout": {
+        "tensors": ["gate_proj", "up_proj", "down_proj"],
+        "shapes": ["[128,768,2048]", "[128,768,2048]", "[128,2048,768]"],
+        "source_dtype": "F32", "precision": "symmetric INT8", "group_axis": "input column", "group_size": 64,
+        "scale_layout": "F32 [output_row,input_group]", "rounding": "round-half-away-from-zero", "saturation": "[-127,127]", "byte_order": "little", "offset_alignment_bytes": 64
+      },
+      "conversion": {"status": "not_run", "byte_identical_reconversion": null, "reason": "required canonical Layer-0 F32 shard is absent; no payload may be downloaded or substituted in this task"},
+      "artifact": {"status": "not_created", "source_sha256": "73c9afd85e34498480faa50460f040f6e3d3d48de9aa3590d5ac2ef6dfff9d23", "output_sha256": null, "bytes": null, "offsets_valid": null},
+      "direct_consumption": {"status": "not_executed", "packed_values_and_scales_consumed_directly": true, "complete_f32_projection_materializations": 0, "complete_f32_expert_materializations": 0},
+      "characterization": {"status": "not_run", "proposed_logit_max_abs_envelope": null},
+      "repeated_execution": {"status": "not_run", "byte_identical": null},
+      "final_validation": {"status": "not_run", "reason": "reserved for M6.3-R1.2 and not authorized by this task"}
+    },
+    {
+      "candidate_id": "cpu-safe-rust-int8-group32-layer0-r1-1",
+      "status": "not_run",
+      "layout": {
+        "tensors": ["gate_proj", "up_proj", "down_proj"],
+        "shapes": ["[128,768,2048]", "[128,768,2048]", "[128,2048,768]"],
+        "source_dtype": "F32", "precision": "symmetric INT8", "group_axis": "input column", "group_size": 32,
+        "scale_layout": "F32 [output_row,input_group]", "rounding": "round-half-away-from-zero", "saturation": "[-127,127]", "byte_order": "little", "offset_alignment_bytes": 64
+      },
+      "conversion": {"status": "not_run", "byte_identical_reconversion": null, "reason": "required canonical Layer-0 F32 shard is absent; no payload may be downloaded or substituted in this task"},
+      "artifact": {"status": "not_created", "source_sha256": "73c9afd85e34498480faa50460f040f6e3d3d48de9aa3590d5ac2ef6dfff9d23", "output_sha256": null, "bytes": null, "offsets_valid": null},
+      "direct_consumption": {"status": "not_executed", "packed_values_and_scales_consumed_directly": true, "complete_f32_projection_materializations": 0, "complete_f32_expert_materializations": 0},
+      "characterization": {"status": "not_run", "proposed_logit_max_abs_envelope": null},
+      "repeated_execution": {"status": "not_run", "byte_identical": null},
+      "final_validation": {"status": "not_run", "reason": "reserved for M6.3-R1.2 and not authorized by this task"}
+    }
+  ],
+  "selection": {
+    "algorithm": "validate record; reject forbidden IDs and invalid gates; retain only candidates passing every pre-registered structural, reconversion, direct-consumption, characterization, and repeatability gate; require retained count == 1, otherwise no_candidate_admitted",
+    "outcome": "no_candidate_admitted",
+    "selected_candidate_id": null,
+    "reason": "Neither newly proposed candidate can be converted without the required read-only canonical Layer-0 F32 shard. No substitute payload, old group-128 artifact, final bilingual fixture, or post-hoc threshold is permitted."
+  }
+}
