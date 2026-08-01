@@ -698,6 +698,16 @@ Status: approved re-entry plan; no task below is complete until its evidence
 passes. The stopped M6.3 group-128 candidate remains stopped and cannot be
 reused as the default candidate.
 
+- [ ] M6.3-R1.1a Characterization remediation (append-only): run only the
+  `code_newline` held-in candidate study defined by ADR 0059 and resolved by
+  ADR 0060; `tier_a_control` requires a separately frozen-reference task. This
+  does not revise the completed R1.1 outcome and does not authorize R1.2.
+
+- [ ] M6.3-R1.1c Canonical Oracle Snapshot Acquisition: after normal HTTPS
+  verification passes under ADR 0061, acquire and freeze the exact upstream
+  Transformers-compatible snapshot for offline oracle use. This task does not
+  start R1.1b, R1.2, or M6.4.
+
 - [x] M6.3-R1.0 Implement and validate a release-process telemetry harness for
   working set/private bytes, logical reads, process-correlated physical I/O,
   cache-state labels, and collector failure states using the unchanged
@@ -705,9 +715,10 @@ reused as the default candidate.
 - [x] M6.3-R1.1 Run a deterministic candidate-admission study; select exactly
   one Qwen3 expert layout or record `no_candidate_admitted`, with pre-registered
   numerical gates, provenance, hashes, and direct-consumption proof. Completed
-  with the valid outcome `no_candidate_admitted`: the required read-only
-  canonical Layer-0 F32 shard is absent, so neither newly proposed group-64 nor
-  group-32 candidate was converted or admitted. See ADR 0058 and
+  with the valid outcome `no_candidate_admitted`: group-64 and group-32 were
+  converted and reconverted byte-identically from the read-only canonical
+  Layer-0 F32 shard, but neither supplied the required characterization-stage
+  routed-expert/checkpoint/logit-envelope evidence. See ADR 0058 and
   `docs/reports/m6.3-r1-1-candidate-admission.md`; R1.2 remains blocked.
 - [ ] M6.3-R1.2 Compare the admitted candidate with `reference-f32-v1` using
   stage-level errors, exact safe-margin router IDs, deterministic English/Thai

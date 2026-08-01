@@ -57,10 +57,13 @@ llama.cpp, or ik_llama layout/code is used.
 
 ## Current evidence outcome
 
-The required read-only canonical Layer-0 F32 shard is not present in this
-workspace. Downloading or substituting a payload is outside this task, so no
-conversion, characterization, or final fixture execution occurred. The valid,
-honest result is `no_candidate_admitted`. If the canonical input is later made
-available, a conversion must follow the temporary-artifact policy: disk
-preflight, one flat unique run directory, `.incomplete` output, atomic
-promotion, hashes/provenance/post-task accounting, and cleanup.
+The canonical Layer-0 F32 shard was verified read-only by ACL before use.
+Group-64 and group-32 both converted to temporary artifacts and each independent
+reconversion was byte-identical. They passed the narrow direct packed-value/
+scale consumption proof without whole-projection or whole-expert F32 expansion.
+They did not produce the required characterization-stage routed-expert
+checkpoints, first-divergence localization, or justified logit envelope. Those
+missing gates reject both formats, yielding `no_candidate_admitted` without
+using the held-out bilingual fixtures. Each output was atomically promoted only
+inside its unique temporary run directory and removed after reviewed dry-run
+and apply cleanup.
