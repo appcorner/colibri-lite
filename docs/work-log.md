@@ -2028,3 +2028,28 @@ Next:
 
 - Stop for separate review of `M5.4-02 Measurement-only resident-dense runtime
   prototype`. Do not implement it until explicitly approved.
+
+## 2026-08-01 — M6.3-R1.1c verified pinned-source recovery
+
+Completed:
+
+- Recovered the already verified M4 17-file Safetensors subset as the canonical
+  minimal oracle source by atomic same-volume rename; no download or payload copy.
+
+Evidence:
+
+- Full pre- and post-promotion validation: 17 files, 61,068,275,406 bytes,
+  18,867 index mappings, and all source-manifest SHA-256 values matched.
+- Offline selective loading resolved Layer-0 dense/router and expert tensors
+  and instantiated frozen Qwen3-MoE Transformers components.
+- Current identity and sandbox group ACLs are ReadAndExecute-only; SYSTEM and
+  Administrators retain FullControl.
+
+Open issues:
+
+- TLS chain validation remains unresolved for network/full-snapshot work, but
+  is non-blocking for this verified offline selective source.
+
+Next:
+
+- M6.3-R1.1b — freeze code_newline routed-expert and MoE checkpoints.

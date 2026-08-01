@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "colibri-lite minimal oracle source registry v1",
+  "type": "object",
+  "required": ["schema_version", "stable_root", "model_id", "revision", "license", "full_transformers_snapshot", "total_bytes", "root_set_sha256", "files"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "stable_root": {"type": "string"},
+    "model_id": {"const": "Qwen/Qwen3-30B-A3B"},
+    "revision": {"const": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39"},
+    "license": {"const": "Apache-2.0"},
+    "full_transformers_snapshot": {"const": false},
+    "total_bytes": {"const": 61068275406},
+    "root_set_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "files": {"type": "array", "minItems": 17, "maxItems": 17}
+  },
+  "additionalProperties": true
+}

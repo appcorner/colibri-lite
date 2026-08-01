@@ -703,10 +703,12 @@ reused as the default candidate.
   ADR 0060; `tier_a_control` requires a separately frozen-reference task. This
   does not revise the completed R1.1 outcome and does not authorize R1.2.
 
-- [ ] M6.3-R1.1c Canonical Oracle Snapshot Acquisition: after normal HTTPS
-  verification passes under ADR 0061, acquire and freeze the exact upstream
-  Transformers-compatible snapshot for offline oracle use. This task does not
-  start R1.1b, R1.2, or M6.4.
+- [x] M6.3-R1.1c Verified M4 Pinned-Source Recovery: the verified 17-file
+  Safetensors subset was atomically promoted as the read-only canonical minimal
+  oracle source, fully rehashed, registry-bound, ACL-checked, and proven by an
+  offline selective loader. ADR 0062 supersedes only ADR 0061's acquisition
+  method; this is not a 26-file Transformers snapshot and does not start R1.1b,
+  R1.2, or M6.4.
 
 - [x] M6.3-R1.0 Implement and validate a release-process telemetry harness for
   working set/private bytes, logical reads, process-correlated physical I/O,
