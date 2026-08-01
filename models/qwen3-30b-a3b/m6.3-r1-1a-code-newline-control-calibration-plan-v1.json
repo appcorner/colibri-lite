@@ -1,0 +1,44 @@
+{
+  "schema": "colibri-qwen3-moe-m6.3-r1.1a-control-calibration-plan-v1",
+  "schema_version": 1,
+  "status": "pre_registered_not_executed",
+  "fixture": {
+    "id": "code_newline",
+    "token_ids": [87, 28, 16, 198]
+  },
+  "model": {
+    "id": "Qwen/Qwen3-30B-A3B",
+    "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+    "canonical_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2"
+  },
+  "oracle": {
+    "record": "models/qwen3-30b-a3b/m6.3-r1-1b-code-newline-layer0-reference-v1.json",
+    "checkpoint_payload_sha256": "6a614737eab3c775fac1ed02f3eeabbf5f0d69eb7ab20ba9010bba0c1b9b0978"
+  },
+  "independent_release_process_runs": 2,
+  "observation_reduction": "maximum finite absolute error across both runs",
+  "budgets": {
+    "layer0.post_attention_rmsnorm": "3 * max_observed_error + 5e-7",
+    "layer0.router_logits": "3 * calibrated_expert_input_error + 1.430511474609375e-5",
+    "layer0.routing_weights": "0.5 * calibrated_router_logit_error + 1e-7",
+    "layer0.selected_expert_output": "3 * max_observed_error + 1e-6",
+    "layer0.aggregated_moe_output": "3 * max_observed_error + 1e-6"
+  },
+  "rounding": "evaluate in binary64 and round the stored Rust bound upward to binary32",
+  "exact_gates": [
+    "checkpoint payload hash",
+    "selected expert IDs",
+    "ordinary versus Layer-0 override",
+    "captured versus same-input recomputed expert outputs",
+    "runtime-order aggregation replay",
+    "deterministic checkpoint hashes across both runs"
+  ],
+  "prohibited": [
+    "candidate conversion",
+    "candidate execution",
+    "candidate telemetry",
+    "held-out bilingual fixtures",
+    "R1.2",
+    "M6.4"
+  ]
+}

@@ -701,7 +701,11 @@ reused as the default candidate.
 - [ ] M6.3-R1.1a Characterization remediation (append-only): run only the
   `code_newline` held-in candidate study defined by ADR 0059 and resolved by
   ADR 0060; `tier_a_control` requires a separately frozen-reference task. This
-  does not revise the completed R1.1 outcome and does not authorize R1.2.
+  does not revise the completed R1.1 outcome and does not authorize R1.2. ADR
+  0064 corrects the control-only tolerance linkage before any candidate run:
+  M4.2 fixture-specific values may not be reused numerically for
+  `code_newline`; two persisted canonical F32 controls must freeze the new
+  fixture-scoped budgets from pre-registered M4.2 formulas first.
 
 - [x] M6.3-R1.1c Verified M4 Pinned-Source Recovery: the verified 17-file
   Safetensors subset was atomically promoted as the read-only canonical minimal
