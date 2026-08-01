@@ -711,6 +711,10 @@ reused as the default candidate.
   now pass; the harness is `harness_ready_for_candidate_execution`. This task
   remains open until the two pre-registered candidates are characterized,
   ranked, and admitted or rejected without using held-out fixtures.
+  The first bounded execution attempt stopped before candidate launch because
+  Kernel ETW requires an elevated Administrator token; its temporary group-64
+  artifact was removed by reviewed dry-run/apply cleanup. See
+  `docs/reports/m6.3-r1-1a-execution-blocker.md`.
 
 - [x] M6.3-R1.1c Verified M4 Pinned-Source Recovery: the verified 17-file
   Safetensors subset was atomically promoted as the read-only canonical minimal
