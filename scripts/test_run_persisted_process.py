@@ -11,11 +11,15 @@ RUNNER = Path(__file__).with_name("run_persisted_process.py")
 
 
 class PersistedProcessRunnerTests(unittest.TestCase):
-    def execute(self, command: list[str]) -> tuple[subprocess.CompletedProcess[str], Path, dict]:
+    def execute(
+        self, command: list[str], use_existing_evidence: bool = False
+    ) -> tuple[subprocess.CompletedProcess[str], Path, dict]:
         temporary = tempfile.TemporaryDirectory(prefix="colibri-persisted-runner-")
         self.addCleanup(temporary.cleanup)
         root = Path(temporary.name)
         evidence = root / "evidence"
+        if use_existing_evidence:
+            evidence.mkdir()
         request = root / "request.json"
         request.write_text(
             json.dumps(
@@ -24,6 +28,7 @@ class PersistedProcessRunnerTests(unittest.TestCase):
                     "command": command,
                     "environment": {"COLIBRI_RUNNER_TEST": "present"},
                     "evidence_directory": str(evidence),
+                    "use_existing_evidence_directory": use_existing_evidence,
                 }
             ),
             encoding="utf-8",
@@ -69,6 +74,14 @@ class PersistedProcessRunnerTests(unittest.TestCase):
         self.assertEqual(record["exit_code"], 127)
         self.assertTrue((evidence / "stdout.log").exists())
         self.assertTrue((evidence / "stderr.log").exists())
+
+    def test_existing_flat_evidence_directory_is_reused_without_subdirectory(self) -> None:
+        process, evidence, record = self.execute(
+            [sys.executable, "-c", "print('flat')"], use_existing_evidence=True
+        )
+        self.assertEqual(process.returncode, 0)
+        self.assertEqual(record["exit_code"], 0)
+        self.assertEqual(sorted(path.name for path in evidence.iterdir()), ["exit.json", "stderr.log", "stdout.log"])
 
 
 if __name__ == "__main__":

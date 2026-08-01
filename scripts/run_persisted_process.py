@@ -42,11 +42,18 @@ def main() -> int:
 
     child_environment = os.environ.copy()
     child_environment.update(overrides)
-    evidence.mkdir(parents=True, exist_ok=False)
+    use_existing_evidence = request.get("use_existing_evidence_directory", False)
+    if not isinstance(use_existing_evidence, bool):
+        raise ValueError("use_existing_evidence_directory must be boolean")
+    if use_existing_evidence:
+        if not evidence.is_dir():
+            raise ValueError("existing evidence directory is not a directory")
+    else:
+        evidence.mkdir(parents=True, exist_ok=False)
     stdout_path = evidence / "stdout.log"
     stderr_path = evidence / "stderr.log"
-    stdout_path.touch()
-    stderr_path.touch()
+    stdout_path.touch(exist_ok=False)
+    stderr_path.touch(exist_ok=False)
     started = time.monotonic()
     record: dict[str, object] = {
         "argv": argv,
