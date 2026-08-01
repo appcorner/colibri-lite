@@ -729,6 +729,16 @@ reused as the default candidate.
   is a fresh group-64 conversion followed by cold-cache Phase A. The protocol
   validator, one-shot ETW binding, telemetry failure tests, and required
   workspace verification pass; group-32 and R1.2 remain blocked.
+  Group-64 cold-cache run 1 of 3 subsequently passed every run gate, including
+  the ADR 0065 physical-I/O gate with 917,504 correlated candidate disk-read
+  bytes and zero lost events. Its fixed-logit maximum absolute error was
+  `2.375e-2`, below the unchanged `0.05` cap; the first divergence was
+  `layer0.selected_expert_output`. This single run is neither admission nor
+  ranking, so the pre-registered characterization/admission and telemetry
+  contracts remain `not_run` and `pre_registered_not_executed`. Run 2 requires
+  a fresh conversion, fresh flat run directory, new Phase A, and reboot.
+  Group-32 and R1.2 remain blocked. See
+  `docs/reports/m6.3-r1-1a-group64-coldcache-run1.md`.
 
 - [x] M6.3-R1.1c Verified M4 Pinned-Source Recovery: the verified 17-file
   Safetensors subset was atomically promoted as the read-only canonical minimal
