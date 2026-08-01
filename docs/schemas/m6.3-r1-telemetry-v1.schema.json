@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "M6.3-R1 release telemetry",
+  "type": "object",
+  "required": ["schema", "runtime", "collector", "runs", "gates"],
+  "properties": {
+    "schema": {"const": "m6.3-r1-telemetry-v1"},
+    "runtime": {
+      "type": "object",
+      "required": ["executable", "command", "reference_identity"],
+      "properties": {
+        "executable": {"type": "string", "minLength": 1},
+        "command": {"type": "array", "items": {"type": "string"}},
+        "reference_identity": {"const": "reference-f32-v1"}
+      }
+    },
+    "collector": {
+      "type": "object",
+      "required": ["powershell", "sample_interval_ms", "etw"],
+      "properties": {
+        "powershell": {"type": "string", "minLength": 1},
+        "sample_interval_ms": {"const": 100},
+        "etw": {
+          "type": "object",
+          "required": ["status", "trace_path", "trace_sha256"],
+          "properties": {
+            "status": {"enum": ["correlated", "not_measured", "failed"]},
+            "trace_path": {"type": ["string", "null"]},
+            "trace_sha256": {"type": ["string", "null"]}
+          }
+        }
+      }
+    },
+    "runs": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["run_id", "exit_code", "samples", "memory", "logical_io", "cache_state"],
+        "properties": {
+          "run_id": {"type": "string", "minLength": 1},
+          "exit_code": {"type": "integer"},
+          "samples": {"type": "integer", "minimum": 1},
+          "memory": {
+            "type": "object",
+            "required": ["working_set_peak_bytes", "peak_working_set_bytes", "private_bytes_peak"],
+            "properties": {
+              "working_set_peak_bytes": {"type": "integer", "minimum": 0},
+              "peak_working_set_bytes": {"type": "integer", "minimum": 0},
+              "private_bytes_peak": {"type": "integer", "minimum": 0}
+            }
+          },
+          "logical_io": {
+            "type": "object",
+            "required": ["bytes_read", "source"],
+            "properties": {
+              "bytes_read": {"type": "integer", "minimum": 0},
+              "source": {"const": "runtime_accounting"}
+            }
+          },
+          "cache_state": {
+            "type": "object",
+            "required": ["runtime", "os_filesystem"],
+            "properties": {
+              "runtime": {"enum": ["cold", "warm", "not_applicable"]},
+              "os_filesystem": {"const": "uncontrolled"}
+            }
+          }
+        }
+      }
+    },
+    "gates": {
+      "type": "object",
+      "required": ["five_reference_runs", "collector_reconciliation", "physical_io"],
+      "properties": {
+        "five_reference_runs": {"type": "boolean"},
+        "collector_reconciliation": {"type": "boolean"},
+        "physical_io": {"type": "boolean"}
+      }
+    }
+  }
+}

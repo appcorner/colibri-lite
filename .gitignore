@@ -116,3 +116,8 @@
 *.exe
 __pycache__/
 .venv/
+
+# M6.3-R1 local ETW captures and generated telemetry output.
+/docs/benchmarks/m6.3-r1-etw-probe/
+/docs/benchmarks/m6.3-r1-reference-etw/
+/docs/benchmarks/m6.3-r1-0-reference-telemetry-v1.json

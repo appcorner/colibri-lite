@@ -698,7 +698,7 @@ Status: approved re-entry plan; no task below is complete until its evidence
 passes. The stopped M6.3 group-128 candidate remains stopped and cannot be
 reused as the default candidate.
 
-- [ ] M6.3-R1.0 Implement and validate a release-process telemetry harness for
+- [x] M6.3-R1.0 Implement and validate a release-process telemetry harness for
   working set/private bytes, logical reads, process-correlated physical I/O,
   cache-state labels, and collector failure states using the unchanged
   `reference-f32-v1` path.

@@ -1,0 +1,20 @@
+{
+  "executable": "D:\\sandboxs\\colibri-lite\\target\\release\\deps\\clr_qwen3_moe-e1503717729029d2.exe",
+  "argument_string": "short_cached_generation_matches_transformers --nocapture",
+  "artifacts": [],
+  "artifact_directories": [
+    "D:\\models\\colibri-lite\\qwen3-30b-a3b\\artifact-v1\\dense",
+    "D:\\models\\colibri-lite\\qwen3-30b-a3b\\artifact-v1\\experts"
+  ],
+  "output_directory": "D:\\sandboxs\\colibri-lite\\docs\\benchmarks\\m6.3-r1-reference-etw",
+  "environment": {
+    "COLIBRI_ARTIFACT_ROOT": "D:\\models\\colibri-lite\\qwen3-30b-a3b\\artifact-v1",
+    "COLIBRI_RMS_DIAGNOSTIC_ROOT": "{run_dir}",
+    "COLIBRI_FULL_LOGITS_ROOT": "{run_dir}",
+    "COLIBRI_EXPERT_CACHE_BUDGET_BYTES": "18874368",
+    "COLIBRI_RUNTIME_VALIDATION": "1",
+    "COLIBRI_TRACE_ONLY": "1",
+    "COLIBRI_FS_CACHE_ASSUMPTION": "uncontrolled",
+    "COLIBRI_METRICS_OUTPUT": "{run_dir}\\metrics.json"
+  }
+}

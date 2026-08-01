@@ -1,0 +1,2 @@
+Microsoft-Windows-Kernel-File 0x120 5
+Microsoft-Windows-Kernel-Disk 0x8000000000000000 5

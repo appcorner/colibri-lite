@@ -1,0 +1,8 @@
+{
+  "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+  "argument_string": "-NoProfile -ExecutionPolicy Bypass -File \"D:\\sandboxs\\colibri-lite\\scripts\\m6_3_r1_etw_read_probe.ps1\" -Path \"D:\\models\\colibri-lite\\qwen3-30b-a3b\\artifact-v1\\experts\\experts-layer-00000-of-00048.bin\" -Bytes 67108864",
+  "artifacts": [
+    "D:\\models\\colibri-lite\\qwen3-30b-a3b\\artifact-v1\\experts\\experts-layer-00000-of-00048.bin"
+  ],
+  "output_directory": "D:\\sandboxs\\colibri-lite\\docs\\benchmarks\\m6.3-r1-etw-probe"
+}
