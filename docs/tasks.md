@@ -715,6 +715,11 @@ reused as the default candidate.
   Kernel ETW requires an elevated Administrator token; its temporary group-64
   artifact was removed by reviewed dry-run/apply cleanup. See
   `docs/reports/m6.3-r1-1a-execution-blocker.md`.
+  A subsequent elevated group-64 run reached the full-model workload but
+  failed before checkpoint comparison because the ETW child working directory
+  was the repository root. ADR 0066 now requires and pre-validates the crate
+  working directory; the failed run was fully cleaned and is not admission
+  evidence. See `docs/reports/m6.3-r1-1a-group64-run1-working-directory-failure.md`.
 
 - [x] M6.3-R1.1c Verified M4 Pinned-Source Recovery: the verified 17-file
   Safetensors subset was atomically promoted as the read-only canonical minimal

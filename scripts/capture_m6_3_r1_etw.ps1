@@ -1,6 +1,7 @@
 param(
     [Parameter(Mandatory = $true)] [string] $Config,
-    [string] $Python = 'python'
+    [string] $Python = 'python',
+    [switch] $ValidateConfigOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -13,16 +14,22 @@ trap {
     }
     exit 2
 }
-$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
-$principal = [Security.Principal.WindowsPrincipal]::new($identity)
-if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    throw 'capture_m6_3_r1_etw.ps1 requires an elevated Administrator PowerShell'
-}
-
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $configuration = Get-Content -Raw -Encoding utf8 -LiteralPath $Config | ConvertFrom-Json
 $Executable = [string]$configuration.executable
 $ArgumentString = [string]$configuration.argument_string
+$workingDirectoryValue = [string]$configuration.working_directory
+if ([string]::IsNullOrWhiteSpace($workingDirectoryValue)) {
+    throw 'working_directory is required'
+}
+$WorkingDirectory = (Resolve-Path -LiteralPath $workingDirectoryValue -ErrorAction Stop).Path
+if (-not (Test-Path -LiteralPath $WorkingDirectory -PathType Container)) {
+    throw 'working_directory must resolve to a directory'
+}
+$repoPrefix = $repo.TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+if ($WorkingDirectory -ne $repo -and -not $WorkingDirectory.StartsWith($repoPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'working_directory must be the repository root or one of its descendants'
+}
 $Artifact = @($configuration.artifacts | ForEach-Object { [string]$_ })
 if ($configuration.artifact_directories) {
     foreach ($directory in @($configuration.artifact_directories | ForEach-Object { [string]$_ })) {
@@ -54,10 +61,15 @@ if ($useOutputDirectoryAsRun) {
         }
     }
 } else {
-    $runId = 'run-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ') + '-' + [guid]::NewGuid().ToString('N')
-    $outputRoot = Join-Path $outputBase $runId
-    New-Item -ItemType Directory -Force -Path $outputRoot | Out-Null
-    Set-Content -Encoding ascii -LiteralPath (Join-Path $outputBase 'latest-run.txt') -Value $outputRoot
+    if ($ValidateConfigOnly) {
+        $runId = 'validation-only'
+        $outputRoot = $outputBase
+    } else {
+        $runId = 'run-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ') + '-' + [guid]::NewGuid().ToString('N')
+        $outputRoot = Join-Path $outputBase $runId
+        New-Item -ItemType Directory -Force -Path $outputRoot | Out-Null
+        Set-Content -Encoding ascii -LiteralPath (Join-Path $outputBase 'latest-run.txt') -Value $outputRoot
+    }
 }
 $ArgumentString = $ArgumentString.Replace('{run_dir}', $outputRoot)
 $Environment = @{}
@@ -65,6 +77,28 @@ if ($configuration.environment) {
     $configuration.environment.psobject.Properties | ForEach-Object {
         $Environment[$_.Name] = ([string]$_.Value).Replace('{run_dir}', $outputRoot)
     }
+}
+$requiredEnvironment = @($configuration.required_environment | ForEach-Object { [string]$_ })
+foreach ($name in $requiredEnvironment) {
+    if ([string]::IsNullOrWhiteSpace($name) -or -not $Environment.ContainsKey($name) -or
+        [string]::IsNullOrWhiteSpace([string]$Environment[$name])) {
+        throw "required environment binding is missing: $name"
+    }
+}
+if ($ValidateConfigOnly) {
+    [ordered]@{
+        status = 'passed'
+        executable = [IO.Path]::GetFullPath($Executable)
+        working_directory = $WorkingDirectory
+        artifact_count = $Artifact.Count
+        required_environment = $requiredEnvironment
+    } | ConvertTo-Json -Depth 4
+    exit 0
+}
+$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+$principal = [Security.Principal.WindowsPrincipal]::new($identity)
+if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    throw 'capture_m6_3_r1_etw.ps1 requires an elevated Administrator PowerShell'
 }
 $parser = Join-Path $PSScriptRoot 'parse_m6_3_r1_etw.py'
 $providerFile = Join-Path $PSScriptRoot 'm6_3_r1_etw-providers.txt'
@@ -116,7 +150,7 @@ try {
     $psi = [Diagnostics.ProcessStartInfo]::new()
     $psi.FileName = [IO.Path]::GetFullPath($Executable)
     $psi.Arguments = $ArgumentString
-    $psi.WorkingDirectory = $repo
+    $psi.WorkingDirectory = $WorkingDirectory
     $psi.UseShellExecute = $false
     $psi.CreateNoWindow = $true
     $psi.RedirectStandardOutput = $true
@@ -165,6 +199,7 @@ try {
         pid = $pidValue
         executable = [IO.Path]::GetFullPath($Executable)
         arguments = $ArgumentString
+        working_directory = $WorkingDirectory
         environment = $Environment
         exit_code = $process.ExitCode
         samples = [Math]::Max(1, $samples)
