@@ -1,0 +1,50 @@
+{
+  "schema": "m6.3-r1.1a-candidate-telemetry-contract-v1",
+  "schema_version": 1,
+  "status": "pre_registered_not_executed",
+  "fixture": {
+    "id": "code_newline",
+    "token_ids": [87, 28, 16, 198]
+  },
+  "candidates": [
+    {
+      "candidate_id": "cpu-safe-rust-int8-group64-layer0-r1-1a",
+      "group_size": 64,
+      "artifact_bytes": 641728512,
+      "artifact_sha256": "35a3ef6aba723d302fb1a7fded6ede4543a0c3dfcd35651596b78f1c5158cad2",
+      "packed_expert_bytes": 5013504
+    },
+    {
+      "candidate_id": "cpu-safe-rust-int8-group32-layer0-r1-1a",
+      "group_size": 32,
+      "artifact_bytes": 679477248,
+      "artifact_sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+      "packed_expert_bytes": 5308416
+    }
+  ],
+  "execution": {
+    "independent_runs_per_candidate": 3,
+    "runtime_scope": "candidate replaces only Layer-0 experts; attention, router, layers 1-47, norms, KV cache, final norm, and LM head remain canonical F32",
+    "flat_temporary_run_directory_required": true,
+    "persisted_runner_child_pid_required": true
+  },
+  "required_metrics": {
+    "full_artifact_verification_bytes": true,
+    "inference_payload_bytes": true,
+    "packed_expert_peak_bytes": true,
+    "complete_f32_weight_materializations": 0,
+    "working_set_peak_bytes": true,
+    "private_bytes_peak": true,
+    "sample_interval_ms": 100
+  },
+  "physical_io_gate": {
+    "required_for_admission": true,
+    "correlation": "exact child PID and exact candidate artifact path/FileObject joined to Kernel-Disk FileObject",
+    "minimum_candidate_disk_read_bytes": 1,
+    "total_events_lost": 0,
+    "logical_io_substitution": "prohibited"
+  },
+  "candidate_results_seen": false,
+  "authorizes_candidate_execution": false,
+  "authorizes_r1_2": false
+}

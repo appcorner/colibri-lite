@@ -1,0 +1,66 @@
+{
+  "schema": "m6.3-r1.1a-harness-readiness-v1",
+  "schema_version": 1,
+  "status": "harness_ready_for_candidate_execution",
+  "fixture": {
+    "id": "code_newline",
+    "token_ids": [87, 28, 16, 198],
+    "checkpoint_payload_sha256": "6a614737eab3c775fac1ed02f3eeabbf5f0d69eb7ab20ba9010bba0c1b9b0978"
+  },
+  "control_calibration": {
+    "record": "models/qwen3-30b-a3b/m6.3-r1-1a-code-newline-control-calibration-result-v1.json",
+    "status": "control_calibrated",
+    "independent_process_runs": 2,
+    "deterministic_checkpoint_sha256": "a9ba90e1af1622d8308a6355f4f30808806f31fa1bfc94eec652b402704ada11"
+  },
+  "candidate_reader": {
+    "groups": [64, 32],
+    "validates": [
+      "exact artifact bytes",
+      "exact SHA-256",
+      "64-byte projection offsets",
+      "expert bounds",
+      "no -128 packed value",
+      "finite nonnegative F32 scales",
+      "checked read accounting"
+    ],
+    "complete_f32_weight_materializations": 0,
+    "tests_passed": 4
+  },
+  "telemetry_contract": {
+    "record": "models/qwen3-30b-a3b/m6.3-r1-1a-candidate-telemetry-contract-v1.json",
+    "validator_tests_passed": 5,
+    "persisted_runner_tests_passed": 3,
+    "physical_io_required_for_admission": true
+  },
+  "post_reader_control": {
+    "run_id": "m6.3-r1.1a-post-reader-control-20260801T143840Z",
+    "status": "completed",
+    "exit_code": 0,
+    "process_duration_seconds": 224.85900000000038,
+    "test_duration_seconds": 207.23,
+    "tests_passed": 1,
+    "tests_failed": 0,
+    "stdout": {
+      "bytes": 331,
+      "sha256": "53a09e697e1c45e0135178b020cb3420fdde4289e7724037b905723b3d3380f6"
+    },
+    "stderr": {
+      "bytes": 236,
+      "sha256": "acbdf9703d04f66580b61992009760eaf9615e42fc57679d590f5a8d413a06c2"
+    }
+  },
+  "authorized_execution_scope": {
+    "candidate_ids": [
+      "cpu-safe-rust-int8-group64-layer0-r1-1a",
+      "cpu-safe-rust-int8-group32-layer0-r1-1a"
+    ],
+    "fixture_ids": ["code_newline"],
+    "conversion_and_characterization": true,
+    "held_out_bilingual_fixtures": false,
+    "r1_2": false,
+    "m6_4": false
+  },
+  "candidate_results_seen": false,
+  "admission_outcome": "not_executed"
+}

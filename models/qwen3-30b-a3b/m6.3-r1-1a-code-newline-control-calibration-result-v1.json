@@ -1,0 +1,87 @@
+{
+  "schema": "colibri-qwen3-moe-m6.3-r1.1a-control-calibration-result-v1",
+  "schema_version": 1,
+  "status": "control_calibrated",
+  "preregistration": {
+    "commit": "a44e75c5a55dcf9812d8dbfc360db8049c70a12d",
+    "adr": "docs/adr/0064-m6-3-r1-1a-code-newline-control-tolerance-calibration.md",
+    "adr_sha256": "740d4e0ca633fd1ccc4793a3e566287fc09b0e51dddec76b5c13496bc3cc1209",
+    "plan": "models/qwen3-30b-a3b/m6.3-r1-1a-code-newline-control-calibration-plan-v1.json",
+    "plan_sha256": "be2ff9b02c027e52b9983cc0df4158703da5298d272598c179349e7c7c8effdd"
+  },
+  "fixture": {
+    "id": "code_newline",
+    "token_ids": [87, 28, 16, 198],
+    "checkpoint_payload_sha256": "6a614737eab3c775fac1ed02f3eeabbf5f0d69eb7ab20ba9010bba0c1b9b0978"
+  },
+  "model": {
+    "id": "Qwen/Qwen3-30B-A3B",
+    "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+    "canonical_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2"
+  },
+  "runs": [
+    {
+      "run_id": "m6.3-r1.1a-control-calibration-run1-20260801T135450Z",
+      "status": "completed",
+      "exit_code": 0,
+      "duration_seconds": 471.1560000000027,
+      "stdout": {"bytes": 690, "sha256": "67f31de377c8e82b18550738d1ae557704a9bbdd84e6e7b76a69b6c42ae7d188"},
+      "stderr": {"bytes": 236, "sha256": "08c9c59da2a619616a563fb07e67ea23a28b727ad2879a16a19975d3367a4659"},
+      "checkpoint_sha256": "a9ba90e1af1622d8308a6355f4f30808806f31fa1bfc94eec652b402704ada11"
+    },
+    {
+      "run_id": "m6.3-r1.1a-control-calibration-run2-20260801T135450Z",
+      "status": "completed",
+      "exit_code": 0,
+      "duration_seconds": 445.2340000000004,
+      "stdout": {"bytes": 690, "sha256": "ac65942de3216737cadd07fa6c60b0c152ad73dd4e04d2ba11354d4fff31f671"},
+      "stderr": {"bytes": 153, "sha256": "b486eb95ac06046db2f889958a633798a69d340c7c5af7ca0ebd34d8a7260ed8"},
+      "checkpoint_sha256": "a9ba90e1af1622d8308a6355f4f30808806f31fa1bfc94eec652b402704ada11"
+    }
+  ],
+  "maximum_observed_absolute_errors": {
+    "layer0.post_attention_rmsnorm": 4.932284355163574e-6,
+    "layer0.router_logits": 2.193450927734375e-5,
+    "layer0.routing_weights": 5.364418029785156e-7,
+    "layer0.selected_expert_output": 2.5033950805664062e-6,
+    "layer0.aggregated_moe_output": 1.0132789611816406e-6
+  },
+  "derived_f32_budgets": {
+    "layer0.post_attention_rmsnorm": {"value": 1.52968532347586e-5, "bits": "0x378051be", "formula": "3 * max_observed_error + 5e-7"},
+    "layer0.router_logits": {"value": 2.9101967811584473e-5, "bits": "0x37f42000", "formula": "3 * layer0.post_attention_rmsnorm max_observed_error + 1.430511474609375e-5"},
+    "layer0.routing_weights": {"value": 1.1067255400121212e-5, "bits": "0x3739ad80", "formula": "0.5 * layer0.router_logits max_observed_error + 1e-7"},
+    "layer0.selected_expert_output": {"value": 8.510185580234975e-6, "bits": "0x370ec6f8", "formula": "3 * max_observed_error + 1e-6"},
+    "layer0.aggregated_moe_output": {"value": 4.039837222080678e-6, "bits": "0x36878df0", "formula": "3 * max_observed_error + 1e-6"}
+  },
+  "fixed_logit_guard": {
+    "maximum_observed_absolute_error": 1.811981201171875e-5,
+    "frozen_budget": 3.0517578e-5,
+    "passed": true
+  },
+  "exact_gates": {
+    "selected_expert_ids": "passed",
+    "ordinary_vs_override": "passed",
+    "captured_vs_same_input_recomputed": "passed",
+    "runtime_order_aggregation_replay": "passed",
+    "checkpoint_hashes_identical": true
+  },
+  "final_control_verification": {
+    "run_id": "m6.3-r1.1a-final-control-20260801T141853Z",
+    "status": "completed",
+    "exit_code": 0,
+    "duration_seconds": 340.6720000000023,
+    "test_duration_seconds": 316.46,
+    "tests_passed": 1,
+    "tests_failed": 0,
+    "stdout": {
+      "bytes": 331,
+      "sha256": "c2a28ec63f261ceee084bd038fb391c04ceb2dfa8ec0e893ce998af3233d225f"
+    },
+    "stderr": {
+      "bytes": 236,
+      "sha256": "23844b23eba60c2afabe9fd19cb6c49e12cd8b03d293b5de312ce30ade4eafd8"
+    }
+  },
+  "candidate_results_seen": false,
+  "authorizes_candidate_execution": false
+}

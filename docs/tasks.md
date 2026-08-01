@@ -706,6 +706,11 @@ reused as the default candidate.
   M4.2 fixture-specific values may not be reused numerically for
   `code_newline`; two persisted canonical F32 controls must freeze the new
   fixture-scoped budgets from pre-registered M4.2 formulas first.
+  The control calibration, direct candidate reader, candidate-correlated
+  telemetry contract, failure-mode tests, and post-reader canonical control
+  now pass; the harness is `harness_ready_for_candidate_execution`. This task
+  remains open until the two pre-registered candidates are characterized,
+  ranked, and admitted or rejected without using held-out fixtures.
 
 - [x] M6.3-R1.1c Verified M4 Pinned-Source Recovery: the verified 17-file
   Safetensors subset was atomically promoted as the read-only canonical minimal

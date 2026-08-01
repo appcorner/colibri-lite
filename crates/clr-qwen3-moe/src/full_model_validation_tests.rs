@@ -32,6 +32,9 @@ use crate::{
     quantized_layer0::{
         Group128Projection, Layer0QuantizedExpert, routed_layer0_quantized_experts_with_loader,
     },
+    r1_1_direct_candidate::{
+        R1_1CandidateReader, R1_1PackedArtifactLayout, r1_1_routed_experts_with_observer,
+    },
     streaming::{
         PackedExpertLayout, streaming_routed_experts_with_observer,
         streaming_routed_experts_with_request_observer,
@@ -1194,6 +1197,136 @@ fn decode_sha256(value: &str) -> [u8; 32] {
 
 fn selected_expert_store(artifact_root: &std::path::Path) -> ExpertStore {
     expert_store_from_plan(LAYER0_EXPERT_RUNTIME_PLAN, artifact_root, 27)
+}
+
+/// Reads the canonical v1 writer grammar just far enough for this diagnostic
+/// seam. This is deliberately private/test-only: production continues to use
+/// its established runtime plans and never parses artifact JSON at inference.
+fn canonical_layer0_expert_store(artifact_root: &Path) -> ExpertStore {
+    const SHARD: &str = "experts-layer-00000-of-00048.bin";
+    const PAYLOAD: u64 = 18_874_368;
+    const PROJECTIONS: [&str; 3] = [
+        "\"gate\": {\"offset\": 0, \"length\": 6291456, \"shape\": [768, 2048]}",
+        "\"up\": {\"offset\": 6291456, \"length\": 6291456, \"shape\": [768, 2048]}",
+        "\"down\": {\"offset\": 12582912, \"length\": 6291456, \"shape\": [2048, 768]}",
+    ];
+    let text = fs::read_to_string(artifact_root.join("experts/expert-manifest-v1.json"))
+        .expect("read canonical expert manifest");
+    for required in [
+        "\"format_version\": 1",
+        "\"model_id\": \"Qwen/Qwen3-30B-A3B\"",
+        "\"model_revision\": \"ad44e777bcd18fa416d9da3bd8f70d33ebb85d39\"",
+        "\"source_dtype\": \"BF16\"",
+        "\"artifact_dtype\": \"F32\"",
+        "\"endianness\": \"little\"",
+        SHARD,
+    ] {
+        assert!(
+            text.contains(required),
+            "canonical expert manifest missing {required}"
+        );
+    }
+    let shard_length = fs::metadata(artifact_root.join("experts").join(SHARD))
+        .expect("canonical Layer-0 shard metadata")
+        .len();
+    let mut metadata = Vec::with_capacity(128);
+    let mut registrations = Vec::with_capacity(128);
+    let mut seen = HashSet::new();
+    let mut record = String::new();
+    let mut in_record = false;
+    for line in text.lines() {
+        if line.trim_start().starts_with("\"layer\":") {
+            in_record = true;
+            record.clear();
+        }
+        if in_record {
+            record.push_str(line.trim());
+            if line.trim() == "}," || line.trim() == "}" {
+                in_record = false;
+                if r1_1a_manifest_number(&record, "layer") != 0 {
+                    continue;
+                }
+                assert!(
+                    PROJECTIONS
+                        .iter()
+                        .all(|projection| record.contains(projection)),
+                    "invalid Layer-0 projection layout"
+                );
+                assert!(record.contains("\"source_dtype\": \"BF16\""));
+                assert!(record.contains("\"artifact_dtype\": \"F32\""));
+                let expert = r1_1a_manifest_number(&record, "expert");
+                let shard_id = r1_1a_manifest_number(&record, "shard_id");
+                let offset = r1_1a_manifest_number(&record, "payload_offset");
+                let length = r1_1a_manifest_number(&record, "payload_length");
+                assert_eq!(shard_id, 0, "Layer-0 must use shard zero");
+                assert_eq!(length, PAYLOAD, "Layer-0 payload length");
+                assert!(
+                    expert < 128 && seen.insert(expert),
+                    "duplicate/out-of-range Layer-0 expert"
+                );
+                assert!(
+                    offset
+                        .checked_add(length)
+                        .is_some_and(|end| end <= shard_length),
+                    "Layer-0 payload range out of bounds"
+                );
+                let hash = record
+                    .rsplit_once("\"sha256\": \"")
+                    .and_then(|(_, tail)| tail.split_once('"'))
+                    .map(|(hash, _)| hash)
+                    .expect("expert payload SHA-256");
+                let name = format!("model.layers.0.mlp.experts.{expert}");
+                metadata.push(TensorMetadata {
+                    name: name.clone(),
+                    shape: TensorShape::new([usize::try_from(length / 4).expect("payload shape")]),
+                    data_type: DataType::F32,
+                    location: TensorLocation {
+                        path: SHARD.into(),
+                        offset,
+                        length,
+                    },
+                    sha256: decode_sha256(hash),
+                });
+                registrations.push(ExpertRegistration {
+                    key: ExpertKey {
+                        layer_index: 0,
+                        expert_id: ExpertId(u32::try_from(expert).expect("expert ID")),
+                    },
+                    tensor_name: name,
+                });
+            }
+        }
+    }
+    assert_eq!(
+        seen,
+        (0..128).collect(),
+        "Layer-0 IDs must be exactly 0..127"
+    );
+    let manifest = ArtifactManifest::new(ARTIFACT_FORMAT_VERSION, ByteOrder::Little, metadata)
+        .expect("validated Layer-0 diagnostic manifest");
+    let reader = ArtifactReader::open(artifact_root.join("experts"), manifest)
+        .expect("open canonical Layer-0 reader");
+    ExpertStore::new(
+        reader,
+        registrations,
+        usize::try_from(PAYLOAD).expect("Layer-0 payload length fits usize"),
+    )
+    .expect("canonical Layer-0 store")
+}
+
+fn r1_1a_manifest_number(record: &str, key: &str) -> u64 {
+    let prefix = format!("\"{key}\":");
+    record
+        .split_once(&prefix)
+        .and_then(|(_, tail)| {
+            tail.trim_start()
+                .chars()
+                .take_while(char::is_ascii_digit)
+                .collect::<String>()
+                .parse()
+                .ok()
+        })
+        .expect("canonical manifest numeric field")
 }
 
 fn expert_store_from_plan(
@@ -6144,6 +6277,777 @@ fn m6_3_04_layer0_group128_matches_reference_f32() {
     fs::write(run_root.join("m6.3-04-evidence-v1.tsv"), &evidence).expect("write M6.3-04 evidence");
     println!(
         "m6_3_04 artifact_bytes={expected_output} source_sha256={source_sha256} output_sha256={output_sha256}\n{evidence}"
+    );
+}
+
+/// R1.1a's private seam deliberately changes only the Layer-0 expert store.
+/// Attention, router, layers 1--47, final norm, and LM head remain the exact
+/// canonical F32 test-runtime implementation below.
+struct R1_1aRun {
+    ids: Vec<usize>,
+    router_logits: Vec<f32>,
+    weights: Vec<f32>,
+    expert_input: Vec<f32>,
+    expert_outputs: Vec<f32>,
+    aggregation_events: Vec<(usize, usize, usize)>,
+    moe: Vec<f32>,
+    block: Vec<f32>,
+    logits: Tensor,
+    #[allow(dead_code)] // consumed by the pre-registered candidate execution tests added next.
+    candidate_telemetry: Option<R1_1aCandidateTelemetry>,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+struct R1_1aCandidateTelemetry {
+    candidate_id: String,
+    artifact_path: PathBuf,
+    artifact_sha256: String,
+    group_size: usize,
+    verification_bytes_read: u64,
+    payload_bytes_read: u64,
+    peak_packed_expert_bytes: usize,
+    complete_f32_weight_materializations: usize,
+}
+
+struct R1_1aCandidateSpec<'a> {
+    candidate_id: &'a str,
+    artifact_path: &'a Path,
+    artifact_sha256: &'a str,
+    group_size: usize,
+}
+
+// Frozen by ADR 0064 from two pre-candidate canonical F32 control processes.
+const R1_1A_CODE_NEWLINE_INPUT_BUDGET: f32 = 1.529_685_3e-5;
+const R1_1A_CODE_NEWLINE_ROUTER_BUDGET: f32 = 2.910_196_8e-5;
+const R1_1A_CODE_NEWLINE_ROUTING_BUDGET: f32 = 1.106_725_5e-5;
+const R1_1A_CODE_NEWLINE_SELECTED_OUTPUT_BUDGET: f32 = 8.510_186e-6;
+const R1_1A_CODE_NEWLINE_MOE_BUDGET: f32 = 4.039_837e-6;
+
+fn r1_1a_code_newline_run(override_layer0_f32: bool) -> R1_1aRun {
+    r1_1a_code_newline_run_with_source(override_layer0_f32, None)
+}
+
+#[allow(dead_code)] // execution remains prohibited until telemetry validation closes.
+fn r1_1a_candidate_code_newline_run(spec: R1_1aCandidateSpec<'_>) -> R1_1aRun {
+    r1_1a_code_newline_run_with_source(false, Some(spec))
+}
+
+fn r1_1a_code_newline_run_with_source(
+    override_layer0_f32: bool,
+    candidate: Option<R1_1aCandidateSpec<'_>>,
+) -> R1_1aRun {
+    assert!(
+        !(override_layer0_f32 && candidate.is_some()),
+        "control override and candidate source are mutually exclusive"
+    );
+    let artifact_root =
+        PathBuf::from(env::var_os("COLIBRI_ARTIFACT_ROOT").expect("canonical root"));
+    let plan = runtime_plan(LAYER47_RUNTIME_PLAN);
+    let final_plan = runtime_plan(GENERATION_FINAL_DENSE_RUNTIME_PLAN);
+    let mut payload =
+        File::open(artifact_root.join(&plan.payload)).expect("open canonical dense payload");
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("config")
+        .runtime_config();
+    let layout = PackedExpertLayout::for_config(config);
+    let mut bytes_read = 0;
+    let final_norm_weight = artifact_tensor(
+        &mut payload,
+        &final_plan,
+        "model.norm.weight",
+        &mut bytes_read,
+    );
+    let mut normal_store = expert_store_from_plans(
+        &[
+            LAYER47_EXPERT_RUNTIME_PLAN,
+            GENERATION_LAYER47_EXPERT_RUNTIME_PLAN,
+        ],
+        &artifact_root,
+        48 * 128,
+    );
+    // This independent store is the control override source; it reads the same
+    // canonical Layer-0 shard through the production F32 ExpertStore contract.
+    let mut ordinary_layer0_store = canonical_layer0_expert_store(&artifact_root);
+    let mut override_store = canonical_layer0_expert_store(&artifact_root);
+    let mut candidate_reader = candidate.as_ref().map(|spec| {
+        R1_1CandidateReader::open(
+            spec.artifact_path,
+            R1_1PackedArtifactLayout::canonical(spec.group_size).expect("candidate layout"),
+            spec.artifact_sha256,
+        )
+        .expect("validated candidate artifact")
+    });
+    let mut cache = KvCache::new(48, 4, 4, 128).expect("KV cache");
+    let mut ids = Vec::new();
+    let mut router_logits = Vec::with_capacity(4 * 128);
+    let mut weights = Vec::with_capacity(4 * 8);
+    let mut expert_input = Vec::with_capacity(4 * 2048);
+    let mut expert_outputs = vec![0.0; 4 * 8 * 2048];
+    let mut aggregation_events = Vec::with_capacity(32);
+    let mut moe = Vec::with_capacity(4 * 2048);
+    let mut block = Vec::with_capacity(4 * 2048);
+    let mut current = None;
+    for (position, &token_id) in [87_usize, 28, 16, 198].iter().enumerate() {
+        let mut hidden = embedding_row(&mut payload, &plan, token_id, &mut bytes_read);
+        let mut updates = Vec::with_capacity(48);
+        for layer in 0..48 {
+            let layer_weights = layer_weights(&mut payload, &plan, layer, &mut bytes_read);
+            let input_norm = rms_norm(
+                hidden.view(),
+                layer_weights.input_norm.view(),
+                config.rms_norm_epsilon(),
+            )
+            .expect("input norm");
+            let attention = cached_attention_with_weights(
+                input_norm.view(),
+                config,
+                layer_weights.query.view(),
+                layer_weights.key.view(),
+                layer_weights.value.view(),
+                layer_weights.output.view(),
+                layer_weights.query_norm.view(),
+                layer_weights.key_norm.view(),
+                cache.layer(layer).expect("KV layer"),
+            )
+            .expect("attention");
+            let residual =
+                elementwise_add(hidden.view(), attention.output.view()).expect("residual");
+            let post_norm = rms_norm(
+                residual.view(),
+                layer_weights.post_norm.view(),
+                config.rms_norm_epsilon(),
+            )
+            .expect("post norm");
+            let router = route_tokens(post_norm.view(), layer_weights.router.view(), config)
+                .expect("router");
+            let expert_result = if layer == 0 {
+                ids.extend_from_slice(&router.selected_experts);
+                router_logits.extend_from_slice(router.logits.data());
+                weights.extend_from_slice(router.weights.data());
+                expert_input.extend_from_slice(post_norm.data());
+                if let Some(reader) = candidate_reader.as_mut() {
+                    r1_1_routed_experts_with_observer(
+                        post_norm.view(),
+                        &router,
+                        config,
+                        reader,
+                        |expert, token, rank, output| {
+                            let offset = (position * 8 + rank) * 2048;
+                            assert_eq!(token, 0, "one-token candidate layer-0 call");
+                            assert_eq!(expert, router.selected_experts[rank]);
+                            aggregation_events.push((position, expert, rank));
+                            expert_outputs[offset..offset + 2048].copy_from_slice(output);
+                        },
+                    )
+                    .expect("Layer-0 candidate expert source")
+                } else {
+                    let store = if override_layer0_f32 {
+                        &mut override_store
+                    } else {
+                        &mut ordinary_layer0_store
+                    };
+                    streaming_routed_experts_with_observer(
+                        post_norm.view(),
+                        &router,
+                        config,
+                        layer,
+                        store,
+                        layout,
+                        |expert, token, rank, output| {
+                            let offset = (position * 8 + rank) * 2048;
+                            assert_eq!(token, 0, "one-token streaming layer-0 call");
+                            assert_eq!(expert, router.selected_experts[rank]);
+                            aggregation_events.push((position, expert, rank));
+                            expert_outputs[offset..offset + 2048].copy_from_slice(output);
+                        },
+                    )
+                    .expect("Layer-0 F32 expert source")
+                }
+            } else {
+                streaming_routed_experts_with_observer(
+                    post_norm.view(),
+                    &router,
+                    config,
+                    layer,
+                    &mut normal_store,
+                    layout,
+                    |_, _, _, _| {},
+                )
+                .expect("canonical F32 experts")
+            };
+            hidden = elementwise_add(residual.view(), expert_result.view()).expect("block output");
+            if layer == 0 {
+                moe.extend_from_slice(expert_result.data());
+                block.extend_from_slice(hidden.data());
+            }
+            updates.push((attention.key, attention.value));
+        }
+        let views = updates
+            .iter()
+            .map(|(key, value)| LayerKvUpdate { key, value })
+            .collect::<Vec<_>>();
+        cache.append_token(&views).expect("append token");
+        current = Some(hidden);
+    }
+    let normalized = rms_norm(
+        current.expect("final hidden").view(),
+        final_norm_weight.view(),
+        config.rms_norm_epsilon(),
+    )
+    .expect("final norm");
+    let logits =
+        streaming_language_model_head(&mut payload, &final_plan, &normalized, &mut bytes_read);
+    let candidate_telemetry = candidate.map(|spec| {
+        let reader = candidate_reader.expect("candidate reader");
+        R1_1aCandidateTelemetry {
+            candidate_id: spec.candidate_id.to_owned(),
+            artifact_path: reader.path().to_path_buf(),
+            artifact_sha256: reader.sha256().to_owned(),
+            group_size: spec.group_size,
+            verification_bytes_read: reader.verification_bytes_read(),
+            payload_bytes_read: reader.payload_bytes_read(),
+            peak_packed_expert_bytes: reader.peak_packed_expert_bytes(),
+            complete_f32_weight_materializations: 0,
+        }
+    });
+    R1_1aRun {
+        ids,
+        router_logits,
+        weights,
+        expert_input,
+        expert_outputs,
+        aggregation_events,
+        moe,
+        block,
+        logits,
+        candidate_telemetry,
+    }
+}
+
+fn r1_1a_max_difference(left: &[f32], right: &[f32]) -> f32 {
+    assert_eq!(left.len(), right.len());
+    left.iter()
+        .zip(right)
+        .map(|(a, b)| (a - b).abs())
+        .fold(0.0, f32::max)
+}
+
+fn r1_1a_finite_max_difference(left: &[f32], right: &[f32], checkpoint: &str) -> f32 {
+    assert_eq!(left.len(), right.len(), "{checkpoint} length");
+    left.iter()
+        .zip(right)
+        .enumerate()
+        .map(|(index, (actual, expected))| {
+            assert!(actual.is_finite(), "{checkpoint} actual[{index}] finite");
+            assert!(
+                expected.is_finite(),
+                "{checkpoint} expected[{index}] finite"
+            );
+            (actual - expected).abs()
+        })
+        .fold(0.0, f32::max)
+}
+
+fn r1_1a_checkpoint_hash(run: &R1_1aRun) -> String {
+    let mut hasher = Sha256Hasher::new();
+    for (name, values) in [
+        ("router_logits", run.router_logits.as_slice()),
+        ("routing_weights", run.weights.as_slice()),
+        ("expert_input", run.expert_input.as_slice()),
+        ("selected_expert_output", run.expert_outputs.as_slice()),
+        ("aggregated_moe_output", run.moe.as_slice()),
+        ("layer0_block_output", run.block.as_slice()),
+        ("final_logits", run.logits.data()),
+    ] {
+        hasher.update(name.as_bytes());
+        hasher.update(&[0]);
+        for value in values {
+            hasher.update(&value.to_bits().to_le_bytes());
+        }
+    }
+    hasher.update(b"selected_expert_ids\0");
+    for &expert in &run.ids {
+        hasher.update(
+            &u64::try_from(expert)
+                .expect("expert ID fits u64")
+                .to_le_bytes(),
+        );
+    }
+    m6_3_04_sha256_hex(hasher)
+}
+
+fn r1_1a_assert_runs_exact(ordinary: &R1_1aRun, overridden: &R1_1aRun) {
+    assert_eq!(
+        ordinary.ids, overridden.ids,
+        "router IDs are exact across the seam"
+    );
+    for (name, left, right) in [
+        (
+            "router_logits",
+            ordinary.router_logits.as_slice(),
+            overridden.router_logits.as_slice(),
+        ),
+        (
+            "routing_weights",
+            ordinary.weights.as_slice(),
+            overridden.weights.as_slice(),
+        ),
+        (
+            "expert_input",
+            ordinary.expert_input.as_slice(),
+            overridden.expert_input.as_slice(),
+        ),
+        (
+            "selected_expert_output",
+            ordinary.expert_outputs.as_slice(),
+            overridden.expert_outputs.as_slice(),
+        ),
+        (
+            "aggregated_moe_output",
+            ordinary.moe.as_slice(),
+            overridden.moe.as_slice(),
+        ),
+        (
+            "layer0_block_output",
+            ordinary.block.as_slice(),
+            overridden.block.as_slice(),
+        ),
+        (
+            "final_logits",
+            ordinary.logits.data(),
+            overridden.logits.data(),
+        ),
+    ] {
+        assert_eq!(
+            r1_1a_max_difference(left, right),
+            0.0,
+            "{name} control override drift"
+        );
+    }
+}
+
+type R1_1aFrozenCheckpointPayload = (Vec<f32>, Vec<f32>, Vec<usize>, Vec<f32>, Vec<f32>, Vec<f32>);
+
+fn r1_1a_frozen_checkpoint_payload() -> R1_1aFrozenCheckpointPayload {
+    let raw =
+        fs::read("../../models/qwen3-30b-a3b/m6.3-r1-1b-code-newline-layer0-checkpoints-v1.bin")
+            .expect("read frozen R1.1b payload");
+    assert_eq!(raw.len(), 330_811);
+    let mut hasher = Sha256Hasher::new();
+    hasher.update(&raw);
+    assert_eq!(
+        hasher.finalize(),
+        decode_sha256("6a614737eab3c775fac1ed02f3eeabbf5f0d69eb7ab20ba9010bba0c1b9b0978")
+    );
+    assert_eq!(&raw[..10], b"CLR-R1-1B\0");
+    let header_length = usize::try_from(u64::from_le_bytes(
+        raw[10..18].try_into().expect("header length"),
+    ))
+    .expect("header fits");
+    let header = std::str::from_utf8(&raw[18..18 + header_length]).expect("header UTF-8");
+    for name in [
+        "layer0.post_attention_rmsnorm",
+        "layer0.router_logits",
+        "layer0.selected_expert_ids",
+        "layer0.routing_weights",
+        "layer0.selected_expert_output",
+        "layer0.aggregated_moe_output",
+    ] {
+        assert!(header.contains(name), "missing frozen checkpoint {name}");
+    }
+    let mut cursor = 18 + header_length;
+    let f32s = |bytes: &[u8]| {
+        bytes
+            .chunks_exact(4)
+            .map(|chunk| f32::from_le_bytes(chunk.try_into().expect("f32")))
+            .collect::<Vec<_>>()
+    };
+    let input = f32s(&raw[cursor..cursor + 32_768]);
+    cursor += 32_768;
+    let router = f32s(&raw[cursor..cursor + 2_048]);
+    cursor += 2_048;
+    let ids = raw[cursor..cursor + 256]
+        .chunks_exact(8)
+        .map(|chunk| {
+            usize::try_from(i64::from_le_bytes(chunk.try_into().expect("id")))
+                .expect("non-negative ID")
+        })
+        .collect();
+    cursor += 256;
+    let weights = f32s(&raw[cursor..cursor + 128]);
+    cursor += 128;
+    let outputs = f32s(&raw[cursor..cursor + 262_144]);
+    cursor += 262_144;
+    let moe = f32s(&raw[cursor..cursor + 32_768]);
+    cursor += 32_768;
+    assert_eq!(cursor, raw.len());
+    (input, router, ids, weights, outputs, moe)
+}
+
+fn r1_1a_selected_output_diagnostic(
+    actual: &[f32],
+    expected: &[f32],
+    ids: &[usize],
+    tolerance: f32,
+) {
+    let mut rows = actual
+        .iter()
+        .zip(expected)
+        .enumerate()
+        .map(|(index, (actual, expected))| {
+            let error = (actual - expected).abs();
+            let token = index / 16_384;
+            let within = index % 16_384;
+            (
+                error,
+                index,
+                token,
+                within / 2048,
+                ids[token * 8 + within / 2048],
+                within % 2048,
+                *expected,
+                *actual,
+            )
+        })
+        .collect::<Vec<_>>();
+    rows.sort_by(|left, right| {
+        right
+            .0
+            .total_cmp(&left.0)
+            .then_with(|| left.1.cmp(&right.1))
+    });
+    let worst = rows.first().expect("selected outputs");
+    let exceeded = rows.iter().filter(|row| row.0 > tolerance).count();
+    let relative = rows
+        .iter()
+        .map(|row| row.0 / row.6.abs().max(f32::MIN_POSITIVE))
+        .fold(0.0, f32::max);
+    let worst_ten = rows
+        .iter()
+        .take(10)
+        .map(|row| {
+            format!(
+                "t={} r={} e={} i={} expected={:.9e} actual={:.9e} abs={:.9e}",
+                row.2, row.3, row.4, row.5, row.6, row.7, row.0
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("; ");
+    assert!(
+        worst.0 <= tolerance,
+        "selected_expert_output max_abs={:.9e} max_relative={:.9e} allowed={:.9e} first=t:{} r:{} e:{} i:{} expected:{:.9e} actual:{:.9e} abs:{:.9e} exceeds:{} worst10:[{}]",
+        worst.0,
+        relative,
+        tolerance,
+        worst.2,
+        worst.3,
+        worst.4,
+        worst.5,
+        worst.6,
+        worst.7,
+        worst.0,
+        exceeded,
+        worst_ten
+    );
+}
+
+fn r1_1a_recompute_selected_outputs(run: &R1_1aRun, root: &Path) -> Vec<f32> {
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("config")
+        .runtime_config();
+    let router = crate::block::RouterOutput {
+        logits: Tensor::new(TensorShape::new([4, 128]), run.router_logits.clone()).expect("logits"),
+        weights: Tensor::new(TensorShape::new([4, 8]), run.weights.clone()).expect("weights"),
+        selected_experts: run.ids.clone(),
+    };
+    let input = Tensor::new(TensorShape::new([4, 2048]), run.expert_input.clone()).expect("input");
+    let mut output = vec![0.0; 65_536];
+    let mut store = canonical_layer0_expert_store(root);
+    let _ = streaming_routed_experts_with_observer(
+        input.view(),
+        &router,
+        config,
+        0,
+        &mut store,
+        PackedExpertLayout::for_config(config),
+        |expert, token, rank, values| {
+            assert_eq!(expert, run.ids[token * 8 + rank]);
+            output[(token * 8 + rank) * 2048..(token * 8 + rank + 1) * 2048]
+                .copy_from_slice(values);
+        },
+    )
+    .expect("same-input recomputation");
+    output
+}
+
+fn r1_1a_weighted_sum(
+    outputs: &[f32],
+    weights: &[f32],
+    events: &[(usize, usize, usize)],
+) -> Vec<f32> {
+    let mut total = vec![0.0; 8192];
+    for &(token, _expert, rank) in events {
+        for hidden in 0..2048 {
+            total[token * 2048 + hidden] +=
+                weights[token * 8 + rank] * outputs[(token * 8 + rank) * 2048 + hidden];
+        }
+    }
+    total
+}
+
+#[test]
+fn m6_3_r1_1a_full_path_selected_output_triangle() {
+    let run = r1_1a_code_newline_run(false);
+    let (frozen_input, _logits, ids, _weights, frozen_outputs, _moe) =
+        r1_1a_frozen_checkpoint_payload();
+    assert_eq!(run.ids, ids);
+    let root = PathBuf::from(env::var_os("COLIBRI_ARTIFACT_ROOT").expect("canonical root"));
+    let recomputed = r1_1a_recompute_selected_outputs(&run, &root);
+    assert_eq!(
+        r1_1a_max_difference(&run.expert_outputs, &recomputed),
+        0.0,
+        "C vs B capture/execution mismatch"
+    );
+    assert_eq!(
+        r1_1a_max_difference(
+            &r1_1a_weighted_sum(&run.expert_outputs, &run.weights, &run.aggregation_events),
+            &run.moe
+        ),
+        0.0,
+        "C weighted sum vs full MoE mismatch"
+    );
+    assert_eq!(
+        r1_1a_max_difference(
+            &r1_1a_weighted_sum(&recomputed, &run.weights, &run.aggregation_events),
+            &run.moe
+        ),
+        0.0,
+        "B weighted sum vs full MoE mismatch"
+    );
+    eprintln!(
+        "R1.1a triangle full_input_vs_frozen_max_abs={:.9e}",
+        r1_1a_max_difference(&run.expert_input, &frozen_input)
+    );
+    r1_1a_selected_output_diagnostic(
+        &recomputed,
+        &frozen_outputs,
+        &run.ids,
+        R1_1A_CODE_NEWLINE_SELECTED_OUTPUT_BUDGET,
+    );
+}
+
+#[test]
+fn m6_3_r1_1a_isolated_selected_expert_output_diagnosis() {
+    let (input, logits, ids, weights, expected, _moe) = r1_1a_frozen_checkpoint_payload();
+    let root = PathBuf::from(env::var_os("COLIBRI_ARTIFACT_ROOT").expect("canonical root"));
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("config")
+        .runtime_config();
+    let router = crate::block::RouterOutput {
+        logits: Tensor::new(TensorShape::new([4, 128]), logits).expect("logits"),
+        weights: Tensor::new(TensorShape::new([4, 8]), weights).expect("weights"),
+        selected_experts: ids.clone(),
+    };
+    let input = Tensor::new(TensorShape::new([4, 2048]), input).expect("input");
+    let mut actual = vec![0.0; 65_536];
+    let mut store = canonical_layer0_expert_store(&root);
+    let _ = streaming_routed_experts_with_observer(
+        input.view(),
+        &router,
+        config,
+        0,
+        &mut store,
+        PackedExpertLayout::for_config(config),
+        |expert, token, rank, output| {
+            assert_eq!(expert, ids[token * 8 + rank]);
+            actual[(token * 8 + rank) * 2048..(token * 8 + rank + 1) * 2048]
+                .copy_from_slice(output);
+        },
+    )
+    .expect("isolated MLP");
+    r1_1a_selected_output_diagnostic(&actual, &expected, &ids, 2.2964e-6);
+}
+
+#[test]
+fn m6_3_r1_1a_code_newline_tolerance_budget_bits_are_frozen() {
+    assert_eq!(R1_1A_CODE_NEWLINE_INPUT_BUDGET.to_bits(), 0x3780_51be);
+    assert_eq!(R1_1A_CODE_NEWLINE_ROUTER_BUDGET.to_bits(), 0x37f4_2000);
+    assert_eq!(R1_1A_CODE_NEWLINE_ROUTING_BUDGET.to_bits(), 0x3739_ad80);
+    assert_eq!(
+        R1_1A_CODE_NEWLINE_SELECTED_OUTPUT_BUDGET.to_bits(),
+        0x370e_c6f8
+    );
+    assert_eq!(R1_1A_CODE_NEWLINE_MOE_BUDGET.to_bits(), 0x3687_8df0);
+}
+
+#[test]
+fn m6_3_r1_1a_control_matches_frozen_r1_1b_checkpoints() {
+    let run = r1_1a_code_newline_run(false);
+    let (input, router, ids, weights, outputs, moe) = r1_1a_frozen_checkpoint_payload();
+    assert_eq!(run.ids, ids, "selected expert IDs are exact");
+    for (name, actual, expected, tolerance) in [
+        (
+            "post_attention_rmsnorm/expert_input",
+            run.expert_input.as_slice(),
+            input.as_slice(),
+            R1_1A_CODE_NEWLINE_INPUT_BUDGET,
+        ),
+        (
+            "router_logits",
+            run.router_logits.as_slice(),
+            router.as_slice(),
+            R1_1A_CODE_NEWLINE_ROUTER_BUDGET,
+        ),
+        (
+            "routing_weights",
+            run.weights.as_slice(),
+            weights.as_slice(),
+            R1_1A_CODE_NEWLINE_ROUTING_BUDGET,
+        ),
+        (
+            "selected_expert_output",
+            run.expert_outputs.as_slice(),
+            outputs.as_slice(),
+            R1_1A_CODE_NEWLINE_SELECTED_OUTPUT_BUDGET,
+        ),
+        (
+            "aggregated_moe_output",
+            run.moe.as_slice(),
+            moe.as_slice(),
+            R1_1A_CODE_NEWLINE_MOE_BUDGET,
+        ),
+    ] {
+        if name == "selected_expert_output" {
+            r1_1a_selected_output_diagnostic(actual, expected, &run.ids, tolerance);
+        } else {
+            assert!(
+                r1_1a_max_difference(actual, expected) <= tolerance,
+                "{name} exceeds frozen tolerance"
+            );
+        }
+    }
+    // `block` is intentionally excluded: it is an internal exact-only diagnostic,
+    // not a frozen/oracle checkpoint and never an admission gate.
+    assert_eq!(run.block.len(), 4 * 2048);
+}
+
+#[test]
+fn m6_3_r1_1a_code_newline_control_calibration_observation() {
+    let ordinary = r1_1a_code_newline_run(false);
+    let overridden = r1_1a_code_newline_run(true);
+    r1_1a_assert_runs_exact(&ordinary, &overridden);
+    assert_eq!(ordinary.ids.len(), 32);
+    assert_eq!(&ordinary.ids[24..], &[16, 114, 1, 98, 84, 100, 52, 53]);
+
+    let (input, router, ids, weights, outputs, moe) = r1_1a_frozen_checkpoint_payload();
+    assert_eq!(ordinary.ids, ids, "selected expert IDs are exact");
+    let input_error = r1_1a_finite_max_difference(
+        &ordinary.expert_input,
+        &input,
+        "layer0.post_attention_rmsnorm",
+    );
+    let router_error =
+        r1_1a_finite_max_difference(&ordinary.router_logits, &router, "layer0.router_logits");
+    let routing_error =
+        r1_1a_finite_max_difference(&ordinary.weights, &weights, "layer0.routing_weights");
+    let selected_output_error = r1_1a_finite_max_difference(
+        &ordinary.expert_outputs,
+        &outputs,
+        "layer0.selected_expert_output",
+    );
+    let moe_error =
+        r1_1a_finite_max_difference(&ordinary.moe, &moe, "layer0.aggregated_moe_output");
+
+    let recomputed = r1_1a_recompute_selected_outputs(
+        &ordinary,
+        &PathBuf::from(env::var_os("COLIBRI_ARTIFACT_ROOT").expect("canonical root")),
+    );
+    assert_eq!(
+        r1_1a_max_difference(&ordinary.expert_outputs, &recomputed),
+        0.0,
+        "captured selected outputs match same-input recomputation"
+    );
+    assert_eq!(
+        r1_1a_max_difference(
+            &r1_1a_weighted_sum(
+                &ordinary.expert_outputs,
+                &ordinary.weights,
+                &ordinary.aggregation_events,
+            ),
+            &ordinary.moe,
+        ),
+        0.0,
+        "runtime-order aggregation replay"
+    );
+
+    let fixture = tier_b_references()
+        .into_iter()
+        .find(|item| item.name == "code_newline")
+        .expect("code_newline reference");
+    let fixed_logit_error = maximum_indexed_difference(
+        ordinary.logits.data(),
+        &fixture.fixed_logit_indices,
+        &fixture.fixed_logits,
+    );
+    assert!(fixed_logit_error.is_finite());
+    assert!(
+        fixed_logit_error <= tier_b_fixture_budget("code_newline", "logits"),
+        "fixed final logits exceed the frozen F32 tolerance: {fixed_logit_error}"
+    );
+
+    println!(
+        "R1_1A_CONTROL_CALIBRATION_V1 input_max_abs={input_error:.17e} router_max_abs={router_error:.17e} routing_max_abs={routing_error:.17e} selected_output_max_abs={selected_output_error:.17e} moe_max_abs={moe_error:.17e} fixed_logit_max_abs={fixed_logit_error:.17e} checkpoint_sha256={}",
+        r1_1a_checkpoint_hash(&ordinary),
+    );
+}
+
+#[test]
+fn m6_3_r1_1a_canonical_layer0_registration_preflight() {
+    let artifact_root =
+        PathBuf::from(env::var_os("COLIBRI_ARTIFACT_ROOT").expect("canonical root"));
+    let mut store = canonical_layer0_expert_store(&artifact_root);
+    let lease = store
+        .load(ExpertKey {
+            layer_index: 0,
+            expert_id: ExpertId(4),
+        })
+        .expect("frozen code_newline expert must resolve");
+    assert_eq!(lease.bytes().len(), 18_874_368);
+    drop(lease);
+    assert!(
+        store
+            .load(ExpertKey {
+                layer_index: 0,
+                expert_id: ExpertId(128)
+            })
+            .is_err()
+    );
+    drop(store);
+    assert!(File::open(artifact_root.join("experts/experts-layer-00000-of-00048.bin")).is_ok());
+}
+
+#[test]
+fn m6_3_r1_1a_control_override_reuses_authoritative_f32_path() {
+    let ordinary = r1_1a_code_newline_run(false);
+    let overridden = r1_1a_code_newline_run(true);
+    r1_1a_assert_runs_exact(&ordinary, &overridden);
+    assert_eq!(ordinary.ids.len(), 32);
+    assert_eq!(&ordinary.ids[24..], &[16, 114, 1, 98, 84, 100, 52, 53]);
+    let fixture = tier_b_references()
+        .into_iter()
+        .find(|item| item.name == "code_newline")
+        .expect("code_newline reference");
+    let fixed_logit_error = maximum_indexed_difference(
+        overridden.logits.data(),
+        &fixture.fixed_logit_indices,
+        &fixture.fixed_logits,
+    );
+    assert!(
+        fixed_logit_error <= tier_b_fixture_budget("code_newline", "logits"),
+        "fixed final logits exceed the frozen F32 tolerance: {fixed_logit_error}"
     );
 }
 

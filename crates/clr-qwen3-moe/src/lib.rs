@@ -20,6 +20,8 @@ mod profiling;
 // M6.3-02 is directly tested here; M6.3-03 owns router/runtime integration.
 #[allow(dead_code)]
 mod quantized_layer0;
+#[allow(dead_code)]
+mod r1_1_direct_candidate;
 mod session;
 mod source_config;
 mod streaming;
