@@ -7051,6 +7051,136 @@ fn m6_3_r1_1a_control_override_reuses_authoritative_f32_path() {
     );
 }
 
+fn r1_1a_characterize_candidate(
+    expected_candidate_id: &str,
+    group_size: usize,
+    expected_sha256: &str,
+) {
+    let candidate_id = env::var("COLIBRI_R1_1A_CANDIDATE_ID").expect("candidate ID");
+    assert_eq!(candidate_id, expected_candidate_id, "candidate ID binding");
+    let candidate_path = PathBuf::from(
+        env::var_os("COLIBRI_R1_1A_CANDIDATE_PATH").expect("candidate artifact path"),
+    );
+    let run = r1_1a_candidate_code_newline_run(R1_1aCandidateSpec {
+        candidate_id: &candidate_id,
+        artifact_path: &candidate_path,
+        artifact_sha256: expected_sha256,
+        group_size,
+    });
+    let (input, router, ids, weights, outputs, moe) = r1_1a_frozen_checkpoint_payload();
+    assert_eq!(run.ids, ids, "candidate must preserve Layer-0 router IDs");
+    let input_error =
+        r1_1a_finite_max_difference(&run.expert_input, &input, "layer0.post_attention_rmsnorm");
+    let router_error =
+        r1_1a_finite_max_difference(&run.router_logits, &router, "layer0.router_logits");
+    let routing_error =
+        r1_1a_finite_max_difference(&run.weights, &weights, "layer0.routing_weights");
+    assert!(input_error <= R1_1A_CODE_NEWLINE_INPUT_BUDGET);
+    assert!(router_error <= R1_1A_CODE_NEWLINE_ROUTER_BUDGET);
+    assert!(routing_error <= R1_1A_CODE_NEWLINE_ROUTING_BUDGET);
+    let selected_output_error = r1_1a_finite_max_difference(
+        &run.expert_outputs,
+        &outputs,
+        "layer0.selected_expert_output",
+    );
+    let moe_error = r1_1a_finite_max_difference(&run.moe, &moe, "layer0.aggregated_moe_output");
+    assert_eq!(
+        r1_1a_max_difference(
+            &r1_1a_weighted_sum(&run.expert_outputs, &run.weights, &run.aggregation_events),
+            &run.moe,
+        ),
+        0.0,
+        "candidate runtime-order aggregation replay"
+    );
+    let fixture = tier_b_references()
+        .into_iter()
+        .find(|item| item.name == "code_newline")
+        .expect("code_newline reference");
+    let fixed_logit_error = maximum_indexed_difference(
+        run.logits.data(),
+        &fixture.fixed_logit_indices,
+        &fixture.fixed_logits,
+    );
+    assert!(
+        fixed_logit_error.is_finite(),
+        "candidate fixed logits finite"
+    );
+    let first_divergence = if selected_output_error > R1_1A_CODE_NEWLINE_SELECTED_OUTPUT_BUDGET {
+        "layer0.selected_expert_output"
+    } else if moe_error > R1_1A_CODE_NEWLINE_MOE_BUDGET {
+        "layer0.aggregated_moe_output"
+    } else if fixed_logit_error > tier_b_fixture_budget("code_newline", "logits") {
+        "final_logits"
+    } else {
+        "none"
+    };
+    let telemetry = run
+        .candidate_telemetry
+        .as_ref()
+        .expect("candidate telemetry");
+    assert_eq!(telemetry.candidate_id, candidate_id);
+    assert_eq!(telemetry.artifact_path, candidate_path);
+    assert_eq!(telemetry.artifact_sha256, expected_sha256);
+    assert_eq!(telemetry.group_size, group_size);
+    assert_eq!(
+        telemetry.verification_bytes_read,
+        R1_1PackedArtifactLayout::canonical(group_size)
+            .expect("layout")
+            .artifact_bytes()
+            .expect("artifact bytes")
+    );
+    assert_eq!(
+        telemetry.payload_bytes_read,
+        u64::try_from(
+            R1_1PackedArtifactLayout::canonical(group_size)
+                .expect("layout")
+                .expert_bytes()
+                .expect("expert bytes")
+                * 32
+        )
+        .expect("payload bytes")
+    );
+    assert_eq!(telemetry.complete_f32_weight_materializations, 0);
+    println!(
+        "R1_1A_CANDIDATE_V1 candidate_id={} group_size={} artifact_sha256={} verification_bytes_read={} payload_bytes_read={} peak_packed_expert_bytes={} complete_f32_weight_materializations={} input_max_abs={:.17e} router_max_abs={:.17e} routing_max_abs={:.17e} selected_output_max_abs={:.17e} moe_max_abs={:.17e} fixed_logit_max_abs={:.17e} logit_cap_pass={} first_divergence={} checkpoint_sha256={} final_logits_sha256={}",
+        telemetry.candidate_id,
+        telemetry.group_size,
+        telemetry.artifact_sha256,
+        telemetry.verification_bytes_read,
+        telemetry.payload_bytes_read,
+        telemetry.peak_packed_expert_bytes,
+        telemetry.complete_f32_weight_materializations,
+        input_error,
+        router_error,
+        routing_error,
+        selected_output_error,
+        moe_error,
+        fixed_logit_error,
+        fixed_logit_error <= 0.05,
+        first_divergence,
+        r1_1a_checkpoint_hash(&run),
+        f32_little_endian_sha256(run.logits.data()),
+    );
+}
+
+#[test]
+fn m6_3_r1_1a_characterize_group64_code_newline() {
+    r1_1a_characterize_candidate(
+        "cpu-safe-rust-int8-group64-layer0-r1-1a",
+        64,
+        "35a3ef6aba723d302fb1a7fded6ede4543a0c3dfcd35651596b78f1c5158cad2",
+    );
+}
+
+#[test]
+fn m6_3_r1_1a_characterize_group32_code_newline() {
+    r1_1a_characterize_candidate(
+        "cpu-safe-rust-int8-group32-layer0-r1-1a",
+        32,
+        "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+    );
+}
+
 #[test]
 fn m4_3_01_tier_b_full_forward_matches_transformers_f32() {
     let fixture_filter = env::var("COLIBRI_TIER_B_FIXTURE").ok();

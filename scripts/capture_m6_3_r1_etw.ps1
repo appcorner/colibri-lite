@@ -38,10 +38,27 @@ $Artifact = @($Artifact | Sort-Object -Unique)
 if ($Artifact.Count -eq 0) { throw 'at least one artifact file is required' }
 $OutputDirectory = [string]$configuration.output_directory
 $outputBase = [IO.Path]::GetFullPath($OutputDirectory)
-$runId = 'run-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ') + '-' + [guid]::NewGuid().ToString('N')
-$outputRoot = Join-Path $outputBase $runId
-New-Item -ItemType Directory -Force -Path $outputRoot | Out-Null
-Set-Content -Encoding ascii -LiteralPath (Join-Path $outputBase 'latest-run.txt') -Value $outputRoot
+$useOutputDirectoryAsRun = [bool]$configuration.use_output_directory_as_run
+if ($useOutputDirectoryAsRun) {
+    if (-not (Test-Path -LiteralPath $outputBase -PathType Container)) {
+        throw 'fixed flat run directory must exist before ETW capture'
+    }
+    if ((Split-Path -Leaf (Split-Path -Parent $outputBase)) -ne 'colibri-lite-runs') {
+        throw 'fixed flat run directory must be directly under colibri-lite-runs'
+    }
+    $outputRoot = $outputBase
+    $runId = Split-Path -Leaf $outputRoot
+    foreach ($artifactPath in $Artifact) {
+        if ((Split-Path -Parent ([IO.Path]::GetFullPath($artifactPath))) -ne $outputRoot) {
+            throw 'candidate artifact must be a direct child of the fixed flat run directory'
+        }
+    }
+} else {
+    $runId = 'run-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ') + '-' + [guid]::NewGuid().ToString('N')
+    $outputRoot = Join-Path $outputBase $runId
+    New-Item -ItemType Directory -Force -Path $outputRoot | Out-Null
+    Set-Content -Encoding ascii -LiteralPath (Join-Path $outputBase 'latest-run.txt') -Value $outputRoot
+}
 $ArgumentString = $ArgumentString.Replace('{run_dir}', $outputRoot)
 $Environment = @{}
 if ($configuration.environment) {
