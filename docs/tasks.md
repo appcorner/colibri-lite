@@ -780,6 +780,22 @@ reused as the default candidate.
   R1.2 remains blocked. See
   `docs/reports/m6.3-r1-1a-group64-coldcache-run3.md`.
 
+  Group-32 cold-cache run 1 of 3 passed every run gate, including the ADR 0065
+  physical-I/O gate with 1,048,576 correlated candidate disk-read bytes and zero
+  lost events. Its fixed-logit maximum absolute error was `2.367e-2`, below the
+  unchanged `0.05` cap, and the first divergence was again
+  `layer0.selected_expert_output`. Exact Layer-0 router IDs were preserved. Every
+  numerical checkpoint error and both the Layer-0 checkpoint and final-logits
+  hashes were recorded; bit-identical repetition across three runs will be
+  assessed when the set closes. Direct packed-consumption verification reads
+  679,477,248 bytes with peak packed expert 5,308,416 and zero complete F32
+  materializations. This single run is neither admission nor ranking, so the
+  pre-registered characterization/admission and telemetry contracts remain
+  `not_run` and `pre_registered_not_executed`. Group-64 is closed; group-32
+  run 2 requires a fresh conversion, fresh flat run directory, new Phase A, and
+  reboot. R1.2 remains blocked. See
+  `docs/reports/m6.3-r1-1a-group32-coldcache-run1.md`.
+
 - [x] M6.3-R1.1c Verified M4 Pinned-Source Recovery: the verified 17-file
   Safetensors subset was atomically promoted as the read-only canonical minimal
   oracle source, fully rehashed, registry-bound, ACL-checked, and proven by an
