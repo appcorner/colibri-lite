@@ -749,6 +749,19 @@ reused as the default candidate.
   or ranking evidence. Run 3 requires a fresh conversion, fresh flat run
   directory, new Phase A, and reboot. Group-32 and R1.2 remain blocked. See
   `docs/reports/m6.3-r1-1a-group64-coldcache-run2.md`.
+  A third group-64 attempt was then invalid at the ADR 0065 physical-I/O gate:
+  805 logical candidate File Read events produced zero correlated Kernel-Disk
+  events, so the physical-I/O status was `not_measured` with a null candidate
+  read-byte count. Its process, numerical, and direct-consumption gates
+  otherwise passed, and every numerical checkpoint error and both the Layer-0
+  checkpoint and final-logits hashes were bit-identical to run 1 and run 2, but
+  a numerical pass cannot compensate for an unmeasured physical read. The
+  invalid attempt does not count as run 3 of 3, so the valid group-64 set still
+  contains only run 1 and run 2 and the three-run set is not closed. A fresh
+  retry requires a fresh conversion, fresh flat run directory, new Phase A, and
+  one reboot with a prompt arm; no part of the invalid attempt may be reused.
+  Group-32 and R1.2 remain blocked. See
+  `docs/reports/m6.3-r1-1a-group64-coldcache-run3-invalid-physical-io.md`.
 
 - [x] M6.3-R1.1c Verified M4 Pinned-Source Recovery: the verified 17-file
   Safetensors subset was atomically promoted as the read-only canonical minimal
