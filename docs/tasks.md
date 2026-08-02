@@ -762,6 +762,23 @@ reused as the default candidate.
   one reboot with a prompt arm; no part of the invalid attempt may be reused.
   Group-32 and R1.2 remain blocked. See
   `docs/reports/m6.3-r1-1a-group64-coldcache-run3-invalid-physical-io.md`.
+  A fresh group-64 run 3 then passed every run gate, including the ADR 0065
+  physical-I/O gate with 1,048,576 correlated candidate disk-read bytes and zero
+  lost events. Its fixed-logit maximum absolute error was `2.375e-2`, below the
+  unchanged `0.05` cap, and the first divergence was again
+  `layer0.selected_expert_output`. Every numerical checkpoint error and both the
+  Layer-0 checkpoint and final-logits hashes are bit-identical across all three
+  valid runs, and exact router IDs were preserved in each. The group-64
+  three-valid-run characterization set is therefore closed; the earlier invalid
+  attempt is not counted. Passing the physical-I/O gate does not establish that
+  the complete 641,728,512-byte artifact was read from the device, since the
+  correlated total is a small fraction of the file and most logical reads may
+  still have been cache-served; that limitation carries into the final R1.1a
+  review. This is still not admission or ranking, and the
+  characterization/admission and telemetry contracts remain `not_run` and
+  `pre_registered_not_executed`. Group-32 characterization is the next work and
+  R1.2 remains blocked. See
+  `docs/reports/m6.3-r1-1a-group64-coldcache-run3.md`.
 
 - [x] M6.3-R1.1c Verified M4 Pinned-Source Recovery: the verified 17-file
   Safetensors subset was atomically promoted as the read-only canonical minimal
