@@ -739,6 +739,16 @@ reused as the default candidate.
   a fresh conversion, fresh flat run directory, new Phase A, and reboot.
   Group-32 and R1.2 remain blocked. See
   `docs/reports/m6.3-r1-1a-group64-coldcache-run1.md`.
+  Group-64 cold-cache run 2 of 3 then passed every run gate, including the
+  ADR 0065 physical-I/O gate with 1,048,576 correlated candidate disk-read
+  bytes and zero lost events. Its fixed-logit maximum absolute error was
+  `2.375e-2`, below the unchanged `0.05` cap, and the first divergence was
+  again `layer0.selected_expert_output`. Every numerical checkpoint error and
+  both the Layer-0 checkpoint and final-logits hashes are bit-identical to
+  run 1, so this is repeated-run determinism evidence and still not admission
+  or ranking evidence. Run 3 requires a fresh conversion, fresh flat run
+  directory, new Phase A, and reboot. Group-32 and R1.2 remain blocked. See
+  `docs/reports/m6.3-r1-1a-group64-coldcache-run2.md`.
 
 - [x] M6.3-R1.1c Verified M4 Pinned-Source Recovery: the verified 17-file
   Safetensors subset was atomically promoted as the read-only canonical minimal
