@@ -698,7 +698,7 @@ Status: approved re-entry plan; no task below is complete until its evidence
 passes. The stopped M6.3 group-128 candidate remains stopped and cannot be
 reused as the default candidate.
 
-- [ ] M6.3-R1.1a Characterization remediation (append-only): run only the
+- [x] M6.3-R1.1a Characterization remediation (append-only): run only the
   `code_newline` held-in candidate study defined by ADR 0059 and resolved by
   ADR 0060; `tier_a_control` requires a separately frozen-reference task. This
   does not revise the completed R1.1 outcome and does not authorize R1.2. ADR
@@ -829,11 +829,15 @@ reused as the default candidate.
   physical-I/O gate does not establish that the complete 679,477,248-byte
   artifact was read from the device; the correlated total is a small fraction
   of the file and that limitation carries into the final R1.1a review. The
-  characterization/admission and telemetry contracts remain `not_run` and
-  `pre_registered_not_executed` until the final R1.1a candidate review, which
-  will compare the closed group-64 and group-32 three-run sets, determine
-  ranking and admission, and update contract status. R1.2 remains blocked. See
-  `docs/reports/m6.3-r1-1a-group32-coldcache-run3.md`.
+  The final R1.1a candidate review is now complete. ADR 0068 applies the
+  pre-registered ADR 0059 ranking and records group-32 as the characterization
+  winner because its fixed-logit maximum absolute error is lower than group-64.
+  The append-only remediation does not revise the historical R1.1
+  `no_candidate_admitted` outcome, so R1.2 remains blocked. The pre-registration
+  contracts remain byte-identical; closure is recorded separately in
+  `models/qwen3-30b-a3b/m6.3-r1-1a-final-review-v1.json`. See
+  `docs/reports/m6.3-r1-1a-group32-coldcache-run3.md` and
+  `docs/reports/m6.3-r1-1a-final-candidate-review.md`.
 
 - [x] M6.3-R1.1c Verified M4 Pinned-Source Recovery: the verified 17-file
   Safetensors subset was atomically promoted as the read-only canonical minimal
@@ -854,14 +858,30 @@ reused as the default candidate.
 - [x] M6.3-R1.1 Run a deterministic candidate-admission study; select exactly
   one Qwen3 expert layout or record `no_candidate_admitted`, with pre-registered
   numerical gates, provenance, hashes, and direct-consumption proof. Completed
-  with the valid outcome `no_candidate_admitted`: group-64 and group-32 were
-  converted and reconverted byte-identically from the read-only canonical
-  Layer-0 F32 shard, but neither supplied the required characterization-stage
-  routed-expert/checkpoint/logit-envelope evidence. See ADR 0058 and
-  `docs/reports/m6.3-r1-1-candidate-admission.md`; R1.2 remains blocked.
-- [ ] M6.3-R1.2 Compare the admitted candidate with `reference-f32-v1` using
-  stage-level errors, exact safe-margin router IDs, deterministic English/Thai
-  quality fixtures, fixed top-20/greedy/multi-token outputs, and repeatability.
+  with the valid historical outcome `no_candidate_admitted`: group-64 and
+  group-32 were converted and reconverted byte-identically from the read-only
+  canonical Layer-0 F32 shard, but neither supplied the required
+  characterization-stage routed-expert/checkpoint/logit-envelope evidence. See
+  ADR 0058 and `docs/reports/m6.3-r1-1-candidate-admission.md`.
+- [x] M6.3-R1.1d Group-32 Admission Amendment Review: preserve the historical
+  R1.1 `no_candidate_admitted` record, consume the closed R1.1a characterization
+  evidence, and prospectively admit exactly one candidate for R1.2 only. ADR
+  0069 admits `cpu-safe-rust-int8-group32-layer0-r1-1a`; the unchanged `0.05`
+  pre-registered cap remains its held-in logit envelope. R1.3 and M6.4 remain
+  blocked. Evidence is recorded in
+  `models/qwen3-30b-a3b/m6.3-r1-1d-admission-amendment-v1.json` and
+  `docs/reports/m6.3-r1-1d-group32-admission-amendment.md`.
+- [x] M6.3-R1.2 Held-out Quality Validation: compare the admitted group-32
+  candidate with `reference-f32-v1` using the pre-registered ADR 0070 gates.
+  The F32-only path first froze two-token greedy references before candidate
+  execution: `short_english=[0,358]` and `short_thai=[7360,91]`. The fresh
+  group-32 candidate then passed exact prompt top-20, greedy, Layer-0/24/47
+  safe-margin router IDs, exact two-token generation, finite Layer-0 MoE error,
+  the unchanged effective `0.05` prompt-logit envelope, and two-execution
+  repeatability on both held-out fixtures. ADR 0071 records `R1.2 = GO` and
+  authorizes R1.3 only; M6.4 remains blocked. Evidence is in
+  `models/qwen3-30b-a3b/m6.3-r1-2-quality-result-v1.json` and
+  `docs/reports/m6.3-r1-2-held-out-quality-validation.md`.
 - [ ] M6.3-R1.3 Run five paired release-process F32/candidate measurements for
   each declared runtime-cache condition; record TTFT, throughput, working set,
   private bytes, logical and physical I/O, bytes/token, and cache metrics.
@@ -870,9 +890,11 @@ reused as the default candidate.
   is not authorization to begin M6.4; review the all-layer plan separately.
 
 The complete re-entry protocol is
-`docs/reports/m6.3-r1-reentry-proposal.md`. The exact next task is
-`M6.3-R1.2` only if a future R1.1 record admits exactly one candidate; with the
-current `no_candidate_admitted` outcome, do not begin R1.2.
+`docs/reports/m6.3-r1-reentry-proposal.md`. ADR 0069 prospectively admits the
+R1.1a group-32 characterization winner without rewriting the historical R1.1
+`no_candidate_admitted` record. ADR 0071 closes the held-out quality gate with
+`R1.2 = GO`. The exact next task is `M6.3-R1.3`; M6.4 remains blocked until the
+later re-entry review and separate all-layer plan gate are satisfied.
 
 ## Standard verification commands
 

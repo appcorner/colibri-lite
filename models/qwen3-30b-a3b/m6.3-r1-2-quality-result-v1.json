@@ -1,0 +1,69 @@
+{
+  "schema": "m6.3-r1.2-quality-result-v1",
+  "schema_version": 1,
+  "status": "passed",
+  "source_commit": "6ea42300997b1265a194e20a8718b19932a7c55a",
+  "contract": {
+    "path": "models/qwen3-30b-a3b/m6.3-r1-2-quality-contract-v1.json",
+    "sha256": "571c6b745d1bb809eef270e87647e699e911df1905a2ddd1251b08356cc842d1"
+  },
+  "candidate": {
+    "candidate_id": "cpu-safe-rust-int8-group32-layer0-r1-1a",
+    "group_size": 32,
+    "artifact_bytes": 679477248,
+    "artifact_sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+    "scope": "layer0_only"
+  },
+  "reference": {
+    "reference_id": "reference-f32-v1",
+    "path": "models/qwen3-30b-a3b/m6.3-r1-2-f32-multitoken-reference-v1.tsv",
+    "bytes": 810,
+    "sha256": "fa8f1a4f6b30624b78cf8c004f379fdb0633a08a65c102791acc57d0205d54ff",
+    "frozen_before_candidate_execution": true
+  },
+  "candidate_evidence": {
+    "path": "models/qwen3-30b-a3b/m6.3-r1-2-held-out-quality-v1.tsv",
+    "bytes": 1136,
+    "sha256": "fbd6b98fe8ee20ebcdbb93aa7373e8ee0bf76c57b87c8a3e40e2172e77e74082",
+    "test": "full_model_validation_tests::m6_3_r1_2_group32_matches_held_out_quality",
+    "test_result": "1 passed; 0 failed",
+    "candidate_repetitions_per_fixture": 2
+  },
+  "fixtures": [
+    {
+      "fixture_id": "short_english",
+      "generated_token_ids": [0, 358],
+      "prompt_argmax": 0,
+      "prompt_top20_exact": true,
+      "router_guards_exact": true,
+      "repeatability": "exact",
+      "prompt_fixed_logit_max_abs": 0.0033702850341796875,
+      "prompt_top20_logit_max_abs": 0.0033779144287109375,
+      "allowed_logit_max_abs": 0.05000000074505806,
+      "layer0_moe_max_abs": 0.0008989572525024414
+    },
+    {
+      "fixture_id": "short_thai",
+      "generated_token_ids": [7360, 91],
+      "prompt_argmax": 7360,
+      "prompt_top20_exact": true,
+      "router_guards_exact": true,
+      "repeatability": "exact",
+      "prompt_fixed_logit_max_abs": 0.00541648268699646,
+      "prompt_top20_logit_max_abs": 0.007321834564208984,
+      "allowed_logit_max_abs": 0.05000000074505806,
+      "layer0_moe_max_abs": 0.0008705407381057739
+    }
+  ],
+  "direct_consumption": {
+    "packed_candidate_path": true,
+    "peak_packed_expert_bytes_asserted": 5308416,
+    "complete_f32_weight_materializations": 0
+  },
+  "decision": {
+    "r1_2": "go",
+    "authorizes_r1_3": true,
+    "authorizes_m6_4": false,
+    "authorizes_candidate_reselection": false
+  }
+}

@@ -599,6 +599,19 @@ condition remains in force. Therefore an admitted slice alone does not open
 M6.4; doing so requires an explicit all-layer plan review. The detailed
 protocol is `docs/reports/m6.3-r1-reentry-proposal.md`.
 
+R1.1d prospectively amends the admission boundary without rewriting the
+historical R1.1 `no_candidate_admitted` record. ADR 0069 admits the R1.1a
+characterization winner `cpu-safe-rust-int8-group32-layer0-r1-1a` for R1.2
+only, using the unchanged pre-registered `0.05` held-in fixed-logit envelope.
+R1.2 may validate that single candidate on the held-out bilingual fixtures but
+may not reselect a layout. ADR 0071 closes that held-out gate with `R1.2 = GO`:
+both `short_english` and `short_thai` preserve exact prompt top-20, greedy,
+Layer-0/24/47 safe-margin router IDs, frozen two-token greedy sequences, and
+repeatability while staying below the locked effective prompt-logit envelope.
+R1.3 is therefore authorized for paired release-process F32/candidate resource
+and I/O measurements. M6.4 remains blocked by the later re-entry review and the
+separate all-layer plan/full-runtime-benefit gates.
+
 #### M6.4 - Full hardware-aware runtime
 
 Only after M6.3-R1 admits a candidate *and* a dedicated all-layer plan review

@@ -109,6 +109,11 @@
 !/models/qwen3-30b-a3b/reference-f32-v1-manifest.json
 !/models/qwen3-30b-a3b/m6.0-04-quality-fixtures-v1.json
 !/models/qwen3-30b-a3b/m6.0-reference-contract-baseline-v1.json
+!/models/qwen3-30b-a3b/m6.3-r1-1d-admission-amendment-v1.json
+!/models/qwen3-30b-a3b/m6.3-r1-2-quality-contract-v1.json
+!/models/qwen3-30b-a3b/m6.3-r1-2-f32-multitoken-reference-v1.tsv
+!/models/qwen3-30b-a3b/m6.3-r1-2-held-out-quality-v1.tsv
+!/models/qwen3-30b-a3b/m6.3-r1-2-quality-result-v1.json
 /.idea/
 /.vscode/
 *.pdb

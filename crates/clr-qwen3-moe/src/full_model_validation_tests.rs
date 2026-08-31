@@ -7181,6 +7181,466 @@ fn m6_3_r1_1a_characterize_group32_code_newline() {
     );
 }
 
+const R1_2_GENERATED_TOKEN_COUNT: usize = 2;
+const R1_2_GROUP32_ARTIFACT_BYTES: u64 = 679_477_248;
+const R1_2_GROUP32_ARTIFACT_SHA256: &str =
+    "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2";
+const R1_2_LOGIT_MAX_ABS_ENVELOPE: f32 = 0.05;
+
+#[derive(Debug)]
+struct R1_2Run {
+    prompt_top20_ids: Vec<usize>,
+    prompt_argmax: usize,
+    prompt_guard_ids: HashMap<usize, Vec<usize>>,
+    prompt_logits_sha256: String,
+    prompt_final_norm_sha256: String,
+    prompt_fixed_logit_error: f32,
+    prompt_top20_logit_error: f32,
+    generated_ids: Vec<usize>,
+    layer0_moe_max_abs_error: f32,
+}
+
+#[derive(Debug)]
+struct R1_2FrozenReference {
+    token_ids: Vec<usize>,
+    generated_ids: Vec<usize>,
+    prompt_top20_ids: Vec<usize>,
+    prompt_argmax: usize,
+    prompt_guard_ids: HashMap<usize, Vec<usize>>,
+    prompt_logits_sha256: String,
+    prompt_final_norm_sha256: String,
+}
+
+fn r1_2_fixture_run(
+    fixture: &TierBReference,
+    mut candidate_reader: Option<&mut R1_1CandidateReader>,
+) -> R1_2Run {
+    assert!(
+        fixture.name == "short_english" || fixture.name == "short_thai",
+        "R1.2 is restricted to the admitted held-out fixtures"
+    );
+    let artifact_root =
+        PathBuf::from(env::var_os("COLIBRI_ARTIFACT_ROOT").expect("canonical artifact root"));
+    let plan = runtime_plan(LAYER47_RUNTIME_PLAN);
+    let final_plan = runtime_plan(GENERATION_FINAL_DENSE_RUNTIME_PLAN);
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("R1.2 runtime config")
+        .runtime_config();
+    let expert_layout = PackedExpertLayout::for_config(config);
+    let mut payload =
+        File::open(artifact_root.join(&plan.payload)).expect("open R1.2 dense payload");
+    let mut dense_bytes_read = 0_u64;
+    let final_norm_weight = artifact_tensor(
+        &mut payload,
+        &final_plan,
+        "model.norm.weight",
+        &mut dense_bytes_read,
+    );
+    let mut normal_store = expert_store_from_plans(
+        &[
+            LAYER47_EXPERT_RUNTIME_PLAN,
+            GENERATION_LAYER47_EXPERT_RUNTIME_PLAN,
+        ],
+        &artifact_root,
+        48 * 128,
+    );
+    let mut reference_layer0_store = canonical_layer0_expert_store(&artifact_root);
+    let processed_positions = fixture.token_ids.len() + R1_2_GENERATED_TOKEN_COUNT - 1;
+    let mut cache = KvCache::new(48, processed_positions, 4, 128).expect("R1.2 fixed KV cache");
+    let mut sequence = fixture.token_ids.clone();
+    let mut generated_ids = Vec::with_capacity(R1_2_GENERATED_TOKEN_COUNT);
+    let mut prompt_top20_ids = None;
+    let mut prompt_argmax = None;
+    let mut prompt_guard_ids = HashMap::<usize, Vec<usize>>::new();
+    let mut prompt_logits_sha256 = None;
+    let mut prompt_final_norm_sha256 = None;
+    let mut prompt_fixed_logit_error = None;
+    let mut prompt_top20_logit_error = None;
+    let mut layer0_moe_max_abs_error = 0.0_f32;
+
+    for position in 0..processed_positions {
+        let token_id = *sequence
+            .get(position)
+            .expect("R1.2 generated token must be available before its position");
+        assert_eq!(cache.len(), position, "R1.2 cache position");
+        let mut hidden = embedding_row(&mut payload, &plan, token_id, &mut dense_bytes_read);
+        let mut updates = Vec::with_capacity(48);
+        for layer in 0..48 {
+            let weights = layer_weights(&mut payload, &plan, layer, &mut dense_bytes_read);
+            let input_norm = rms_norm(
+                hidden.view(),
+                weights.input_norm.view(),
+                config.rms_norm_epsilon(),
+            )
+            .expect("R1.2 input norm");
+            let attention = cached_attention_with_weights(
+                input_norm.view(),
+                config,
+                weights.query.view(),
+                weights.key.view(),
+                weights.value.view(),
+                weights.output.view(),
+                weights.query_norm.view(),
+                weights.key_norm.view(),
+                cache.layer(layer).expect("R1.2 KV layer"),
+            )
+            .expect("R1.2 attention");
+            let residual = elementwise_add(hidden.view(), attention.output.view())
+                .expect("R1.2 attention residual");
+            let post_norm = rms_norm(
+                residual.view(),
+                weights.post_norm.view(),
+                config.rms_norm_epsilon(),
+            )
+            .expect("R1.2 post-attention norm");
+            let router = route_tokens(post_norm.view(), weights.router.view(), config)
+                .expect("R1.2 F32 router");
+            if position + 1 == fixture.token_ids.len() && GENERATION_GUARD_LAYERS.contains(&layer) {
+                prompt_guard_ids.insert(layer, router.selected_experts.clone());
+            }
+            let moe = if layer == 0 {
+                let reference = streaming_routed_experts_with_observer(
+                    post_norm.view(),
+                    &router,
+                    config,
+                    layer,
+                    &mut reference_layer0_store,
+                    expert_layout,
+                    |_, _, _, _| {},
+                )
+                .expect("R1.2 independent F32 Layer-0 reference");
+                if let Some(reader) = candidate_reader.as_deref_mut() {
+                    let candidate = r1_1_routed_experts_with_observer(
+                        post_norm.view(),
+                        &router,
+                        config,
+                        reader,
+                        |_, _, _, _| {},
+                    )
+                    .expect("R1.2 direct group-32 Layer-0 candidate");
+                    let local_error = candidate
+                        .data()
+                        .iter()
+                        .zip(reference.data())
+                        .map(|(left, right)| (left - right).abs())
+                        .fold(0.0_f32, f32::max);
+                    assert!(local_error.is_finite(), "R1.2 Layer-0 error must be finite");
+                    layer0_moe_max_abs_error = layer0_moe_max_abs_error.max(local_error);
+                    candidate
+                } else {
+                    reference
+                }
+            } else {
+                streaming_routed_experts_with_observer(
+                    post_norm.view(),
+                    &router,
+                    config,
+                    layer,
+                    &mut normal_store,
+                    expert_layout,
+                    |_, _, _, _| {},
+                )
+                .expect("R1.2 canonical F32 experts")
+            };
+            hidden = elementwise_add(residual.view(), moe.view()).expect("R1.2 block output");
+            updates.push((attention.key, attention.value));
+        }
+        let update_views = updates
+            .iter()
+            .map(|(key, value)| LayerKvUpdate { key, value })
+            .collect::<Vec<_>>();
+        cache
+            .append_token(&update_views)
+            .expect("R1.2 transactional KV append");
+
+        if position + 1 >= fixture.token_ids.len() {
+            let normalized = rms_norm(
+                hidden.view(),
+                final_norm_weight.view(),
+                config.rms_norm_epsilon(),
+            )
+            .expect("R1.2 final norm");
+            let logits = streaming_language_model_head(
+                &mut payload,
+                &final_plan,
+                &normalized,
+                &mut dense_bytes_read,
+            );
+            assert!(
+                logits.data().iter().all(|value| value.is_finite()),
+                "R1.2 logits must be finite"
+            );
+            let greedy = greedy_token(logits.view()).expect("R1.2 finite greedy logits");
+            if position + 1 == fixture.token_ids.len() {
+                prompt_top20_ids = Some(deterministic_top_ids(&logits, 20));
+                prompt_argmax = Some(greedy);
+                prompt_logits_sha256 = Some(f32_little_endian_sha256(logits.data()));
+                prompt_final_norm_sha256 = Some(f32_little_endian_sha256(normalized.data()));
+                prompt_fixed_logit_error = Some(maximum_indexed_difference(
+                    logits.data(),
+                    &fixture.fixed_logit_indices,
+                    &fixture.fixed_logits,
+                ));
+                prompt_top20_logit_error = Some(maximum_indexed_difference(
+                    logits.data(),
+                    &fixture.top20_ids,
+                    &fixture.top20_logits,
+                ));
+            }
+            generated_ids.push(greedy);
+            if generated_ids.len() < R1_2_GENERATED_TOKEN_COUNT {
+                sequence.push(greedy);
+            }
+        }
+    }
+
+    assert_eq!(generated_ids.len(), R1_2_GENERATED_TOKEN_COUNT);
+    assert_eq!(cache.len(), processed_positions);
+    R1_2Run {
+        prompt_top20_ids: prompt_top20_ids.expect("R1.2 prompt top-20"),
+        prompt_argmax: prompt_argmax.expect("R1.2 prompt argmax"),
+        prompt_guard_ids,
+        prompt_logits_sha256: prompt_logits_sha256.expect("R1.2 prompt logits hash"),
+        prompt_final_norm_sha256: prompt_final_norm_sha256.expect("R1.2 prompt norm hash"),
+        prompt_fixed_logit_error: prompt_fixed_logit_error.expect("R1.2 fixed-logit error"),
+        prompt_top20_logit_error: prompt_top20_logit_error.expect("R1.2 top-20 logit error"),
+        generated_ids,
+        layer0_moe_max_abs_error,
+    }
+}
+
+fn r1_2_assert_frozen_prompt_contract(fixture: &TierBReference, run: &R1_2Run) {
+    assert_eq!(
+        run.prompt_top20_ids, fixture.top20_ids,
+        "R1.2 frozen prompt top-20 IDs"
+    );
+    assert_eq!(
+        run.prompt_argmax, fixture.argmax,
+        "R1.2 frozen prompt greedy ID"
+    );
+    assert_eq!(
+        run.generated_ids[0], fixture.argmax,
+        "R1.2 first generated token"
+    );
+    for layer in GENERATION_GUARD_LAYERS {
+        assert_eq!(
+            run.prompt_guard_ids[&layer], fixture.guard_ids[&layer],
+            "R1.2 frozen Layer-{layer} router IDs"
+        );
+    }
+}
+
+fn r1_2_frozen_references(path: &Path) -> HashMap<String, R1_2FrozenReference> {
+    let text = fs::read_to_string(path).expect("read R1.2 frozen F32 reference");
+    let mut references = HashMap::new();
+    for line in text.lines().skip(1) {
+        let fields = line.split('\t').collect::<Vec<_>>();
+        assert_eq!(fields.len(), 9, "R1.2 reference TSV field count");
+        let generated_ids = parse_usize_list(fields[2]);
+        let mut guards = HashMap::new();
+        guards.insert(0, parse_usize_list(fields[4]));
+        guards.insert(24, parse_usize_list(fields[5]));
+        guards.insert(47, parse_usize_list(fields[6]));
+        let record = R1_2FrozenReference {
+            token_ids: parse_usize_list(fields[1]),
+            prompt_argmax: generated_ids[0],
+            generated_ids,
+            prompt_top20_ids: parse_usize_list(fields[3]),
+            prompt_guard_ids: guards,
+            prompt_logits_sha256: fields[7].to_owned(),
+            prompt_final_norm_sha256: fields[8].to_owned(),
+        };
+        assert!(references.insert(fields[0].to_owned(), record).is_none());
+    }
+    assert_eq!(references.len(), 2, "R1.2 frozen fixture count");
+    references
+}
+
+#[test]
+fn m6_3_r1_2_freeze_reference_f32_multitoken() {
+    let output_path = PathBuf::from(
+        env::var_os("COLIBRI_R1_2_REFERENCE_OUTPUT").expect("R1.2 reference output path"),
+    );
+    assert!(!output_path.exists(), "R1.2 reference output must be new");
+    let mut evidence = String::from(
+        "fixture\ttoken_ids\tgenerated_ids\tprompt_top20_ids\tguard_layer0_ids\tguard_layer24_ids\tguard_layer47_ids\tprompt_logits_sha256\tprompt_final_norm_sha256\n",
+    );
+    for fixture in tier_b_references()
+        .into_iter()
+        .filter(|fixture| fixture.name == "short_english" || fixture.name == "short_thai")
+    {
+        let run = r1_2_fixture_run(&fixture, None);
+        r1_2_assert_frozen_prompt_contract(&fixture, &run);
+        let compact_error = run
+            .prompt_fixed_logit_error
+            .max(run.prompt_top20_logit_error);
+        assert!(
+            compact_error <= tier_b_fixture_budget(&fixture.name, "logits"),
+            "R1.2 F32 reference must reproduce the existing frozen compact-logit budget"
+        );
+        assert_eq!(run.layer0_moe_max_abs_error, 0.0);
+        writeln!(
+            evidence,
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+            fixture.name,
+            comma_separated(&fixture.token_ids),
+            comma_separated(&run.generated_ids),
+            comma_separated(&run.prompt_top20_ids),
+            comma_separated(&run.prompt_guard_ids[&0]),
+            comma_separated(&run.prompt_guard_ids[&24]),
+            comma_separated(&run.prompt_guard_ids[&47]),
+            run.prompt_logits_sha256,
+            run.prompt_final_norm_sha256,
+        )
+        .expect("write R1.2 F32 reference evidence");
+    }
+    fs::write(&output_path, evidence).expect("freeze R1.2 F32 reference evidence");
+}
+
+#[test]
+fn m6_3_r1_2_group32_matches_held_out_quality() {
+    let reference_path = PathBuf::from(
+        env::var_os("COLIBRI_R1_2_REFERENCE_PATH").expect("R1.2 frozen reference path"),
+    );
+    let result_path =
+        PathBuf::from(env::var_os("COLIBRI_R1_2_RESULT_OUTPUT").expect("R1.2 result output path"));
+    let candidate_path = PathBuf::from(
+        env::var_os("COLIBRI_R1_2_CANDIDATE_PATH").expect("R1.2 group-32 candidate path"),
+    );
+    assert!(!result_path.exists(), "R1.2 result output must be new");
+    assert_eq!(
+        fs::metadata(&candidate_path)
+            .expect("R1.2 candidate metadata")
+            .len(),
+        R1_2_GROUP32_ARTIFACT_BYTES,
+        "R1.2 admitted candidate byte length"
+    );
+    let references = r1_2_frozen_references(&reference_path);
+    let mut candidate_reader = R1_1CandidateReader::open(
+        &candidate_path,
+        R1_1PackedArtifactLayout::canonical(32).expect("R1.2 group-32 layout"),
+        R1_2_GROUP32_ARTIFACT_SHA256,
+    )
+    .expect("R1.2 admitted candidate artifact");
+    assert_eq!(
+        candidate_reader.verification_bytes_read(),
+        R1_2_GROUP32_ARTIFACT_BYTES,
+        "R1.2 candidate full-file verification"
+    );
+
+    let mut evidence = String::from(
+        "fixture\ttoken_ids\tgenerated_ids\tprompt_argmax\tprompt_top20_ids\tguard_layer0_ids\tguard_layer24_ids\tguard_layer47_ids\tprompt_fixed_logit_max_abs\tprompt_top20_logit_max_abs\tallowed_logit_max_abs\tlayer0_moe_max_abs\tprompt_logits_sha256\tprompt_final_norm_sha256\trepeatability\n",
+    );
+    for fixture in tier_b_references()
+        .into_iter()
+        .filter(|fixture| fixture.name == "short_english" || fixture.name == "short_thai")
+    {
+        let frozen = &references[&fixture.name];
+        assert_eq!(
+            frozen.token_ids, fixture.token_ids,
+            "R1.2 frozen prompt identity"
+        );
+        assert_eq!(
+            frozen.prompt_top20_ids, fixture.top20_ids,
+            "R1.2 frozen top-20 identity"
+        );
+        assert_eq!(
+            frozen.prompt_argmax, fixture.argmax,
+            "R1.2 frozen greedy identity"
+        );
+        for layer in GENERATION_GUARD_LAYERS {
+            assert_eq!(
+                frozen.prompt_guard_ids[&layer], fixture.guard_ids[&layer],
+                "R1.2 frozen router identity"
+            );
+        }
+
+        let first = r1_2_fixture_run(&fixture, Some(&mut candidate_reader));
+        let second = r1_2_fixture_run(&fixture, Some(&mut candidate_reader));
+        r1_2_assert_frozen_prompt_contract(&fixture, &first);
+        r1_2_assert_frozen_prompt_contract(&fixture, &second);
+        assert_eq!(
+            first.generated_ids, frozen.generated_ids,
+            "R1.2 frozen multi-token sequence"
+        );
+        assert_eq!(
+            second.generated_ids, frozen.generated_ids,
+            "R1.2 repeated multi-token sequence"
+        );
+        assert_eq!(
+            first.prompt_top20_ids, second.prompt_top20_ids,
+            "R1.2 top-20 repeatability"
+        );
+        assert_eq!(
+            first.prompt_argmax, second.prompt_argmax,
+            "R1.2 greedy repeatability"
+        );
+        assert_eq!(
+            first.prompt_guard_ids, second.prompt_guard_ids,
+            "R1.2 router repeatability"
+        );
+        assert_eq!(
+            first.prompt_logits_sha256, second.prompt_logits_sha256,
+            "R1.2 logit repeatability"
+        );
+        assert_eq!(
+            first.prompt_final_norm_sha256, second.prompt_final_norm_sha256,
+            "R1.2 final-norm repeatability"
+        );
+        assert_eq!(
+            first.layer0_moe_max_abs_error.to_bits(),
+            second.layer0_moe_max_abs_error.to_bits(),
+            "R1.2 Layer-0 error repeatability"
+        );
+        assert!(first.layer0_moe_max_abs_error.is_finite());
+        assert!(first.layer0_moe_max_abs_error > 0.0);
+        let observed_logit_error = first
+            .prompt_fixed_logit_error
+            .max(first.prompt_top20_logit_error);
+        let allowed_logit_error = R1_2_LOGIT_MAX_ABS_ENVELOPE.min(fixture.margin / 4.0);
+        assert!(
+            observed_logit_error <= allowed_logit_error,
+            "{} R1.2 prompt logit error {observed_logit_error} exceeds {allowed_logit_error}",
+            fixture.name
+        );
+        assert_ne!(
+            first.prompt_logits_sha256, frozen.prompt_logits_sha256,
+            "R1.2 candidate should remain a numerically distinct quantized path"
+        );
+        assert_ne!(
+            first.prompt_final_norm_sha256, frozen.prompt_final_norm_sha256,
+            "R1.2 candidate final norm should reflect the quantized Layer-0 path"
+        );
+        writeln!(
+            evidence,
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{:.17e}\t{:.17e}\t{:.17e}\t{:.17e}\t{}\t{}\texact",
+            fixture.name,
+            comma_separated(&fixture.token_ids),
+            comma_separated(&first.generated_ids),
+            first.prompt_argmax,
+            comma_separated(&first.prompt_top20_ids),
+            comma_separated(&first.prompt_guard_ids[&0]),
+            comma_separated(&first.prompt_guard_ids[&24]),
+            comma_separated(&first.prompt_guard_ids[&47]),
+            first.prompt_fixed_logit_error,
+            first.prompt_top20_logit_error,
+            allowed_logit_error,
+            first.layer0_moe_max_abs_error,
+            first.prompt_logits_sha256,
+            first.prompt_final_norm_sha256,
+        )
+        .expect("write R1.2 candidate evidence");
+    }
+    assert!(candidate_reader.payload_bytes_read() > 0);
+    assert_eq!(
+        candidate_reader.peak_packed_expert_bytes(),
+        5_308_416,
+        "R1.2 peak direct packed expert bytes"
+    );
+    fs::write(&result_path, evidence).expect("write R1.2 candidate evidence");
+}
+
 #[test]
 fn m4_3_01_tier_b_full_forward_matches_transformers_f32() {
     let fixture_filter = env::var("COLIBRI_TIER_B_FIXTURE").ok();

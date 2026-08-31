@@ -1,0 +1,58 @@
+{
+  "schema": "m6.3-r1.1d-admission-amendment-v1",
+  "schema_version": 1,
+  "status": "accepted",
+  "historical_admission": {
+    "path": "models/qwen3-30b-a3b/m6.3-r1-1-candidate-admission-v1.json",
+    "sha256": "875d9eafb9bc3dd19f7ac8aa9c99278b0bc0b4ef7ede806fa328c4152a7c6aaa",
+    "outcome": "no_candidate_admitted",
+    "immutable": true
+  },
+  "r1_1a_final_review": {
+    "path": "models/qwen3-30b-a3b/m6.3-r1-1a-final-review-v1.json",
+    "sha256": "784b9b226509d290b11d229ed674b4c948d0418a6ac27784e43ac586e49f9245",
+    "characterization_winner": "cpu-safe-rust-int8-group32-layer0-r1-1a"
+  },
+  "candidate": {
+    "candidate_id": "cpu-safe-rust-int8-group32-layer0-r1-1a",
+    "group_size": 32,
+    "artifact_bytes": 679477248,
+    "artifact_sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+    "held_in_fixture_id": "code_newline",
+    "valid_characterization_runs": 3,
+    "exact_router_ids": true,
+    "first_divergence": "layer0.selected_expert_output",
+    "selected_expert_output_max_abs": 0.001611471176147461,
+    "aggregated_moe_max_abs": 0.00046373158693313599,
+    "fixed_logits_max_abs": 0.023673057556152344,
+    "admission_logit_max_abs_envelope": 0.05,
+    "envelope_origin": "ADR 0059 pre-registered cap, retained unchanged before held-out R1.2 execution",
+    "direct_packed_consumption": true,
+    "complete_f32_weight_materializations": 0,
+    "candidate_correlated_physical_io_observed_in_all_valid_runs": true
+  },
+  "ranking": {
+    "policy": "ADR 0059 locked lexicographic ranking",
+    "winner_decided_by": "fixed_logits_max_abs_ascending",
+    "group64_fixed_logits_max_abs": 0.023754239082336426,
+    "group32_fixed_logits_max_abs": 0.023673057556152344,
+    "group64_disposition": "not_selected_by_locked_ranking"
+  },
+  "decision": {
+    "outcome": "exactly_one_candidate_admitted_for_r1_2",
+    "selected_candidate_id": "cpu-safe-rust-int8-group32-layer0-r1-1a",
+    "scope": "Layer-0 candidate validation only",
+    "authorizes_r1_2": true,
+    "authorizes_r1_3": false,
+    "authorizes_m6_4": false,
+    "historical_r1_1_outcome_revised": false
+  },
+  "r1_2_gate": {
+    "held_out_fixture_ids": ["short_english", "short_thai"],
+    "requires_stage_level_errors": true,
+    "requires_exact_safe_margin_router_ids": true,
+    "requires_fixed_top20_greedy_multitoken_agreement": true,
+    "requires_repeatability": true,
+    "must_not_reselect_candidate": true
+  }
+}
