@@ -121,3 +121,6 @@ __pycache__/
 /docs/benchmarks/m6.3-r1-etw-probe/
 /docs/benchmarks/m6.3-r1-reference-etw/
 /docs/benchmarks/m6.3-r1-0-reference-telemetry-v1.json
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+graft/
