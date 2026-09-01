@@ -178,6 +178,7 @@ def main() -> int:
     parser.add_argument("--contract", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--validate-only", action="store_true")
+    parser.add_argument("--resume", action="store_true")
     args = parser.parse_args()
     repo = args.repo.resolve()
     artifact_root = args.artifact_root.resolve()
@@ -201,37 +202,63 @@ def main() -> int:
         print(json.dumps({"status": "passed", "contract_sha256": CONTRACT_SHA256, "binary_sha256": BINARY_SHA256}, sort_keys=True))
         return 0
 
-    require(not output_root.exists(), "official output root must not already exist")
-    output_root.mkdir(parents=True)
-    capture_script = repo / "scripts" / "capture_m6_3_r1_etw.ps1"
+    expected = [
+        (condition, pair_index, order_index, mode)
+        for condition in CONDITIONS
+        for pair_index, modes in enumerate(PAIR_ORDER, start=1)
+        for order_index, mode in enumerate(modes, start=1)
+    ]
     samples: list[dict] = []
-    for condition in CONDITIONS:
-        for pair_index, modes in enumerate(PAIR_ORDER, start=1):
-            for order_index, mode in enumerate(modes, start=1):
-                sample_id = f"{condition}-pair-{pair_index:02d}-order-{order_index}-{mode}"
-                sample_root = output_root / sample_id
-                sample_root.mkdir()
-                config = sample_config(repo, binary, artifact_root, candidate, sample_root, mode, condition)
-                print(f"R1.3 START {sample_id}", flush=True)
-                completed = subprocess.run(
-                    ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(capture_script), "-Config", str(config)],
-                    cwd=repo,
-                    check=False,
-                )
-                require(completed.returncode == 0, f"invalid sample {sample_id}: collector exit {completed.returncode}; no automatic retry")
-                latest = (sample_root / "captures" / "latest-run.txt").read_text(encoding="ascii").strip()
-                run_dir = Path(latest)
-                require((run_dir / "capture.json").is_file() and (run_dir / "metrics.tsv").is_file(), f"incomplete sample {sample_id}")
-                sample = collect_sample(run_dir, condition, pair_index, order_index, mode)
-                samples.append(sample)
-                partial = {
-                    "schema": "m6.3-r1.3-paired-samples-partial-v1",
-                    "contract_sha256": CONTRACT_SHA256,
-                    "completed_samples": len(samples),
-                    "samples": samples,
-                }
-                write_json(output_root / "samples.partial.json", partial)
-                print(f"R1.3 PASS {sample_id} timed={sample['timed_wall_seconds']:.6f}s physical={sample['physical_read_bytes']}", flush=True)
+    if args.resume:
+        require(output_root.is_dir(), "resume output root must exist")
+        partial_path = output_root / "samples.partial.json"
+        require(partial_path.is_file(), "resume requires samples.partial.json")
+        partial = json.loads(partial_path.read_text(encoding="utf-8"))
+        require(partial.get("contract_sha256") == CONTRACT_SHA256, "resume contract hash mismatch")
+        samples = list(partial.get("samples", []))
+        require(partial.get("completed_samples") == len(samples), "resume partial sample count mismatch")
+        require(len(samples) < len(expected), "resume has no remaining samples")
+        for sample, identity in zip(samples, expected, strict=False):
+            condition, pair_index, order_index, mode = identity
+            require(
+                (sample.get("condition"), sample.get("pair"), sample.get("order_index"), sample.get("mode"))
+                == (condition, pair_index, order_index, mode),
+                "resume partial samples are not an exact expected prefix",
+            )
+    else:
+        require(not output_root.exists(), "official output root must not already exist")
+        output_root.mkdir(parents=True)
+    capture_script = repo / "scripts" / "capture_m6_3_r1_etw.ps1"
+    completed_prefix = len(samples)
+    for expected_index, (condition, pair_index, order_index, mode) in enumerate(expected):
+        if expected_index < completed_prefix:
+            continue
+
+        sample_id = f"{condition}-pair-{pair_index:02d}-order-{order_index}-{mode}"
+        sample_root = output_root / sample_id
+        require(not sample_root.exists(), f"sample directory already exists: {sample_id}")
+        sample_root.mkdir()
+        config = sample_config(repo, binary, artifact_root, candidate, sample_root, mode, condition)
+        print(f"R1.3 START {sample_id}", flush=True)
+        completed = subprocess.run(
+            ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(capture_script), "-Config", str(config)],
+            cwd=repo,
+            check=False,
+        )
+        require(completed.returncode == 0, f"invalid sample {sample_id}: collector exit {completed.returncode}; no automatic retry")
+        latest = (sample_root / "captures" / "latest-run.txt").read_text(encoding="ascii").strip()
+        run_dir = Path(latest)
+        require((run_dir / "capture.json").is_file() and (run_dir / "metrics.tsv").is_file(), f"incomplete sample {sample_id}")
+        sample = collect_sample(run_dir, condition, pair_index, order_index, mode)
+        samples.append(sample)
+        partial = {
+            "schema": "m6.3-r1.3-paired-samples-partial-v1",
+            "contract_sha256": CONTRACT_SHA256,
+            "completed_samples": len(samples),
+            "samples": samples,
+        }
+        write_json(output_root / "samples.partial.json", partial)
+        print(f"R1.3 PASS {sample_id} timed={sample['timed_wall_seconds']:.6f}s physical={sample['physical_read_bytes']}", flush=True)
 
     require(len(samples) == 20, "official R1.3 sample count")
     final = {
