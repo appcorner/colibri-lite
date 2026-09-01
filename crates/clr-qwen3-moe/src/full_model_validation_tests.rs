@@ -46,6 +46,9 @@ use crate::{
 mod m5_2_trace_capture;
 #[path = "r1_3_benchmark_tests.rs"]
 mod r1_3_benchmark_tests;
+#[cfg(feature = "m6-3-r2-localization")]
+#[path = "r2_benchmark_tests.rs"]
+mod r2_benchmark_tests;
 
 const RUNTIME_PLAN: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),

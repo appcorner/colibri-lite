@@ -1,3 +1,5 @@
+#[cfg(all(test, feature = "m6-3-r2-localization"))]
+use std::collections::HashMap;
 use std::fmt;
 
 use clr_core::{DataType, RuntimeError, Tensor, TensorView, ops::elementwise_add};
@@ -120,6 +122,71 @@ struct DecodedExpert {
     gate: Vec<f32>,
     up: Vec<f32>,
     down: Vec<f32>,
+}
+
+#[cfg(all(test, feature = "m6-3-r2-localization"))]
+pub(crate) struct R2PreloadedF32Experts {
+    experts: HashMap<usize, DecodedExpert>,
+}
+
+#[cfg(all(test, feature = "m6-3-r2-localization"))]
+pub(crate) fn r2_preload_f32_experts(
+    layer_index: usize,
+    selected_experts: &[usize],
+    store: &mut ExpertStore,
+    layout: PackedExpertLayout,
+) -> Result<R2PreloadedF32Experts, StreamingModelError> {
+    let mut experts = HashMap::new();
+    let mut unique = selected_experts.to_vec();
+    unique.sort_unstable();
+    unique.dedup();
+    for expert_id in unique {
+        let key = ExpertKey {
+            layer_index: u32::try_from(layer_index).unwrap_or(u32::MAX),
+            expert_id: clr_storage::ExpertId(u32::try_from(expert_id).unwrap_or(u32::MAX)),
+        };
+        let lease = store.load(key)?;
+        let decoded = decode_payload(key, lease.bytes(), layout)?;
+        experts.insert(expert_id, decoded);
+    }
+    Ok(R2PreloadedF32Experts { experts })
+}
+
+#[cfg(all(test, feature = "m6-3-r2-localization"))]
+pub(crate) fn r2_routed_preloaded_f32(
+    hidden_states: TensorView<'_>,
+    router: &crate::block::RouterOutput,
+    config: Qwen3MoeConfig,
+    preloaded: &R2PreloadedF32Experts,
+) -> Result<Tensor, StreamingModelError> {
+    let hidden_size = config.model().hidden_size();
+    let intermediate = config.moe_intermediate_size();
+    combine_routed_experts(hidden_states, router, config, |expert_id, occurrences| {
+        let expert = preloaded
+            .experts
+            .get(&expert_id)
+            .ok_or(StreamingModelError::Runtime(
+                RuntimeError::BackendContractViolation {
+                    context: "M6.3-R2.0 preloaded F32 expert",
+                    reason: "selected expert was not preloaded",
+                },
+            ))?;
+        Ok(occurrences
+            .iter()
+            .map(|(token_index, _)| {
+                let input = &hidden_states.data()
+                    [token_index * hidden_size..(token_index + 1) * hidden_size];
+                expert_mlp(
+                    input,
+                    &expert.gate,
+                    &expert.up,
+                    &expert.down,
+                    hidden_size,
+                    intermediate,
+                )
+            })
+            .collect::<Vec<_>>())
+    })
 }
 
 impl StreamingQwen3MoeModel {
@@ -271,10 +338,11 @@ where
             #[cfg(all(test, feature = "m6-3-r2-localization"))]
             {
                 drop(r2_load_scope);
-                crate::r2_localization::record_bytes(
-                    "cache_lookup_load",
-                    store.metrics().bytes_read.saturating_sub(r2_bytes_before),
-                );
+                let loaded_bytes = store.metrics().bytes_read.saturating_sub(r2_bytes_before);
+                crate::r2_localization::record_bytes("cache_lookup_load", loaded_bytes);
+                if loaded_bytes > 0 {
+                    crate::r2_localization::add_counter("unique_expert_loads", 1);
+                }
             }
             #[cfg(all(test, feature = "m5-3-compute-profiling"))]
             drop(cache_profile);
@@ -343,10 +411,11 @@ where
             #[cfg(all(test, feature = "m6-3-r2-localization"))]
             {
                 drop(r2_load_scope);
-                crate::r2_localization::record_bytes(
-                    "cache_lookup_load",
-                    store.metrics().bytes_read.saturating_sub(r2_bytes_before),
-                );
+                let loaded_bytes = store.metrics().bytes_read.saturating_sub(r2_bytes_before);
+                crate::r2_localization::record_bytes("cache_lookup_load", loaded_bytes);
+                if loaded_bytes > 0 {
+                    crate::r2_localization::add_counter("unique_expert_loads", 1);
+                }
             }
             #[cfg(all(test, feature = "m5-3-compute-profiling"))]
             drop(cache_profile);

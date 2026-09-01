@@ -1,5 +1,7 @@
 //! R1.1 direct-consumption reader for the new group-32/group-64 layouts.
 
+#[cfg(all(test, feature = "m6-3-r2-localization"))]
+use std::collections::HashMap;
 use std::{
     fs::File,
     io::{Read, Seek, SeekFrom},
@@ -280,6 +282,8 @@ impl R1_1CandidateReader {
             self.read_projection(self.layout.intermediate, self.layout.hidden)?;
         let (down_values, down_scales) =
             self.read_projection(self.layout.hidden, self.layout.intermediate)?;
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        crate::r2_localization::add_counter("unique_expert_loads", 1);
         self.peak_packed_expert_bytes = self.peak_packed_expert_bytes.max(expert_bytes);
         Ok(R1_1PackedExpert {
             gate_values,
@@ -374,6 +378,55 @@ impl R1_1CandidateReader {
             .ok_or_else(|| error("R1.1 read accounting overflow"))?;
         Ok((values, scales))
     }
+}
+
+#[cfg(all(test, feature = "m6-3-r2-localization"))]
+#[derive(Debug)]
+pub(crate) struct R2PreloadedCandidateExperts {
+    experts: HashMap<usize, R1_1PackedExpert>,
+}
+
+#[cfg(all(test, feature = "m6-3-r2-localization"))]
+pub(crate) fn r2_preload_candidate_experts(
+    reader: &mut R1_1CandidateReader,
+    selected_experts: &[usize],
+) -> Result<R2PreloadedCandidateExperts, RuntimeError> {
+    let mut unique = selected_experts.to_vec();
+    unique.sort_unstable();
+    unique.dedup();
+    let mut experts = HashMap::new();
+    for expert_id in unique {
+        experts.insert(expert_id, reader.load_expert(expert_id)?);
+    }
+    Ok(R2PreloadedCandidateExperts { experts })
+}
+
+#[cfg(all(test, feature = "m6-3-r2-localization"))]
+pub(crate) fn r2_routed_preloaded_candidate(
+    hidden_states: TensorView<'_>,
+    router: &RouterOutput,
+    config: Qwen3MoeConfig,
+    preloaded: &R2PreloadedCandidateExperts,
+) -> Result<Tensor, RuntimeError> {
+    let hidden_size = config.model().hidden_size();
+    combine_routed_experts(hidden_states, router, config, |expert_id, occurrences| {
+        let expert = preloaded
+            .experts
+            .get(&expert_id)
+            .ok_or_else(|| error("R2.0 selected candidate expert was not preloaded"))?;
+        let mut outputs = Vec::with_capacity(occurrences.len());
+        for &(token, _) in occurrences {
+            let input = &hidden_states.data()[token * hidden_size..(token + 1) * hidden_size];
+            let (output, complete_f32_weight_materializations) = expert.apply_direct(input)?;
+            if complete_f32_weight_materializations != 0 {
+                return Err(error(
+                    "R2.0 preloaded candidate expanded a complete F32 weight",
+                ));
+            }
+            outputs.push(output);
+        }
+        Ok(outputs)
+    })
 }
 
 pub(crate) fn r1_1_routed_experts_with_observer<F>(

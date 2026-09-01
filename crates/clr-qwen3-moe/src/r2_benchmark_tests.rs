@@ -1,0 +1,392 @@
+use std::{
+    collections::BTreeSet,
+    env,
+    fmt::Write as _,
+    fs::{self, File},
+    path::PathBuf,
+    time::Instant,
+};
+
+use crate::{
+    block::RouterOutput,
+    r1_1_direct_candidate::{
+        R1_1CandidateReader, R1_1PackedArtifactLayout, r2_preload_candidate_experts,
+        r2_routed_preloaded_candidate,
+    },
+    r2_localization,
+    streaming::{
+        PackedExpertLayout, r2_preload_f32_experts, r2_routed_preloaded_f32,
+        streaming_routed_experts_with_observer,
+    },
+};
+use clr_core::{Tensor, TensorShape};
+
+use super::*;
+
+const CONTRACT_SHA256: &str = "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca";
+const CANDIDATE_SHA256: &str = "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2";
+
+#[derive(Debug)]
+struct FrozenRuntimeFixture {
+    name: String,
+    token_ids: Vec<usize>,
+    input: Tensor,
+    router: RouterOutput,
+    reference_output: Option<Tensor>,
+}
+
+fn usize_array(values: &[usize]) -> String {
+    values
+        .iter()
+        .map(ToString::to_string)
+        .collect::<Vec<_>>()
+        .join(",")
+}
+
+fn f32_le_hex(values: &[f32]) -> String {
+    let mut output = String::with_capacity(values.len() * 8);
+    for value in values {
+        for byte in value.to_le_bytes() {
+            write!(output, "{byte:02x}").expect("hex f32 bytes");
+        }
+    }
+    output
+}
+
+fn build_runtime_fixture(name: &str, with_reference_output: bool) -> FrozenRuntimeFixture {
+    let fixture = tier_b_references()
+        .into_iter()
+        .find(|item| item.name == name)
+        .expect("R2.0 frozen fixture");
+    assert!(matches!(name, "short_english" | "short_thai"));
+
+    let artifact_root =
+        PathBuf::from(env::var_os("COLIBRI_ARTIFACT_ROOT").expect("canonical artifact root"));
+    let plan = runtime_plan(RUNTIME_PLAN);
+    let mut payload = File::open(artifact_root.join(&plan.payload)).expect("open dense payload");
+    let mut dense_bytes_read = 0_u64;
+    let mut input_values = Vec::with_capacity(fixture.token_ids.len() * 2048);
+    for &token_id in &fixture.token_ids {
+        input_values.extend_from_slice(
+            embedding_row(&mut payload, &plan, token_id, &mut dense_bytes_read).data(),
+        );
+    }
+    let hidden = Tensor::new(
+        TensorShape::new([fixture.token_ids.len(), 2048]),
+        input_values,
+    )
+    .expect("R2.0 embedding rows");
+    let weights = layer_weights(&mut payload, &plan, 0, &mut dense_bytes_read);
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("R2.0 runtime config")
+        .runtime_config();
+    let pre = pre_router_with_weights(
+        hidden.view(),
+        weights.input_norm.view(),
+        weights.query.view(),
+        weights.key.view(),
+        weights.value.view(),
+        weights.output.view(),
+        weights.query_norm.view(),
+        weights.key_norm.view(),
+        weights.post_norm.view(),
+        weights.router.view(),
+        config,
+    )
+    .expect("R2.0 Layer-0 pre-router");
+    let top_k = config.experts_per_token();
+    let final_ids = &pre.router.selected_experts
+        [(fixture.token_ids.len() - 1) * top_k..fixture.token_ids.len() * top_k];
+    assert_eq!(
+        final_ids, fixture.guard_ids[&0],
+        "R2.0 final prompt router guard"
+    );
+    let reference_output = if with_reference_output {
+        let mut store = canonical_layer0_expert_store(&artifact_root);
+        Some(
+            streaming_routed_experts_with_observer(
+                pre.post_attention_norm.view(),
+                &pre.router,
+                config,
+                0,
+                &mut store,
+                PackedExpertLayout::for_config(config),
+                |_, _, _, _| {},
+            )
+            .expect("R2.0 reference routed experts"),
+        )
+    } else {
+        None
+    };
+    FrozenRuntimeFixture {
+        name: fixture.name,
+        token_ids: fixture.token_ids,
+        input: pre.post_attention_norm,
+        router: pre.router,
+        reference_output,
+    }
+}
+
+fn fixture_record_entry(run: &FrozenRuntimeFixture) -> String {
+    let mut unique = BTreeSet::new();
+    unique.extend(run.router.selected_experts.iter().copied());
+    let unique = unique.into_iter().collect::<Vec<_>>();
+    let reference = run.reference_output.as_ref().expect("reference output");
+    format!(
+        concat!(
+            "{{\"fixture_id\":\"{}\",\"token_ids\":[{}],",
+            "\"expert_input\":{{\"shape\":[{},2048],\"sha256\":\"{}\",",
+            "\"f32_le_hex\":\"{}\"}},",
+            "\"selected_expert_ids\":[{}],",
+            "\"router_weights\":{{\"shape\":[{},8],\"sha256\":\"{}\",",
+            "\"f32_le_hex\":\"{}\"}},",
+            "\"unique_selected_expert_ids\":[{}],",
+            "\"reference_routed_output\":{{\"shape\":[{},2048],\"sha256\":\"{}\"}}}}"
+        ),
+        run.name,
+        usize_array(&run.token_ids),
+        run.token_ids.len(),
+        f32_little_endian_sha256(run.input.data()),
+        f32_le_hex(run.input.data()),
+        usize_array(&run.router.selected_experts),
+        run.token_ids.len(),
+        f32_little_endian_sha256(run.router.weights.data()),
+        f32_le_hex(run.router.weights.data()),
+        usize_array(&unique),
+        run.token_ids.len(),
+        f32_little_endian_sha256(reference.data()),
+    )
+}
+
+#[test]
+fn m6_3_r2_0b_freeze_reference_layer0_fixtures() {
+    let output =
+        PathBuf::from(env::var_os("COLIBRI_R2_FIXTURE_OUTPUT").expect("R2.0 fixture output path"));
+    assert!(!output.exists(), "R2.0 fixture output must be new");
+    let english = build_runtime_fixture("short_english", true);
+    let thai = build_runtime_fixture("short_thai", true);
+    let document = format!(
+        concat!(
+            "{{\"schema\":\"m6.3-r2.0-reference-fixtures-v1\",",
+            "\"contract_sha256\":\"{}\",",
+            "\"reference_id\":\"reference-f32-v1\",",
+            "\"root_manifest_sha256\":\"f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2\",",
+            "\"fixtures\":[{},{}]}}\n"
+        ),
+        CONTRACT_SHA256,
+        fixture_record_entry(&english),
+        fixture_record_entry(&thai),
+    );
+    fs::write(output, document).expect("write R2.0 frozen fixture record");
+}
+
+fn parse_expected_ids() -> Vec<usize> {
+    env::var("COLIBRI_R2_EXPECT_SELECTED_IDS")
+        .expect("R2.0 expected selected IDs")
+        .split(',')
+        .filter(|value| !value.is_empty())
+        .map(|value| value.parse::<usize>().expect("selected expert ID"))
+        .collect()
+}
+
+fn verify_fixture_identity(run: &FrozenRuntimeFixture) {
+    assert_eq!(
+        f32_little_endian_sha256(run.input.data()),
+        env::var("COLIBRI_R2_EXPECT_INPUT_SHA256").expect("expected input SHA"),
+        "R2.0 expert input identity",
+    );
+    assert_eq!(
+        f32_little_endian_sha256(run.router.weights.data()),
+        env::var("COLIBRI_R2_EXPECT_ROUTER_WEIGHTS_SHA256").expect("expected router weights SHA"),
+        "R2.0 router weights identity",
+    );
+    assert_eq!(
+        run.router.selected_experts,
+        parse_expected_ids(),
+        "R2.0 selected expert identity",
+    );
+}
+
+fn snapshot_json(snapshot: &r2_localization::Snapshot) -> String {
+    let mut entries = Vec::with_capacity(snapshot.events.len());
+    for (name, event) in &snapshot.events {
+        entries.push(format!(
+            concat!(
+                "\"{}\":{{\"calls\":{},\"total_nanos\":{},",
+                "\"exclusive_nanos\":{},\"min_nanos\":{},",
+                "\"median_nanos\":{},\"max_nanos\":{},\"logical_bytes\":{}}}"
+            ),
+            name,
+            event.calls,
+            event.total_nanos,
+            event.exclusive_nanos,
+            event.min_nanos,
+            event.median_nanos,
+            event.max_nanos,
+            event.logical_bytes,
+        ));
+    }
+    format!("{{{}}}", entries.join(","))
+}
+
+fn run_preloaded_reference(
+    run: &FrozenRuntimeFixture,
+    observer_enabled: bool,
+) -> (u128, r2_localization::Snapshot, Tensor) {
+    let artifact_root =
+        PathBuf::from(env::var_os("COLIBRI_ARTIFACT_ROOT").expect("canonical artifact root"));
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("R2.0 config")
+        .runtime_config();
+    let layout = PackedExpertLayout::for_config(config);
+    let mut store = canonical_layer0_expert_store(&artifact_root);
+    let preloaded = r2_preload_f32_experts(0, &run.router.selected_experts, &mut store, layout)
+        .expect("preload F32 experts");
+    for _ in 0..2 {
+        std::hint::black_box(
+            r2_routed_preloaded_f32(run.input.view(), &run.router, config, &preloaded)
+                .expect("F32 warmup"),
+        );
+    }
+    let session = r2_localization::start(observer_enabled);
+    let mut total_nanos = 0_u128;
+    let mut last = None;
+    for _ in 0..25 {
+        let started = Instant::now();
+        let output = r2_routed_preloaded_f32(run.input.view(), &run.router, config, &preloaded)
+            .expect("F32 timed compute-only");
+        total_nanos = total_nanos.saturating_add(started.elapsed().as_nanos());
+        std::hint::black_box(output.data().first().copied());
+        last = Some(output);
+    }
+    let snapshot = r2_localization::finish(session);
+    (total_nanos, snapshot, last.expect("timed F32 output"))
+}
+
+fn run_preloaded_candidate(
+    run: &FrozenRuntimeFixture,
+    observer_enabled: bool,
+) -> (u128, r2_localization::Snapshot, Tensor) {
+    let candidate_path =
+        PathBuf::from(env::var_os("COLIBRI_R2_CANDIDATE_PATH").expect("R2.0 candidate path"));
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("R2.0 config")
+        .runtime_config();
+    let mut reader = R1_1CandidateReader::open(
+        &candidate_path,
+        R1_1PackedArtifactLayout::canonical(32).expect("group-32 layout"),
+        CANDIDATE_SHA256,
+    )
+    .expect("verified group-32 candidate");
+    let preloaded = r2_preload_candidate_experts(&mut reader, &run.router.selected_experts)
+        .expect("preload candidate experts");
+    for _ in 0..2 {
+        std::hint::black_box(
+            r2_routed_preloaded_candidate(run.input.view(), &run.router, config, &preloaded)
+                .expect("candidate warmup"),
+        );
+    }
+    let session = r2_localization::start(observer_enabled);
+    let mut total_nanos = 0_u128;
+    let mut last = None;
+    for _ in 0..25 {
+        let started = Instant::now();
+        let output =
+            r2_routed_preloaded_candidate(run.input.view(), &run.router, config, &preloaded)
+                .expect("candidate timed compute-only");
+        total_nanos = total_nanos.saturating_add(started.elapsed().as_nanos());
+        std::hint::black_box(output.data().first().copied());
+        last = Some(output);
+    }
+    let snapshot = r2_localization::finish(session);
+    (total_nanos, snapshot, last.expect("timed candidate output"))
+}
+
+#[test]
+fn m6_3_r2_0_compute_only_single_sample() {
+    let fixture_name = env::var("COLIBRI_R2_FIXTURE").expect("R2.0 fixture name");
+    let path = env::var("COLIBRI_R2_PATH").expect("R2.0 path");
+    assert!(matches!(path.as_str(), "reference" | "candidate"));
+    let observer = env::var("COLIBRI_R2_OBSERVER").expect("R2.0 observer state");
+    let observer_enabled = match observer.as_str() {
+        "enabled" => true,
+        "disabled" => false,
+        _ => panic!("invalid R2.0 observer state"),
+    };
+    let output_path =
+        PathBuf::from(env::var_os("COLIBRI_R2_SAMPLE_OUTPUT").expect("R2.0 sample output"));
+    assert!(!output_path.exists(), "R2.0 sample output must be new");
+    let run = build_runtime_fixture(&fixture_name, false);
+    verify_fixture_identity(&run);
+    let noop = r2_localization::calibrate_noop(101);
+    let (timed_total_nanos, snapshot, output) = if path == "reference" {
+        run_preloaded_reference(&run, observer_enabled)
+    } else {
+        run_preloaded_candidate(&run, observer_enabled)
+    };
+    let output_sha256 = f32_little_endian_sha256(output.data());
+    if path == "reference" {
+        assert_eq!(
+            output_sha256,
+            env::var("COLIBRI_R2_EXPECT_REFERENCE_OUTPUT_SHA256")
+                .expect("expected reference output SHA"),
+            "R2.0 reference routed output identity",
+        );
+    }
+    if observer_enabled {
+        assert_eq!(
+            snapshot
+                .counters
+                .get("unique_expert_loads")
+                .copied()
+                .unwrap_or(0),
+            0
+        );
+        assert!(
+            snapshot
+                .events
+                .values()
+                .all(|event| event.logical_bytes == 0)
+        );
+    }
+    let expert_occurrences = snapshot
+        .counters
+        .get("expert_occurrences")
+        .copied()
+        .unwrap_or(0);
+    let unique_expert_loads = snapshot
+        .counters
+        .get("unique_expert_loads")
+        .copied()
+        .unwrap_or(0);
+    let document = format!(
+        concat!(
+            "{{\"schema\":\"m6.3-r2.0-control-sample-v1\",",
+            "\"contract_sha256\":\"{}\",\"fixture\":\"{}\",",
+            "\"path\":\"{}\",\"observer\":\"{}\",",
+            "\"fixture_record_sha256\":\"{}\",",
+            "\"release_binary_sha256\":\"{}\",\"host_id\":\"{}\",",
+            "\"timed_iterations\":25,\"timed_total_nanos\":{},",
+            "\"output_sha256\":\"{}\",\"timer_noop_median_nanos\":{},",
+            "\"expert_occurrences\":{},\"unique_expert_loads\":{},",
+            "\"stages\":{}}}\n"
+        ),
+        CONTRACT_SHA256,
+        fixture_name,
+        path,
+        observer,
+        env::var("COLIBRI_R2_FIXTURE_RECORD_SHA256").expect("fixture record SHA"),
+        env::var("COLIBRI_R2_RELEASE_BINARY_SHA256").expect("binary SHA"),
+        env::var("COLIBRI_R2_HOST_ID").expect("host ID"),
+        timed_total_nanos,
+        output_sha256,
+        noop.median_nanos,
+        expert_occurrences,
+        unique_expert_loads,
+        snapshot_json(&snapshot),
+    );
+    fs::write(output_path, document).expect("write R2.0 single sample");
+}

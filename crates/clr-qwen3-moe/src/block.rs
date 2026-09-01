@@ -681,7 +681,6 @@ where
                 "expert_occurrences",
                 u64::try_from(occurrences.len()).unwrap_or(u64::MAX),
             );
-            crate::r2_localization::add_counter("unique_expert_loads", 1);
         }
         let expert_outputs = compute(expert_id, &occurrences)?;
         if expert_outputs.len() != occurrences.len()

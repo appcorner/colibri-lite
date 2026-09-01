@@ -165,20 +165,23 @@ def validate_sample(sample: dict[str, Any], binary: str, host: str) -> None:
     require(is_sha256(sample.get("output_sha256")), "sample output hash")
     require(isinstance(sample.get("timer_noop_median_nanos"), int) and sample["timer_noop_median_nanos"] > 0, "sample timer calibration")
     require(isinstance(sample.get("expert_occurrences"), int) and sample["expert_occurrences"] > 0, "sample expert occurrences")
-    require(isinstance(sample.get("unique_expert_loads"), int) and sample["unique_expert_loads"] > 0, "sample unique expert loads")
+    require(isinstance(sample.get("unique_expert_loads"), int) and sample["unique_expert_loads"] >= 0, "sample unique expert loads")
     require(isinstance(sample.get("expected_logical_expert_bytes"), int) and sample["expected_logical_expert_bytes"] >= 0, "sample expected logical bytes")
     require(isinstance(sample.get("logical_expert_bytes"), int) and sample["logical_expert_bytes"] >= 0, "sample logical bytes")
     require(sample["logical_expert_bytes"] == sample["expected_logical_expert_bytes"], "sample logical-byte accounting")
     require(isinstance(sample.get("timed_candidate_payload_bytes"), int) and sample["timed_candidate_payload_bytes"] >= 0, "candidate payload bytes")
     require(isinstance(sample.get("timed_f32_expert_load_bytes"), int) and sample["timed_f32_expert_load_bytes"] >= 0, "F32 load bytes")
     if view == "compute_only_preloaded":
+        require(sample["unique_expert_loads"] == 0, "compute-only unique expert loads")
         require(sample["timed_candidate_payload_bytes"] == 0, "compute-only candidate payload bytes")
         require(sample["timed_f32_expert_load_bytes"] == 0, "compute-only F32 load bytes")
         require(sample["logical_expert_bytes"] == 0, "compute-only logical expert bytes")
     elif path == "candidate":
+        require(sample["unique_expert_loads"] > 0, "candidate load-plus unique expert loads")
         require(sample["logical_expert_bytes"] == sample["timed_candidate_payload_bytes"] > 0, "candidate load-plus bytes")
         require(sample["timed_f32_expert_load_bytes"] == 0, "candidate sample has F32 load bytes")
     else:
+        require(sample["unique_expert_loads"] > 0, "reference load-plus unique expert loads")
         require(sample["logical_expert_bytes"] == sample["timed_f32_expert_load_bytes"] > 0, "reference load-plus bytes")
         require(sample["timed_candidate_payload_bytes"] == 0, "reference sample has candidate bytes")
 
