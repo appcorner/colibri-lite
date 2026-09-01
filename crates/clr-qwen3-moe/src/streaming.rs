@@ -263,7 +263,19 @@ where
             };
             #[cfg(all(test, feature = "m5-3-compute-profiling"))]
             let cache_profile = crate::profiling::scope("cache.lookup_and_expert_load");
+            #[cfg(all(test, feature = "m6-3-r2-localization"))]
+            let r2_bytes_before = store.metrics().bytes_read;
+            #[cfg(all(test, feature = "m6-3-r2-localization"))]
+            let r2_load_scope = crate::r2_localization::scope("cache_lookup_load");
             let lease = store.load(key)?;
+            #[cfg(all(test, feature = "m6-3-r2-localization"))]
+            {
+                drop(r2_load_scope);
+                crate::r2_localization::record_bytes(
+                    "cache_lookup_load",
+                    store.metrics().bytes_read.saturating_sub(r2_bytes_before),
+                );
+            }
             #[cfg(all(test, feature = "m5-3-compute-profiling"))]
             drop(cache_profile);
             let decoded = decode_payload(key, lease.bytes(), layout)?;
@@ -323,7 +335,19 @@ where
             let mut observation = None;
             #[cfg(all(test, feature = "m5-3-compute-profiling"))]
             let cache_profile = crate::profiling::scope("cache.lookup_and_expert_load");
+            #[cfg(all(test, feature = "m6-3-r2-localization"))]
+            let r2_bytes_before = store.metrics().bytes_read;
+            #[cfg(all(test, feature = "m6-3-r2-localization"))]
+            let r2_load_scope = crate::r2_localization::scope("cache_lookup_load");
             let lease = store.load_with_observer(key, |value| observation = Some(value))?;
+            #[cfg(all(test, feature = "m6-3-r2-localization"))]
+            {
+                drop(r2_load_scope);
+                crate::r2_localization::record_bytes(
+                    "cache_lookup_load",
+                    store.metrics().bytes_read.saturating_sub(r2_bytes_before),
+                );
+            }
             #[cfg(all(test, feature = "m5-3-compute-profiling"))]
             drop(cache_profile);
             let observation = observation.expect("expert load observer called exactly once");
@@ -422,6 +446,8 @@ fn decode_payload(
 ) -> Result<DecodedExpert, StreamingModelError> {
     #[cfg(all(test, feature = "m5-3-compute-profiling"))]
     let _decode_profile = crate::profiling::scope("expert.payload_decode");
+    #[cfg(all(test, feature = "m6-3-r2-localization"))]
+    let _r2_decode_scope = crate::r2_localization::scope("f32_payload_decode");
     if layout.data_type != DataType::F32
         || layout.byte_order != ByteOrder::Little
         || bytes.len() != layout.total_byte_length

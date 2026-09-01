@@ -17,6 +17,8 @@ mod m5_4_resident_dense;
 mod model;
 #[cfg(all(test, feature = "m5-3-compute-profiling"))]
 mod profiling;
+#[cfg(all(test, feature = "m6-3-r2-localization"))]
+mod r2_localization;
 // M6.3-02 is directly tested here; M6.3-03 owns router/runtime integration.
 #[allow(dead_code)]
 mod quantized_layer0;

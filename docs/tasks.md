@@ -910,9 +910,15 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   observer-effect gates, stage taxonomy, and prospective classification rules.
   Contract: `models/qwen3-30b-a3b/m6.3-r2-0-localization-contract-v1.json`,
   SHA-256 `02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca`.
-- [ ] M6.3-R2.0a Implement measurement-only timing/byte instrumentation and a
+- [x] M6.3-R2.0a Implement measurement-only timing/byte instrumentation and a
   validator without changing arithmetic, cache policy, quantization, or expert
-  selection. Calibrate timer and observer overhead before localization timing.
+  selection. The test-only `m6-3-r2-localization` feature now observes the
+  existing F32 and group-32 load/compute/routing paths, calibrates no-op timer
+  cost, supports same-binary observer enabled/disabled controls, and preserves
+  exact tiny-path outputs. The validator locks the 40-sample matrix, 20
+  observer-control pairs, byte/timer/retry gates, and ADR 0079 classification.
+  Focused verification passed 5 Rust and 13 Python tests. See
+  `docs/reports/m6.3-r2-0a-instrumentation-validator.md`.
 - [ ] M6.3-R2.0b Freeze reference-only Layer-0 expert-input/router fixtures for
   `short_english` and `short_thai`, then freeze the instrumented commit, release
   binary SHA-256, fixture-record SHA-256, timer identity, and collector versions.
@@ -931,9 +937,10 @@ The complete re-entry protocol is
 R1.1a group-32 characterization winner without rewriting the historical R1.1
 `no_candidate_admitted` record; ADR 0071 closed R1.2 quality `GO`; ADR 0077
 closed R1.3 measurement; and ADR 0078 closes the current re-entry path
-`NO-GO for promotion`. ADR 0079 now pre-registers diagnostic R2.0; the exact
-next task is `M6.3-R2.0a` measurement-only instrumentation. M6.4 remains
-blocked.
+`NO-GO for promotion`. ADR 0079 now pre-registers diagnostic R2.0 and R2.0a
+measurement-only instrumentation is complete for review. The exact next task
+is `M6.3-R2.0b` reference-only fixture freeze and execution-identity binding.
+M6.4 remains blocked.
 
 ## Standard verification commands
 

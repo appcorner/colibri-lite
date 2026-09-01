@@ -2053,3 +2053,31 @@ Open issues:
 Next:
 
 - M6.3-R1.1b — freeze code_newline routed-expert and MoE checkpoints.
+
+
+## 2026-09-01 - M6.3-R2.0a localization instrumentation
+
+Completed:
+
+- Added test-binary-only `m6-3-r2-localization` instrumentation around the unchanged F32 and admitted group-32 Layer-0 expert paths.
+- Added hierarchical timing, logical-byte counters, no-op timer calibration, and same-binary runtime enable/disable controls.
+- Kept the existing F32 gate/up arithmetic order; row timings use local `Instant` samples and batch collector updates to reduce observer overhead.
+- Added prospective R2.0 evidence validation and ADR 0079 classification logic.
+
+Changed:
+
+- Added `crates/clr-qwen3-moe/src/r2_localization.rs`.
+- Instrumented existing routing/accumulation, F32 load/decode/projection, and packed candidate load/decode/projection operations behind the R2 feature.
+- Added `scripts/validate_m6_3_r2_0_localization.py` and 13 synthetic validator tests.
+- Added `docs/reports/m6.3-r2-0a-instrumentation-validator.md` and updated the implementation plan/task tracker.
+Evidence:
+
+- Contract SHA-256 remained `02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca`.
+- R2 Rust focused tests: 5 passed; Python validator tests: 13 passed.
+- Feature-specific Clippy passed with `-D warnings`.
+- Standard workspace verification passed with 158 Rust tests and CLI `bootstrap ready`.
+- No R2.0 candidate localization sample or result was generated.
+
+Next:
+
+- M6.3-R2.0b reference-only Layer-0 fixture freeze and execution-identity binding. Build measurement-only preloaded support by reusing existing compute functions; do not start candidate localization timing until the fixture record, instrumented commit, release binary, timer identity, and collector versions are frozen and observer controls pass.

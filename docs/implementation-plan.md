@@ -639,6 +639,17 @@ R2.0 may authorize only an R2.1 hypothesis design. It does not authorize SIMD,
 FFI/native kernels, cache-policy changes, new quantization, all-layer rollout,
 or M6.4 implementation.
 
+R2.0a is complete for review. The test-only `m6-3-r2-localization` feature now
+observes the existing F32 and group-32 load/compute/routing operations without
+rewriting them, including batched low-overhead F32 row timing, packed logical
+read accounting, hierarchical residuals, no-op timer calibration, and
+same-binary enabled/disabled controls. The validator prospectively enforces the
+40 localization samples, 20 observer-control pairs, frozen pair order,
+read/retry/timer gates, and ADR 0079 classifications. No localization result
+was generated. The exact next task is R2.0b: freeze reference-only Layer-0
+expert input/router evidence and bind the instrumented source, release binary,
+fixture record, timer, and collector identities before candidate timing.
+
 #### M6.4 - Full hardware-aware runtime
 
 Only after M6.3-R1 admits a candidate *and* a dedicated all-layer plan review

@@ -131,14 +131,30 @@ impl R1_1PackedExpert {
             self.layout.intermediate,
             self.layout.group_size,
         )?;
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        let gate_scope = crate::r2_localization::scope("gate_packed_projection");
         let (gate, gate_expanded) = gate.apply_direct(input)?;
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        drop(gate_scope);
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        let up_scope = crate::r2_localization::scope("up_packed_projection");
         let (up, up_expanded) = up.apply_direct(input)?;
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        drop(up_scope);
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        let activation_scope = crate::r2_localization::scope("activation_product");
         let activated = gate
             .into_iter()
             .zip(up)
             .map(|(gate, up)| gate / (1.0 + (-gate).exp()) * up)
             .collect::<Vec<_>>();
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        drop(activation_scope);
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        let down_scope = crate::r2_localization::scope("down_packed_projection");
         let (output, down_expanded) = down.apply_direct(&activated)?;
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        drop(down_scope);
         Ok((output, gate_expanded + up_expanded + down_expanded))
     }
 }
@@ -249,11 +265,15 @@ impl R1_1CandidateReader {
         if base % 64 != 0 {
             return Err(error("R1.1 candidate expert offset is not 64-byte aligned"));
         }
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        let seek_scope = crate::r2_localization::scope("seek");
         self.file
             .seek(SeekFrom::Start(u64::try_from(base).map_err(|_| {
                 error("R1.1 candidate expert offset overflow")
             })?))
             .map_err(|_| error("cannot seek R1.1 candidate artifact"))?;
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        drop(seek_scope);
         let (gate_values, gate_scales) =
             self.read_projection(self.layout.intermediate, self.layout.hidden)?;
         let (up_values, up_scales) =
@@ -293,9 +313,21 @@ impl R1_1CandidateReader {
             .checked_mul(columns / self.layout.group_size)
             .ok_or_else(|| error("R1.1 projection scale length overflow"))?;
         let mut value_bytes = vec![0; value_count];
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        let value_read_scope = crate::r2_localization::scope("packed_value_read");
         self.file
             .read_exact(&mut value_bytes)
             .map_err(|_| error("truncated R1.1 candidate values"))?;
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        {
+            drop(value_read_scope);
+            crate::r2_localization::record_bytes(
+                "packed_value_read",
+                u64::try_from(value_count).unwrap_or(u64::MAX),
+            );
+        }
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        let value_decode_scope = crate::r2_localization::scope("packed_value_decode_validate");
         let values = value_bytes
             .into_iter()
             .map(|value| i8::from_le_bytes([value]))
@@ -303,10 +335,24 @@ impl R1_1CandidateReader {
         if values.contains(&i8::MIN) {
             return Err(error("R1.1 candidate contains forbidden -128 value"));
         }
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        drop(value_decode_scope);
         let mut scale_bytes = vec![0; scale_count * size_of::<f32>()];
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        let scale_read_scope = crate::r2_localization::scope("scale_read");
         self.file
             .read_exact(&mut scale_bytes)
             .map_err(|_| error("truncated R1.1 candidate scales"))?;
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        {
+            drop(scale_read_scope);
+            crate::r2_localization::record_bytes(
+                "scale_read",
+                u64::try_from(scale_bytes.len()).unwrap_or(u64::MAX),
+            );
+        }
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        let scale_decode_scope = crate::r2_localization::scope("scale_decode_validate");
         let scales = scale_bytes
             .chunks_exact(size_of::<f32>())
             .map(|bytes| f32::from_le_bytes(bytes.try_into().expect("four-byte scale")))
@@ -317,6 +363,8 @@ impl R1_1CandidateReader {
         {
             return Err(error("R1.1 candidate contains invalid scale"));
         }
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        drop(scale_decode_scope);
         self.payload_bytes_read = self
             .payload_bytes_read
             .checked_add(
@@ -550,6 +598,39 @@ mod tests {
         assert_eq!(
             reader.peak_packed_expert_bytes(),
             layout.expert_bytes().expect("expert bytes")
+        );
+        fs::remove_file(path).expect("remove fixture");
+    }
+
+    #[cfg(feature = "m6-3-r2-localization")]
+    #[test]
+    fn r2_candidate_scopes_account_real_packed_load_and_compute() {
+        let (path, layout, hash) = fixture();
+        let mut reader = R1_1CandidateReader::open(&path, layout, &hash).expect("reader");
+        let session = crate::r2_localization::start(true);
+        let expert = reader.load_expert(1).expect("expert");
+        let (output, expanded) = expert.apply_direct(&[1.0; 32]).expect("direct expert");
+        let snapshot = crate::r2_localization::finish(session);
+        assert_eq!(output.len(), 32);
+        assert_eq!(expanded, 0);
+        assert_eq!(snapshot.events["seek"].calls, 1);
+        assert_eq!(snapshot.events["packed_value_read"].calls, 3);
+        assert_eq!(snapshot.events["scale_read"].calls, 3);
+        for name in [
+            "packed_value_decode_validate",
+            "scale_decode_validate",
+            "gate_packed_projection",
+            "up_packed_projection",
+            "activation_product",
+            "down_packed_projection",
+        ] {
+            assert!(snapshot.events[name].calls > 0, "{name} calls");
+        }
+        let read_bytes = snapshot.events["packed_value_read"].logical_bytes
+            + snapshot.events["scale_read"].logical_bytes;
+        assert_eq!(
+            read_bytes,
+            u64::try_from(layout.expert_bytes().expect("bytes")).expect("u64")
         );
         fs::remove_file(path).expect("remove fixture");
     }

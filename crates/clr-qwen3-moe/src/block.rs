@@ -653,12 +653,16 @@ where
     E: From<RuntimeError>,
     F: FnMut(usize, &[(usize, usize)]) -> Result<Vec<Vec<f32>>, E>,
 {
+    #[cfg(all(test, feature = "m6-3-r2-localization"))]
+    let _r2_expert_total = crate::r2_localization::scope("expert_total");
     let token_count = hidden_states.shape().dimensions()[0];
     let hidden_size = config.model().hidden_size();
     let top_k = config.experts_per_token();
     let mut output = vec![0.0; token_count * hidden_size];
     for expert_id in 0..config.expert_count() {
         let mut occurrences = Vec::new();
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        let r2_scan_scope = crate::r2_localization::scope("routing_occurrence_scan");
         for token_index in 0..token_count {
             for position in 0..top_k {
                 if router.selected_experts[token_index * top_k + position] == expert_id {
@@ -666,8 +670,18 @@ where
                 }
             }
         }
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        drop(r2_scan_scope);
         if occurrences.is_empty() {
             continue;
+        }
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        {
+            crate::r2_localization::add_counter(
+                "expert_occurrences",
+                u64::try_from(occurrences.len()).unwrap_or(u64::MAX),
+            );
+            crate::r2_localization::add_counter("unique_expert_loads", 1);
         }
         let expert_outputs = compute(expert_id, &occurrences)?;
         if expert_outputs.len() != occurrences.len()
@@ -680,12 +694,16 @@ where
             }
             .into());
         }
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        let r2_accumulation_scope = crate::r2_localization::scope("weighted_accumulation");
         for ((token_index, position), values) in occurrences.iter().zip(expert_outputs) {
             let weight = router.weights.data()[token_index * top_k + position];
             for (hidden_index, value) in values.into_iter().enumerate() {
                 output[token_index * hidden_size + hidden_index] += value * weight;
             }
         }
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        drop(r2_accumulation_scope);
     }
     Tensor::new(TensorShape::new([token_count, hidden_size]), output).map_err(Into::into)
 }
@@ -705,24 +723,70 @@ pub(crate) fn expert_mlp(
         2 * intermediate_size,
         hidden_size,
     );
+    #[cfg(all(test, feature = "m6-3-r2-localization"))]
+    let r2_enabled = crate::r2_localization::is_enabled();
+    #[cfg(all(test, feature = "m6-3-r2-localization"))]
+    let mut gate_samples = Vec::with_capacity(if r2_enabled { intermediate_size } else { 0 });
+    #[cfg(all(test, feature = "m6-3-r2-localization"))]
+    let mut up_samples = Vec::with_capacity(if r2_enabled { intermediate_size } else { 0 });
+    #[cfg(all(test, feature = "m6-3-r2-localization"))]
+    let mut activation_samples = Vec::with_capacity(if r2_enabled { intermediate_size } else { 0 });
     let mut activated = vec![0.0; intermediate_size];
     for (intermediate_index, activated_value) in activated.iter_mut().enumerate() {
         let start = intermediate_index * hidden_size;
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        let gate_started = r2_enabled.then(std::time::Instant::now);
         let gate_value = dot(input, &gate[start..start + hidden_size]);
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        if let Some(started) = gate_started {
+            gate_samples.push(started.elapsed().as_nanos());
+        }
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        let up_started = r2_enabled.then(std::time::Instant::now);
         let up_value = dot(input, &up[start..start + hidden_size]);
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        if let Some(started) = up_started {
+            up_samples.push(started.elapsed().as_nanos());
+        }
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        let activation_started = r2_enabled.then(std::time::Instant::now);
         *activated_value = gate_value / (1.0 + (-gate_value).exp()) * up_value;
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        if let Some(started) = activation_started {
+            activation_samples.push(started.elapsed().as_nanos());
+        }
+    }
+    #[cfg(all(test, feature = "m6-3-r2-localization"))]
+    if r2_enabled {
+        crate::r2_localization::record_leaf_samples("gate_projection", &gate_samples);
+        crate::r2_localization::record_leaf_samples("up_projection", &up_samples);
+        crate::r2_localization::record_leaf_samples("activation_product", &activation_samples);
     }
     #[cfg(all(test, feature = "m5-3-compute-profiling"))]
     drop(gate_up_profile);
     #[cfg(all(test, feature = "m5-3-compute-profiling"))]
     let _down_profile =
         crate::profiling::matrix_scope("expert.down_projection", 1, hidden_size, intermediate_size);
-    (0..hidden_size)
+    #[cfg(all(test, feature = "m6-3-r2-localization"))]
+    let mut down_samples = Vec::with_capacity(if r2_enabled { hidden_size } else { 0 });
+    let output = (0..hidden_size)
         .map(|hidden_index| {
             let start = hidden_index * intermediate_size;
-            dot(&activated, &down[start..start + intermediate_size])
+            #[cfg(all(test, feature = "m6-3-r2-localization"))]
+            let down_started = r2_enabled.then(std::time::Instant::now);
+            let value = dot(&activated, &down[start..start + intermediate_size]);
+            #[cfg(all(test, feature = "m6-3-r2-localization"))]
+            if let Some(started) = down_started {
+                down_samples.push(started.elapsed().as_nanos());
+            }
+            value
         })
-        .collect()
+        .collect();
+    #[cfg(all(test, feature = "m6-3-r2-localization"))]
+    if r2_enabled {
+        crate::r2_localization::record_leaf_samples("down_projection", &down_samples);
+    }
+    output
 }
 
 #[cfg(all(test, feature = "full-model-validation"))]
