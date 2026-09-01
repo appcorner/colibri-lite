@@ -8,6 +8,7 @@ from validate_m6_3_r1_3_paired_result import (
     CANDIDATE_VERIFY_BYTES,
     CONTRACT_SHA256,
     CONDITIONS,
+    METRICS,
     PAIR_ORDER,
     RAM_BYTES,
     summarize,
@@ -85,6 +86,17 @@ class PairedValidatorTests(unittest.TestCase):
         candidate = next(s for s in doc["samples"] if s["condition"] == "runtime_cache_cold" and s["pair"] == 3 and s["mode"] == "candidate")
         candidate["decode_tokens_per_second"] = 1.0
         self.assertFalse(summarize(doc)["runtime_cache_cold"]["decode_tokens_per_second"]["directional_win"])
+
+    def test_reporting_metrics_cover_preregistered_performance_fields(self):
+        self.assertEqual(
+            set(METRICS),
+            {
+                "process_wall_seconds", "setup_seconds", "timed_wall_seconds",
+                "ttft_seconds", "prefill_tokens_per_second", "decode_tokens_per_second",
+                "working_set_peak_bytes", "private_bytes_peak", "total_logical_bytes",
+                "physical_read_bytes",
+            },
+        )
 
 
 if __name__ == "__main__":

@@ -22,11 +22,16 @@ PAIR_ORDER = [
     ["candidate", "reference"],
 ]
 METRICS = {
+    "process_wall_seconds": "lower",
+    "setup_seconds": "lower",
+    "timed_wall_seconds": "lower",
     "ttft_seconds": "lower",
+    "prefill_tokens_per_second": "higher",
     "decode_tokens_per_second": "higher",
+    "working_set_peak_bytes": "lower",
+    "private_bytes_peak": "lower",
     "total_logical_bytes": "lower",
     "physical_read_bytes": "lower",
-    "working_set_peak_bytes": "lower",
 }
 
 def finite_nonnegative(value) -> bool:
@@ -147,7 +152,8 @@ def main() -> int:
         "authorizes_m6_4": False,
     }
     if len(sys.argv) == 3:
-        Path(sys.argv[2]).write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        payload = json.dumps(result, indent=2, sort_keys=True) + "\n"
+        Path(sys.argv[2]).write_bytes(payload.encode("utf-8"))
     print(json.dumps({"status": result["status"], "sample_count": 20, "authorizes_r1_4": True}, sort_keys=True))
     return 0
 

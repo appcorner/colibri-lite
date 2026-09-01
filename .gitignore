@@ -119,6 +119,9 @@
 !/models/qwen3-30b-a3b/m6.3-r1-3-measurement-contract-v3.json
 !/models/qwen3-30b-a3b/m6.3-r1-3-measurement-contract-v4.json
 !/models/qwen3-30b-a3b/m6.3-r1-3-measurement-contract-v5.json
+!/models/qwen3-30b-a3b/m6.3-r1-3-paired-samples-v1.json
+!/models/qwen3-30b-a3b/m6.3-r1-3-paired-result-v1.json
+!/models/qwen3-30b-a3b/m6.3-r1-4-reentry-review-v1.json
 /.idea/
 /.vscode/
 *.pdb
@@ -132,5 +135,5 @@ __pycache__/
 /docs/benchmarks/m6.3-r1-reference-etw/
 /docs/benchmarks/m6.3-r1-0-reference-telemetry-v1.json
 
-# graft's local graph cache — regenerable, not committed (run `graft build`).
+# graft's local graph cache เนโฌโ€ regenerable, not committed (run `graft build`).
 graft/

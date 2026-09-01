@@ -882,19 +882,29 @@ reused as the default candidate.
   authorizes R1.3 only; M6.4 remains blocked. Evidence is in
   `models/qwen3-30b-a3b/m6.3-r1-2-quality-result-v1.json` and
   `docs/reports/m6.3-r1-2-held-out-quality-validation.md`.
-- [ ] M6.3-R1.3 Run five paired release-process F32/candidate measurements for
-  each declared runtime-cache condition; record TTFT, throughput, working set,
-  private bytes, logical and physical I/O, bytes/token, and cache metrics.
-- [ ] M6.3-R1.4 Hold a re-entry review. Reject the candidate when a numerical,
-  telemetry, working-set, or physical-I/O gate fails. An admitted Layer-0 slice
-  is not authorization to begin M6.4; review the all-layer plan separately.
+- [x] M6.3-R1.3 Paired Performance and I/O Measurement: 20/20 valid
+  release-process samples completed under contract v5 across five cold and five
+  warm F32/candidate pairs. ADR 0077 records a valid measurement set. The
+  candidate has a 5/5 logical-byte reduction of 0.8919485285%, but no
+  directional TTFT, prefill, decode, working-set, private-byte, or physical-I/O
+  win. Evidence is in
+  `models/qwen3-30b-a3b/m6.3-r1-3-paired-samples-v1.json`,
+  `models/qwen3-30b-a3b/m6.3-r1-3-paired-result-v1.json`, and
+  `docs/reports/m6.3-r1-3-paired-performance-io-result.md`.
+- [x] M6.3-R1.4 Re-entry Review: ADR 0078 closes `NO-GO for promotion` of
+  `cpu-safe-rust-int8-group32-layer0-r1-1a`. R1.2 quality remains valid, but
+  R1.3 does not show material repeatable runtime value for the current direct
+  safe-Rust path. M6.4 remains blocked; any future re-entry requires a new
+  pre-registered runtime hypothesis. Evidence is in
+  `models/qwen3-30b-a3b/m6.3-r1-4-reentry-review-v1.json` and
+  `docs/reports/m6.3-r1-4-reentry-review.md`.
 
 The complete re-entry protocol is
-`docs/reports/m6.3-r1-reentry-proposal.md`. ADR 0069 prospectively admits the
+`docs/reports/m6.3-r1-reentry-proposal.md`. ADR 0069 prospectively admitted the
 R1.1a group-32 characterization winner without rewriting the historical R1.1
-`no_candidate_admitted` record. ADR 0071 closes the held-out quality gate with
-`R1.2 = GO`. The exact next task is `M6.3-R1.3`; M6.4 remains blocked until the
-later re-entry review and separate all-layer plan gate are satisfied.
+`no_candidate_admitted` record; ADR 0071 closed R1.2 quality `GO`; ADR 0077
+closed R1.3 measurement; and ADR 0078 closes the current re-entry path
+`NO-GO for promotion`. M6.4 remains blocked.
 
 ## Standard verification commands
 

@@ -608,9 +608,14 @@ may not reselect a layout. ADR 0071 closes that held-out gate with `R1.2 = GO`:
 both `short_english` and `short_thai` preserve exact prompt top-20, greedy,
 Layer-0/24/47 safe-margin router IDs, frozen two-token greedy sequences, and
 repeatability while staying below the locked effective prompt-logit envelope.
-R1.3 is therefore authorized for paired release-process F32/candidate resource
-and I/O measurements. M6.4 remains blocked by the later re-entry review and the
-separate all-layer plan/full-runtime-benefit gates.
+ADR 0077 closes R1.3 with 20/20 valid paired release-process measurements.
+The candidate achieves a 5/5 0.8919485285% logical-byte reduction, but no
+repeatable TTFT, prefill, decode, working-set, private-byte, or physical-I/O
+win; median timed wall is worse in both cold and warm conditions. ADR 0078
+therefore closes R1.4 `NO-GO for promotion` of the current direct safe-Rust
+group-32 Layer-0 candidate. R1.2 quality remains valid, but M6.4 stays blocked
+and no all-layer rollout is authorized. Any future re-entry requires a new
+pre-registered runtime hypothesis and separate review.
 
 #### M6.4 - Full hardware-aware runtime
 

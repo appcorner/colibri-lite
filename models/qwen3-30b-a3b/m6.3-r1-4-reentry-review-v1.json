@@ -1,0 +1,56 @@
+{
+  "candidate_id": "cpu-safe-rust-int8-group32-layer0-r1-1a",
+  "candidate_sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+  "decision": {
+    "authorizes_m6_4": false,
+    "future_reentry_requires_new_preregistered_plan": true,
+    "latency_directional_win": false,
+    "logical_byte_directional_win": true,
+    "physical_io_directional_win": false,
+    "promote_candidate": false,
+    "quality_preserved": true,
+    "reentry_closed": true,
+    "throughput_directional_win": false,
+    "working_set_directional_win": false
+  },
+  "observed_median_percent_deltas": {
+    "runtime_cache_cold": {
+      "decode_tokens_per_second": -3.4114040534977765,
+      "prefill_tokens_per_second": -8.401141928906181,
+      "private_bytes_peak": 0.46022744143234656,
+      "timed_wall_seconds": 2.8182858148456265,
+      "total_logical_bytes": -0.8919485284835428,
+      "ttft_seconds": 9.171666662466134,
+      "working_set_peak_bytes": 0.29941843726607936
+    },
+    "runtime_cache_warm": {
+      "decode_tokens_per_second": -6.669644371904076,
+      "prefill_tokens_per_second": -6.961165432390645,
+      "private_bytes_peak": 0.12415750266051792,
+      "timed_wall_seconds": 8.74457685381635,
+      "total_logical_bytes": -0.8919485284835428,
+      "ttft_seconds": 7.48199981732586,
+      "working_set_peak_bytes": 0.04596380350474002
+    }
+  },
+  "r1_2_quality_result": {
+    "path": "models/qwen3-30b-a3b/m6.3-r1-2-quality-result-v1.json",
+    "sha256": "51777c84beb4e9c918acfc62338046e820b8bb3d64da904e7248f3e752e1d27e",
+    "status": "passed"
+  },
+  "r1_3_result": {
+    "path": "models/qwen3-30b-a3b/m6.3-r1-3-paired-result-v1.json",
+    "sha256": "491ea0490e400e6563807ec9000eee2cbe78f908d5c4ce709ef18b5f32f2d04b",
+    "source_run_sha256": "ac994f6770048b63ddc06e5eed0c3bde3911b9a59d0ec9741cf093dd2c40bcf0",
+    "status": "valid_measurement_set"
+  },
+  "r1_3_samples": {
+    "path": "models/qwen3-30b-a3b/m6.3-r1-3-paired-samples-v1.json",
+    "sample_count": 20,
+    "sha256": "4995c01a36c93023ed886108a9368b45746a4f6c2f015e2c0e6cfcbc72e5bea4",
+    "source_run_sha256": "cbdef7b45f5342c0aa068ed7ea1d7c849f2b1ee49c6d8e3b682b074af147c0c9"
+  },
+  "schema": "m6.3-r1.4-reentry-review-v1",
+  "scope": "Layer-0 direct packed group-32 vertical slice only; no all-layer or M6.4 authorization",
+  "status": "no_go_for_promotion"
+}
