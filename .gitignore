@@ -118,6 +118,7 @@
 !/models/qwen3-30b-a3b/m6.3-r1-3-measurement-contract-v2.json
 !/models/qwen3-30b-a3b/m6.3-r1-3-measurement-contract-v3.json
 !/models/qwen3-30b-a3b/m6.3-r1-3-measurement-contract-v4.json
+!/models/qwen3-30b-a3b/m6.3-r1-3-measurement-contract-v5.json
 /.idea/
 /.vscode/
 *.pdb

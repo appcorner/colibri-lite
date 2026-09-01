@@ -43,6 +43,28 @@ if ($configuration.artifact_directories) {
 }
 $Artifact = @($Artifact | Sort-Object -Unique)
 if ($Artifact.Count -eq 0) { throw 'at least one artifact file is required' }
+$ArtifactIdentity = @()
+if ($configuration.artifact_identities) {
+    $identityByPath = @{}
+    foreach ($identity in @($configuration.artifact_identities)) {
+        $identityPath = [IO.Path]::GetFullPath([string]$identity.path)
+        $identityBytes = [int64]$identity.bytes
+        $identitySha256 = ([string]$identity.sha256).ToLowerInvariant()
+        if ($identitySha256 -notmatch '^[0-9a-f]{64}$') { throw "invalid artifact identity SHA-256: $identityPath" }
+        if (-not (Test-Path -LiteralPath $identityPath -PathType Leaf)) { throw "artifact identity path not found: $identityPath" }
+        if ((Get-Item -LiteralPath $identityPath).Length -ne $identityBytes) { throw "artifact identity byte length mismatch: $identityPath" }
+        $identityKey = $identityPath.ToLowerInvariant()
+        if ($identityByPath.ContainsKey($identityKey)) { throw "duplicate artifact identity: $identityPath" }
+        $identityByPath[$identityKey] = [ordered]@{ path = $identityPath; bytes = $identityBytes; sha256 = $identitySha256; identity_source = 'prevalidated_config' }
+    }
+    foreach ($artifactPath in $Artifact) {
+        $artifactFullPath = [IO.Path]::GetFullPath($artifactPath)
+        $artifactKey = $artifactFullPath.ToLowerInvariant()
+        if (-not $identityByPath.ContainsKey($artifactKey)) { throw "missing prevalidated artifact identity: $artifactFullPath" }
+        $ArtifactIdentity += $identityByPath[$artifactKey]
+    }
+    if ($ArtifactIdentity.Count -ne $identityByPath.Count) { throw 'prevalidated artifact identity set contains paths outside the capture set' }
+}
 $OutputDirectory = [string]$configuration.output_directory
 $outputBase = [IO.Path]::GetFullPath($OutputDirectory)
 $useOutputDirectoryAsRun = [bool]$configuration.use_output_directory_as_run
@@ -309,13 +331,18 @@ try {
             provider_file_sha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $providerFile).Hash.ToLowerInvariant()
             tracerpt_version = (Get-Item "$env:SystemRoot\System32\tracerpt.exe").VersionInfo.FileVersion
         }
-        artifacts = @($Artifact | ForEach-Object {
-            [ordered]@{
-                path = [IO.Path]::GetFullPath($_)
-                bytes = (Get-Item -LiteralPath $_).Length
-                sha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $_).Hash.ToLowerInvariant()
-            }
-        })
+        artifacts = if ($ArtifactIdentity.Count -gt 0) {
+            @($ArtifactIdentity)
+        } else {
+            @($Artifact | ForEach-Object {
+                [ordered]@{
+                    path = [IO.Path]::GetFullPath($_)
+                    bytes = (Get-Item -LiteralPath $_).Length
+                    sha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $_).Hash.ToLowerInvariant()
+                    identity_source = 'post_capture_hash'
+                }
+            })
+        }
     }
     $record | ConvertTo-Json -Depth 10 | Set-Content -Encoding utf8 -LiteralPath $resultPath
     if ($process.ExitCode -ne 0 -or $parsed.status -ne 'correlated') { exit 1 }

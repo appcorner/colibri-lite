@@ -11,12 +11,13 @@ import subprocess
 import sys
 from pathlib import Path
 
-CONTRACT_SHA256 = "446622fea8a77001fc7e5e537d6796ee8f2d7728f34df804702a7368c9e016e1"
+CONTRACT_SHA256 = "57a02d697231350977a4391a3625d2808b97cb394078290db398e2996195584f"
 BINARY_SHA256 = "69109985e658918e8b0accf3dacb737daba53b6d6f05fb6535b256379805d541"
 CANDIDATE_SHA256 = "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2"
 PARSER_SHA256 = "33ca6008dd39aee452646a4b31285eb1863f71fae6b6dc366f0a7a38586b7ff2"
-COLLECTOR_SHA256 = "d9555ad086ac3430520aa9e6870fe051033ad918f727d98c2e952a89f968b38e"
+COLLECTOR_SHA256 = "3282b91e18ce64bb0b69bf9fd2beb12a6f621bf502ab12867f76255126b2aef2"
 PROVIDER_SHA256 = "1445d29341f5d9c1765f92fe17a70ab9bcaea6ad8f98c12fcf26a854f2ccf505"
+MODEL_MANIFEST_SHA256 = "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2"
 PAIR_ORDER = [
     ["candidate", "reference"],
     ["reference", "candidate"],
@@ -53,6 +54,34 @@ def artifacts(artifact_root: Path, candidate: Path, mode: str) -> list[str]:
         require(path.is_file(), f"missing timed artifact: {path}")
     return [str(path.resolve()) for path in paths]
 
+
+def artifact_identities(repo: Path, artifact_root: Path, candidate: Path, mode: str) -> list[dict]:
+    manifest_path = repo / "models" / "qwen3-30b-a3b" / "model-manifest-v1.json"
+    require(sha256(manifest_path) == MODEL_MANIFEST_SHA256, "model manifest hash mismatch")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    entries = [manifest["components"]["dense"]["payload"], *manifest["components"]["experts"]["shards"]]
+    by_path = {
+        str((artifact_root / entry["path"]).resolve()).lower(): {
+            "path": str((artifact_root / entry["path"]).resolve()),
+            "bytes": int(entry["bytes"]),
+            "sha256": entry["sha256"],
+        }
+        for entry in entries
+    }
+    by_path[str(candidate.resolve()).lower()] = {
+        "path": str(candidate.resolve()),
+        "bytes": 679_477_248,
+        "sha256": CANDIDATE_SHA256,
+    }
+    result = []
+    for path_text in artifacts(artifact_root, candidate, mode):
+        record = by_path.get(path_text.lower())
+        require(record is not None, f"missing frozen identity for timed artifact: {path_text}")
+        require(Path(record["path"]).stat().st_size == record["bytes"], f"timed artifact byte length mismatch: {path_text}")
+        result.append(record)
+    return result
+
+
 def sample_config(repo: Path, binary: Path, artifact_root: Path, candidate: Path, sample_root: Path, mode: str, condition: str) -> Path:
     captures = sample_root / "captures"
     captures.mkdir()
@@ -72,6 +101,7 @@ def sample_config(repo: Path, binary: Path, artifact_root: Path, candidate: Path
         "argument_string": "m6_3_r1_3_paired_sample --nocapture",
         "working_directory": str(repo),
         "artifacts": artifacts(artifact_root, candidate, mode),
+        "artifact_identities": artifact_identities(repo, artifact_root, candidate, mode),
         "output_directory": str(captures),
         "use_output_directory_as_run": False,
         "wait_for_ready_before_trace": True,
@@ -165,6 +195,8 @@ def main() -> int:
     require(sha256(repo / "scripts" / "m6_3_r1_etw-providers.txt") == PROVIDER_SHA256, "R1.3 provider hash mismatch")
     artifacts(artifact_root, candidate, "reference")
     artifacts(artifact_root, candidate, "candidate")
+    artifact_identities(repo, artifact_root, candidate, "reference")
+    artifact_identities(repo, artifact_root, candidate, "candidate")
     if args.validate_only:
         print(json.dumps({"status": "passed", "contract_sha256": CONTRACT_SHA256, "binary_sha256": BINARY_SHA256}, sort_keys=True))
         return 0
