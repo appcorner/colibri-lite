@@ -114,6 +114,10 @@
 !/models/qwen3-30b-a3b/m6.3-r1-2-f32-multitoken-reference-v1.tsv
 !/models/qwen3-30b-a3b/m6.3-r1-2-held-out-quality-v1.tsv
 !/models/qwen3-30b-a3b/m6.3-r1-2-quality-result-v1.json
+!/models/qwen3-30b-a3b/m6.3-r1-3-measurement-contract-v1.json
+!/models/qwen3-30b-a3b/m6.3-r1-3-measurement-contract-v2.json
+!/models/qwen3-30b-a3b/m6.3-r1-3-measurement-contract-v3.json
+!/models/qwen3-30b-a3b/m6.3-r1-3-measurement-contract-v4.json
 /.idea/
 /.vscode/
 *.pdb

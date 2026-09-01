@@ -1,0 +1,171 @@
+{
+  "budgets": {
+    "candidate_peak_packed_expert_bytes": 5308416,
+    "candidate_verification_buffer_bytes": 1048576,
+    "f32_expert_cache_bytes": 18874368,
+    "unexplained_memory_allowance_fraction": 0.1,
+    "usable_ram_bytes": 17179869184,
+    "vram_bytes": 0
+  },
+  "cache_semantics": {
+    "candidate_cache_policy_change": false,
+    "os_filesystem_cache": "uncontrolled_observed_not_assumed",
+    "runtime_cache_cold": "existing F32 ExpertStore empty at timed-phase boundary",
+    "runtime_cache_warm": "one untimed identical fixture pass using the same F32 ExpertStore before timed phase"
+  },
+  "candidate": {
+    "artifact_bytes": 679477248,
+    "artifact_sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+    "candidate_id": "cpu-safe-rust-int8-group32-layer0-r1-1a",
+    "direct_packed_reader_only": true,
+    "group_size": 32,
+    "retained_candidate_cache_bytes": 0
+  },
+  "candidate_performance_results_seen": true,
+  "candidate_timed_handle": {
+    "cache_or_numerical_path_change": false,
+    "full_hash_verification": "before_ready",
+    "reopen_verified_file_handle": "after_go_before_timed_reads",
+    "repeat_hash_inside_timed_window": false
+  },
+  "collector": {
+    "capture_script": "scripts/capture_m6_3_r1_etw.ps1",
+    "capture_script_sha256": "d9555ad086ac3430520aa9e6870fe051033ad918f727d98c2e952a89f968b38e",
+    "correlation": "exact target PID + exact artifact path/FileObject + Kernel File Read.FileKey; physical bytes from matching target-PID Kernel Disk.FileObject, including measured zero",
+    "etw_status_required": "correlated",
+    "measured_zero_rule": "zero-loss trace + exact target-PID artifact File Read/FileKey evidence + no matching target-PID Kernel Disk Read => measured physical zero",
+    "memory_sample_interval_ms": 100,
+    "missing_physical_io_is_invalid": true,
+    "parser": "scripts/parse_m6_3_r1_etw.py",
+    "parser_sha256": "33ca6008dd39aee452646a4b31285eb1863f71fae6b6dc366f0a7a38586b7ff2",
+    "provider_file": "scripts/m6_3_r1_etw-providers.txt",
+    "provider_file_sha256": "1445d29341f5d9c1765f92fe17a70ab9bcaea6ad8f98c12fcf26a854f2ccf505",
+    "zero_substitution_for_missing_physical_io": false
+  },
+  "conditions": [
+    "runtime_cache_cold",
+    "runtime_cache_warm"
+  ],
+  "fixture": {
+    "expected_final_argmax": 0,
+    "fixture_id": "short_english",
+    "token_ids": [
+      9707,
+      1879
+    ]
+  },
+  "invalid_v2_attempt": {
+    "candidate_performance_result_was_seen": true,
+    "completed_samples": 0,
+    "condition": "runtime_cache_cold",
+    "mode": "candidate",
+    "official_sample_admitted": false,
+    "reason": "candidate FileObject path registration occurred before ETW; exact candidate File Read/FileKey evidence inside trace was unavailable"
+  },
+  "pairing": {
+    "fresh_process_per_sample": true,
+    "order_by_pair": [
+      [
+        "candidate",
+        "reference"
+      ],
+      [
+        "reference",
+        "candidate"
+      ],
+      [
+        "candidate",
+        "reference"
+      ],
+      [
+        "reference",
+        "candidate"
+      ],
+      [
+        "candidate",
+        "reference"
+      ]
+    ],
+    "pairs_per_condition": 5,
+    "same_release_binary_within_and_across_pairs": true
+  },
+  "r1_2_quality_result": {
+    "path": "models/qwen3-30b-a3b/m6.3-r1-2-quality-result-v1.json",
+    "sha256": "51777c84beb4e9c918acfc62338046e820b8bb3d64da904e7248f3e752e1d27e"
+  },
+  "reference_only_preflight": {
+    "buffers_lost": 0,
+    "candidate_performance_results_seen": false,
+    "dense_file_keys": 1,
+    "dense_file_read_events": 2055,
+    "dense_physical_read_bytes": 0,
+    "events_lost": 0,
+    "file_read_events": 2824,
+    "official_sample": false,
+    "physical_events": 6279,
+    "physical_read_bytes": 13136556032
+  },
+  "reporting_rules": {
+    "authorizes_m6_4": false,
+    "directional_win_requires_all_five_pair_deltas_and_median_same_direction": true,
+    "paired_percent_delta_formula": "100 * (candidate - reference) / reference",
+    "r1_3_authorizes_promotion": false,
+    "r1_4_review_required": true,
+    "report_median_min_max_per_condition": true
+  },
+  "required_metrics": [
+    "process_wall_seconds",
+    "setup_seconds",
+    "timed_wall_seconds",
+    "ttft_seconds",
+    "prefill_tokens_per_second",
+    "decode_tokens_per_second",
+    "working_set_peak_bytes",
+    "private_bytes_peak",
+    "dense_logical_bytes",
+    "f32_expert_logical_bytes",
+    "candidate_logical_bytes",
+    "total_logical_bytes",
+    "logical_bytes_per_token",
+    "physical_read_bytes",
+    "physical_reads_per_token",
+    "cache_hits",
+    "cache_misses",
+    "cache_loads",
+    "cache_evictions",
+    "f32_cache_peak_resident_bytes",
+    "candidate_peak_packed_expert_bytes",
+    "kv_cache_bytes"
+  ],
+  "runtime_binary": {
+    "path": "target/release/deps/clr_qwen3_moe-e1503717729029d2.exe",
+    "sha256": "69109985e658918e8b0accf3dacb737daba53b6d6f05fb6535b256379805d541"
+  },
+  "schema": "m6.3-r1.3-measurement-contract-v4",
+  "schema_version": 4,
+  "source_commit_before_harness": "3f12b9dbc1eb1b80756cd733326a25be8c3854d9",
+  "status": "pre_registered_after_lint_only_binary_identity_refresh_before_any_valid_official_sample",
+  "supersedes": {
+    "path": "models/qwen3-30b-a3b/m6.3-r1-3-measurement-contract-v3.json",
+    "reason": "lint-only documentation correction triggered a rebuilt release test binary identity; no runtime logic, threshold, pairing, cache, or numerical-path change",
+    "sha256": "462e766d67ae4058f6f2e83a69dd1502c545ce06b3f50721cf5a8795ac2ea928"
+  },
+  "threshold_or_pairing_change_after_candidate_result": false,
+  "timed_phase": {
+    "etw_starts_after_ready_before_go": true,
+    "ready_go_handshake_required": true,
+    "setup_and_prewarm_seconds_reported_separately": true,
+    "warmup_io_excluded_from_timed_physical_reads": true
+  },
+  "validity_gates": {
+    "all_20_samples_present": true,
+    "all_candidate_samples_match_candidate_sha256": true,
+    "all_process_exit_codes_zero": true,
+    "all_samples_etw_correlated": true,
+    "all_samples_final_argmax_exact": true,
+    "all_samples_have_memory_samples": true,
+    "all_samples_same_executable_sha256": true,
+    "candidate_memory_accounting_formula": "candidate_peak_ws <= paired_reference_peak_ws * 1.10 + candidate_peak_packed_expert_bytes + candidate_verification_buffer_bytes",
+    "working_set_at_or_below_usable_ram": true
+  }
+}

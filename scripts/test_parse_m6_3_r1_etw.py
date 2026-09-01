@@ -102,7 +102,7 @@ class EtwParserTests(unittest.TestCase):
             self.assertEqual(result["status"], "correlated", result)
             self.assertEqual(result["physical_read_bytes"], 4096)
 
-    def test_rejects_disk_event_from_another_process(self):
+    def test_treats_other_process_disk_io_as_measured_zero_for_target_pid(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             artifact = root / "artifact.bin"
@@ -117,8 +117,10 @@ class EtwParserTests(unittest.TestCase):
                 encoding="utf-8",
             )
             result = parse_csv(csv_path, 42, [artifact])
-            self.assertEqual(result["status"], "not_measured", result)
-            self.assertIsNone(result["physical_read_bytes"])
+            self.assertEqual(result["status"], "correlated", result)
+            self.assertEqual(result["physical_read_bytes"], 0)
+            self.assertEqual(result["artifacts"][0]["file_read_event_count"], 1)
+            self.assertEqual(result["artifacts"][0]["file_key_count"], 1)
 
     def test_counts_one_disk_event_once_for_repeated_file_reads(self):
         with tempfile.TemporaryDirectory() as directory:

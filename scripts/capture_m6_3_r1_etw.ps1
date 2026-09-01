@@ -85,6 +85,18 @@ foreach ($name in $requiredEnvironment) {
         throw "required environment binding is missing: $name"
     }
 }
+$waitForReadyBeforeTrace = [bool]$configuration.wait_for_ready_before_trace
+$readyMarker = $null
+$goMarker = $null
+if ($waitForReadyBeforeTrace) {
+    $readyMarker = ([string]$configuration.ready_marker).Replace('{run_dir}', $outputRoot)
+    $goMarker = ([string]$configuration.go_marker).Replace('{run_dir}', $outputRoot)
+    if ([string]::IsNullOrWhiteSpace($readyMarker) -or [string]::IsNullOrWhiteSpace($goMarker)) {
+        throw 'ready_marker and go_marker are required when wait_for_ready_before_trace is enabled'
+    }
+    $readyMarker = [IO.Path]::GetFullPath($readyMarker)
+    $goMarker = [IO.Path]::GetFullPath($goMarker)
+}
 $isCandidateRun = $Environment.ContainsKey('COLIBRI_R1_1A_CANDIDATE_ID') -or
     $Environment.ContainsKey('COLIBRI_R1_1A_CANDIDATE_PATH')
 $coldCacheAuthorization = $null
@@ -183,11 +195,13 @@ function Stop-TraceSession {
 }
 
 try {
-    # Reserve enough kernel logger buffers for the full reference trace.  The
-    # default logger buffer pool dropped events under the 49-artifact workload.
-    & logman.exe create trace $sessionName -pf $providerFile -o $etl -ow -bs 1024 -nb 512 512 -ets
-    if ($LASTEXITCODE -ne 0) { throw "logman start failed with exit code $LASTEXITCODE" }
-    $traceStarted = $true
+    # Legacy captures start ETW before process launch. R1.3 may opt into a
+    # READY/GO boundary so setup and warm-up I/O are excluded from timed ETW.
+    if (-not $waitForReadyBeforeTrace) {
+        & logman.exe create trace $sessionName -pf $providerFile -o $etl -ow -bs 1024 -nb 512 512 -ets
+        if ($LASTEXITCODE -ne 0) { throw "logman start failed with exit code $LASTEXITCODE" }
+        $traceStarted = $true
+    }
 
     $psi = [Diagnostics.ProcessStartInfo]::new()
     $psi.FileName = [IO.Path]::GetFullPath($Executable)
@@ -200,6 +214,7 @@ try {
     foreach ($name in $Environment.Keys) { $psi.EnvironmentVariables[$name] = $Environment[$name] }
     $process = [Diagnostics.Process]::new()
     $process.StartInfo = $psi
+    $processWall = [Diagnostics.Stopwatch]::StartNew()
     if (-not $process.Start()) { throw 'benchmark process did not start' }
     $pidValue = $process.Id
     $stdoutTask = $process.StandardOutput.ReadToEndAsync()
@@ -207,6 +222,22 @@ try {
     $sampledWorkingSet = [int64]0
     $sampledPrivate = [int64]0
     $samples = 0
+    if ($waitForReadyBeforeTrace) {
+        $readyDeadline = [DateTime]::UtcNow.AddMinutes(10)
+        while (-not (Test-Path -LiteralPath $readyMarker)) {
+            if ($process.HasExited) { throw 'benchmark process exited before READY marker' }
+            $process.Refresh()
+            $sampledWorkingSet = [Math]::Max($sampledWorkingSet, [int64]$process.WorkingSet64)
+            $sampledPrivate = [Math]::Max($sampledPrivate, [int64]$process.PrivateMemorySize64)
+            $samples++
+            if ([DateTime]::UtcNow -ge $readyDeadline) { throw 'READY marker timeout' }
+            Start-Sleep -Milliseconds 100
+        }
+        & logman.exe create trace $sessionName -pf $providerFile -o $etl -ow -bs 1024 -nb 512 512 -ets
+        if ($LASTEXITCODE -ne 0) { throw "logman start failed with exit code $LASTEXITCODE" }
+        $traceStarted = $true
+        Set-Content -Encoding ascii -LiteralPath $goMarker -Value 'go'
+    }
     while (-not $process.HasExited) {
         $process.Refresh()
         $sampledWorkingSet = [Math]::Max($sampledWorkingSet, [int64]$process.WorkingSet64)
@@ -215,6 +246,7 @@ try {
         Start-Sleep -Milliseconds 100
     }
     $process.WaitForExit()
+    $processWall.Stop()
     $process.Refresh()
     $sampledWorkingSet = [Math]::Max($sampledWorkingSet, [int64]$process.WorkingSet64)
     $sampledPrivate = [Math]::Max($sampledPrivate, [int64]$process.PrivateMemorySize64)
@@ -251,7 +283,11 @@ try {
             }
         } else { $null }
         exit_code = $process.ExitCode
+        process_wall_seconds = $processWall.Elapsed.TotalSeconds
         samples = [Math]::Max(1, $samples)
+        handshake = if ($waitForReadyBeforeTrace) {
+            [ordered]@{ ready_marker = $readyMarker; go_marker = $goMarker; etw_after_ready = $true }
+        } else { $null }
         memory = [ordered]@{
             working_set_peak_bytes = $sampledWorkingSet
             peak_working_set_bytes = [Math]::Max($sampledWorkingSet, [int64]$process.PeakWorkingSet64)

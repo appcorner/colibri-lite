@@ -213,6 +213,31 @@ impl R1_1CandidateReader {
         self.peak_packed_expert_bytes
     }
 
+    /// Reopens an already hash-verified artifact without repeating the hash read.
+    ///
+    /// This is measurement-only support for starting a new `FileObject` inside an
+    /// ETW timed window while preserving the identity proven by `open`.
+    pub(crate) fn reopen_verified_for_measurement(&self) -> Result<Self, RuntimeError> {
+        let file = File::open(&self.path)
+            .map_err(|_| error("cannot reopen verified R1.1 candidate artifact"))?;
+        let actual_bytes = file
+            .metadata()
+            .map_err(|_| error("cannot inspect reopened R1.1 candidate artifact"))?
+            .len();
+        if actual_bytes != self.layout.artifact_bytes()? {
+            return Err(error("reopened R1.1 candidate artifact length mismatch"));
+        }
+        Ok(Self {
+            path: self.path.clone(),
+            file,
+            layout: self.layout,
+            sha256: self.sha256.clone(),
+            verification_bytes_read: self.verification_bytes_read,
+            payload_bytes_read: 0,
+            peak_packed_expert_bytes: 0,
+        })
+    }
+
     pub(crate) fn load_expert(&mut self, expert: usize) -> Result<R1_1PackedExpert, RuntimeError> {
         if expert >= self.layout.experts {
             return Err(error("R1.1 candidate expert ID out of range"));

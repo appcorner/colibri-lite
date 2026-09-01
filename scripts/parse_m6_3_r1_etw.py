@@ -293,12 +293,22 @@ def parse_csv(csv_path: Path, pid: int, artifacts: list[Path], summary_path: Pat
     for artifact in artifacts:
         resolved = str(artifact.resolve())
         rows = [item for item in correlated if item["artifact_path"] == resolved]
+        logical_rows = [item for item in file_reads if item["artifact_path"] == resolved]
+        file_keys = artifact_file_keys.get(resolved, set())
         per_artifact.append(
-            {"path": resolved, "correlated_event_count": len(rows), "physical_read_bytes": sum(item["physical_bytes"] for item in rows)}
+            {
+                "path": resolved,
+                "file_read_event_count": len(logical_rows),
+                "file_key_count": len(file_keys),
+                "correlated_event_count": len(rows),
+                "physical_read_bytes": sum(item["physical_bytes"] for item in rows),
+            }
         )
     loss_counters_valid = events_lost == 0 and (buffers_lost == 0 or summary_loss_source == "tracerpt_summary")
     all_artifacts_correlated = (
-        loss_counters_valid and bool(per_artifact) and all(row["correlated_event_count"] > 0 for row in per_artifact)
+        loss_counters_valid
+        and bool(per_artifact)
+        and all(row["file_read_event_count"] > 0 and row["file_key_count"] > 0 for row in per_artifact)
     )
     return {
         "schema": "m6.3-r1-etw-correlation-v1",

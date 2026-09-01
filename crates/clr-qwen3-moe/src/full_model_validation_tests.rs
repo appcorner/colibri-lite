@@ -44,6 +44,8 @@ use crate::{
 
 #[path = "m5_2_trace_capture.rs"]
 mod m5_2_trace_capture;
+#[path = "r1_3_benchmark_tests.rs"]
+mod r1_3_benchmark_tests;
 
 const RUNTIME_PLAN: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),

@@ -1,0 +1,111 @@
+{
+  "schema": "m6.3-r1.3-measurement-contract-v1",
+  "schema_version": 1,
+  "status": "pre_registered_before_candidate_performance_execution",
+  "source_commit_before_harness": "3f12b9dbc1eb1b80756cd733326a25be8c3854d9",
+  "r1_2_quality_result": {
+    "path": "models/qwen3-30b-a3b/m6.3-r1-2-quality-result-v1.json",
+    "sha256": "51777c84beb4e9c918acfc62338046e820b8bb3d64da904e7248f3e752e1d27e"
+  },
+  "fixture": {
+    "fixture_id": "short_english",
+    "token_ids": [9707, 1879],
+    "expected_final_argmax": 0
+  },
+  "candidate": {
+    "candidate_id": "cpu-safe-rust-int8-group32-layer0-r1-1a",
+    "group_size": 32,
+    "artifact_bytes": 679477248,
+    "artifact_sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+    "retained_candidate_cache_bytes": 0,
+    "direct_packed_reader_only": true
+  },
+  "budgets": {
+    "f32_expert_cache_bytes": 18874368,
+    "usable_ram_bytes": 17179869184,
+    "candidate_verification_buffer_bytes": 1048576,
+    "candidate_peak_packed_expert_bytes": 5308416,
+    "unexplained_memory_allowance_fraction": 0.10,
+    "vram_bytes": 0
+  },
+  "conditions": ["runtime_cache_cold", "runtime_cache_warm"],
+  "pairing": {
+    "pairs_per_condition": 5,
+    "order_by_pair": [
+      ["candidate", "reference"],
+      ["reference", "candidate"],
+      ["candidate", "reference"],
+      ["reference", "candidate"],
+      ["candidate", "reference"]
+    ],
+    "fresh_process_per_sample": true,
+    "same_release_binary_within_and_across_pairs": true
+  },
+  "cache_semantics": {
+    "runtime_cache_cold": "existing F32 ExpertStore empty at timed-phase boundary",
+    "runtime_cache_warm": "one untimed identical fixture pass using the same F32 ExpertStore before timed phase",
+    "candidate_cache_policy_change": false,
+    "os_filesystem_cache": "uncontrolled_observed_not_assumed"
+  },
+  "timed_phase": {
+    "ready_go_handshake_required": true,
+    "etw_starts_after_ready_before_go": true,
+    "warmup_io_excluded_from_timed_physical_reads": true,
+    "setup_and_prewarm_seconds_reported_separately": true
+  },
+  "collector": {
+    "memory_sample_interval_ms": 100,
+    "etw_status_required": "correlated",
+    "provider_file": "scripts/m6_3_r1_etw-providers.txt",
+    "provider_file_sha256": "1445d29341f5d9c1765f92fe17a70ab9bcaea6ad8f98c12fcf26a854f2ccf505",
+    "parser": "scripts/parse_m6_3_r1_etw.py",
+    "parser_sha256": "15b309ba5537b53046847797a7bfde43ee9a901020e15681f1be5aa12cddb9a8",
+    "correlation": "exact PID + exact artifact path/FileObject + Kernel File Read.FileKey = Kernel Disk.FileObject",
+    "missing_physical_io_is_invalid": true,
+    "zero_substitution_for_missing_physical_io": false
+  },
+  "required_metrics": [
+    "process_wall_seconds",
+    "setup_seconds",
+    "timed_wall_seconds",
+    "ttft_seconds",
+    "prefill_tokens_per_second",
+    "decode_tokens_per_second",
+    "working_set_peak_bytes",
+    "private_bytes_peak",
+    "dense_logical_bytes",
+    "f32_expert_logical_bytes",
+    "candidate_logical_bytes",
+    "total_logical_bytes",
+    "logical_bytes_per_token",
+    "physical_read_bytes",
+    "physical_reads_per_token",
+    "cache_hits",
+    "cache_misses",
+    "cache_loads",
+    "cache_evictions",
+    "f32_cache_peak_resident_bytes",
+    "candidate_peak_packed_expert_bytes",
+    "kv_cache_bytes"
+  ],
+  "validity_gates": {
+    "all_20_samples_present": true,
+    "all_process_exit_codes_zero": true,
+    "all_samples_have_memory_samples": true,
+    "all_samples_etw_correlated": true,
+    "all_samples_same_executable_sha256": true,
+    "all_candidate_samples_match_candidate_sha256": true,
+    "all_samples_final_argmax_exact": true,
+    "working_set_at_or_below_usable_ram": true,
+    "candidate_memory_accounting_formula": "candidate_peak_ws <= paired_reference_peak_ws * 1.10 + candidate_peak_packed_expert_bytes + candidate_verification_buffer_bytes"
+  },
+  "reporting_rules": {
+    "paired_percent_delta_formula": "100 * (candidate - reference) / reference",
+    "report_median_min_max_per_condition": true,
+    "directional_win_requires_all_five_pair_deltas_and_median_same_direction": true,
+    "r1_3_authorizes_promotion": false,
+    "r1_4_review_required": true,
+    "authorizes_m6_4": false
+  },
+  "candidate_performance_results_seen": false
+}
