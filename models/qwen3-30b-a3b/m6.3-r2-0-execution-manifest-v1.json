@@ -1,0 +1,68 @@
+{
+  "authorizes_localization_samples": false,
+  "authorizes_m6_4": false,
+  "authorizes_observer_controls": true,
+  "authorizes_r2_1": false,
+  "candidate": {
+    "bytes": 679477248,
+    "group_size": 32,
+    "id": "cpu-safe-rust-int8-group32-layer0-r1-1a",
+    "layer": 0,
+    "sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2"
+  },
+  "candidate_localization_results_seen": false,
+  "collector_versions": {
+    "localization_validator_sha256": "e417d48ea4dda524189e7cab0ee295954fb8d7b41ac3b50bbd857d5182eabef4",
+    "observer_control_runner_sha256": "73d8ee10c6b05802677676dc43260390f654f6d6d4c0c169a6590287a580a82e",
+    "r2_localization_source_sha256": "0f007e96e0302e6f1ed9167f06a8e347c545f09c9111971fa208983bdc8c9d63"
+  },
+  "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+  "host_id": "ANUSORN-NB",
+  "instrumented_source_commit": "6900e2b2f061a27dffa66d2618210d2ed0fc26f3",
+  "observer_controls_seen": false,
+  "observer_pair_order": [
+    [
+      "enabled",
+      "disabled"
+    ],
+    [
+      "disabled",
+      "enabled"
+    ],
+    [
+      "enabled",
+      "disabled"
+    ],
+    [
+      "disabled",
+      "enabled"
+    ],
+    [
+      "enabled",
+      "disabled"
+    ]
+  ],
+  "reference": {
+    "expert_store_budget_bytes": 18874368,
+    "id": "reference-f32-v1",
+    "root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2"
+  },
+  "reference_fixture_freeze": {
+    "byte_identical": true,
+    "independent_process_runs": 2,
+    "run_sha256": [
+      "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2"
+    ]
+  },
+  "reference_fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+  "release_binary_name": "clr_qwen3_moe-07d9617dc57ddd0e.exe",
+  "release_binary_sha256": "2f619b3abb274b724db1bb27fc347c3ffa7b20c5179a2234c17b94e3e2e33edf",
+  "schema": "m6.3-r2.0-execution-manifest-v1",
+  "status": "frozen_before_first_candidate_observer_or_localization_timing",
+  "timer_implementation_identity": "std::time::Instant+r2_localization-v1",
+  "toolchain": {
+    "python": "3.12.10",
+    "rustc": "rustc 1.96.1 (31fca3adb 2026-06-26)"
+  }
+}
