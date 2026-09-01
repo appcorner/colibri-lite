@@ -617,6 +617,28 @@ group-32 Layer-0 candidate. R1.2 quality remains valid, but M6.4 stays blocked
 and no all-layer rollout is authorized. Any future re-entry requires a new
 pre-registered runtime hypothesis and separate review.
 
+#### M6.3-R2.0 - Expert compute bottleneck localization
+
+ADR 0079 opens a diagnostic-only re-entry to explain the R1.3 slowdown before
+any new optimization is selected. The unchanged F32 and admitted group-32
+Layer-0 paths are measured on both R1.2 held-out fixtures in two views:
+`compute_only_preloaded` isolates arithmetic/orchestration, while
+`load_plus_compute` adds software load/parse/decode with the existing F32 cache
+budget and no candidate cache. OS filesystem cache is observed, not flushed,
+and R1.3 remains authoritative for physical-I/O claims.
+
+R2.0 first freezes reference-only expert inputs/router selections, then freezes
+instrumented source/binary/timer identities before candidate timing. Five fresh
+paired processes per fixture/view produce 40 samples total. Measurement-only
+instrumentation must prove byte-identical outputs, bounded observer effect, and
+timer interpretability. Classification is prospectively limited to
+`packed_projection_compute_bound`, `load_decode_bound`,
+`routing_accumulation_bound`, or `mixed_or_distributed`.
+
+R2.0 may authorize only an R2.1 hypothesis design. It does not authorize SIMD,
+FFI/native kernels, cache-policy changes, new quantization, all-layer rollout,
+or M6.4 implementation.
+
 #### M6.4 - Full hardware-aware runtime
 
 Only after M6.3-R1 admits a candidate *and* a dedicated all-layer plan review

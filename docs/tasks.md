@@ -899,12 +899,41 @@ reused as the default candidate.
   `models/qwen3-30b-a3b/m6.3-r1-4-reentry-review-v1.json` and
   `docs/reports/m6.3-r1-4-reentry-review.md`.
 
+### M6.3-R2 - Expert compute bottleneck localization
+
+Status: diagnostic re-entry only. R2 may measure the unchanged Layer-0 F32 and
+admitted group-32 paths, but it may not optimize either path or authorize M6.4.
+
+- [x] M6.3-R2.0-PR Pre-register Expert Compute Bottleneck Localization: ADR 0079
+  freezes two held-out fixtures, `compute_only_preloaded` and
+  `load_plus_compute` views, five paired processes per fixture/view, timer and
+  observer-effect gates, stage taxonomy, and prospective classification rules.
+  Contract: `models/qwen3-30b-a3b/m6.3-r2-0-localization-contract-v1.json`,
+  SHA-256 `02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca`.
+- [ ] M6.3-R2.0a Implement measurement-only timing/byte instrumentation and a
+  validator without changing arithmetic, cache policy, quantization, or expert
+  selection. Calibrate timer and observer overhead before localization timing.
+- [ ] M6.3-R2.0b Freeze reference-only Layer-0 expert-input/router fixtures for
+  `short_english` and `short_thai`, then freeze the instrumented commit, release
+  binary SHA-256, fixture-record SHA-256, timer identity, and collector versions.
+- [ ] M6.3-R2.0c Run 40 valid release-process localization samples: two fixtures
+  x two views x five F32/candidate pairs x two paths. No automatic retry.
+- [ ] M6.3-R2.0d Apply ADR 0079 classification exactly and close R2.0 as
+  `packed_projection_compute_bound`, `load_decode_bound`,
+  `routing_accumulation_bound`, or `mixed_or_distributed`. The result may
+  authorize an R2.1 hypothesis design only; M6.4 remains blocked.
+
+The R2.0 protocol is
+`docs/reports/m6.3-r2-0-expert-compute-bottleneck-localization-protocol.md`.
+
 The complete re-entry protocol is
 `docs/reports/m6.3-r1-reentry-proposal.md`. ADR 0069 prospectively admitted the
 R1.1a group-32 characterization winner without rewriting the historical R1.1
 `no_candidate_admitted` record; ADR 0071 closed R1.2 quality `GO`; ADR 0077
 closed R1.3 measurement; and ADR 0078 closes the current re-entry path
-`NO-GO for promotion`. M6.4 remains blocked.
+`NO-GO for promotion`. ADR 0079 now pre-registers diagnostic R2.0; the exact
+next task is `M6.3-R2.0a` measurement-only instrumentation. M6.4 remains
+blocked.
 
 ## Standard verification commands
 

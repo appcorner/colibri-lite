@@ -122,6 +122,7 @@
 !/models/qwen3-30b-a3b/m6.3-r1-3-paired-samples-v1.json
 !/models/qwen3-30b-a3b/m6.3-r1-3-paired-result-v1.json
 !/models/qwen3-30b-a3b/m6.3-r1-4-reentry-review-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-0-localization-contract-v1.json
 /.idea/
 /.vscode/
 *.pdb

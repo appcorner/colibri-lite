@@ -1,0 +1,181 @@
+{
+  "schema": "m6.3-r2.0-localization-contract-v1",
+  "status": "pre_registered_before_r2_0_instrumentation_or_timing",
+  "source_commit": "9667eaca7e4670802c603e32382ee33f82cc38b0",
+  "r2_0_localization_results_seen": false,
+  "prior_r1_3_performance_results_known": true,
+  "r1_2_quality_result_sha256": "51777c84beb4e9c918acfc62338046e820b8bb3d64da904e7248f3e752e1d27e",
+  "r1_4_review_sha256": "49e470254afb64cbd40426f0c833eff57e9ce787f28f638ecd7ab2ff98ada041",
+  "candidate": {
+    "id": "cpu-safe-rust-int8-group32-layer0-r1-1a",
+    "sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+    "bytes": 679477248,
+    "group_size": 32,
+    "layer": 0
+  },
+  "reference": {
+    "id": "reference-f32-v1",
+    "root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "expert_store_budget_bytes": 18874368
+  },
+  "fixtures": [
+    "short_english",
+    "short_thai"
+  ],
+  "reference_fixture_freeze_required_before_candidate_timing": true,
+  "measurement_views": {
+    "compute_only_preloaded": {
+      "warmup_iterations": 2,
+      "timed_iterations": 25,
+      "timed_candidate_payload_bytes_must_equal": 0,
+      "timed_f32_expert_load_bytes_must_equal": 0
+    },
+    "load_plus_compute": {
+      "warmup_iterations": 2,
+      "timed_iterations": 10,
+      "software_expert_state_reset_each_iteration": true,
+      "os_filesystem_cache": "observed_not_flushed",
+      "physical_io_claim_authorized": false
+    }
+  },
+  "pairing": {
+    "pairs_per_fixture_view": 5,
+    "fresh_process_per_sample": true,
+    "order_by_pair": [
+      [
+        "candidate",
+        "reference"
+      ],
+      [
+        "reference",
+        "candidate"
+      ],
+      [
+        "candidate",
+        "reference"
+      ],
+      [
+        "reference",
+        "candidate"
+      ],
+      [
+        "candidate",
+        "reference"
+      ]
+    ],
+    "expected_process_samples": 40
+  },
+  "raw_scopes": {
+    "candidate_load": [
+      "seek",
+      "packed_value_read",
+      "packed_value_decode_validate",
+      "scale_read",
+      "scale_decode_validate"
+    ],
+    "candidate_compute": [
+      "gate_packed_projection",
+      "up_packed_projection",
+      "activation_product",
+      "down_packed_projection"
+    ],
+    "reference": [
+      "cache_lookup_load",
+      "f32_payload_decode",
+      "gate_projection",
+      "up_projection",
+      "activation_product",
+      "down_projection"
+    ],
+    "common": [
+      "routing_occurrence_scan",
+      "weighted_accumulation",
+      "expert_total",
+      "exclusive_residual"
+    ]
+  },
+  "cross_path_stage_families": [
+    "load_decode",
+    "gate_projection",
+    "up_projection",
+    "activation_product",
+    "down_projection",
+    "routing_accumulation",
+    "exclusive_residual"
+  ],
+  "validity_gates": {
+    "instrumented_vs_uninstrumented_output": "byte_identical_per_path",
+    "timer_child_interpretability_min_multiple_of_noop_median": 20,
+    "observer_effect_median_percent_max": 5.0,
+    "observer_effect_each_pair_percent_max": 10.0,
+    "parent_child_timer_reconciliation_required": true,
+    "exclusive_residual_must_be_reported": true,
+    "same_release_binary_all_samples": true,
+    "same_host_all_samples": true,
+    "no_auto_retry": true,
+    "no_optimization_change_before_close": true
+  },
+  "classification": {
+    "packed_projection_compute_bound": {
+      "compute_only_candidate_slower_pairs_min_per_fixture": 4,
+      "packed_projection_share_percent_min_per_fixture": 60.0
+    },
+    "load_decode_bound": {
+      "load_plus_compute_candidate_slower_pairs_min_per_fixture": 4,
+      "load_decode_share_percent_min_per_fixture": 50.0,
+      "requires_compute_bound_false": true
+    },
+    "routing_accumulation_bound": {
+      "routing_accumulation_share_percent_min_per_fixture": 30.0,
+      "must_be_largest_positive_delta_family": true
+    },
+    "fallback": "mixed_or_distributed"
+  },
+  "execution_freeze_before_first_candidate_timing": [
+    "reference_fixture_record_sha256",
+    "instrumented_source_commit",
+    "release_binary_sha256",
+    "timer_implementation_identity",
+    "collector_versions"
+  ],
+  "authorizes_r2_0_measurement_instrumentation": true,
+  "authorizes_r2_1_optimization_implementation": false,
+  "authorizes_m6_4": false,
+  "measurement_semantics": {
+    "standalone_dequant_time_authorized": false,
+    "packed_projection_time_includes": [
+      "i8_to_f32_conversion",
+      "group_scale_multiply",
+      "input_multiply",
+      "dot_accumulation"
+    ],
+    "timer_overhead_subtraction_authorized": false
+  },
+  "observer_effect_controls": {
+    "must_pass_before_localization_samples": true,
+    "fixtures": [
+      "short_english",
+      "short_thai"
+    ],
+    "paths": [
+      "reference",
+      "candidate"
+    ],
+    "pairs_per_fixture_path": 5,
+    "variants": [
+      "instrumented",
+      "uninstrumented"
+    ],
+    "expected_control_process_samples": 40,
+    "median_overhead_percent_max": 5.0,
+    "each_pair_overhead_percent_max": 10.0
+  },
+  "instrumentation_boundary": {
+    "test_binary_only": true,
+    "feature_gate": "m6-3-r2-localization",
+    "same_release_binary_for_instrumented_and_uninstrumented_controls": true,
+    "may_bracket_existing_operations": true,
+    "may_duplicate_or_replace_compute_loops": false,
+    "default_runtime_behavior_change_authorized": false
+  }
+}
