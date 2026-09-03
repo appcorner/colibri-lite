@@ -1,0 +1,75 @@
+{
+  "schema": "m6.3-r2.0-execution-manifest-v5",
+  "schema_version": 5,
+  "status": "frozen_before_final_binary_observer_controls",
+  "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+  "measurement_method_contract_sha256": "ee2a85a1531956ad790e27c52bfb87cc7014c93dc4140d85576d020e5a45307f",
+  "localization_harness_amendment_sha256": "c3409036b22b85ab176477e662d26c15fa18cede724e57f8ea61ecc3ddc75894",
+  "prior_observer_v4_controls_sha256": "a6cf0d7518e889ddc27234de7a45100a0c8363e31fa0a3eec61dc29feed3a687",
+  "reference_fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+  "instrumented_source_commit": "b4cb158b5cfbaf7ac6a8dae44b929d02f14ae004",
+  "release_binary_sha256": "aced59ad9ffa9ed153f1d817f37beeda521061f0d2025935aab8c341889efb8e",
+  "release_binary_bytes": 43735552,
+  "release_binary_relative_path": "target/release/deps/clr_qwen3_moe-07d9617dc57ddd0e.exe",
+  "candidate": {
+    "id": "cpu-safe-rust-int8-group32-layer0-r1-1a",
+    "sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+    "bytes": 679477248
+  },
+  "canonical_f32_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+  "host_id": "ANUSORN-NB",
+  "timer_implementation_identity": "std::time::Instant+r2-localization-v3-coarse-f32",
+  "timer_source_sha256": "44ff2a61ee14bce7aa1f396697d83695d753d0fd0a60cc3b110562af7f34ed7a",
+  "collector_source_sha256": "bf83ee3b98d61dad82ddb9bdead3e84c17f0483794d820e067c7096ba780af3c",
+  "benchmark_harness_sha256": "cd6b25901a257df05e9a7f3878d186fce96edad319d47016d237ef4e1e79f8b7",
+  "observer_runner_sha256": "aa706431c32be3811589b4d0e1ed1fd0520bd6b57eccc41c04db861b9ac56787",
+  "localization_runner_sha256": "0e0541e23814fec47e4b3f404741ec5a63653784b2592f9425fe74baf7772478",
+  "localization_validator_sha256": "0b94b821d068e22129d1a0901e5a8ed0dbafb23f8e4b478d5ea8a1648b49e819",
+  "collector_versions": {
+    "r2_localization": "v3-coarse-f32",
+    "observer_pairing": "within-process-interleaved-mini-pair-v1",
+    "localization_harness": "final-v1"
+  },
+  "prior_failed_observer_controls_sha256": [
+    "140c219c846af500cc99bd352c3d8b3215571048e3cd02271f414bf84d28d64c",
+    "dba8ef0aef549f5fecb020ab626c9691fd6ae3ba79fc007f56828edd0558b597",
+    "fbc1c782beea42a306973826a98a37d21700d3bbe423205f4f23de0c6942b4cf"
+  ],
+  "observer_pair_order": [
+    ["enabled", "disabled"],
+    ["disabled", "enabled"],
+    ["enabled", "disabled"],
+    ["disabled", "enabled"],
+    ["enabled", "disabled"]
+  ],
+  "observer_gate": {
+    "median_overhead_percent_max": 5.0,
+    "every_outer_pair_overhead_percent_max": 10.0,
+    "output_identity": "byte-identical"
+  },
+  "localization_path_pair_order": [
+    ["candidate", "reference"],
+    ["reference", "candidate"],
+    ["candidate", "reference"],
+    ["reference", "candidate"],
+    ["candidate", "reference"]
+  ],
+  "localization_views": {
+    "compute_only_preloaded": {"warmups": 2, "timed_iterations": 25},
+    "load_plus_compute": {
+      "warmups": 2,
+      "timed_iterations": 10,
+      "software_expert_state_reset_each_iteration": true,
+      "os_filesystem_cache": "observed_not_flushed"
+    }
+  },
+  "observer_control_process_samples": 20,
+  "localization_process_samples": 40,
+  "observer_controls_seen": false,
+  "candidate_localization_results_seen": false,
+  "localization_sample_count_seen": 0,
+  "authorizes_observer_validation": true,
+  "authorizes_localization_samples": false,
+  "authorizes_r2_1_hypothesis_design": false,
+  "authorizes_m6_4": false
+}
