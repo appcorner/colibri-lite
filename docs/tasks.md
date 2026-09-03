@@ -945,10 +945,12 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   native/scalar/F32 triplet orders, and 72 official performance samples.
   Contract SHA-256:
   `76bfc4a850a8d89fb5901eda338568b7226b36acb7207324575568ea21f6cc2a`.
-- [ ] M6.3-R2.1a Implement the Layer-0 AVX2+FMA kernel and smallest FFI wrapper,
-  including the dependency/unsafe review, AVX2+FMA runtime detection, scalar
-  fallback, canary/bounds tests, <=1 MiB scratch, zero persistent prepack, and
-  zero complete F32 weight materializations. No official performance timing.
+- [x] M6.3-R2.1a Implement the Layer-0 AVX2+FMA kernel and smallest FFI wrapper.
+  ADR 0088 records the dependency/unsafe review. Runtime AVX2+FMA detection,
+  scalar fallback, canary/bounds tests, zero native scratch, zero persistent
+  prepack, and zero complete F32 weight materializations are verified. Default
+  runtime remains scalar; no official performance timing was run. See
+  `docs/reports/m6.3-r2-1a-native-implementation-review.md`.
 - [ ] M6.3-R2.1b Run held-out quality/correctness gates before performance.
   Any quality failure closes the candidate NO-GO without official timing.
 - [ ] M6.3-R2.1c After quality PASS, freeze one three-path release binary and run
@@ -968,10 +970,11 @@ closed R1.3 measurement; and ADR 0078 closes the current re-entry path
 `NO-GO for promotion`. ADR 0079 opened diagnostic R2.0; ADRs 0080-0085 record
 measurement-method and validation corrections without changing the immutable
 localization samples; ADR 0086 closes R2.0 `packed_projection_compute_bound`.
-ADR 0087 now pre-registers one AVX2+FMA native packed-projection vertical slice.
-The exact next task is `M6.3-R2.1a` implementation plus its dedicated
-unsafe/dependency review; official performance timing remains blocked until
-R2.1b quality PASS, and M6.4 remains blocked.
+ADR 0087 pre-registers one AVX2+FMA native packed-projection vertical slice;
+ADR 0088 accepts its isolated dependency/unsafe boundary and R2.1a is complete.
+The exact next task is `M6.3-R2.1b` held-out quality/correctness validation.
+Official performance timing remains blocked until that quality gate passes, and
+M6.4 remains blocked.
 
 ## Standard verification commands
 

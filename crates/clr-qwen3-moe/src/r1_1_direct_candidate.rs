@@ -159,6 +159,60 @@ impl R1_1PackedExpert {
         drop(down_scope);
         Ok((output, gate_expanded + up_expanded + down_expanded))
     }
+
+    #[cfg(feature = "m6-3-r2-native")]
+    pub(crate) fn apply_with_backend(
+        &self,
+        input: &[f32],
+        backend: R2_1PackedProjectionBackend,
+    ) -> Result<(Vec<f32>, usize), RuntimeError> {
+        let gate = R1_1PackedProjection::new(
+            &self.gate_values,
+            &self.gate_scales,
+            self.layout.intermediate,
+            self.layout.hidden,
+            self.layout.group_size,
+        )?;
+        let up = R1_1PackedProjection::new(
+            &self.up_values,
+            &self.up_scales,
+            self.layout.intermediate,
+            self.layout.hidden,
+            self.layout.group_size,
+        )?;
+        let down = R1_1PackedProjection::new(
+            &self.down_values,
+            &self.down_scales,
+            self.layout.hidden,
+            self.layout.intermediate,
+            self.layout.group_size,
+        )?;
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        let gate_scope = crate::r2_localization::scope("gate_packed_projection");
+        let (gate, gate_expanded) = gate.apply_with_backend(input, backend)?;
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        drop(gate_scope);
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        let up_scope = crate::r2_localization::scope("up_packed_projection");
+        let (up, up_expanded) = up.apply_with_backend(input, backend)?;
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        drop(up_scope);
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        let activation_scope = crate::r2_localization::scope("activation_product");
+        let activated = gate
+            .into_iter()
+            .zip(up)
+            .map(|(gate, up)| gate / (1.0 + (-gate).exp()) * up)
+            .collect::<Vec<_>>();
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        drop(activation_scope);
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        let down_scope = crate::r2_localization::scope("down_packed_projection");
+        let (output, down_expanded) = down.apply_with_backend(&activated, backend)?;
+        #[cfg(all(test, feature = "m6-3-r2-localization"))]
+        drop(down_scope);
+        Ok((output, gate_expanded + up_expanded + down_expanded))
+    }
 }
 
 #[derive(Debug)]
@@ -483,6 +537,13 @@ fn hash_reader(file: &mut File) -> Result<String, RuntimeError> {
         }))
 }
 
+#[cfg(feature = "m6-3-r2-native")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum R2_1PackedProjectionBackend {
+    Scalar,
+    NativeAvx2Fma,
+}
+
 /// A packed R1.1 projection. It intentionally has no dequantized weight buffer.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct R1_1PackedProjection<'a> {
@@ -530,6 +591,10 @@ impl<'a> R1_1PackedProjection<'a> {
     }
 
     pub(crate) fn apply_direct(&self, input: &[f32]) -> Result<(Vec<f32>, usize), RuntimeError> {
+        self.apply_scalar(input)
+    }
+
+    fn apply_scalar(&self, input: &[f32]) -> Result<(Vec<f32>, usize), RuntimeError> {
         if input.len() != self.columns || input.iter().any(|value| !value.is_finite()) {
             return Err(error("invalid R1.1 projection input"));
         }
@@ -544,6 +609,34 @@ impl<'a> R1_1PackedProjection<'a> {
             output.push(sum);
         }
         Ok((output, 0))
+    }
+
+    #[cfg(feature = "m6-3-r2-native")]
+    pub(crate) fn apply_with_backend(
+        &self,
+        input: &[f32],
+        backend: R2_1PackedProjectionBackend,
+    ) -> Result<(Vec<f32>, usize), RuntimeError> {
+        if backend == R2_1PackedProjectionBackend::Scalar || self.group_size != 32 {
+            return self.apply_scalar(input);
+        }
+        if input.len() != self.columns || input.iter().any(|value| !value.is_finite()) {
+            return Err(error("invalid R1.1 projection input"));
+        }
+        let mut output = vec![0.0_f32; self.rows];
+        let used = crate::r2_native::apply_group32_avx2_fma(
+            self.values,
+            self.scales,
+            input,
+            &mut output,
+            self.rows,
+            self.columns,
+        )?;
+        if used {
+            Ok((output, 0))
+        } else {
+            self.apply_scalar(input)
+        }
     }
 }
 
@@ -564,6 +657,8 @@ mod tests {
 
     use clr_storage::Sha256Hasher;
 
+    #[cfg(feature = "m6-3-r2-native")]
+    use super::R2_1PackedProjectionBackend;
     use super::{R1_1CandidateReader, R1_1PackedArtifactLayout, R1_1PackedProjection};
 
     static TEMP_ID: AtomicU64 = AtomicU64::new(0);
@@ -610,6 +705,63 @@ mod tests {
         let (output, expanded_weights) = projection.apply_direct(&vec![1.0; 64]).expect("direct");
         assert_eq!(output, vec![32.0]);
         assert_eq!(expanded_weights, 0);
+    }
+
+    #[cfg(feature = "m6-3-r2-native")]
+    #[test]
+    fn group32_native_backend_matches_scalar_without_f32_weight_expansion() {
+        let values = (0..64)
+            .map(|index| i8::try_from(index % 17).expect("i8") - 8)
+            .collect::<Vec<_>>();
+        let scales = vec![0.03125_f32, 0.0625_f32];
+        let input = vec![0.015_625_f32; 64];
+        let projection = R1_1PackedProjection::new(&values, &scales, 1, 64, 32).expect("valid");
+        let (scalar, scalar_expanded) = projection
+            .apply_with_backend(&input, R2_1PackedProjectionBackend::Scalar)
+            .expect("scalar");
+        let (native, native_expanded) = projection
+            .apply_with_backend(&input, R2_1PackedProjectionBackend::NativeAvx2Fma)
+            .expect("native or scalar fallback");
+        assert_eq!(scalar_expanded, 0);
+        assert_eq!(native_expanded, 0);
+        assert!((native[0] - scalar[0]).abs() <= 1.0e-4);
+    }
+
+    #[cfg(feature = "m6-3-r2-native")]
+    #[test]
+    fn loaded_group32_expert_runs_native_without_f32_weight_materialization() {
+        let (path, layout, hash) = fixture();
+        let mut reader = R1_1CandidateReader::open(&path, layout, &hash).expect("reader");
+        let expert = reader.load_expert(0).expect("expert");
+        let (native, expanded) = expert
+            .apply_with_backend(&[1.0; 32], R2_1PackedProjectionBackend::NativeAvx2Fma)
+            .expect("native expert or scalar fallback");
+        let (scalar, scalar_expanded) = expert
+            .apply_with_backend(&[1.0; 32], R2_1PackedProjectionBackend::Scalar)
+            .expect("scalar expert");
+        assert_eq!(expanded, 0);
+        assert_eq!(scalar_expanded, 0);
+        assert_eq!(native.len(), 32);
+        let max_abs = native
+            .iter()
+            .zip(scalar)
+            .map(|(native, scalar)| (native - scalar).abs())
+            .fold(0.0_f32, f32::max);
+        assert!(max_abs <= 0.001, "native/scalar expert max abs {max_abs}");
+        fs::remove_file(path).expect("remove fixture");
+    }
+
+    #[cfg(feature = "m6-3-r2-native")]
+    #[test]
+    fn group64_native_request_falls_back_to_scalar() {
+        let values = vec![2_i8; 64];
+        let scales = vec![0.25_f32];
+        let projection = R1_1PackedProjection::new(&values, &scales, 1, 64, 64).expect("valid");
+        let (output, expanded) = projection
+            .apply_with_backend(&[1.0; 64], R2_1PackedProjectionBackend::NativeAvx2Fma)
+            .expect("fallback");
+        assert_eq!(output, [32.0]);
+        assert_eq!(expanded, 0);
     }
 
     #[test]

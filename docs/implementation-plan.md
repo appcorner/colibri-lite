@@ -670,9 +670,16 @@ R2.0 views, and all six balanced permutations of native/scalar/F32. The frozen
 performance gates require material scalar speedup plus near-F32 compute parity
 while retaining the group32 load advantage.
 
-The exact next task is `M6.3-R2.1a`: implement the isolated AVX2+FMA vertical
-slice with its dedicated unsafe/dependency review and correctness tests. No
-official performance timing is authorized before R2.1b quality PASS. M6.4
+R2.1a is complete. The feature-gated AVX2+FMA C kernel consumes the unchanged
+group32 values/scales directly, while Rust keeps explicit backend selection and
+scalar fallback. ADR 0088 accepts the single isolated FFI boundary and build-only
+`cc` dependency. Native scratch and persistent prepack are both zero bytes, and
+complete F32 weight materializations remain zero. Default runtime behavior is
+unchanged and no official performance timing has been run.
+
+The exact next task is `M6.3-R2.1b`: run the frozen held-out quality/correctness
+gates on the canonical model and admitted artifact. A quality failure closes
+R2.1 NO-GO without official timing; only quality PASS may open R2.1c. M6.4
 remains blocked.
 
 #### M6.4 - Full hardware-aware runtime

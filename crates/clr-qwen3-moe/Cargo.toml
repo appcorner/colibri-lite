@@ -16,12 +16,17 @@ m5-3-mmap = ["m5-3-instrumentation", "clr-storage/m5-3-mmap"]
 m5-3-compute-profiling = ["m5-3-instrumentation"]
 # Test-binary-only M6.3-R2.0 bottleneck-localization instrumentation.
 m6-3-r2-localization = []
+# Layer-0 R2.1 native packed-projection vertical slice. Default runtime stays scalar.
+m6-3-r2-native = []
 # Test-only measurement prototype. This does not alter the default reader.
 m5-4-resident-dense = []
 
 [dependencies]
 clr-core = { path = "../clr-core" }
 clr-storage = { path = "../clr-storage" }
+
+[build-dependencies]
+cc = "=1.4.4"
 
 [lints]
 workspace = true

@@ -19,6 +19,8 @@ mod model;
 mod profiling;
 #[cfg(all(test, feature = "m6-3-r2-localization"))]
 mod r2_localization;
+#[cfg(feature = "m6-3-r2-native")]
+mod r2_native;
 // M6.3-02 is directly tested here; M6.3-03 owns router/runtime integration.
 #[allow(dead_code)]
 mod quantized_layer0;

@@ -17,7 +17,7 @@ repository = "https://github.com/appcorner/colibri-lite-rs"
 rust-version = "1.85"
 
 [workspace.lints.rust]
-unsafe_code = "forbid"
+unsafe_code = "deny"
 missing_debug_implementations = "warn"
 unused_must_use = "deny"
 
