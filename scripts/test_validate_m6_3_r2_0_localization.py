@@ -174,6 +174,17 @@ class LocalizationValidatorTests(unittest.TestCase):
         document["instrumented_source_commit"] = "g" * 40
         with self.assertRaisesRegex(validator.ValidationError, "instrumented commit"):
             validator.validate_document(document)
+
+    def test_accepts_zero_timer_calibration(self) -> None:
+        document = make_document()
+        document["samples"][0]["timer_noop_median_nanos"] = 0
+        validator.validate_document(document)
+
+    def test_rejects_negative_timer_calibration(self) -> None:
+        document = make_document()
+        document["samples"][0]["timer_noop_median_nanos"] = -1
+        with self.assertRaisesRegex(validator.ValidationError, "sample timer calibration"):
+            validator.validate_document(document)
     def test_rejects_observer_pair_over_ten_percent(self) -> None:
         document = make_document()
         document["observer_controls"][0]["mini_pair_overhead_percent"] = [11.0] * 5

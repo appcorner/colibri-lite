@@ -174,7 +174,7 @@ def validate_sample(sample: dict[str, Any], binary: str, host: str) -> None:
     require(sample.get("timed_iterations") == VIEWS[view], "sample timed iteration count")
     require(sample.get("attempt_ordinal") == 1, "sample automatic retry is prohibited")
     require(is_sha256(sample.get("output_sha256")), "sample output hash")
-    require(isinstance(sample.get("timer_noop_median_nanos"), int) and sample["timer_noop_median_nanos"] > 0, "sample timer calibration")
+    require(isinstance(sample.get("timer_noop_median_nanos"), int) and sample["timer_noop_median_nanos"] >= 0, "sample timer calibration")
     require(isinstance(sample.get("expert_occurrences"), int) and sample["expert_occurrences"] > 0, "sample expert occurrences")
     require(isinstance(sample.get("unique_expert_loads"), int) and sample["unique_expert_loads"] >= 0, "sample unique expert loads")
     require(isinstance(sample.get("expected_logical_expert_bytes"), int) and sample["expected_logical_expert_bytes"] >= 0, "sample expected logical bytes")
