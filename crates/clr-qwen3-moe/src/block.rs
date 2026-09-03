@@ -734,25 +734,22 @@ pub(crate) fn expert_mlp(
     for (intermediate_index, activated_value) in activated.iter_mut().enumerate() {
         let start = intermediate_index * hidden_size;
         #[cfg(all(test, feature = "m6-3-r2-localization"))]
-        let gate_started = r2_enabled.then(std::time::Instant::now);
+        let row_started = r2_enabled.then(std::time::Instant::now);
         let gate_value = dot(input, &gate[start..start + hidden_size]);
         #[cfg(all(test, feature = "m6-3-r2-localization"))]
-        if let Some(started) = gate_started {
-            gate_samples.push(started.elapsed().as_nanos());
-        }
-        #[cfg(all(test, feature = "m6-3-r2-localization"))]
-        let up_started = r2_enabled.then(std::time::Instant::now);
+        let gate_finished = r2_enabled.then(std::time::Instant::now);
         let up_value = dot(input, &up[start..start + hidden_size]);
         #[cfg(all(test, feature = "m6-3-r2-localization"))]
-        if let Some(started) = up_started {
-            up_samples.push(started.elapsed().as_nanos());
-        }
-        #[cfg(all(test, feature = "m6-3-r2-localization"))]
-        let activation_started = r2_enabled.then(std::time::Instant::now);
+        let up_finished = r2_enabled.then(std::time::Instant::now);
         *activated_value = gate_value / (1.0 + (-gate_value).exp()) * up_value;
         #[cfg(all(test, feature = "m6-3-r2-localization"))]
-        if let Some(started) = activation_started {
-            activation_samples.push(started.elapsed().as_nanos());
+        if let (Some(row_started), Some(gate_finished), Some(up_finished)) =
+            (row_started, gate_finished, up_finished)
+        {
+            let activation_finished = std::time::Instant::now();
+            gate_samples.push(gate_finished.duration_since(row_started).as_nanos());
+            up_samples.push(up_finished.duration_since(gate_finished).as_nanos());
+            activation_samples.push(activation_finished.duration_since(up_finished).as_nanos());
         }
     }
     #[cfg(all(test, feature = "m6-3-r2-localization"))]
@@ -768,15 +765,17 @@ pub(crate) fn expert_mlp(
         crate::profiling::matrix_scope("expert.down_projection", 1, hidden_size, intermediate_size);
     #[cfg(all(test, feature = "m6-3-r2-localization"))]
     let mut down_samples = Vec::with_capacity(if r2_enabled { hidden_size } else { 0 });
+    #[cfg(all(test, feature = "m6-3-r2-localization"))]
+    let mut down_boundary = r2_enabled.then(std::time::Instant::now);
     let output = (0..hidden_size)
         .map(|hidden_index| {
             let start = hidden_index * intermediate_size;
-            #[cfg(all(test, feature = "m6-3-r2-localization"))]
-            let down_started = r2_enabled.then(std::time::Instant::now);
             let value = dot(&activated, &down[start..start + intermediate_size]);
             #[cfg(all(test, feature = "m6-3-r2-localization"))]
-            if let Some(started) = down_started {
-                down_samples.push(started.elapsed().as_nanos());
+            if let Some(previous) = down_boundary {
+                let next = std::time::Instant::now();
+                down_samples.push(next.duration_since(previous).as_nanos());
+                down_boundary = Some(next);
             }
             value
         })
