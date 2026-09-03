@@ -132,6 +132,8 @@
 !/models/qwen3-30b-a3b/m6.3-r2-0-localization-samples-v1.json
 !/models/qwen3-30b-a3b/m6.3-r2-0-localization-result-v1.json
 !/models/qwen3-30b-a3b/m6.3-r2-0-measurement-method-v2-contract.json
+!/models/qwen3-30b-a3b/m6.3-r2-0-execution-manifest-v3.json
+!/models/qwen3-30b-a3b/m6.3-r2-0-observer-controls-v3.json
 /.idea/
 /.vscode/
 *.pdb

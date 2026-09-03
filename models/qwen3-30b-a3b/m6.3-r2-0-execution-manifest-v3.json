@@ -1,0 +1,51 @@
+{
+  "schema": "m6.3-r2.0-execution-manifest-v3",
+  "schema_version": 3,
+  "status": "frozen_before_low_observer_controls",
+  "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+  "measurement_method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+  "reference_fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+  "prior_failed_observer_controls_sha256": [
+    "140c219c846af500cc99bd352c3d8b3215571048e3cd02271f414bf84d28d64c",
+    "dba8ef0aef549f5fecb020ab626c9691fd6ae3ba79fc007f56828edd0558b597"
+  ],
+  "instrumented_source_commit": "77a7aff88a2057d0eee2370accc44b50f88c2b42",
+  "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+  "release_binary_bytes": 43682304,
+  "release_binary_relative_path": "target/release/deps/clr_qwen3_moe-07d9617dc57ddd0e.exe",
+  "candidate": {
+    "id": "cpu-safe-rust-int8-group32-layer0-r1-1a",
+    "sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+    "bytes": 679477248
+  },
+  "canonical_f32_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+  "host_id": "ANUSORN-NB",
+  "timer_implementation_identity": "std::time::Instant+r2-localization-v3-coarse-f32",
+  "timer_source_sha256": "44ff2a61ee14bce7aa1f396697d83695d753d0fd0a60cc3b110562af7f34ed7a",
+  "collector_source_sha256": "bf83ee3b98d61dad82ddb9bdead3e84c17f0483794d820e067c7096ba780af3c",
+  "collector_versions": {
+    "r2_localization": "v3-coarse-f32",
+    "observer_pairing": "within-process-v1"
+  },
+  "observer_runner_sha256": "b737cfea5b75f5a9b481284f8daa3b927e98b27736aff505a49610edad627024",
+  "observer_pair_order": [
+    ["enabled", "disabled"],
+    ["disabled", "enabled"],
+    ["enabled", "disabled"],
+    ["disabled", "enabled"],
+    ["enabled", "disabled"]
+  ],
+  "observer_gate": {
+    "median_overhead_percent_max": 5.0,
+    "every_pair_overhead_percent_max": 10.0,
+    "output_identity": "byte-identical"
+  },
+  "observer_control_process_samples": 20,
+  "observer_controls_seen": false,
+  "candidate_localization_results_seen": false,
+  "localization_sample_count_seen": 0,
+  "authorizes_observer_validation": true,
+  "authorizes_localization_samples": false,
+  "authorizes_r2_1_hypothesis_design": false,
+  "authorizes_m6_4": false
+}
