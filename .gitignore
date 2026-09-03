@@ -126,6 +126,7 @@
 !/models/qwen3-30b-a3b/m6.3-r2-0-reference-fixtures-v1.json
 !/models/qwen3-30b-a3b/m6.3-r2-0-execution-manifest-v1.json
 !/models/qwen3-30b-a3b/m6.3-r2-0-observer-controls-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-0-observer-remediation-contract-v1.json
 /.idea/
 /.vscode/
 *.pdb

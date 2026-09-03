@@ -1,0 +1,52 @@
+{
+  "schema": "m6.3-r2.0-observer-remediation-contract-v1",
+  "schema_version": 1,
+  "status": "preregistered_after_observer_failure_before_localization",
+  "localization_contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+  "failed_observer_controls_sha256": "140c219c846af500cc99bd352c3d8b3215571048e3cd02271f414bf84d28d64c",
+  "failed_execution_manifest_sha256": "7592b99967d86792d12a145057a66232d1baa8591bcb9824c25f7b41dc57a8df",
+  "reference_fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+  "failed_source_commit": "6900e2b2f061a27dffa66d2618210d2ed0fc26f3",
+  "failed_release_binary_sha256": "2f619b3abb274b724db1bb27fc347c3ffa7b20c5179a2234c17b94e3e2e33edf",
+  "observer_controls_seen": true,
+  "candidate_localization_results_seen": false,
+  "localization_sample_count_seen": 0,
+  "remediation_attempt_limit": 1,
+  "remediation_attempt_ordinal": 1,
+  "timer_implementation": "std::time::Instant",
+  "allowed_change": "replace per-operation F32 Instant start/elapsed pairs with shared adjacent timestamp boundaries while preserving the existing arithmetic loop and operation order",
+  "candidate_timing_change_allowed": false,
+  "timer_overhead_subtraction_allowed": false,
+  "arithmetic_change_allowed": false,
+  "stage_taxonomy_change_allowed": false,
+  "classification_threshold_change_allowed": false,
+  "fixture_change_allowed": false,
+  "pair_order_change_allowed": false,
+  "timed_iteration_change_allowed": false,
+  "observer_gate": {
+    "median_overhead_percent_max": 5.0,
+    "every_pair_overhead_percent_max": 10.0,
+    "output_identity": "byte-identical"
+  },
+  "frozen_measurement_invariants": {
+    "fixtures": ["short_english", "short_thai"],
+    "views": ["compute_only_preloaded", "load_plus_compute"],
+    "compute_only_timed_iterations": 25,
+    "load_plus_compute_timed_iterations": 10,
+    "warmup_iterations": 2,
+    "observer_pair_order": [
+      ["enabled", "disabled"],
+      ["disabled", "enabled"],
+      ["enabled", "disabled"],
+      ["disabled", "enabled"],
+      ["enabled", "disabled"]
+    ]
+  },
+  "remediation_success_condition": "all four fixture/path observer groups pass unchanged 5% median and 10% every-pair gates with byte-identical outputs before any localization sample",
+  "remediation_failure_condition": "any observer group fails; stop R2.0 localization and require separate review",
+  "authorizes_remediation_implementation": true,
+  "authorizes_observer_rerun": true,
+  "authorizes_localization_samples": false,
+  "authorizes_r2_1_hypothesis_design": false,
+  "authorizes_m6_4": false
+}
