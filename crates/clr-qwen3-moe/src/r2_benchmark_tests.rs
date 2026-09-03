@@ -600,3 +600,240 @@ fn m6_3_r2_0_observer_pair_sample() {
     );
     fs::write(output_path, document).expect("write R2.0 observer pair sample");
 }
+
+fn warm_reference_for_interleaved_pair(run: &FrozenRuntimeFixture, prepared: &PreparedReference) {
+    for _ in 0..4 {
+        std::hint::black_box(
+            r2_routed_preloaded_f32(
+                run.input.view(),
+                &run.router,
+                prepared.config,
+                &prepared.preloaded,
+            )
+            .expect("F32 interleaved observer warmup"),
+        );
+    }
+}
+
+fn warm_candidate_for_interleaved_pair(run: &FrozenRuntimeFixture, prepared: &PreparedCandidate) {
+    for _ in 0..4 {
+        std::hint::black_box(
+            r2_routed_preloaded_candidate(
+                run.input.view(),
+                &run.router,
+                prepared.config,
+                &prepared.preloaded,
+            )
+            .expect("candidate interleaved observer warmup"),
+        );
+    }
+}
+
+fn timed_reference_mini_block(
+    run: &FrozenRuntimeFixture,
+    prepared: &PreparedReference,
+    observer: &str,
+) -> ObserverPairRun {
+    let session = r2_localization::start(observer_enabled(observer));
+    let mut total_nanos = 0_u128;
+    let mut last = None;
+    for _ in 0..5 {
+        let started = Instant::now();
+        let output = r2_routed_preloaded_f32(
+            run.input.view(),
+            &run.router,
+            prepared.config,
+            &prepared.preloaded,
+        )
+        .expect("F32 interleaved observer mini-block");
+        total_nanos = total_nanos.saturating_add(started.elapsed().as_nanos());
+        std::hint::black_box(output.data().first().copied());
+        last = Some(output);
+    }
+    let snapshot = r2_localization::finish(session);
+    let output = last.expect("F32 interleaved observer output");
+    ObserverPairRun {
+        observer: observer.to_owned(),
+        timed_total_nanos: total_nanos,
+        snapshot,
+        output_sha256: f32_little_endian_sha256(output.data()),
+    }
+}
+
+fn timed_candidate_mini_block(
+    run: &FrozenRuntimeFixture,
+    prepared: &PreparedCandidate,
+    observer: &str,
+) -> ObserverPairRun {
+    let session = r2_localization::start(observer_enabled(observer));
+    let mut total_nanos = 0_u128;
+    let mut last = None;
+    for _ in 0..5 {
+        let started = Instant::now();
+        let output = r2_routed_preloaded_candidate(
+            run.input.view(),
+            &run.router,
+            prepared.config,
+            &prepared.preloaded,
+        )
+        .expect("candidate interleaved observer mini-block");
+        total_nanos = total_nanos.saturating_add(started.elapsed().as_nanos());
+        std::hint::black_box(output.data().first().copied());
+        last = Some(output);
+    }
+    let snapshot = r2_localization::finish(session);
+    let output = last.expect("candidate interleaved observer output");
+    ObserverPairRun {
+        observer: observer.to_owned(),
+        timed_total_nanos: total_nanos,
+        snapshot,
+        output_sha256: f32_little_endian_sha256(output.data()),
+    }
+}
+
+fn mini_pair_order(base: &[String], mini_pair_index: usize) -> Vec<String> {
+    assert_eq!(base.len(), 2, "R2.0 base observer pair length");
+    if mini_pair_index % 2 == 0 {
+        base.to_vec()
+    } else {
+        vec![base[1].clone(), base[0].clone()]
+    }
+}
+
+fn observer_results_json(results: &[ObserverPairRun]) -> String {
+    let enabled = results
+        .iter()
+        .find(|result| result.observer == "enabled")
+        .expect("enabled mini-pair state");
+    let disabled = results
+        .iter()
+        .find(|result| result.observer == "disabled")
+        .expect("disabled mini-pair state");
+    format!(
+        concat!(
+            "{{\"enabled\":{{\"timed_total_nanos\":{},\"output_sha256\":\"{}\",\"stages\":{}}},",
+            "\"disabled\":{{\"timed_total_nanos\":{},\"output_sha256\":\"{}\",\"stages\":{}}}}}"
+        ),
+        enabled.timed_total_nanos,
+        enabled.output_sha256,
+        snapshot_json(&enabled.snapshot),
+        disabled.timed_total_nanos,
+        disabled.output_sha256,
+        snapshot_json(&disabled.snapshot),
+    )
+}
+
+#[test]
+fn m6_3_r2_0_observer_interleaved_pair_sample() {
+    let fixture_name = env::var("COLIBRI_R2_FIXTURE").expect("R2.0 fixture name");
+    let path = env::var("COLIBRI_R2_PATH").expect("R2.0 path");
+    assert!(matches!(path.as_str(), "reference" | "candidate"));
+    let base_order = env::var("COLIBRI_R2_OBSERVER_ORDER")
+        .expect("R2.0 observer order")
+        .split(',')
+        .map(str::to_owned)
+        .collect::<Vec<_>>();
+    assert!(
+        matches!(base_order.as_slice(), [left, right] if left != right && matches!(left.as_str(), "enabled" | "disabled") && matches!(right.as_str(), "enabled" | "disabled")),
+        "R2.0 observer base pair variants",
+    );
+    let output_path = PathBuf::from(
+        env::var_os("COLIBRI_R2_SAMPLE_OUTPUT").expect("R2.0 interleaved sample output"),
+    );
+    assert!(
+        !output_path.exists(),
+        "R2.0 interleaved sample output must be new"
+    );
+    let run = build_runtime_fixture(&fixture_name, false);
+    verify_fixture_identity(&run);
+    let noop = r2_localization::calibrate_noop(101);
+    let mut mini_pair_documents = Vec::with_capacity(5);
+    let mut frozen_output_sha256: Option<String> = None;
+    if path == "reference" {
+        let prepared = prepare_preloaded_reference(&run);
+        warm_reference_for_interleaved_pair(&run, &prepared);
+        let expected = env::var("COLIBRI_R2_EXPECT_REFERENCE_OUTPUT_SHA256")
+            .expect("expected reference output SHA");
+        for mini_index in 0..5 {
+            let order = mini_pair_order(&base_order, mini_index);
+            let results = order
+                .iter()
+                .map(|observer| timed_reference_mini_block(&run, &prepared, observer))
+                .collect::<Vec<_>>();
+            assert_eq!(results.len(), 2);
+            assert_eq!(results[0].output_sha256, results[1].output_sha256);
+            assert_eq!(results[0].output_sha256, expected);
+            for result in &results {
+                assert_compute_only_snapshot(result);
+                if let Some(frozen) = &frozen_output_sha256 {
+                    assert_eq!(&result.output_sha256, frozen);
+                } else {
+                    frozen_output_sha256 = Some(result.output_sha256.clone());
+                }
+            }
+            mini_pair_documents.push(format!(
+                "{{\"mini_pair\":{},\"observer_order\":[\"{}\",\"{}\"],\"timed_iterations_per_state\":5,\"states\":{}}}",
+                mini_index + 1,
+                order[0],
+                order[1],
+                observer_results_json(&results),
+            ));
+        }
+    } else {
+        let prepared = prepare_preloaded_candidate(&run);
+        warm_candidate_for_interleaved_pair(&run, &prepared);
+        for mini_index in 0..5 {
+            let order = mini_pair_order(&base_order, mini_index);
+            let results = order
+                .iter()
+                .map(|observer| timed_candidate_mini_block(&run, &prepared, observer))
+                .collect::<Vec<_>>();
+            assert_eq!(results.len(), 2);
+            assert_eq!(results[0].output_sha256, results[1].output_sha256);
+            for result in &results {
+                assert_compute_only_snapshot(result);
+                if let Some(frozen) = &frozen_output_sha256 {
+                    assert_eq!(&result.output_sha256, frozen);
+                } else {
+                    frozen_output_sha256 = Some(result.output_sha256.clone());
+                }
+            }
+            mini_pair_documents.push(format!(
+                "{{\"mini_pair\":{},\"observer_order\":[\"{}\",\"{}\"],\"timed_iterations_per_state\":5,\"states\":{}}}",
+                mini_index + 1,
+                order[0],
+                order[1],
+                observer_results_json(&results),
+            ));
+        }
+    }
+    assert_eq!(mini_pair_documents.len(), 5);
+    let document = format!(
+        concat!(
+            "{{\"schema\":\"m6.3-r2.0-observer-pair-sample-v3\",",
+            "\"contract_sha256\":\"{}\",\"method_contract_sha256\":\"{}\",",
+            "\"fixture\":\"{}\",\"path\":\"{}\",",
+            "\"base_observer_order\":[\"{}\",\"{}\"],",
+            "\"fixture_record_sha256\":\"{}\",",
+            "\"release_binary_sha256\":\"{}\",\"host_id\":\"{}\",",
+            "\"warmups_total\":4,\"mini_pairs_per_process\":5,",
+            "\"timed_iterations_per_mini_pair_per_state\":5,",
+            "\"total_timed_iterations_per_state\":25,",
+            "\"timer_noop_median_nanos\":{},\"output_sha256\":\"{}\",",
+            "\"mini_pairs\":[{}]}}\n"
+        ),
+        CONTRACT_SHA256,
+        env::var("COLIBRI_R2_METHOD_CONTRACT_SHA256").expect("method contract SHA"),
+        fixture_name,
+        path,
+        base_order[0],
+        base_order[1],
+        env::var("COLIBRI_R2_FIXTURE_RECORD_SHA256").expect("fixture record SHA"),
+        env::var("COLIBRI_R2_RELEASE_BINARY_SHA256").expect("binary SHA"),
+        env::var("COLIBRI_R2_HOST_ID").expect("host ID"),
+        noop.median_nanos,
+        frozen_output_sha256.expect("frozen interleaved output SHA"),
+        mini_pair_documents.join(","),
+    );
+    fs::write(output_path, document).expect("write R2.0 interleaved observer sample");
+}
