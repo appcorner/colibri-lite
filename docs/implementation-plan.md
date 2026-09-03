@@ -654,9 +654,26 @@ primary remaining group32 slowdown is packed projection compute rather than
 load/decode. R2.1 hypothesis design is authorized, but optimization
 implementation, all-layer rollout, and M6.4 remain blocked.
 
-The exact next task is `M6.3-R2.1-PR`: pre-register a small vertical-slice
-packed-projection compute hypothesis, numerical-quality guards, and paired
-performance gates before implementing any fused/native backend.
+ADR 0087 completes `M6.3-R2.1-PR` by pre-registering one Layer-0 AVX2+FMA
+native packed-projection hypothesis. Rust retains routing, loading, activation,
+accumulation, backend selection, and scalar fallback; native code may replace
+only gate/up/down group32 projection arithmetic on the unchanged artifact. The
+milestone explicitly allows one isolated reviewed FFI boundary while keeping
+the workspace unsafe lint enabled globally, and freezes a <=1 MiB scratch cap,
+no persistent prepack, and no complete F32 weight materialization.
+
+R2.1b quality must pass before official performance timing: preserve the R1.2
+held-out sequence/router/logit/repeatability gates and additionally bound
+native-vs-scalar drift at <=0.001 Layer-0 routed output and <=0.002 prompt
+logits. Only then may R2.1c run 72 fresh process samples: both fixtures, both
+R2.0 views, and all six balanced permutations of native/scalar/F32. The frozen
+performance gates require material scalar speedup plus near-F32 compute parity
+while retaining the group32 load advantage.
+
+The exact next task is `M6.3-R2.1a`: implement the isolated AVX2+FMA vertical
+slice with its dedicated unsafe/dependency review and correctness tests. No
+official performance timing is authorized before R2.1b quality PASS. M6.4
+remains blocked.
 
 #### M6.4 - Full hardware-aware runtime
 

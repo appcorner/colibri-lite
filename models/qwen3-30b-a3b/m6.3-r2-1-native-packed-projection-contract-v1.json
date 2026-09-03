@@ -1,0 +1,152 @@
+{
+  "schema": "m6.3-r2.1-native-packed-projection-contract-v1",
+  "schema_version": 1,
+  "status": "pre_registered_before_native_implementation",
+  "created_on": "2026-09-03",
+  "source_commit_at_preregistration": "7075168a118ffdd9c70c53cdf5f028d48626ce2b",
+  "r2_0_result": {
+    "classification": "packed_projection_compute_bound",
+    "samples_sha256": "e38688ae1309c411c11309def37b5b2ef6e84eb634dee244bb565a41b7eb7942",
+    "result_sha256": "044e6d1d6a5b59953c2b603489d24e304290d5ce0d85d82b4de6d4c8e5b362cb",
+    "compute_only_candidate_slower_pairs": {"short_english": 5, "short_thai": 5},
+    "packed_projection_share_percent": {"short_english": 91.44250894620292, "short_thai": 92.04321885178575}
+  },
+  "candidate": {
+    "id": "cpu-safe-rust-int8-group32-layer0-r1-1a",
+    "group_size": 32,
+    "artifact_bytes": 679477248,
+    "artifact_sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+    "artifact_change_allowed": false,
+    "requantization_allowed": false,
+    "persistent_repack_allowed": false
+  },
+  "host_precheck": {
+    "profile_id": "windows-x64-anusorn-nb-m6.1-02",
+    "cpu_model": "11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz",
+    "physical_cores": 4,
+    "logical_cores": 8,
+    "runtime_detected": {"avx": true, "avx2": true, "fma": true, "avx512f": true, "avx512bw": true},
+    "authorized_instruction_set_for_r2_1": ["avx2", "fma"],
+    "avx512_authorized": false,
+    "cpu_feature_check_required_at_runtime": true,
+    "unsupported_host_behavior": "fall_back_to_scalar_group32"
+  },
+  "hypothesis": {
+    "id": "native-avx2-fma-group32-direct-projection-v1",
+    "statement": "Replacing only the scalar packed projection dot loop with an AVX2+FMA native kernel that consumes the unchanged group32 i8 values and f32 scales directly will remove the R2.0 packed-projection compute tax without weakening quality or the load advantage.",
+    "scope": "layer0_vertical_slice_only",
+    "rust_orchestration_retained": true,
+    "native_scope": ["gate_packed_projection", "up_packed_projection", "down_packed_projection"],
+    "routing_change_allowed": false,
+    "activation_change_allowed": false,
+    "load_path_change_allowed": false,
+    "cache_policy_change_allowed": false
+  },
+  "native_boundary": {
+    "implementation_language": "C_or_C++_with_x86_intrinsics",
+    "build_target": "windows_x64_msvc",
+    "build_dependency": {"crate": "cc", "version": "=1.4.4", "license": "MIT OR Apache-2.0", "msrv": "1.65", "purpose": "compile one native static AVX2+FMA kernel during Cargo build"},
+    "build_dependency_review_required_before_addition": true,
+    "rust_workspace_unsafe_policy_change": "forbid_to_deny_globally_then_allow_only_isolated_ffi_module",
+    "isolated_module_required": true,
+    "unsafe_public_api_allowed": false,
+    "rust_pointer_arithmetic_allowed": false,
+    "ownership_crosses_ffi": false,
+    "pre_call_validation": ["cpu_avx2", "cpu_fma", "input_length", "values_length", "scales_length", "output_length", "group_size_32", "finite_input", "finite_scales"],
+    "safety_invariants_documented_per_unsafe_block": true,
+    "canary_bounds_tests_required": true,
+    "fallback_scalar_path_required": true,
+    "dedicated_unsafe_review_required": true
+  },
+  "kernel_contract": {
+    "input_dtype": "f32",
+    "weight_dtype": "i8",
+    "scale_dtype": "f32",
+    "group_size": 32,
+    "formula": "sum(input[col] * (f32(weight[row,col]) * scale[row,col/32]))",
+    "full_f32_weight_materialization_allowed": false,
+    "additional_native_scratch_bytes_max_per_projection_invocation": 1048576,
+    "output_owned_by_rust": true,
+    "reduction_order_may_change": true,
+    "fma_rounding_may_change": true
+  },
+  "quality_gate": {
+    "must_pass_before_official_performance_timing": true,
+    "held_out_fixture_ids": ["short_english", "short_thai"],
+    "generated_token_count": 2,
+    "expected_generated_token_ids": {"short_english": [0, 358], "short_thai": [7360, 91]},
+    "exact_prompt_top20_ids": true,
+    "exact_prompt_argmax": true,
+    "exact_safe_margin_router_layers": [0, 24, 47],
+    "repeatability_repetitions_per_fixture": 2,
+    "repeatability_exact": true,
+    "f32_logit_max_abs_envelope": 0.05,
+    "also_require_quarter_frozen_top1_margin": true,
+    "native_vs_scalar_layer0_routed_output_max_abs": 0.001,
+    "native_vs_scalar_prompt_logits_max_abs": 0.002,
+    "all_native_outputs_finite": true,
+    "complete_f32_weight_materializations": 0,
+    "candidate_artifact_identity_exact": true,
+    "failure_decision": "no_go_without_official_performance_timing"
+  },
+  "performance_paths": ["native_avx2_fma_group32", "scalar_group32", "reference_f32"],
+  "performance_views": {
+    "compute_only_preloaded": {"warmup_iterations": 2, "timed_iterations": 25},
+    "load_plus_compute": {"warmup_iterations": 2, "timed_iterations": 10, "software_expert_state_reset_each_iteration": true, "os_filesystem_cache": "observed_not_flushed"}
+  },
+  "performance_matrix": {
+    "fixture_count": 2,
+    "view_count": 2,
+    "balanced_triplet_count_per_fixture_view": 6,
+    "paths_per_triplet": 3,
+    "official_process_sample_count": 72,
+    "automatic_retry": false,
+    "triplet_orders": [
+      ["native_avx2_fma_group32", "scalar_group32", "reference_f32"],
+      ["native_avx2_fma_group32", "reference_f32", "scalar_group32"],
+      ["scalar_group32", "native_avx2_fma_group32", "reference_f32"],
+      ["scalar_group32", "reference_f32", "native_avx2_fma_group32"],
+      ["reference_f32", "native_avx2_fma_group32", "scalar_group32"],
+      ["reference_f32", "scalar_group32", "native_avx2_fma_group32"]
+    ],
+    "same_release_binary_all_paths": true,
+    "same_host_all_samples": true,
+    "same_fixture_identity_all_samples": true,
+    "physical_io_claim_authorized": false
+  },
+  "compute_only_performance_gate": {
+    "native_faster_than_scalar_triplets_min_per_fixture": 5,
+    "median_scalar_over_native_speedup_min": 1.5,
+    "native_over_f32_median_ratio_max": 1.05,
+    "native_over_f32_ratio_max_per_triplet": 1.10,
+    "native_within_per_triplet_ratio_limit_min_per_fixture": 5,
+    "required_for_both_fixtures": true
+  },
+  "load_plus_performance_gate": {
+    "native_faster_than_scalar_triplets_min_per_fixture": 5,
+    "median_scalar_over_native_speedup_min": 1.25,
+    "native_faster_than_f32_triplets_min_per_fixture": 6,
+    "native_over_f32_median_ratio_max": 0.50,
+    "required_for_both_fixtures": true,
+    "candidate_payload_bytes_must_match_scalar": true,
+    "f32_load_bytes_must_match_r2_0_semantics": true
+  },
+  "resource_gate": {
+    "complete_f32_weight_materializations": 0,
+    "candidate_artifact_bytes_unchanged": true,
+    "additional_native_scratch_bytes_max_per_projection_invocation": 1048576,
+    "persistent_native_prepack_bytes": 0,
+    "vram_bytes": 0
+  },
+  "decision": {
+    "quality_failure": "r2_1_no_go",
+    "performance_failure": "r2_1_no_go_or_new_compute_hypothesis",
+    "all_gates_pass": "authorize_r2_2_design_only",
+    "authorizes_r2_1_implementation": true,
+    "authorizes_official_performance_before_quality_pass": false,
+    "authorizes_r2_2_implementation": false,
+    "authorizes_m6_4": false,
+    "authorizes_all_layer_rollout": false
+  },
+  "results_seen": false
+}

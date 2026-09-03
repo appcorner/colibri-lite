@@ -142,6 +142,7 @@
 !/models/qwen3-30b-a3b/m6.3-r2-0-observer-controls-v5.json
 !/models/qwen3-30b-a3b/m6.3-r2-0-validation-correction-v1.json
 !/models/qwen3-30b-a3b/m6.3-r2-0-timer-calibration-correction-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-1-native-packed-projection-contract-v1.json
 /.idea/
 /.vscode/
 *.pdb

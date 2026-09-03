@@ -937,10 +937,25 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   `044e6d1d6a5b59953c2b603489d24e304290d5ce0d85d82b4de6d4c8e5b362cb`.
   R2.1 hypothesis design is authorized; optimization implementation and M6.4
   remain blocked.
-- [ ] M6.3-R2.1-PR Pre-register a packed-projection compute optimization
-  hypothesis and vertical-slice proof. Design may evaluate an optimized/fused
-  dequant-dot/GEMM native backend behind Rust orchestration, but must freeze
-  numerical-quality guards and paired performance gates before implementation.
+- [x] M6.3-R2.1-PR Pre-register the AVX2+FMA native packed-projection vertical
+  slice in ADR 0087. The unchanged group32 artifact remains authoritative;
+  native code may replace only gate/up/down packed projection arithmetic behind
+  Rust orchestration. The contract freezes quality-before-performance gates,
+  one isolated reviewed FFI/unsafe boundary, resource limits, all six balanced
+  native/scalar/F32 triplet orders, and 72 official performance samples.
+  Contract SHA-256:
+  `76bfc4a850a8d89fb5901eda338568b7226b36acb7207324575568ea21f6cc2a`.
+- [ ] M6.3-R2.1a Implement the Layer-0 AVX2+FMA kernel and smallest FFI wrapper,
+  including the dependency/unsafe review, AVX2+FMA runtime detection, scalar
+  fallback, canary/bounds tests, <=1 MiB scratch, zero persistent prepack, and
+  zero complete F32 weight materializations. No official performance timing.
+- [ ] M6.3-R2.1b Run held-out quality/correctness gates before performance.
+  Any quality failure closes the candidate NO-GO without official timing.
+- [ ] M6.3-R2.1c After quality PASS, freeze one three-path release binary and run
+  72 official native/scalar/F32 process samples using all six triplet orders.
+- [ ] M6.3-R2.1d Apply the frozen performance/resource gates. PASS may authorize
+  R2.2 design only; R2.2 implementation, all-layer rollout, and M6.4 remain
+  blocked.
 
 The R2.0 protocol is
 `docs/reports/m6.3-r2-0-expert-compute-bottleneck-localization-protocol.md`.
@@ -953,8 +968,10 @@ closed R1.3 measurement; and ADR 0078 closes the current re-entry path
 `NO-GO for promotion`. ADR 0079 opened diagnostic R2.0; ADRs 0080-0085 record
 measurement-method and validation corrections without changing the immutable
 localization samples; ADR 0086 closes R2.0 `packed_projection_compute_bound`.
-The exact next task is `M6.3-R2.1-PR` hypothesis design and pre-registration.
-Optimization implementation and M6.4 remain blocked.
+ADR 0087 now pre-registers one AVX2+FMA native packed-projection vertical slice.
+The exact next task is `M6.3-R2.1a` implementation plus its dedicated
+unsafe/dependency review; official performance timing remains blocked until
+R2.1b quality PASS, and M6.4 remains blocked.
 
 ## Standard verification commands
 
