@@ -919,15 +919,28 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   observer-control pairs, byte/timer/retry gates, and ADR 0079 classification.
   Focused verification passed 5 Rust and 13 Python tests. See
   `docs/reports/m6.3-r2-0a-instrumentation-validator.md`.
-- [ ] M6.3-R2.0b Freeze reference-only Layer-0 expert-input/router fixtures for
-  `short_english` and `short_thai`, then freeze the instrumented commit, release
-  binary SHA-256, fixture-record SHA-256, timer identity, and collector versions.
-- [ ] M6.3-R2.0c Run 40 valid release-process localization samples: two fixtures
-  x two views x five F32/candidate pairs x two paths. No automatic retry.
-- [ ] M6.3-R2.0d Apply ADR 0079 classification exactly and close R2.0 as
-  `packed_projection_compute_bound`, `load_decode_bound`,
-  `routing_accumulation_bound`, or `mixed_or_distributed`. The result may
-  authorize an R2.1 hypothesis design only; M6.4 remains blocked.
+- [x] M6.3-R2.0b Freeze reference-only Layer-0 expert-input/router fixtures for
+  `short_english` and `short_thai`, then freeze execution identities. The
+  reference record SHA-256 is
+  `c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2`;
+  the final measurement binary SHA-256 is
+  `aced59ad9ffa9ed153f1d817f37beeda521061f0d2025935aab8c341889efb8e`.
+  Observer controls v5 passed 20/20 pair-processes on that exact binary.
+- [x] M6.3-R2.0c Run 40 valid release-process localization samples: two fixtures
+  x two views x five F32/candidate pairs x two paths, with no automatic retry.
+  Immutable sample SHA-256 is
+  `e38688ae1309c411c11309def37b5b2ef6e84eb634dee244bb565a41b7eb7942`.
+- [x] M6.3-R2.0d Apply ADR 0079 classification exactly. ADR 0086 closes R2.0
+  `packed_projection_compute_bound`: candidate compute-only is slower 5/5 for
+  both fixtures and packed gate+up+down consumes median 91.44% English / 92.04%
+  Thai expert time. Result SHA-256 is
+  `044e6d1d6a5b59953c2b603489d24e304290d5ce0d85d82b4de6d4c8e5b362cb`.
+  R2.1 hypothesis design is authorized; optimization implementation and M6.4
+  remain blocked.
+- [ ] M6.3-R2.1-PR Pre-register a packed-projection compute optimization
+  hypothesis and vertical-slice proof. Design may evaluate an optimized/fused
+  dequant-dot/GEMM native backend behind Rust orchestration, but must freeze
+  numerical-quality guards and paired performance gates before implementation.
 
 The R2.0 protocol is
 `docs/reports/m6.3-r2-0-expert-compute-bottleneck-localization-protocol.md`.
@@ -937,10 +950,11 @@ The complete re-entry protocol is
 R1.1a group-32 characterization winner without rewriting the historical R1.1
 `no_candidate_admitted` record; ADR 0071 closed R1.2 quality `GO`; ADR 0077
 closed R1.3 measurement; and ADR 0078 closes the current re-entry path
-`NO-GO for promotion`. ADR 0079 now pre-registers diagnostic R2.0 and R2.0a
-measurement-only instrumentation is complete for review. The exact next task
-is `M6.3-R2.0b` reference-only fixture freeze and execution-identity binding.
-M6.4 remains blocked.
+`NO-GO for promotion`. ADR 0079 opened diagnostic R2.0; ADRs 0080-0085 record
+measurement-method and validation corrections without changing the immutable
+localization samples; ADR 0086 closes R2.0 `packed_projection_compute_bound`.
+The exact next task is `M6.3-R2.1-PR` hypothesis design and pre-registration.
+Optimization implementation and M6.4 remain blocked.
 
 ## Standard verification commands
 

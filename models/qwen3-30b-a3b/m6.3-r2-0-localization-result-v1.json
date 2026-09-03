@@ -1,0 +1,79 @@
+{
+  "authorizes_m6_4": false,
+  "authorizes_r2_1_hypothesis_design": true,
+  "authorizes_r2_1_optimization_implementation": false,
+  "classification": "packed_projection_compute_bound",
+  "classification_details": {
+    "compute_only_candidate_slower_pairs": {
+      "short_english": 5,
+      "short_thai": 5
+    },
+    "compute_only_median_family_delta_nanos_per_occurrence": {
+      "short_english": {
+        "down_projection": 1105428.25,
+        "exclusive_residual": 756831.25,
+        "gate_up_activation": 2130657.5,
+        "load_decode": 0.0,
+        "routing_accumulation": -703.75
+      },
+      "short_thai": {
+        "down_projection": 1247504.5,
+        "exclusive_residual": 734322.5,
+        "gate_up_activation": 2359313.5,
+        "load_decode": 0.0,
+        "routing_accumulation": -90.0
+      }
+    },
+    "load_decode_share_percent": {
+      "short_english": 21.53674959501238,
+      "short_thai": 23.155554728586345
+    },
+    "load_plus_candidate_slower_pairs": {
+      "short_english": 0,
+      "short_thai": 0
+    },
+    "packed_projection_share_percent": {
+      "short_english": 91.44250894620292,
+      "short_thai": 92.04321885178575
+    },
+    "routing_accumulation_share_percent": {
+      "short_english": 0.04566795890412826,
+      "short_thai": 0.045990543017536925
+    }
+  },
+  "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+  "observer_control_process_samples": 20,
+  "observer_overhead_percent": {
+    "short_english:candidate": [
+      1.8506656803065535,
+      -2.912691440855476,
+      -1.8357549054665654,
+      -2.8791362810718324,
+      -2.0739300340400204
+    ],
+    "short_english:reference": [
+      -2.656644048395288,
+      1.3630048651595856,
+      -1.672093063709715,
+      -2.111854257383488,
+      1.6324592581995416
+    ],
+    "short_thai:candidate": [
+      -0.6458259183167648,
+      1.0621296796842012,
+      -2.296890726867105,
+      -5.022289385007553,
+      -0.9609290426291557
+    ],
+    "short_thai:reference": [
+      0.5399489762857328,
+      2.146120540321221,
+      1.0094676614950815,
+      -1.9451196559337822,
+      -1.3836940124494563
+    ]
+  },
+  "sample_count": 40,
+  "schema": "m6.3-r2.0-localization-result-v1",
+  "status": "valid_localization_set"
+}

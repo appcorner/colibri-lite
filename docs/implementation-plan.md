@@ -639,16 +639,24 @@ R2.0 may authorize only an R2.1 hypothesis design. It does not authorize SIMD,
 FFI/native kernels, cache-policy changes, new quantization, all-layer rollout,
 or M6.4 implementation.
 
-R2.0a is complete for review. The test-only `m6-3-r2-localization` feature now
-observes the existing F32 and group-32 load/compute/routing operations without
-rewriting them, including batched low-overhead F32 row timing, packed logical
-read accounting, hierarchical residuals, no-op timer calibration, and
-same-binary enabled/disabled controls. The validator prospectively enforces the
-40 localization samples, 20 observer-control pairs, frozen pair order,
-read/retry/timer gates, and ADR 0079 classifications. No localization result
-was generated. The exact next task is R2.0b: freeze reference-only Layer-0
-expert input/router evidence and bind the instrumented source, release binary,
-fixture record, timer, and collector identities before candidate timing.
+R2.0 is now closed. Reference-only Layer-0 fixtures and execution identities
+were frozen before candidate timing, final observer controls passed on the exact
+measurement binary, and 40/40 localization samples completed without automatic
+retry. ADRs 0080-0085 record measurement-method and validation-only corrections;
+none changed the immutable sample set or ADR 0079 classification thresholds.
+
+ADR 0086 classifies the result `packed_projection_compute_bound`. Candidate
+compute-only expert time is slower than F32 in 5/5 English and 5/5 Thai pairs,
+with median slowdowns +77.35% and +85.79%; packed gate+up+down projections
+account for median 91.44% and 92.04% of candidate expert time. Conversely,
+load-plus-compute candidate totals are faster in all pairs, showing that the
+primary remaining group32 slowdown is packed projection compute rather than
+load/decode. R2.1 hypothesis design is authorized, but optimization
+implementation, all-layer rollout, and M6.4 remain blocked.
+
+The exact next task is `M6.3-R2.1-PR`: pre-register a small vertical-slice
+packed-projection compute hypothesis, numerical-quality guards, and paired
+performance gates before implementing any fused/native backend.
 
 #### M6.4 - Full hardware-aware runtime
 
