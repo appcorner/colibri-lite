@@ -1,0 +1,59 @@
+{
+  "schema": "m6.3-r2.0-localization-harness-amendment-v1",
+  "schema_version": 1,
+  "status": "preregistered_after_observer_v4_pass_before_localization",
+  "localization_contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+  "measurement_method_contract_sha256": "ee2a85a1531956ad790e27c52bfb87cc7014c93dc4140d85576d020e5a45307f",
+  "observer_v4_controls_sha256": "a6cf0d7518e889ddc27234de7a45100a0c8363e31fa0a3eec61dc29feed3a687",
+  "observer_v4_release_binary_sha256": "432ff725e6598b9dbc6739ecd36ef52a38d13e094c7275a96fa05fe8b01a4f70",
+  "observer_v4_passed": true,
+  "candidate_localization_results_seen": false,
+  "localization_sample_count_seen": 0,
+  "discovered_gaps": [
+    "missing_load_plus_compute_sample_entrypoint",
+    "validator_reference_stage_mapping_precedes_coarse_f32_timing"
+  ],
+  "authorized_changes": [
+    "measurement_only_load_plus_compute_harness",
+    "coarse_f32_validator_family_mapping",
+    "final_execution_manifest_and_runner",
+    "observer_rerun_on_final_binary"
+  ],
+  "reference_cross_path_family": "gate_up_activation",
+  "reference_cross_path_sources": ["f32_gate_up_activation_combined"],
+  "candidate_cross_path_sources": [
+    "gate_packed_projection",
+    "up_packed_projection",
+    "activation_product"
+  ],
+  "candidate_packed_projection_share_sources": [
+    "gate_packed_projection",
+    "up_packed_projection",
+    "down_packed_projection"
+  ],
+  "load_plus_compute": {
+    "warmup_iterations": 2,
+    "timed_iterations": 10,
+    "software_expert_state_reset_each_iteration": true,
+    "os_filesystem_cache": "observed_not_flushed",
+    "physical_io_claim_authorized": false
+  },
+  "frozen_invariants": {
+    "fixtures": ["short_english", "short_thai"],
+    "localization_process_samples": 40,
+    "path_pair_order_changed": false,
+    "observer_numeric_gates_changed": false,
+    "classification_thresholds_changed": false,
+    "model_arithmetic_change_allowed": false,
+    "candidate_timing_change_allowed": false,
+    "quantization_change_allowed": false,
+    "cache_policy_change_allowed": false,
+    "automatic_retry": false
+  },
+  "observer_v4_authorizes_new_binary": false,
+  "final_binary_requires_fresh_observer_pass": true,
+  "authorizes_localization_harness_implementation": true,
+  "authorizes_localization_samples": false,
+  "authorizes_r2_1_hypothesis_design": false,
+  "authorizes_m6_4": false
+}
