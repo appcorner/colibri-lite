@@ -10,6 +10,9 @@ from pathlib import Path
 from typing import Any
 
 CONTRACT_SHA256 = "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca"
+METHOD_SHA256 = "ee2a85a1531956ad790e27c52bfb87cc7014c93dc4140d85576d020e5a45307f"
+HARNESS_AMENDMENT_SHA256 = "c3409036b22b85ab176477e662d26c15fa18cede724e57f8ea61ecc3ddc75894"
+OBSERVER_V4_SHA256 = "a6cf0d7518e889ddc27234de7a45100a0c8363e31fa0a3eec61dc29feed3a687"
 FIXTURES = ("short_english", "short_thai")
 VIEWS = {
     "compute_only_preloaded": 25,
@@ -41,9 +44,7 @@ CANDIDATE_COMPUTE = (
 REFERENCE_RAW = (
     "cache_lookup_load",
     "f32_payload_decode",
-    "gate_projection",
-    "up_projection",
-    "activation_product",
+    "f32_gate_up_activation_combined",
     "down_projection",
 )
 COMMON_RAW = (
@@ -52,9 +53,7 @@ COMMON_RAW = (
 )
 FAMILIES = (
     "load_decode",
-    "gate_projection",
-    "up_projection",
-    "activation_product",
+    "gate_up_activation",
     "down_projection",
     "routing_accumulation",
     "exclusive_residual",
@@ -120,32 +119,39 @@ def family_sources(path: str) -> dict[str, tuple[str, ...]]:
     if path == "candidate":
         return {
             "load_decode": CANDIDATE_LOAD,
-            "gate_projection": ("gate_packed_projection",),
-            "up_projection": ("up_packed_projection",),
-            "activation_product": ("activation_product",),
+            "gate_up_activation": (
+                "gate_packed_projection",
+                "up_packed_projection",
+                "activation_product",
+            ),
             "down_projection": ("down_packed_projection",),
             "routing_accumulation": COMMON_RAW,
         }
     return {
         "load_decode": ("cache_lookup_load", "f32_payload_decode"),
-        "gate_projection": ("gate_projection",),
-        "up_projection": ("up_projection",),
-        "activation_product": ("activation_product",),
+        "gate_up_activation": ("f32_gate_up_activation_combined",),
         "down_projection": ("down_projection",),
         "routing_accumulation": COMMON_RAW,
     }
 
 
+def interpretable_event_total(sample: dict[str, Any], name: str) -> int:
+    event = event_for(sample, name)
+    minimum = 20 * sample["timer_noop_median_nanos"]
+    if event["calls"] and event["median_nanos"] >= minimum:
+        return event["total_nanos"]
+    return 0
+
+
 def effective_families(sample: dict[str, Any]) -> dict[str, int]:
-    noop = sample["timer_noop_median_nanos"]
-    minimum = 20 * noop
     values = {name: 0 for name in FAMILIES}
     values["exclusive_residual"] = sample["exclusive_residual_nanos"]
     for family, names in family_sources(sample["path"]).items():
         for name in names:
             event = event_for(sample, name)
-            if event["calls"] and event["median_nanos"] >= minimum:
-                values[family] += event["total_nanos"]
+            interpreted = interpretable_event_total(sample, name)
+            if interpreted:
+                values[family] += interpreted
             else:
                 values["exclusive_residual"] += event["total_nanos"]
     return values
@@ -221,9 +227,14 @@ def validate_controls(controls: list[dict[str, Any]], binary: str, host: str) ->
         uninstrumented = control.get("uninstrumented_total_nanos")
         require(isinstance(instrumented, int) and instrumented > 0, "observer instrumented timing")
         require(isinstance(uninstrumented, int) and uninstrumented > 0, "observer uninstrumented timing")
-        overhead = 100.0 * (instrumented - uninstrumented) / uninstrumented
-        require(overhead <= 10.0, "observer-effect pair exceeds 10 percent")
-        grouped.setdefault(f"{fixture}:{path}", []).append(overhead)
+        mini = control.get("mini_pair_overhead_percent")
+        require(isinstance(mini, list) and len(mini) == 5, "observer mini-pair coverage")
+        require(all(isinstance(value, (int, float)) for value in mini), "observer mini-pair timing")
+        overhead = control.get("overhead_percent")
+        require(isinstance(overhead, (int, float)), "observer outer-pair overhead")
+        require(abs(float(overhead) - statistics.median(mini)) < 1e-9, "observer mini-pair median binding")
+        require(float(overhead) <= 10.0, "observer-effect pair exceeds 10 percent")
+        grouped.setdefault(f"{fixture}:{path}", []).append(float(overhead))
     require(len(seen) == 20, "observer control matrix")
     for key, values in grouped.items():
         require(len(values) == 5, f"{key}: observer pair count")
@@ -253,6 +264,13 @@ def validate_matrix(samples: list[dict[str, Any]], binary: str, host: str) -> di
             for pair, order in enumerate(PAIR_ORDER, start=1):
                 for path in order:
                     require((fixture, view, pair, path) in index, "incomplete localization matrix")
+        for path in PATHS:
+            outputs = {
+                index[(fixture, view, pair, path)]["output_sha256"]
+                for view in VIEWS
+                for pair in range(1, 6)
+            }
+            require(len(outputs) == 1, f"{fixture}/{path}: localization output drift")
     require(len(index) == 40, "localization matrix uniqueness")
     return index
 
@@ -283,6 +301,25 @@ def median_candidate_share(index: dict[tuple[str, str, int, str], dict[str, Any]
         shares.append(100.0 * numerator / denominator)
     return statistics.median(shares)
 
+
+def median_candidate_packed_projection_share(
+    index: dict[tuple[str, str, int, str], dict[str, Any]], fixture: str, view: str
+) -> float:
+    shares = []
+    for pair in range(1, 6):
+        sample = index[(fixture, view, pair, "candidate")]
+        numerator = sum(
+            interpretable_event_total(sample, name)
+            for name in (
+                "gate_packed_projection",
+                "up_packed_projection",
+                "down_packed_projection",
+            )
+        )
+        denominator = sample["stages"]["expert_total"]["total_nanos"]
+        shares.append(100.0 * numerator / denominator)
+    return statistics.median(shares)
+
 def median_family_delta(index: dict[tuple[str, str, int, str], dict[str, Any]], fixture: str, view: str, family: str) -> float:
     deltas = []
     for pair in range(1, 6):
@@ -298,11 +335,8 @@ def classify(index: dict[tuple[str, str, int, str], dict[str, Any]]) -> tuple[st
         for fixture in FIXTURES
     }
     packed_share = {
-        fixture: median_candidate_share(
-            index,
-            fixture,
-            "compute_only_preloaded",
-            ("gate_projection", "up_projection", "down_projection"),
+        fixture: median_candidate_packed_projection_share(
+            index, fixture, "compute_only_preloaded"
         )
         for fixture in FIXTURES
     }
@@ -357,6 +391,10 @@ def classify(index: dict[tuple[str, str, int, str], dict[str, Any]]) -> tuple[st
 def validate_document(document: dict[str, Any]) -> dict[str, Any]:
     require(document.get("schema") == "m6.3-r2.0-localization-samples-v1", "evidence schema")
     require(document.get("contract_sha256") == CONTRACT_SHA256, "contract identity")
+    require(document.get("measurement_method_contract_sha256") == METHOD_SHA256, "measurement method identity")
+    require(document.get("localization_harness_amendment_sha256") == HARNESS_AMENDMENT_SHA256, "harness amendment identity")
+    require(document.get("prior_observer_v4_controls_sha256") == OBSERVER_V4_SHA256, "observer v4 provenance")
+    require(is_sha256(document.get("observer_controls_sha256")), "fresh observer controls identity")
     require(is_sha256(document.get("reference_fixture_record_sha256")), "fixture record hash")
     require(is_sha256(document.get("execution_manifest_sha256")), "execution manifest hash")
     require(is_sha256(document.get("instrumented_source_commit")), "instrumented commit")
@@ -379,7 +417,7 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
         "status": "valid_localization_set",
         "contract_sha256": CONTRACT_SHA256,
         "sample_count": 40,
-        "observer_control_process_samples": 40,
+        "observer_control_process_samples": 20,
         "classification": classification,
         "classification_details": details,
         "observer_overhead_percent": observer,

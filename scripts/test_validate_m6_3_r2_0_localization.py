@@ -43,11 +43,11 @@ def candidate_stage_values(kind: str, view: str) -> dict[str, int]:
 
 def reference_stage_values(kind: str, view: str) -> dict[str, int]:
     if kind == "routing":
-        values = {"gate_projection": 70, "up_projection": 70, "activation_product": 30, "down_projection": 80, "routing_occurrence_scan": 25, "weighted_accumulation": 25}
+        values = {"f32_gate_up_activation_combined": 170, "down_projection": 80, "routing_occurrence_scan": 25, "weighted_accumulation": 25}
     else:
-        values = {"gate_projection": 120, "up_projection": 120, "activation_product": 30, "down_projection": 160, "routing_occurrence_scan": 20, "weighted_accumulation": 20}
+        values = {"f32_gate_up_activation_combined": 270, "down_projection": 160, "routing_occurrence_scan": 20, "weighted_accumulation": 20}
     if kind == "mixed":
-        values = {"gate_projection": 80, "up_projection": 80, "activation_product": 30, "down_projection": 90, "routing_occurrence_scan": 40, "weighted_accumulation": 40}
+        values = {"f32_gate_up_activation_combined": 190, "down_projection": 90, "routing_occurrence_scan": 40, "weighted_accumulation": 40}
     if view == "load_plus_compute":
         values["cache_lookup_load"] = 50
         values["f32_payload_decode"] = 50
@@ -109,8 +109,10 @@ def make_controls() -> list[dict]:
                     "host_id": HOST,
                     "instrumented_output_sha256": output,
                     "uninstrumented_output_sha256": output,
-                    "instrumented_total_nanos": 101,
-                    "uninstrumented_total_nanos": 100,
+                    "instrumented_total_nanos": 505,
+                    "uninstrumented_total_nanos": 500,
+                    "mini_pair_overhead_percent": [1.0] * 5,
+                    "overhead_percent": 1.0,
                 })
     return controls
 
@@ -125,6 +127,10 @@ def make_document(kind: str = "compute") -> dict:
     return {
         "schema": "m6.3-r2.0-localization-samples-v1",
         "contract_sha256": validator.CONTRACT_SHA256,
+        "measurement_method_contract_sha256": validator.METHOD_SHA256,
+        "localization_harness_amendment_sha256": validator.HARNESS_AMENDMENT_SHA256,
+        "prior_observer_v4_controls_sha256": validator.OBSERVER_V4_SHA256,
+        "observer_controls_sha256": "9" * 64,
         "reference_fixture_record_sha256": SHA,
         "execution_manifest_sha256": "d" * 64,
         "instrumented_source_commit": "e" * 64,
@@ -164,14 +170,16 @@ class LocalizationValidatorTests(unittest.TestCase):
             validator.validate_document(document)
     def test_rejects_observer_pair_over_ten_percent(self) -> None:
         document = make_document()
-        document["observer_controls"][0]["instrumented_total_nanos"] = 111
+        document["observer_controls"][0]["mini_pair_overhead_percent"] = [11.0] * 5
+        document["observer_controls"][0]["overhead_percent"] = 11.0
         with self.assertRaisesRegex(validator.ValidationError, "exceeds 10 percent"):
             validator.validate_document(document)
 
     def test_rejects_observer_median_over_five_percent(self) -> None:
         document = make_document()
         for control in document["observer_controls"][:5]:
-            control["instrumented_total_nanos"] = 106
+            control["mini_pair_overhead_percent"] = [6.0] * 5
+            control["overhead_percent"] = 6.0
         with self.assertRaisesRegex(validator.ValidationError, "median exceeds 5 percent"):
             validator.validate_document(document)
 

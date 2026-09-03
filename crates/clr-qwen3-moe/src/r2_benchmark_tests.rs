@@ -11,7 +11,8 @@ use crate::{
     block::RouterOutput,
     r1_1_direct_candidate::{
         R1_1CandidateReader, R1_1PackedArtifactLayout, R2PreloadedCandidateExperts,
-        r2_preload_candidate_experts, r2_routed_preloaded_candidate,
+        r1_1_routed_experts_with_observer, r2_preload_candidate_experts,
+        r2_routed_preloaded_candidate,
     },
     r2_localization,
     streaming::{
@@ -836,4 +837,349 @@ fn m6_3_r2_0_observer_interleaved_pair_sample() {
         mini_pair_documents.join(","),
     );
     fs::write(output_path, document).expect("write R2.0 interleaved observer sample");
+}
+
+#[derive(Debug)]
+struct LocalizationRun {
+    timed_total_nanos: u128,
+    snapshot: r2_localization::Snapshot,
+    output: Tensor,
+    candidate_payload_bytes: u64,
+    f32_expert_load_bytes: u64,
+}
+
+fn selected_unique_expert_count(run: &FrozenRuntimeFixture) -> usize {
+    let mut selected = run.router.selected_experts.clone();
+    selected.sort_unstable();
+    selected.dedup();
+    selected.len()
+}
+
+fn warm_load_plus_reference(run: &FrozenRuntimeFixture) {
+    let artifact_root =
+        PathBuf::from(env::var_os("COLIBRI_ARTIFACT_ROOT").expect("canonical artifact root"));
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("R2.0 config")
+        .runtime_config();
+    let layout = PackedExpertLayout::for_config(config);
+    for _ in 0..2 {
+        let mut store = canonical_layer0_expert_store(&artifact_root);
+        std::hint::black_box(
+            streaming_routed_experts_with_observer(
+                run.input.view(),
+                &run.router,
+                config,
+                0,
+                &mut store,
+                layout,
+                |_, _, _, _| {},
+            )
+            .expect("F32 load-plus warmup"),
+        );
+    }
+}
+
+fn run_load_plus_reference(run: &FrozenRuntimeFixture) -> LocalizationRun {
+    warm_load_plus_reference(run);
+    let artifact_root =
+        PathBuf::from(env::var_os("COLIBRI_ARTIFACT_ROOT").expect("canonical artifact root"));
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("R2.0 config")
+        .runtime_config();
+    let layout = PackedExpertLayout::for_config(config);
+    let session = r2_localization::start(true);
+    let mut timed_total_nanos = 0_u128;
+    let mut f32_expert_load_bytes = 0_u64;
+    let mut last = None;
+    for _ in 0..10 {
+        let mut store = canonical_layer0_expert_store(&artifact_root);
+        let started = Instant::now();
+        let output = streaming_routed_experts_with_observer(
+            run.input.view(),
+            &run.router,
+            config,
+            0,
+            &mut store,
+            layout,
+            |_, _, _, _| {},
+        )
+        .expect("F32 timed load-plus compute");
+        timed_total_nanos = timed_total_nanos.saturating_add(started.elapsed().as_nanos());
+        f32_expert_load_bytes = f32_expert_load_bytes.saturating_add(store.metrics().bytes_read);
+        std::hint::black_box(output.data().first().copied());
+        last = Some(output);
+    }
+    let snapshot = r2_localization::finish(session);
+    LocalizationRun {
+        timed_total_nanos,
+        snapshot,
+        output: last.expect("F32 load-plus output"),
+        candidate_payload_bytes: 0,
+        f32_expert_load_bytes,
+    }
+}
+
+fn verified_candidate_reader() -> R1_1CandidateReader {
+    let candidate_path =
+        PathBuf::from(env::var_os("COLIBRI_R2_CANDIDATE_PATH").expect("R2.0 candidate path"));
+    R1_1CandidateReader::open(
+        &candidate_path,
+        R1_1PackedArtifactLayout::canonical(32).expect("group-32 layout"),
+        CANDIDATE_SHA256,
+    )
+    .expect("verified group-32 candidate")
+}
+
+fn warm_load_plus_candidate(run: &FrozenRuntimeFixture, verified: &R1_1CandidateReader) {
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("R2.0 config")
+        .runtime_config();
+    for _ in 0..2 {
+        let mut reader = verified
+            .reopen_verified_for_measurement()
+            .expect("reopen candidate warmup reader");
+        std::hint::black_box(
+            r1_1_routed_experts_with_observer(
+                run.input.view(),
+                &run.router,
+                config,
+                &mut reader,
+                |_, _, _, _| {},
+            )
+            .expect("candidate load-plus warmup"),
+        );
+    }
+}
+
+fn run_load_plus_candidate(run: &FrozenRuntimeFixture) -> LocalizationRun {
+    let verified = verified_candidate_reader();
+    warm_load_plus_candidate(run, &verified);
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("R2.0 config")
+        .runtime_config();
+    let session = r2_localization::start(true);
+    let mut timed_total_nanos = 0_u128;
+    let mut candidate_payload_bytes = 0_u64;
+    let mut last = None;
+    for _ in 0..10 {
+        let mut reader = verified
+            .reopen_verified_for_measurement()
+            .expect("reopen candidate timed reader");
+        let started = Instant::now();
+        let output = r1_1_routed_experts_with_observer(
+            run.input.view(),
+            &run.router,
+            config,
+            &mut reader,
+            |_, _, _, _| {},
+        )
+        .expect("candidate timed load-plus compute");
+        timed_total_nanos = timed_total_nanos.saturating_add(started.elapsed().as_nanos());
+        candidate_payload_bytes =
+            candidate_payload_bytes.saturating_add(reader.payload_bytes_read());
+        std::hint::black_box(output.data().first().copied());
+        last = Some(output);
+    }
+    let snapshot = r2_localization::finish(session);
+    LocalizationRun {
+        timed_total_nanos,
+        snapshot,
+        output: last.expect("candidate load-plus output"),
+        candidate_payload_bytes,
+        f32_expert_load_bytes: 0,
+    }
+}
+
+fn localization_expected_bytes(run: &FrozenRuntimeFixture, view: &str, path: &str) -> u64 {
+    if view == "compute_only_preloaded" {
+        return 0;
+    }
+    let unique = u64::try_from(selected_unique_expert_count(run)).expect("unique expert count");
+    let per_expert = if path == "reference" {
+        let config = PINNED_QWEN3_30B_A3B_CONFIG
+            .map_to_f32_runtime()
+            .expect("R2.0 config")
+            .runtime_config();
+        u64::try_from(PackedExpertLayout::for_config(config).total_byte_length)
+            .expect("F32 expert bytes")
+    } else {
+        u64::try_from(
+            R1_1PackedArtifactLayout::canonical(32)
+                .expect("group-32 layout")
+                .expert_bytes()
+                .expect("group-32 expert bytes"),
+        )
+        .expect("candidate expert bytes")
+    };
+    unique
+        .checked_mul(per_expert)
+        .and_then(|value| value.checked_mul(10))
+        .expect("R2.0 expected logical bytes")
+}
+
+fn snapshot_logical_bytes(snapshot: &r2_localization::Snapshot) -> u64 {
+    snapshot
+        .events
+        .values()
+        .map(|event| event.logical_bytes)
+        .sum()
+}
+
+fn run_localization_view(run: &FrozenRuntimeFixture, view: &str, path: &str) -> LocalizationRun {
+    match (view, path) {
+        ("compute_only_preloaded", "reference") => {
+            let (timed_total_nanos, snapshot, output) = run_preloaded_reference(run, true);
+            LocalizationRun {
+                timed_total_nanos,
+                snapshot,
+                output,
+                candidate_payload_bytes: 0,
+                f32_expert_load_bytes: 0,
+            }
+        }
+        ("compute_only_preloaded", "candidate") => {
+            let (timed_total_nanos, snapshot, output) = run_preloaded_candidate(run, true);
+            LocalizationRun {
+                timed_total_nanos,
+                snapshot,
+                output,
+                candidate_payload_bytes: 0,
+                f32_expert_load_bytes: 0,
+            }
+        }
+        ("load_plus_compute", "reference") => run_load_plus_reference(run),
+        ("load_plus_compute", "candidate") => run_load_plus_candidate(run),
+        _ => panic!("invalid R2.0 localization view/path"),
+    }
+}
+
+#[test]
+fn m6_3_r2_0_localization_single_sample() {
+    let fixture_name = env::var("COLIBRI_R2_FIXTURE").expect("R2.0 fixture name");
+    let view = env::var("COLIBRI_R2_VIEW").expect("R2.0 localization view");
+    assert!(matches!(
+        view.as_str(),
+        "compute_only_preloaded" | "load_plus_compute"
+    ));
+    let path = env::var("COLIBRI_R2_PATH").expect("R2.0 localization path");
+    assert!(matches!(path.as_str(), "reference" | "candidate"));
+    let pair: usize = env::var("COLIBRI_R2_PAIR")
+        .expect("R2.0 pair")
+        .parse()
+        .expect("numeric R2.0 pair");
+    let order_index: usize = env::var("COLIBRI_R2_ORDER_INDEX")
+        .expect("R2.0 order index")
+        .parse()
+        .expect("numeric R2.0 order index");
+    assert!((1..=5).contains(&pair));
+    assert!(matches!(order_index, 1 | 2));
+    let output_path = PathBuf::from(
+        env::var_os("COLIBRI_R2_SAMPLE_OUTPUT").expect("R2.0 localization sample output"),
+    );
+    assert!(
+        !output_path.exists(),
+        "R2.0 localization output must be new"
+    );
+    let run = build_runtime_fixture(&fixture_name, false);
+    verify_fixture_identity(&run);
+    let noop = r2_localization::calibrate_noop(101);
+    let result = run_localization_view(&run, &view, &path);
+    let output_sha256 = f32_little_endian_sha256(result.output.data());
+    if path == "reference" {
+        assert_eq!(
+            output_sha256,
+            env::var("COLIBRI_R2_EXPECT_REFERENCE_OUTPUT_SHA256")
+                .expect("expected reference output SHA"),
+            "R2.0 localization reference output identity",
+        );
+    }
+    let timed_iterations = if view == "compute_only_preloaded" {
+        25
+    } else {
+        10
+    };
+    let expected_logical_expert_bytes = localization_expected_bytes(&run, &view, &path);
+    let logical_expert_bytes = snapshot_logical_bytes(&result.snapshot);
+    assert_eq!(logical_expert_bytes, expected_logical_expert_bytes);
+    if path == "candidate" {
+        assert_eq!(
+            result.candidate_payload_bytes,
+            expected_logical_expert_bytes
+        );
+        assert_eq!(result.f32_expert_load_bytes, 0);
+    } else {
+        assert_eq!(result.f32_expert_load_bytes, expected_logical_expert_bytes);
+        assert_eq!(result.candidate_payload_bytes, 0);
+    }
+    let unique_expert_loads = result
+        .snapshot
+        .counters
+        .get("unique_expert_loads")
+        .copied()
+        .unwrap_or(0);
+    let expected_unique_expert_loads = if view == "compute_only_preloaded" {
+        0
+    } else {
+        u64::try_from(selected_unique_expert_count(&run))
+            .expect("unique expert count")
+            .checked_mul(10)
+            .expect("expected unique expert loads")
+    };
+    assert_eq!(unique_expert_loads, expected_unique_expert_loads);
+    let expert_occurrences = result
+        .snapshot
+        .counters
+        .get("expert_occurrences")
+        .copied()
+        .unwrap_or(0);
+    assert!(expert_occurrences > 0);
+    let expert_total = result
+        .snapshot
+        .events
+        .get("expert_total")
+        .expect("R2.0 expert_total stage");
+    let exclusive_residual_nanos = expert_total.exclusive_nanos;
+    let attempt_ordinal = 1_u32;
+    let document = format!(
+        concat!(
+            "{{\"schema\":\"m6.3-r2.0-localization-sample-v1\",",
+            "\"contract_sha256\":\"{}\",\"fixture\":\"{}\",",
+            "\"view\":\"{}\",\"path\":\"{}\",",
+            "\"pair\":{},\"order_index\":{},\"attempt_ordinal\":{},",
+            "\"release_binary_sha256\":\"{}\",\"host_id\":\"{}\",",
+            "\"timed_iterations\":{},\"timed_total_nanos\":{},",
+            "\"output_sha256\":\"{}\",\"timer_noop_median_nanos\":{},",
+            "\"expert_occurrences\":{},\"unique_expert_loads\":{},",
+            "\"expected_logical_expert_bytes\":{},\"logical_expert_bytes\":{},",
+            "\"timed_candidate_payload_bytes\":{},",
+            "\"timed_f32_expert_load_bytes\":{},",
+            "\"exclusive_residual_nanos\":{},\"stages\":{}}}\n"
+        ),
+        CONTRACT_SHA256,
+        fixture_name,
+        view,
+        path,
+        pair,
+        order_index,
+        attempt_ordinal,
+        env::var("COLIBRI_R2_RELEASE_BINARY_SHA256").expect("binary SHA"),
+        env::var("COLIBRI_R2_HOST_ID").expect("host ID"),
+        timed_iterations,
+        result.timed_total_nanos,
+        output_sha256,
+        noop.median_nanos,
+        expert_occurrences,
+        unique_expert_loads,
+        expected_logical_expert_bytes,
+        logical_expert_bytes,
+        result.candidate_payload_bytes,
+        result.f32_expert_load_bytes,
+        exclusive_residual_nanos,
+        snapshot_json(&result.snapshot),
+    );
+    fs::write(output_path, document).expect("write R2.0 localization sample");
 }
