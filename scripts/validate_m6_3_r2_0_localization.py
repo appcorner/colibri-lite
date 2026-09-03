@@ -72,6 +72,11 @@ def require(condition: bool, message: str) -> None:
 def is_sha256(value: Any) -> bool:
     return isinstance(value, str) and len(value) == 64 and set(value) <= HEX
 
+
+def is_git_object_id(value: Any) -> bool:
+    return isinstance(value, str) and len(value) in (40, 64) and set(value) <= HEX
+
+
 def validate_event(name: str, event: dict[str, Any]) -> None:
     required = (
         "calls",
@@ -397,7 +402,7 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
     require(is_sha256(document.get("observer_controls_sha256")), "fresh observer controls identity")
     require(is_sha256(document.get("reference_fixture_record_sha256")), "fixture record hash")
     require(is_sha256(document.get("execution_manifest_sha256")), "execution manifest hash")
-    require(is_sha256(document.get("instrumented_source_commit")), "instrumented commit")
+    require(is_git_object_id(document.get("instrumented_source_commit")), "instrumented commit")
     binary = document.get("release_binary_sha256")
     require(is_sha256(binary), "release binary hash")
     host = document.get("host_id")

@@ -168,6 +168,12 @@ class LocalizationValidatorTests(unittest.TestCase):
         document["contract_sha256"] = "0" * 64
         with self.assertRaisesRegex(validator.ValidationError, "contract identity"):
             validator.validate_document(document)
+
+    def test_rejects_invalid_git_object_id(self) -> None:
+        document = make_document()
+        document["instrumented_source_commit"] = "g" * 40
+        with self.assertRaisesRegex(validator.ValidationError, "instrumented commit"):
+            validator.validate_document(document)
     def test_rejects_observer_pair_over_ten_percent(self) -> None:
         document = make_document()
         document["observer_controls"][0]["mini_pair_overhead_percent"] = [11.0] * 5
