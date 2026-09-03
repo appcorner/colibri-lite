@@ -1,0 +1,17 @@
+{
+  "schema": "m6.3-r2.0-validation-correction-v1",
+  "status": "preregistered_after_40_samples_before_classification",
+  "localization_samples_sha256": "e38688ae1309c411c11309def37b5b2ef6e84eb634dee244bb565a41b7eb7942",
+  "failed_run_record_sha256": "1598196120dc6db7392dae1c7847c4ef55f3839df0a99515f679ad691f75789e",
+  "frozen_validator_sha256": "0b94b821d068e22129d1a0901e5a8ed0dbafb23f8e4b478d5ea8a1648b49e819",
+  "instrumented_source_commit": "b4cb158b5cfbaf7ac6a8dae44b929d02f14ae004",
+  "sample_count": 40,
+  "classification_seen": false,
+  "authorizes_r2_1_before_correction": false,
+  "authorizes_m6_4": false,
+  "authorized_change": "accept_git_object_id_40_or_64_lower_hex",
+  "measurement_sample_change_allowed": false,
+  "observer_gate_change_allowed": false,
+  "classification_threshold_change_allowed": false,
+  "benchmark_rerun_allowed": false
+}
