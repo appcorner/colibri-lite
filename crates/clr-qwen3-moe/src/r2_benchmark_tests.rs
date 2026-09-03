@@ -10,12 +10,12 @@ use std::{
 use crate::{
     block::RouterOutput,
     r1_1_direct_candidate::{
-        R1_1CandidateReader, R1_1PackedArtifactLayout, r2_preload_candidate_experts,
-        r2_routed_preloaded_candidate,
+        R1_1CandidateReader, R1_1PackedArtifactLayout, R2PreloadedCandidateExperts,
+        r2_preload_candidate_experts, r2_routed_preloaded_candidate,
     },
     r2_localization,
     streaming::{
-        PackedExpertLayout, r2_preload_f32_experts, r2_routed_preloaded_f32,
+        PackedExpertLayout, R2PreloadedF32Experts, r2_preload_f32_experts, r2_routed_preloaded_f32,
         streaming_routed_experts_with_observer,
     },
 };
@@ -230,10 +230,17 @@ fn snapshot_json(snapshot: &r2_localization::Snapshot) -> String {
     format!("{{{}}}", entries.join(","))
 }
 
-fn run_preloaded_reference(
-    run: &FrozenRuntimeFixture,
-    observer_enabled: bool,
-) -> (u128, r2_localization::Snapshot, Tensor) {
+struct PreparedReference {
+    config: crate::Qwen3MoeConfig,
+    preloaded: R2PreloadedF32Experts,
+}
+
+struct PreparedCandidate {
+    config: crate::Qwen3MoeConfig,
+    preloaded: R2PreloadedCandidateExperts,
+}
+
+fn prepare_preloaded_reference(run: &FrozenRuntimeFixture) -> PreparedReference {
     let artifact_root =
         PathBuf::from(env::var_os("COLIBRI_ARTIFACT_ROOT").expect("canonical artifact root"));
     let config = PINNED_QWEN3_30B_A3B_CONFIG
@@ -244,31 +251,10 @@ fn run_preloaded_reference(
     let mut store = canonical_layer0_expert_store(&artifact_root);
     let preloaded = r2_preload_f32_experts(0, &run.router.selected_experts, &mut store, layout)
         .expect("preload F32 experts");
-    for _ in 0..2 {
-        std::hint::black_box(
-            r2_routed_preloaded_f32(run.input.view(), &run.router, config, &preloaded)
-                .expect("F32 warmup"),
-        );
-    }
-    let session = r2_localization::start(observer_enabled);
-    let mut total_nanos = 0_u128;
-    let mut last = None;
-    for _ in 0..25 {
-        let started = Instant::now();
-        let output = r2_routed_preloaded_f32(run.input.view(), &run.router, config, &preloaded)
-            .expect("F32 timed compute-only");
-        total_nanos = total_nanos.saturating_add(started.elapsed().as_nanos());
-        std::hint::black_box(output.data().first().copied());
-        last = Some(output);
-    }
-    let snapshot = r2_localization::finish(session);
-    (total_nanos, snapshot, last.expect("timed F32 output"))
+    PreparedReference { config, preloaded }
 }
 
-fn run_preloaded_candidate(
-    run: &FrozenRuntimeFixture,
-    observer_enabled: bool,
-) -> (u128, r2_localization::Snapshot, Tensor) {
+fn prepare_preloaded_candidate(run: &FrozenRuntimeFixture) -> PreparedCandidate {
     let candidate_path =
         PathBuf::from(env::var_os("COLIBRI_R2_CANDIDATE_PATH").expect("R2.0 candidate path"));
     let config = PINNED_QWEN3_30B_A3B_CONFIG
@@ -283,10 +269,23 @@ fn run_preloaded_candidate(
     .expect("verified group-32 candidate");
     let preloaded = r2_preload_candidate_experts(&mut reader, &run.router.selected_experts)
         .expect("preload candidate experts");
+    PreparedCandidate { config, preloaded }
+}
+
+fn timed_preloaded_reference(
+    run: &FrozenRuntimeFixture,
+    prepared: &PreparedReference,
+    observer_enabled: bool,
+) -> (u128, r2_localization::Snapshot, Tensor) {
     for _ in 0..2 {
         std::hint::black_box(
-            r2_routed_preloaded_candidate(run.input.view(), &run.router, config, &preloaded)
-                .expect("candidate warmup"),
+            r2_routed_preloaded_f32(
+                run.input.view(),
+                &run.router,
+                prepared.config,
+                &prepared.preloaded,
+            )
+            .expect("F32 warmup"),
         );
     }
     let session = r2_localization::start(observer_enabled);
@@ -294,15 +293,71 @@ fn run_preloaded_candidate(
     let mut last = None;
     for _ in 0..25 {
         let started = Instant::now();
-        let output =
-            r2_routed_preloaded_candidate(run.input.view(), &run.router, config, &preloaded)
-                .expect("candidate timed compute-only");
+        let output = r2_routed_preloaded_f32(
+            run.input.view(),
+            &run.router,
+            prepared.config,
+            &prepared.preloaded,
+        )
+        .expect("F32 timed compute-only");
+        total_nanos = total_nanos.saturating_add(started.elapsed().as_nanos());
+        std::hint::black_box(output.data().first().copied());
+        last = Some(output);
+    }
+    let snapshot = r2_localization::finish(session);
+    (total_nanos, snapshot, last.expect("timed F32 output"))
+}
+
+fn timed_preloaded_candidate(
+    run: &FrozenRuntimeFixture,
+    prepared: &PreparedCandidate,
+    observer_enabled: bool,
+) -> (u128, r2_localization::Snapshot, Tensor) {
+    for _ in 0..2 {
+        std::hint::black_box(
+            r2_routed_preloaded_candidate(
+                run.input.view(),
+                &run.router,
+                prepared.config,
+                &prepared.preloaded,
+            )
+            .expect("candidate warmup"),
+        );
+    }
+    let session = r2_localization::start(observer_enabled);
+    let mut total_nanos = 0_u128;
+    let mut last = None;
+    for _ in 0..25 {
+        let started = Instant::now();
+        let output = r2_routed_preloaded_candidate(
+            run.input.view(),
+            &run.router,
+            prepared.config,
+            &prepared.preloaded,
+        )
+        .expect("candidate timed compute-only");
         total_nanos = total_nanos.saturating_add(started.elapsed().as_nanos());
         std::hint::black_box(output.data().first().copied());
         last = Some(output);
     }
     let snapshot = r2_localization::finish(session);
     (total_nanos, snapshot, last.expect("timed candidate output"))
+}
+
+fn run_preloaded_reference(
+    run: &FrozenRuntimeFixture,
+    observer_enabled: bool,
+) -> (u128, r2_localization::Snapshot, Tensor) {
+    let prepared = prepare_preloaded_reference(run);
+    timed_preloaded_reference(run, &prepared, observer_enabled)
+}
+
+fn run_preloaded_candidate(
+    run: &FrozenRuntimeFixture,
+    observer_enabled: bool,
+) -> (u128, r2_localization::Snapshot, Tensor) {
+    let prepared = prepare_preloaded_candidate(run);
+    timed_preloaded_candidate(run, &prepared, observer_enabled)
 }
 
 #[test]
@@ -389,4 +444,159 @@ fn m6_3_r2_0_compute_only_single_sample() {
         snapshot_json(&snapshot),
     );
     fs::write(output_path, document).expect("write R2.0 single sample");
+}
+
+#[derive(Debug)]
+struct ObserverPairRun {
+    observer: String,
+    timed_total_nanos: u128,
+    snapshot: r2_localization::Snapshot,
+    output_sha256: String,
+}
+
+fn observer_enabled(observer: &str) -> bool {
+    match observer {
+        "enabled" => true,
+        "disabled" => false,
+        _ => panic!("invalid R2.0 observer state"),
+    }
+}
+
+fn assert_compute_only_snapshot(run: &ObserverPairRun) {
+    if run.observer != "enabled" {
+        return;
+    }
+    assert_eq!(
+        run.snapshot
+            .counters
+            .get("unique_expert_loads")
+            .copied()
+            .unwrap_or(0),
+        0,
+        "compute-only timed expert loads",
+    );
+    assert!(
+        run.snapshot
+            .events
+            .values()
+            .all(|event| event.logical_bytes == 0),
+        "compute-only timed logical bytes",
+    );
+}
+fn run_observer_pair_reference(
+    run: &FrozenRuntimeFixture,
+    order: &[String],
+) -> Vec<ObserverPairRun> {
+    let prepared = prepare_preloaded_reference(run);
+    order
+        .iter()
+        .map(|observer| {
+            let (timed_total_nanos, snapshot, output) =
+                timed_preloaded_reference(run, &prepared, observer_enabled(observer));
+            ObserverPairRun {
+                observer: observer.clone(),
+                timed_total_nanos,
+                snapshot,
+                output_sha256: f32_little_endian_sha256(output.data()),
+            }
+        })
+        .collect()
+}
+
+fn run_observer_pair_candidate(
+    run: &FrozenRuntimeFixture,
+    order: &[String],
+) -> Vec<ObserverPairRun> {
+    let prepared = prepare_preloaded_candidate(run);
+    order
+        .iter()
+        .map(|observer| {
+            let (timed_total_nanos, snapshot, output) =
+                timed_preloaded_candidate(run, &prepared, observer_enabled(observer));
+            ObserverPairRun {
+                observer: observer.clone(),
+                timed_total_nanos,
+                snapshot,
+                output_sha256: f32_little_endian_sha256(output.data()),
+            }
+        })
+        .collect()
+}
+
+#[test]
+fn m6_3_r2_0_observer_pair_sample() {
+    let fixture_name = env::var("COLIBRI_R2_FIXTURE").expect("R2.0 fixture name");
+    let path = env::var("COLIBRI_R2_PATH").expect("R2.0 path");
+    assert!(matches!(path.as_str(), "reference" | "candidate"));
+    let order = env::var("COLIBRI_R2_OBSERVER_ORDER")
+        .expect("R2.0 observer order")
+        .split(',')
+        .map(str::to_owned)
+        .collect::<Vec<_>>();
+    assert_eq!(order.len(), 2, "R2.0 observer pair length");
+    assert!(
+        matches!(order.as_slice(), [left, right] if left != right && matches!(left.as_str(), "enabled" | "disabled") && matches!(right.as_str(), "enabled" | "disabled")),
+        "R2.0 observer pair variants",
+    );
+    let output_path =
+        PathBuf::from(env::var_os("COLIBRI_R2_SAMPLE_OUTPUT").expect("R2.0 pair sample output"));
+    assert!(!output_path.exists(), "R2.0 pair sample output must be new");
+    let run = build_runtime_fixture(&fixture_name, false);
+    verify_fixture_identity(&run);
+    let noop = r2_localization::calibrate_noop(101);
+    let results = if path == "reference" {
+        run_observer_pair_reference(&run, &order)
+    } else {
+        run_observer_pair_candidate(&run, &order)
+    };
+    assert_eq!(results.len(), 2);
+    assert_eq!(results[0].output_sha256, results[1].output_sha256);
+    if path == "reference" {
+        let expected = env::var("COLIBRI_R2_EXPECT_REFERENCE_OUTPUT_SHA256")
+            .expect("expected reference output SHA");
+        assert_eq!(results[0].output_sha256, expected);
+    }
+    for result in &results {
+        assert_compute_only_snapshot(result);
+    }
+    let enabled = results
+        .iter()
+        .find(|result| result.observer == "enabled")
+        .expect("enabled observer result");
+    let disabled = results
+        .iter()
+        .find(|result| result.observer == "disabled")
+        .expect("disabled observer result");
+    let document = format!(
+        concat!(
+            "{{\"schema\":\"m6.3-r2.0-observer-pair-sample-v2\",",
+            "\"contract_sha256\":\"{}\",\"method_contract_sha256\":\"{}\",",
+            "\"fixture\":\"{}\",\"path\":\"{}\",",
+            "\"observer_order\":[\"{}\",\"{}\"],",
+            "\"fixture_record_sha256\":\"{}\",",
+            "\"release_binary_sha256\":\"{}\",\"host_id\":\"{}\",",
+            "\"timed_iterations_per_state\":25,\"timer_noop_median_nanos\":{},",
+            "\"states\":{{",
+            "\"enabled\":{{\"timed_total_nanos\":{},\"output_sha256\":\"{}\",\"stages\":{}}},",
+            "\"disabled\":{{\"timed_total_nanos\":{},\"output_sha256\":\"{}\",\"stages\":{}}}",
+            "}}}}\n"
+        ),
+        CONTRACT_SHA256,
+        env::var("COLIBRI_R2_METHOD_CONTRACT_SHA256").expect("method contract SHA"),
+        fixture_name,
+        path,
+        order[0],
+        order[1],
+        env::var("COLIBRI_R2_FIXTURE_RECORD_SHA256").expect("fixture record SHA"),
+        env::var("COLIBRI_R2_RELEASE_BINARY_SHA256").expect("binary SHA"),
+        env::var("COLIBRI_R2_HOST_ID").expect("host ID"),
+        noop.median_nanos,
+        enabled.timed_total_nanos,
+        enabled.output_sha256,
+        snapshot_json(&enabled.snapshot),
+        disabled.timed_total_nanos,
+        disabled.output_sha256,
+        snapshot_json(&disabled.snapshot),
+    );
+    fs::write(output_path, document).expect("write R2.0 observer pair sample");
 }
