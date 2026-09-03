@@ -127,6 +127,10 @@
 !/models/qwen3-30b-a3b/m6.3-r2-0-execution-manifest-v1.json
 !/models/qwen3-30b-a3b/m6.3-r2-0-observer-controls-v1.json
 !/models/qwen3-30b-a3b/m6.3-r2-0-observer-remediation-contract-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-0-execution-manifest-v2.json
+!/models/qwen3-30b-a3b/m6.3-r2-0-observer-controls-v2.json
+!/models/qwen3-30b-a3b/m6.3-r2-0-localization-samples-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-0-localization-result-v1.json
 /.idea/
 /.vscode/
 *.pdb

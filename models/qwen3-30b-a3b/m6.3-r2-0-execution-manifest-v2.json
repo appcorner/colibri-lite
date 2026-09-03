@@ -1,0 +1,55 @@
+{
+  "schema": "m6.3-r2.0-execution-manifest-v2",
+  "schema_version": 2,
+  "status": "frozen_before_remediation_observer_rerun",
+  "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+  "remediation_contract_sha256": "7512369048ff4385bae38274f8e272eade02433d680ae01db0ebb0f12a46e714",
+  "prior_failed_observer_controls_sha256": "140c219c846af500cc99bd352c3d8b3215571048e3cd02271f414bf84d28d64c",
+  "supersedes_execution_manifest_sha256": "7592b99967d86792d12a145057a66232d1baa8591bcb9824c25f7b41dc57a8df",
+  "reference_fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+  "instrumented_source_commit": "e2d44f1488c09605000dcb3d02ee7bd763162440",
+  "release_binary": {
+    "relative_path": "target/release/deps/clr_qwen3_moe-07d9617dc57ddd0e.exe",
+    "sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+    "bytes": 43667968
+  },
+  "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+  "candidate": {
+    "id": "cpu-safe-rust-int8-group32-layer0-r1-1a",
+    "sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+    "bytes": 679477248
+  },
+  "canonical_f32_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+  "host_id": "ANUSORN-NB",
+  "timer_implementation_identity": "std::time::Instant+r2_localization-v2-shared-boundaries",
+  "timer_source_sha256": "69ab1ed775ccb11bf91980a05adc28d97b61de01fc93f004fb8140d6df815a5a",
+  "collector_versions": {
+    "r2_localization": "v1",
+    "f32_timer_boundaries": "v2-shared-adjacent"
+  },
+  "collector_source_sha256": "0f007e96e0302e6f1ed9167f06a8e347c545f09c9111971fa208983bdc8c9d63",
+  "validator_sha256": "e417d48ea4dda524189e7cab0ee295954fb8d7b41ac3b50bbd857d5182eabef4",
+  "observer_runner_sha256": "2b44727d4e8bf80bd73d5ef32e943b4c2e758109ced7068ff5a373cb4b5aef86",
+  "observer_pair_order": [
+    ["enabled", "disabled"],
+    ["disabled", "enabled"],
+    ["enabled", "disabled"],
+    ["disabled", "enabled"],
+    ["enabled", "disabled"]
+  ],
+  "observer_gate": {
+    "median_overhead_percent_max": 5.0,
+    "every_pair_overhead_percent_max": 10.0,
+    "output_identity": "byte-identical"
+  },
+  "prior_observer_controls_seen": true,
+  "observer_controls_seen_for_this_execution_manifest": false,
+  "candidate_localization_results_seen": false,
+  "remediation_attempt_ordinal": 1,
+  "remediation_scope": "F32 timer clock-read reduction only",
+  "localization_sample_count_seen": 0,
+  "authorizes_observer_rerun": true,
+  "authorizes_localization_samples": false,
+  "authorizes_r2_1_hypothesis_design": false,
+  "authorizes_m6_4": false
+}
