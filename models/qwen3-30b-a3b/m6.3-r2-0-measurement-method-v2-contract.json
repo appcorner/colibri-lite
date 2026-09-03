@@ -1,0 +1,71 @@
+{
+  "schema": "m6.3-r2.0-measurement-method-v2-contract",
+  "schema_version": 1,
+  "status": "preregistered_after_observer_v2_failure_before_localization",
+  "localization_contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+  "reference_fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+  "failed_observer_controls": [
+    "140c219c846af500cc99bd352c3d8b3215571048e3cd02271f414bf84d28d64c",
+    "dba8ef0aef549f5fecb020ab626c9691fd6ae3ba79fc007f56828edd0558b597"
+  ],
+  "observer_results_seen": true,
+  "candidate_localization_results_seen": false,
+  "localization_sample_count_seen": 0,
+  "timer_implementation": "std::time::Instant",
+  "reference_timing": {
+    "gate_up_activation": "single coarse scope around unchanged interleaved loop",
+    "down_projection": "single coarse scope around unchanged complete down loop",
+    "raw_scope": "f32_gate_up_activation_combined"
+  },
+  "candidate_timing": "unchanged from R2.0a",
+  "observer_control_method": {
+    "fresh_processes": 20,
+    "pairs_per_fixture_path": 5,
+    "states_per_process": 2,
+    "warmups_per_state": 2,
+    "timed_iterations_per_state": 25,
+    "pair_order": [
+      ["enabled", "disabled"],
+      ["disabled", "enabled"],
+      ["enabled", "disabled"],
+      ["disabled", "enabled"],
+      ["enabled", "disabled"]
+    ],
+    "median_overhead_percent_max": 5.0,
+    "every_pair_overhead_percent_max": 10.0,
+    "output_identity": "byte-identical",
+    "timed_payload_reads": 0,
+    "automatic_retry": false
+  },
+  "localization_matrix": {
+    "fresh_process_samples": 40,
+    "fixtures": ["short_english", "short_thai"],
+    "views": ["compute_only_preloaded", "load_plus_compute"],
+    "path_pair_order": [
+      ["candidate", "reference"],
+      ["reference", "candidate"],
+      ["candidate", "reference"],
+      ["reference", "candidate"],
+      ["candidate", "reference"]
+    ],
+    "compute_only_timed_iterations": 25,
+    "load_plus_compute_timed_iterations": 10,
+    "warmups": 2,
+    "automatic_retry": false
+  },
+  "classification_thresholds_changed": false,
+  "compute_bound_candidate_projection_share_percent_min": 60.0,
+  "load_decode_candidate_share_percent_min": 50.0,
+  "routing_accumulation_candidate_share_percent_min": 30.0,
+  "candidate_slower_pair_count_min": 4,
+  "timer_overhead_subtraction_allowed": false,
+  "arithmetic_change_allowed": false,
+  "candidate_timing_change_allowed": false,
+  "quantization_change_allowed": false,
+  "cache_policy_change_allowed": false,
+  "authorizes_measurement_implementation": true,
+  "authorizes_one_observer_validation": true,
+  "authorizes_localization_samples": false,
+  "authorizes_r2_1_hypothesis_design": false,
+  "authorizes_m6_4": false
+}

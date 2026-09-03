@@ -1,0 +1,2374 @@
+{
+  "all_paired_outputs_byte_identical": true,
+  "authorizes_localization_samples": false,
+  "candidate_localization_results_seen": false,
+  "completed_pairs": 20,
+  "completed_process_samples": 40,
+  "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+  "execution_manifest_sha256": "fe20b4d5fa60a5c2035ffe41a588fa3a29f90f1796c03d83e5df3ee4bc4b5669",
+  "observer_controls": [
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "instrumented_total_nanos": 1793382900,
+      "overhead_percent": 5.460015930294817,
+      "pair": 1,
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "uninstrumented_total_nanos": 1700533500
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "disabled",
+        "enabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "instrumented_total_nanos": 1820370700,
+      "overhead_percent": 6.7789286893097875,
+      "pair": 2,
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "uninstrumented_total_nanos": 1704803300
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "instrumented_total_nanos": 1823455800,
+      "overhead_percent": 7.786302372644752,
+      "pair": 3,
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "uninstrumented_total_nanos": 1691732400
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "disabled",
+        "enabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "instrumented_total_nanos": 1792472300,
+      "overhead_percent": 7.785621578768364,
+      "pair": 4,
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "uninstrumented_total_nanos": 1662997600
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "instrumented_total_nanos": 1799712900,
+      "overhead_percent": 5.272187810273467,
+      "pair": 5,
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "uninstrumented_total_nanos": 1709580600
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "instrumented_total_nanos": 2938128900,
+      "overhead_percent": -0.5879467598387647,
+      "pair": 1,
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "uninstrumented_total_nanos": 2955505700
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "disabled",
+        "enabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "instrumented_total_nanos": 2963830000,
+      "overhead_percent": -0.5779256313101961,
+      "pair": 2,
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "uninstrumented_total_nanos": 2981058300
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "instrumented_total_nanos": 2973799700,
+      "overhead_percent": 1.9554619358065883,
+      "pair": 3,
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "uninstrumented_total_nanos": 2916763500
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "disabled",
+        "enabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "instrumented_total_nanos": 2982877100,
+      "overhead_percent": 2.2998699061062506,
+      "pair": 4,
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "uninstrumented_total_nanos": 2915817100
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "instrumented_total_nanos": 2920175500,
+      "overhead_percent": 0.30226951502954635,
+      "pair": 5,
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "uninstrumented_total_nanos": 2911375300
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "instrumented_total_nanos": 897162200,
+      "overhead_percent": 5.502842417128212,
+      "pair": 1,
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "uninstrumented_total_nanos": 850367800
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "disabled",
+        "enabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "instrumented_total_nanos": 897460100,
+      "overhead_percent": 4.876218940797751,
+      "pair": 2,
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "uninstrumented_total_nanos": 855732700
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "instrumented_total_nanos": 893904500,
+      "overhead_percent": 2.480205679339801,
+      "pair": 3,
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "uninstrumented_total_nanos": 872270400
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "disabled",
+        "enabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "instrumented_total_nanos": 905193600,
+      "overhead_percent": 9.31522800151342,
+      "pair": 4,
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "uninstrumented_total_nanos": 828058100
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "instrumented_total_nanos": 905869600,
+      "overhead_percent": 9.294309567729455,
+      "pair": 5,
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "uninstrumented_total_nanos": 828835100
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "instrumented_total_nanos": 1463340300,
+      "overhead_percent": -2.521955936714358,
+      "pair": 1,
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "uninstrumented_total_nanos": 1501199900
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "disabled",
+        "enabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "instrumented_total_nanos": 1550552500,
+      "overhead_percent": -2.123806762009138,
+      "pair": 2,
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "uninstrumented_total_nanos": 1584197800
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "instrumented_total_nanos": 1488056000,
+      "overhead_percent": -2.9982642688062047,
+      "pair": 3,
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "uninstrumented_total_nanos": 1534050900
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "disabled",
+        "enabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "instrumented_total_nanos": 1485530600,
+      "overhead_percent": 0.387790960635619,
+      "pair": 4,
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "uninstrumented_total_nanos": 1479792100
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "instrumented_total_nanos": 3522094500,
+      "overhead_percent": 36.40133214285507,
+      "pair": 5,
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "uninstrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "uninstrumented_total_nanos": 2582155500
+    }
+  ],
+  "prior_failed_observer_controls_sha256": "140c219c846af500cc99bd352c3d8b3215571048e3cd02271f414bf84d28d64c",
+  "raw_process_samples": [
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 400,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 307200,
+          "exclusive_nanos": 8302500,
+          "logical_bytes": 0,
+          "max_nanos": 27000,
+          "median_nanos": 0,
+          "min_nanos": 0,
+          "total_nanos": 8302500
+        },
+        "down_projection": {
+          "calls": 819200,
+          "exclusive_nanos": 591275700,
+          "logical_bytes": 0,
+          "max_nanos": 220200,
+          "median_nanos": 700,
+          "min_nanos": 600,
+          "total_nanos": 591275700
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 41831500,
+          "logical_bytes": 0,
+          "max_nanos": 79093600,
+          "median_nanos": 71434500,
+          "min_nanos": 70189500,
+          "total_nanos": 1793346000
+        },
+        "gate_projection": {
+          "calls": 307200,
+          "exclusive_nanos": 576997300,
+          "logical_bytes": 0,
+          "max_nanos": 1812500,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 576997300
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 426700,
+          "logical_bytes": 0,
+          "max_nanos": 16300,
+          "median_nanos": 100,
+          "min_nanos": 0,
+          "total_nanos": 426700
+        },
+        "up_projection": {
+          "calls": 307200,
+          "exclusive_nanos": 573607500,
+          "logical_bytes": 0,
+          "max_nanos": 151400,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 573607500
+        },
+        "weighted_accumulation": {
+          "calls": 350,
+          "exclusive_nanos": 904800,
+          "logical_bytes": 0,
+          "max_nanos": 24100,
+          "median_nanos": 1300,
+          "min_nanos": 800,
+          "total_nanos": 904800
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 1793382900,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 1700533500,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 1704803300,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 400,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 307200,
+          "exclusive_nanos": 8303300,
+          "logical_bytes": 0,
+          "max_nanos": 9600,
+          "median_nanos": 0,
+          "min_nanos": 0,
+          "total_nanos": 8303300
+        },
+        "down_projection": {
+          "calls": 819200,
+          "exclusive_nanos": 603461600,
+          "logical_bytes": 0,
+          "max_nanos": 1812600,
+          "median_nanos": 700,
+          "min_nanos": 600,
+          "total_nanos": 603461600
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 39886400,
+          "logical_bytes": 0,
+          "max_nanos": 76362800,
+          "median_nanos": 72918500,
+          "min_nanos": 70211600,
+          "total_nanos": 1820350900
+        },
+        "gate_projection": {
+          "calls": 307200,
+          "exclusive_nanos": 582769400,
+          "logical_bytes": 0,
+          "max_nanos": 74900,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 582769400
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 425900,
+          "logical_bytes": 0,
+          "max_nanos": 16600,
+          "median_nanos": 100,
+          "min_nanos": 0,
+          "total_nanos": 425900
+        },
+        "up_projection": {
+          "calls": 307200,
+          "exclusive_nanos": 583769700,
+          "logical_bytes": 0,
+          "max_nanos": 1710600,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 583769700
+        },
+        "weighted_accumulation": {
+          "calls": 350,
+          "exclusive_nanos": 1734600,
+          "logical_bytes": 0,
+          "max_nanos": 31400,
+          "median_nanos": 1600,
+          "min_nanos": 800,
+          "total_nanos": 1734600
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 1820370700,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 400,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 307200,
+          "exclusive_nanos": 8338300,
+          "logical_bytes": 0,
+          "max_nanos": 13600,
+          "median_nanos": 0,
+          "min_nanos": 0,
+          "total_nanos": 8338300
+        },
+        "down_projection": {
+          "calls": 819200,
+          "exclusive_nanos": 600413800,
+          "logical_bytes": 0,
+          "max_nanos": 93300,
+          "median_nanos": 700,
+          "min_nanos": 600,
+          "total_nanos": 600413800
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 40600800,
+          "logical_bytes": 0,
+          "max_nanos": 83072100,
+          "median_nanos": 71476200,
+          "min_nanos": 70741600,
+          "total_nanos": 1823406900
+        },
+        "gate_projection": {
+          "calls": 307200,
+          "exclusive_nanos": 586655800,
+          "logical_bytes": 0,
+          "max_nanos": 214000,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 586655800
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 446300,
+          "logical_bytes": 0,
+          "max_nanos": 44400,
+          "median_nanos": 100,
+          "min_nanos": 0,
+          "total_nanos": 446300
+        },
+        "up_projection": {
+          "calls": 307200,
+          "exclusive_nanos": 585999400,
+          "logical_bytes": 0,
+          "max_nanos": 158500,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 585999400
+        },
+        "weighted_accumulation": {
+          "calls": 350,
+          "exclusive_nanos": 952500,
+          "logical_bytes": 0,
+          "max_nanos": 37000,
+          "median_nanos": 1400,
+          "min_nanos": 900,
+          "total_nanos": 952500
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 1823455800,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 1691732400,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 1662997600,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 400,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 307200,
+          "exclusive_nanos": 8311100,
+          "logical_bytes": 0,
+          "max_nanos": 22400,
+          "median_nanos": 0,
+          "min_nanos": 0,
+          "total_nanos": 8311100
+        },
+        "down_projection": {
+          "calls": 819200,
+          "exclusive_nanos": 592592200,
+          "logical_bytes": 0,
+          "max_nanos": 261500,
+          "median_nanos": 700,
+          "min_nanos": 600,
+          "total_nanos": 592592200
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 39245900,
+          "logical_bytes": 0,
+          "max_nanos": 75978000,
+          "median_nanos": 71584900,
+          "min_nanos": 70224400,
+          "total_nanos": 1792453900
+        },
+        "gate_projection": {
+          "calls": 307200,
+          "exclusive_nanos": 575925400,
+          "logical_bytes": 0,
+          "max_nanos": 1391300,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 575925400
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 408400,
+          "logical_bytes": 0,
+          "max_nanos": 6300,
+          "median_nanos": 100,
+          "min_nanos": 0,
+          "total_nanos": 408400
+        },
+        "up_projection": {
+          "calls": 307200,
+          "exclusive_nanos": 574779200,
+          "logical_bytes": 0,
+          "max_nanos": 120300,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 574779200
+        },
+        "weighted_accumulation": {
+          "calls": 350,
+          "exclusive_nanos": 1191700,
+          "logical_bytes": 0,
+          "max_nanos": 27800,
+          "median_nanos": 1600,
+          "min_nanos": 900,
+          "total_nanos": 1191700
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 1792472300,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 400,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 307200,
+          "exclusive_nanos": 8347800,
+          "logical_bytes": 0,
+          "max_nanos": 37300,
+          "median_nanos": 0,
+          "min_nanos": 0,
+          "total_nanos": 8347800
+        },
+        "down_projection": {
+          "calls": 819200,
+          "exclusive_nanos": 597995500,
+          "logical_bytes": 0,
+          "max_nanos": 2686400,
+          "median_nanos": 700,
+          "min_nanos": 600,
+          "total_nanos": 597995500
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 38032200,
+          "logical_bytes": 0,
+          "max_nanos": 77772700,
+          "median_nanos": 71405400,
+          "min_nanos": 70572700,
+          "total_nanos": 1799695900
+        },
+        "gate_projection": {
+          "calls": 307200,
+          "exclusive_nanos": 577192200,
+          "logical_bytes": 0,
+          "max_nanos": 629600,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 577192200
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 398800,
+          "logical_bytes": 0,
+          "max_nanos": 17000,
+          "median_nanos": 100,
+          "min_nanos": 0,
+          "total_nanos": 398800
+        },
+        "up_projection": {
+          "calls": 307200,
+          "exclusive_nanos": 575918600,
+          "logical_bytes": 0,
+          "max_nanos": 214300,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 575918600
+        },
+        "weighted_accumulation": {
+          "calls": 350,
+          "exclusive_nanos": 1810800,
+          "logical_bytes": 0,
+          "max_nanos": 41100,
+          "median_nanos": 1700,
+          "min_nanos": 900,
+          "total_nanos": 1810800
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 1799712900,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 1709580600,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 400,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 400,
+          "exclusive_nanos": 1504000,
+          "logical_bytes": 0,
+          "max_nanos": 22300,
+          "median_nanos": 3200,
+          "min_nanos": 2100,
+          "total_nanos": 1504000
+        },
+        "down_packed_projection": {
+          "calls": 400,
+          "exclusive_nanos": 900565500,
+          "logical_bytes": 0,
+          "max_nanos": 4006400,
+          "median_nanos": 2135200,
+          "min_nanos": 2114900,
+          "total_nanos": 900565500
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 234128400,
+          "logical_bytes": 0,
+          "max_nanos": 130538000,
+          "median_nanos": 116629300,
+          "min_nanos": 114887000,
+          "total_nanos": 2938111900
+        },
+        "gate_packed_projection": {
+          "calls": 400,
+          "exclusive_nanos": 899881200,
+          "logical_bytes": 0,
+          "max_nanos": 5980500,
+          "median_nanos": 2128600,
+          "min_nanos": 2111800,
+          "total_nanos": 899881200
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 461600,
+          "logical_bytes": 0,
+          "max_nanos": 19800,
+          "median_nanos": 100,
+          "min_nanos": 0,
+          "total_nanos": 461600
+        },
+        "up_packed_projection": {
+          "calls": 400,
+          "exclusive_nanos": 900794900,
+          "logical_bytes": 0,
+          "max_nanos": 6439900,
+          "median_nanos": 2126300,
+          "min_nanos": 2110800,
+          "total_nanos": 900794900
+        },
+        "weighted_accumulation": {
+          "calls": 350,
+          "exclusive_nanos": 776300,
+          "logical_bytes": 0,
+          "max_nanos": 28800,
+          "median_nanos": 1800,
+          "min_nanos": 1100,
+          "total_nanos": 776300
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 2938128900,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 2955505700,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 2981058300,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 400,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 400,
+          "exclusive_nanos": 1593900,
+          "logical_bytes": 0,
+          "max_nanos": 37500,
+          "median_nanos": 3400,
+          "min_nanos": 2300,
+          "total_nanos": 1593900
+        },
+        "down_packed_projection": {
+          "calls": 400,
+          "exclusive_nanos": 905272800,
+          "logical_bytes": 0,
+          "max_nanos": 4538800,
+          "median_nanos": 2134800,
+          "min_nanos": 2114800,
+          "total_nanos": 905272800
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 244716200,
+          "logical_bytes": 0,
+          "max_nanos": 130950700,
+          "median_nanos": 117253600,
+          "min_nanos": 115189500,
+          "total_nanos": 2963809000
+        },
+        "gate_packed_projection": {
+          "calls": 400,
+          "exclusive_nanos": 907216900,
+          "logical_bytes": 0,
+          "max_nanos": 8242700,
+          "median_nanos": 2129400,
+          "min_nanos": 2112700,
+          "total_nanos": 907216900
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 470400,
+          "logical_bytes": 0,
+          "max_nanos": 17400,
+          "median_nanos": 100,
+          "min_nanos": 0,
+          "total_nanos": 470400
+        },
+        "up_packed_projection": {
+          "calls": 400,
+          "exclusive_nanos": 903755200,
+          "logical_bytes": 0,
+          "max_nanos": 4447600,
+          "median_nanos": 2128300,
+          "min_nanos": 2111000,
+          "total_nanos": 903755200
+        },
+        "weighted_accumulation": {
+          "calls": 350,
+          "exclusive_nanos": 783600,
+          "logical_bytes": 0,
+          "max_nanos": 13700,
+          "median_nanos": 1800,
+          "min_nanos": 1000,
+          "total_nanos": 783600
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 2963830000,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 400,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 400,
+          "exclusive_nanos": 1532800,
+          "logical_bytes": 0,
+          "max_nanos": 17300,
+          "median_nanos": 3400,
+          "min_nanos": 2200,
+          "total_nanos": 1532800
+        },
+        "down_packed_projection": {
+          "calls": 400,
+          "exclusive_nanos": 906699900,
+          "logical_bytes": 0,
+          "max_nanos": 7463600,
+          "median_nanos": 2134100,
+          "min_nanos": 2114400,
+          "total_nanos": 906699900
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 233615900,
+          "logical_bytes": 0,
+          "max_nanos": 141449300,
+          "median_nanos": 117128400,
+          "min_nanos": 115478400,
+          "total_nanos": 2973784300
+        },
+        "gate_packed_projection": {
+          "calls": 400,
+          "exclusive_nanos": 927749400,
+          "logical_bytes": 0,
+          "max_nanos": 24075700,
+          "median_nanos": 2130400,
+          "min_nanos": 2112300,
+          "total_nanos": 927749400
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 426300,
+          "logical_bytes": 0,
+          "max_nanos": 3500,
+          "median_nanos": 100,
+          "min_nanos": 0,
+          "total_nanos": 426300
+        },
+        "up_packed_projection": {
+          "calls": 400,
+          "exclusive_nanos": 903022200,
+          "logical_bytes": 0,
+          "max_nanos": 7502400,
+          "median_nanos": 2130300,
+          "min_nanos": 2111900,
+          "total_nanos": 903022200
+        },
+        "weighted_accumulation": {
+          "calls": 350,
+          "exclusive_nanos": 737800,
+          "logical_bytes": 0,
+          "max_nanos": 5800,
+          "median_nanos": 1900,
+          "min_nanos": 1000,
+          "total_nanos": 737800
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 2973799700,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 2916763500,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 2915817100,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 400,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 400,
+          "exclusive_nanos": 1826800,
+          "logical_bytes": 0,
+          "max_nanos": 32000,
+          "median_nanos": 3600,
+          "min_nanos": 2200,
+          "total_nanos": 1826800
+        },
+        "down_packed_projection": {
+          "calls": 400,
+          "exclusive_nanos": 911801700,
+          "logical_bytes": 0,
+          "max_nanos": 3588700,
+          "median_nanos": 2155400,
+          "min_nanos": 2116300,
+          "total_nanos": 911801700
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 249253600,
+          "logical_bytes": 0,
+          "max_nanos": 127700200,
+          "median_nanos": 117498200,
+          "min_nanos": 115690200,
+          "total_nanos": 2982857700
+        },
+        "gate_packed_projection": {
+          "calls": 400,
+          "exclusive_nanos": 910752300,
+          "logical_bytes": 0,
+          "max_nanos": 5621900,
+          "median_nanos": 2142200,
+          "min_nanos": 2113200,
+          "total_nanos": 910752300
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 487900,
+          "logical_bytes": 0,
+          "max_nanos": 8400,
+          "median_nanos": 100,
+          "min_nanos": 0,
+          "total_nanos": 487900
+        },
+        "up_packed_projection": {
+          "calls": 400,
+          "exclusive_nanos": 907892700,
+          "logical_bytes": 0,
+          "max_nanos": 3323900,
+          "median_nanos": 2142600,
+          "min_nanos": 2113100,
+          "total_nanos": 907892700
+        },
+        "weighted_accumulation": {
+          "calls": 350,
+          "exclusive_nanos": 842700,
+          "logical_bytes": 0,
+          "max_nanos": 18600,
+          "median_nanos": 1800,
+          "min_nanos": 1100,
+          "total_nanos": 842700
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 2982877100,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 400,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 400,
+          "exclusive_nanos": 1502100,
+          "logical_bytes": 0,
+          "max_nanos": 21700,
+          "median_nanos": 3300,
+          "min_nanos": 2200,
+          "total_nanos": 1502100
+        },
+        "down_packed_projection": {
+          "calls": 400,
+          "exclusive_nanos": 893493100,
+          "logical_bytes": 0,
+          "max_nanos": 3245100,
+          "median_nanos": 2132800,
+          "min_nanos": 2115200,
+          "total_nanos": 893493100
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 232491100,
+          "logical_bytes": 0,
+          "max_nanos": 121339300,
+          "median_nanos": 116398500,
+          "min_nanos": 115035300,
+          "total_nanos": 2920154800
+        },
+        "gate_packed_projection": {
+          "calls": 400,
+          "exclusive_nanos": 897255400,
+          "logical_bytes": 0,
+          "max_nanos": 3878000,
+          "median_nanos": 2129100,
+          "min_nanos": 2111700,
+          "total_nanos": 897255400
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 458000,
+          "logical_bytes": 0,
+          "max_nanos": 16500,
+          "median_nanos": 100,
+          "min_nanos": 0,
+          "total_nanos": 458000
+        },
+        "up_packed_projection": {
+          "calls": 400,
+          "exclusive_nanos": 894171700,
+          "logical_bytes": 0,
+          "max_nanos": 4280800,
+          "median_nanos": 2126300,
+          "min_nanos": 2111400,
+          "total_nanos": 894171700
+        },
+        "weighted_accumulation": {
+          "calls": 350,
+          "exclusive_nanos": 783400,
+          "logical_bytes": 0,
+          "max_nanos": 21500,
+          "median_nanos": 1900,
+          "min_nanos": 1000,
+          "total_nanos": 783400
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 2920175500,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_english",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 2911375300,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 200,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 153600,
+          "exclusive_nanos": 4117500,
+          "logical_bytes": 0,
+          "max_nanos": 9800,
+          "median_nanos": 0,
+          "min_nanos": 0,
+          "total_nanos": 4117500
+        },
+        "down_projection": {
+          "calls": 409600,
+          "exclusive_nanos": 297097300,
+          "logical_bytes": 0,
+          "max_nanos": 1278200,
+          "median_nanos": 700,
+          "min_nanos": 600,
+          "total_nanos": 297097300
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 20360800,
+          "logical_bytes": 0,
+          "max_nanos": 38826100,
+          "median_nanos": 35567100,
+          "min_nanos": 35075100,
+          "total_nanos": 897143500
+        },
+        "gate_projection": {
+          "calls": 153600,
+          "exclusive_nanos": 287841300,
+          "logical_bytes": 0,
+          "max_nanos": 1271700,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 287841300
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 247400,
+          "logical_bytes": 0,
+          "max_nanos": 12200,
+          "median_nanos": 0,
+          "min_nanos": 0,
+          "total_nanos": 247400
+        },
+        "up_projection": {
+          "calls": 153600,
+          "exclusive_nanos": 286433400,
+          "logical_bytes": 0,
+          "max_nanos": 238800,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 286433400
+        },
+        "weighted_accumulation": {
+          "calls": 200,
+          "exclusive_nanos": 1045800,
+          "logical_bytes": 0,
+          "max_nanos": 24200,
+          "median_nanos": 3900,
+          "min_nanos": 700,
+          "total_nanos": 1045800
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 897162200,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 850367800,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 855732700,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 200,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 153600,
+          "exclusive_nanos": 4244700,
+          "logical_bytes": 0,
+          "max_nanos": 44200,
+          "median_nanos": 0,
+          "min_nanos": 0,
+          "total_nanos": 4244700
+        },
+        "down_projection": {
+          "calls": 409600,
+          "exclusive_nanos": 296411500,
+          "logical_bytes": 0,
+          "max_nanos": 87400,
+          "median_nanos": 700,
+          "min_nanos": 600,
+          "total_nanos": 296411500
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 20652400,
+          "logical_bytes": 0,
+          "max_nanos": 38458800,
+          "median_nanos": 35715800,
+          "min_nanos": 35115500,
+          "total_nanos": 897443200
+        },
+        "gate_projection": {
+          "calls": 153600,
+          "exclusive_nanos": 287781900,
+          "logical_bytes": 0,
+          "max_nanos": 127700,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 287781900
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 264600,
+          "logical_bytes": 0,
+          "max_nanos": 13000,
+          "median_nanos": 100,
+          "min_nanos": 0,
+          "total_nanos": 264600
+        },
+        "up_projection": {
+          "calls": 153600,
+          "exclusive_nanos": 286858500,
+          "logical_bytes": 0,
+          "max_nanos": 139700,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 286858500
+        },
+        "weighted_accumulation": {
+          "calls": 200,
+          "exclusive_nanos": 1229600,
+          "logical_bytes": 0,
+          "max_nanos": 28600,
+          "median_nanos": 3900,
+          "min_nanos": 800,
+          "total_nanos": 1229600
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 897460100,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 200,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 153600,
+          "exclusive_nanos": 4126900,
+          "logical_bytes": 0,
+          "max_nanos": 9500,
+          "median_nanos": 0,
+          "min_nanos": 0,
+          "total_nanos": 4126900
+        },
+        "down_projection": {
+          "calls": 409600,
+          "exclusive_nanos": 295058900,
+          "logical_bytes": 0,
+          "max_nanos": 107900,
+          "median_nanos": 700,
+          "min_nanos": 600,
+          "total_nanos": 295058900
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 20426900,
+          "logical_bytes": 0,
+          "max_nanos": 37954900,
+          "median_nanos": 35509400,
+          "min_nanos": 35173700,
+          "total_nanos": 893888700
+        },
+        "gate_projection": {
+          "calls": 153600,
+          "exclusive_nanos": 286526400,
+          "logical_bytes": 0,
+          "max_nanos": 125200,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 286526400
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 243700,
+          "logical_bytes": 0,
+          "max_nanos": 11900,
+          "median_nanos": 0,
+          "min_nanos": 0,
+          "total_nanos": 243700
+        },
+        "up_projection": {
+          "calls": 153600,
+          "exclusive_nanos": 286555500,
+          "logical_bytes": 0,
+          "max_nanos": 68700,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 286555500
+        },
+        "weighted_accumulation": {
+          "calls": 200,
+          "exclusive_nanos": 950400,
+          "logical_bytes": 0,
+          "max_nanos": 32300,
+          "median_nanos": 2500,
+          "min_nanos": 800,
+          "total_nanos": 950400
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 893904500,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 872270400,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 828058100,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 200,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 153600,
+          "exclusive_nanos": 4163000,
+          "logical_bytes": 0,
+          "max_nanos": 16400,
+          "median_nanos": 0,
+          "min_nanos": 0,
+          "total_nanos": 4163000
+        },
+        "down_projection": {
+          "calls": 409600,
+          "exclusive_nanos": 300038200,
+          "logical_bytes": 0,
+          "max_nanos": 141200,
+          "median_nanos": 700,
+          "min_nanos": 600,
+          "total_nanos": 300038200
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 20398400,
+          "logical_bytes": 0,
+          "max_nanos": 39485100,
+          "median_nanos": 35942200,
+          "min_nanos": 35126000,
+          "total_nanos": 905175900
+        },
+        "gate_projection": {
+          "calls": 153600,
+          "exclusive_nanos": 289685800,
+          "logical_bytes": 0,
+          "max_nanos": 135600,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 289685800
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 277400,
+          "logical_bytes": 0,
+          "max_nanos": 21500,
+          "median_nanos": 0,
+          "min_nanos": 0,
+          "total_nanos": 277400
+        },
+        "up_projection": {
+          "calls": 153600,
+          "exclusive_nanos": 289496800,
+          "logical_bytes": 0,
+          "max_nanos": 174000,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 289496800
+        },
+        "weighted_accumulation": {
+          "calls": 200,
+          "exclusive_nanos": 1116300,
+          "logical_bytes": 0,
+          "max_nanos": 28800,
+          "median_nanos": 4000,
+          "min_nanos": 900,
+          "total_nanos": 1116300
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 905193600,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 200,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 153600,
+          "exclusive_nanos": 4151700,
+          "logical_bytes": 0,
+          "max_nanos": 30500,
+          "median_nanos": 0,
+          "min_nanos": 0,
+          "total_nanos": 4151700
+        },
+        "down_projection": {
+          "calls": 409600,
+          "exclusive_nanos": 301120800,
+          "logical_bytes": 0,
+          "max_nanos": 1163400,
+          "median_nanos": 700,
+          "min_nanos": 600,
+          "total_nanos": 301120800
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 20698800,
+          "logical_bytes": 0,
+          "max_nanos": 38106600,
+          "median_nanos": 36099100,
+          "min_nanos": 35340300,
+          "total_nanos": 905830300
+        },
+        "gate_projection": {
+          "calls": 153600,
+          "exclusive_nanos": 289177800,
+          "logical_bytes": 0,
+          "max_nanos": 77500,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 289177800
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 267100,
+          "logical_bytes": 0,
+          "max_nanos": 10400,
+          "median_nanos": 0,
+          "min_nanos": 0,
+          "total_nanos": 267100
+        },
+        "up_projection": {
+          "calls": 153600,
+          "exclusive_nanos": 289316200,
+          "logical_bytes": 0,
+          "max_nanos": 129100,
+          "median_nanos": 1800,
+          "min_nanos": 1700,
+          "total_nanos": 289316200
+        },
+        "weighted_accumulation": {
+          "calls": 200,
+          "exclusive_nanos": 1097900,
+          "logical_bytes": 0,
+          "max_nanos": 69200,
+          "median_nanos": 3000,
+          "min_nanos": 800,
+          "total_nanos": 1097900
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 905869600,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "path": "reference",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 828835100,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 200,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 200,
+          "exclusive_nanos": 710500,
+          "logical_bytes": 0,
+          "max_nanos": 19800,
+          "median_nanos": 3300,
+          "min_nanos": 2200,
+          "total_nanos": 710500
+        },
+        "down_packed_projection": {
+          "calls": 200,
+          "exclusive_nanos": 447944200,
+          "logical_bytes": 0,
+          "max_nanos": 3264600,
+          "median_nanos": 2134700,
+          "min_nanos": 2117700,
+          "total_nanos": 447944200
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 117191400,
+          "logical_bytes": 0,
+          "max_nanos": 59721100,
+          "median_nanos": 58493600,
+          "min_nanos": 57555300,
+          "total_nanos": 1463325800
+        },
+        "gate_packed_projection": {
+          "calls": 200,
+          "exclusive_nanos": 448581800,
+          "logical_bytes": 0,
+          "max_nanos": 3737900,
+          "median_nanos": 2128400,
+          "min_nanos": 2113400,
+          "total_nanos": 448581800
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 284400,
+          "logical_bytes": 0,
+          "max_nanos": 14800,
+          "median_nanos": 0,
+          "min_nanos": 0,
+          "total_nanos": 284400
+        },
+        "up_packed_projection": {
+          "calls": 200,
+          "exclusive_nanos": 448272800,
+          "logical_bytes": 0,
+          "max_nanos": 3846300,
+          "median_nanos": 2132200,
+          "min_nanos": 2113100,
+          "total_nanos": 448272800
+        },
+        "weighted_accumulation": {
+          "calls": 200,
+          "exclusive_nanos": 340700,
+          "logical_bytes": 0,
+          "max_nanos": 15600,
+          "median_nanos": 1500,
+          "min_nanos": 800,
+          "total_nanos": 340700
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 1463340300,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 1501199900,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 1584197800,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 200,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 200,
+          "exclusive_nanos": 814900,
+          "logical_bytes": 0,
+          "max_nanos": 20300,
+          "median_nanos": 3900,
+          "min_nanos": 2300,
+          "total_nanos": 814900
+        },
+        "down_packed_projection": {
+          "calls": 200,
+          "exclusive_nanos": 468137100,
+          "logical_bytes": 0,
+          "max_nanos": 4291600,
+          "median_nanos": 2187600,
+          "min_nanos": 2117600,
+          "total_nanos": 468137100
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 124613000,
+          "logical_bytes": 0,
+          "max_nanos": 79584500,
+          "median_nanos": 59563300,
+          "min_nanos": 57481400,
+          "total_nanos": 1550536500
+        },
+        "gate_packed_projection": {
+          "calls": 200,
+          "exclusive_nanos": 483171900,
+          "logical_bytes": 0,
+          "max_nanos": 10455000,
+          "median_nanos": 2217500,
+          "min_nanos": 2114200,
+          "total_nanos": 483171900
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 295600,
+          "logical_bytes": 0,
+          "max_nanos": 3500,
+          "median_nanos": 100,
+          "min_nanos": 0,
+          "total_nanos": 295600
+        },
+        "up_packed_projection": {
+          "calls": 200,
+          "exclusive_nanos": 473142900,
+          "logical_bytes": 0,
+          "max_nanos": 6334000,
+          "median_nanos": 2178400,
+          "min_nanos": 2113200,
+          "total_nanos": 473142900
+        },
+        "weighted_accumulation": {
+          "calls": 200,
+          "exclusive_nanos": 361100,
+          "logical_bytes": 0,
+          "max_nanos": 3400,
+          "median_nanos": 1700,
+          "min_nanos": 1000,
+          "total_nanos": 361100
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 1550552500,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 200,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 200,
+          "exclusive_nanos": 781500,
+          "logical_bytes": 0,
+          "max_nanos": 9700,
+          "median_nanos": 3500,
+          "min_nanos": 2300,
+          "total_nanos": 781500
+        },
+        "down_packed_projection": {
+          "calls": 200,
+          "exclusive_nanos": 457734800,
+          "logical_bytes": 0,
+          "max_nanos": 3634400,
+          "median_nanos": 2151200,
+          "min_nanos": 2118200,
+          "total_nanos": 457734800
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 119849600,
+          "logical_bytes": 0,
+          "max_nanos": 64996600,
+          "median_nanos": 59003300,
+          "min_nanos": 57734100,
+          "total_nanos": 1488037000
+        },
+        "gate_packed_projection": {
+          "calls": 200,
+          "exclusive_nanos": 453028000,
+          "logical_bytes": 0,
+          "max_nanos": 3490500,
+          "median_nanos": 2139400,
+          "min_nanos": 2113600,
+          "total_nanos": 453028000
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 301000,
+          "logical_bytes": 0,
+          "max_nanos": 4700,
+          "median_nanos": 100,
+          "min_nanos": 0,
+          "total_nanos": 301000
+        },
+        "up_packed_projection": {
+          "calls": 200,
+          "exclusive_nanos": 455960100,
+          "logical_bytes": 0,
+          "max_nanos": 5662500,
+          "median_nanos": 2145100,
+          "min_nanos": 2113100,
+          "total_nanos": 455960100
+        },
+        "weighted_accumulation": {
+          "calls": 200,
+          "exclusive_nanos": 382000,
+          "logical_bytes": 0,
+          "max_nanos": 11400,
+          "median_nanos": 1700,
+          "min_nanos": 1200,
+          "total_nanos": 382000
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 1488056000,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 1534050900,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 1479792100,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 200,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 200,
+          "exclusive_nanos": 793800,
+          "logical_bytes": 0,
+          "max_nanos": 20300,
+          "median_nanos": 3500,
+          "min_nanos": 2200,
+          "total_nanos": 793800
+        },
+        "down_packed_projection": {
+          "calls": 200,
+          "exclusive_nanos": 454707000,
+          "logical_bytes": 0,
+          "max_nanos": 4127300,
+          "median_nanos": 2165400,
+          "min_nanos": 2118600,
+          "total_nanos": 454707000
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 117987200,
+          "logical_bytes": 0,
+          "max_nanos": 64260900,
+          "median_nanos": 59094300,
+          "min_nanos": 57647200,
+          "total_nanos": 1485515400
+        },
+        "gate_packed_projection": {
+          "calls": 200,
+          "exclusive_nanos": 456000900,
+          "logical_bytes": 0,
+          "max_nanos": 3766800,
+          "median_nanos": 2169300,
+          "min_nanos": 2113000,
+          "total_nanos": 456000900
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 284600,
+          "logical_bytes": 0,
+          "max_nanos": 6400,
+          "median_nanos": 0,
+          "min_nanos": 0,
+          "total_nanos": 284600
+        },
+        "up_packed_projection": {
+          "calls": 200,
+          "exclusive_nanos": 455386200,
+          "logical_bytes": 0,
+          "max_nanos": 4207600,
+          "median_nanos": 2151000,
+          "min_nanos": 2112700,
+          "total_nanos": 455386200
+        },
+        "weighted_accumulation": {
+          "calls": 200,
+          "exclusive_nanos": 355700,
+          "logical_bytes": 0,
+          "max_nanos": 3600,
+          "median_nanos": 1700,
+          "min_nanos": 1000,
+          "total_nanos": 355700
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 1485530600,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 200,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "enabled",
+      "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {
+        "activation_product": {
+          "calls": 200,
+          "exclusive_nanos": 1720900,
+          "logical_bytes": 0,
+          "max_nanos": 55800,
+          "median_nanos": 7600,
+          "min_nanos": 5200,
+          "total_nanos": 1720900
+        },
+        "down_packed_projection": {
+          "calls": 200,
+          "exclusive_nanos": 1080367800,
+          "logical_bytes": 0,
+          "max_nanos": 18523700,
+          "median_nanos": 4736900,
+          "min_nanos": 2947200,
+          "total_nanos": 1080367800
+        },
+        "expert_total": {
+          "calls": 25,
+          "exclusive_nanos": 279772200,
+          "logical_bytes": 0,
+          "max_nanos": 187810300,
+          "median_nanos": 140012400,
+          "min_nanos": 110092400,
+          "total_nanos": 3522075500
+        },
+        "gate_packed_projection": {
+          "calls": 200,
+          "exclusive_nanos": 1112956600,
+          "logical_bytes": 0,
+          "max_nanos": 41257200,
+          "median_nanos": 4601300,
+          "min_nanos": 3100200,
+          "total_nanos": 1112956600
+        },
+        "routing_occurrence_scan": {
+          "calls": 3200,
+          "exclusive_nanos": 556400,
+          "logical_bytes": 0,
+          "max_nanos": 123100,
+          "median_nanos": 100,
+          "min_nanos": 0,
+          "total_nanos": 556400
+        },
+        "up_packed_projection": {
+          "calls": 200,
+          "exclusive_nanos": 1045931900,
+          "logical_bytes": 0,
+          "max_nanos": 18562300,
+          "median_nanos": 4763700,
+          "min_nanos": 2641300,
+          "total_nanos": 1045931900
+        },
+        "weighted_accumulation": {
+          "calls": 200,
+          "exclusive_nanos": 769700,
+          "logical_bytes": 0,
+          "max_nanos": 108900,
+          "median_nanos": 2700,
+          "min_nanos": 1700,
+          "total_nanos": 769700
+        }
+      },
+      "timed_iterations": 25,
+      "timed_total_nanos": 3522094500,
+      "timer_noop_median_nanos": 0,
+      "unique_expert_loads": 0
+    },
+    {
+      "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+      "expert_occurrences": 0,
+      "fixture": "short_thai",
+      "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+      "host_id": "ANUSORN-NB",
+      "observer": "disabled",
+      "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "path": "candidate",
+      "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+      "schema": "m6.3-r2.0-control-sample-v1",
+      "stages": {},
+      "timed_iterations": 25,
+      "timed_total_nanos": 2582155500,
+      "timer_noop_median_nanos": 100,
+      "unique_expert_loads": 0
+    }
+  ],
+  "reference_fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+  "release_binary_sha256": "a77830ad39b61beae3f47a4315bb6aa1b8a7f899e9318c1d3945f272505a6a93",
+  "remediation_attempt_ordinal": 1,
+  "remediation_contract_sha256": "7512369048ff4385bae38274f8e272eade02433d680ae01db0ebb0f12a46e714",
+  "schema": "m6.3-r2.0-observer-controls-v2",
+  "status": "failed_observer_effect_gate",
+  "summary": {
+    "short_english:candidate": {
+      "maximum_overhead_percent": 2.2998699061062506,
+      "median_overhead_percent": 0.30226951502954635,
+      "minimum_overhead_percent": -0.5879467598387647,
+      "overhead_percent_by_pair": [
+        -0.5879467598387647,
+        -0.5779256313101961,
+        1.9554619358065883,
+        2.2998699061062506,
+        0.30226951502954635
+      ],
+      "passed": true
+    },
+    "short_english:reference": {
+      "maximum_overhead_percent": 7.786302372644752,
+      "median_overhead_percent": 6.7789286893097875,
+      "minimum_overhead_percent": 5.272187810273467,
+      "overhead_percent_by_pair": [
+        5.460015930294817,
+        6.7789286893097875,
+        7.786302372644752,
+        7.785621578768364,
+        5.272187810273467
+      ],
+      "passed": false
+    },
+    "short_thai:candidate": {
+      "maximum_overhead_percent": 36.40133214285507,
+      "median_overhead_percent": -2.123806762009138,
+      "minimum_overhead_percent": -2.9982642688062047,
+      "overhead_percent_by_pair": [
+        -2.521955936714358,
+        -2.123806762009138,
+        -2.9982642688062047,
+        0.387790960635619,
+        36.40133214285507
+      ],
+      "passed": false
+    },
+    "short_thai:reference": {
+      "maximum_overhead_percent": 9.31522800151342,
+      "median_overhead_percent": 5.502842417128212,
+      "minimum_overhead_percent": 2.480205679339801,
+      "overhead_percent_by_pair": [
+        5.502842417128212,
+        4.876218940797751,
+        2.480205679339801,
+        9.31522800151342,
+        9.294309567729455
+      ],
+      "passed": false
+    }
+  }
+}
