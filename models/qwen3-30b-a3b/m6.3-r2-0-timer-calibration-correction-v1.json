@@ -1,0 +1,17 @@
+{
+  "schema": "m6.3-r2.0-timer-calibration-correction-v1",
+  "status": "preregistered_after_40_samples_before_classification",
+  "localization_samples_sha256": "e38688ae1309c411c11309def37b5b2ef6e84eb634dee244bb565a41b7eb7942",
+  "validator_after_git_oid_correction_sha256": "b4dfef7e332bfa3197b2877696df3ffff6d00136f4a688d937f4ea2ef247f6ad",
+  "timer_noop_median_distribution": {"0": 36, "100": 4},
+  "authorized_change": "allow_nonnegative_timer_noop_median_nanos",
+  "interpretability_rule": "child_median_nanos >= 20 * timer_noop_median_nanos",
+  "timer_overhead_subtraction_authorized": false,
+  "measurement_sample_change_allowed": false,
+  "observer_gate_change_allowed": false,
+  "classification_threshold_change_allowed": false,
+  "benchmark_rerun_allowed": false,
+  "classification_seen": false,
+  "authorizes_r2_1_before_correction": false,
+  "authorizes_m6_4": false
+}
