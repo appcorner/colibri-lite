@@ -1,0 +1,61 @@
+{
+  "schema": "m6.3-r2.0-execution-manifest-v4",
+  "schema_version": 4,
+  "status": "frozen_before_interleaved_observer_controls",
+  "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+  "measurement_method_contract_sha256": "ee2a85a1531956ad790e27c52bfb87cc7014c93dc4140d85576d020e5a45307f",
+  "reference_fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+  "prior_failed_observer_controls_sha256": [
+    "140c219c846af500cc99bd352c3d8b3215571048e3cd02271f414bf84d28d64c",
+    "dba8ef0aef549f5fecb020ab626c9691fd6ae3ba79fc007f56828edd0558b597",
+    "fbc1c782beea42a306973826a98a37d21700d3bbe423205f4f23de0c6942b4cf"
+  ],
+  "instrumented_source_commit": "b5f60b4abf4cd0aef52794f4b1add2fa6ed734ba",
+  "release_binary_sha256": "432ff725e6598b9dbc6739ecd36ef52a38d13e094c7275a96fa05fe8b01a4f70",
+  "release_binary_bytes": 43711488,
+  "release_binary_relative_path": "target/release/deps/clr_qwen3_moe-07d9617dc57ddd0e.exe",
+  "candidate": {
+    "id": "cpu-safe-rust-int8-group32-layer0-r1-1a",
+    "sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+    "bytes": 679477248
+  },
+  "canonical_f32_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+  "host_id": "ANUSORN-NB",
+  "timer_implementation_identity": "std::time::Instant+r2-localization-v3-coarse-f32",
+  "timer_source_sha256": "44ff2a61ee14bce7aa1f396697d83695d753d0fd0a60cc3b110562af7f34ed7a",
+  "collector_source_sha256": "bf83ee3b98d61dad82ddb9bdead3e84c17f0483794d820e067c7096ba780af3c",
+  "benchmark_harness_sha256": "a92e90cc7cb6073345303e24810c56a060bea12e8e867f029039e840e3900ae4",
+  "observer_runner_sha256": "121c599034115980ec1b1f0311411fc9d368f9afa99805ca241cad8380b1f483",
+  "collector_versions": {
+    "r2_localization": "v3-coarse-f32",
+    "observer_pairing": "interleaved-mini-pair-v1"
+  },
+  "observer_pair_order": [
+    ["enabled", "disabled"],
+    ["disabled", "enabled"],
+    ["enabled", "disabled"],
+    ["disabled", "enabled"],
+    ["enabled", "disabled"]
+  ],
+  "observer_control_method": {
+    "fresh_processes": 20,
+    "mini_pairs_per_process": 5,
+    "timed_iterations_per_mini_pair_per_state": 5,
+    "total_timed_iterations_per_state": 25,
+    "mini_pair_order_rule": "base,reverse,base,reverse,base",
+    "outer_pair_overhead_statistic": "median_of_five_mini_pair_overhead_percent"
+  },
+  "observer_gate": {
+    "median_overhead_percent_max": 5.0,
+    "every_pair_overhead_percent_max": 10.0,
+    "output_identity": "byte-identical"
+  },
+  "observer_control_process_samples": 20,
+  "observer_controls_seen": false,
+  "candidate_localization_results_seen": false,
+  "localization_sample_count_seen": 0,
+  "authorizes_observer_validation": true,
+  "authorizes_localization_samples": false,
+  "authorizes_r2_1_hypothesis_design": false,
+  "authorizes_m6_4": false
+}
