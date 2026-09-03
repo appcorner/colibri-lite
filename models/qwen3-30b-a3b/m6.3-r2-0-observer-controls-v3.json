@@ -1,0 +1,2109 @@
+{
+  "all_paired_outputs_byte_identical": true,
+  "authorizes_localization_samples": false,
+  "authorizes_m6_4": false,
+  "authorizes_r2_1_hypothesis_design": false,
+  "candidate_localization_results_seen": false,
+  "completed_pairs": 20,
+  "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+  "execution_manifest_sha256": "f3f179ade7bd975cb6bbdec43d2205c0a005fce5653df61b4dcc5017a8946f8c",
+  "host_id": "ANUSORN-NB",
+  "localization_sample_count_seen": 0,
+  "measurement_method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+  "observer_control_process_samples": 20,
+  "observer_controls": [
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "instrumented_total_nanos": 3829828100,
+      "overhead_percent": -26.613526726675353,
+      "pair": 1,
+      "path": "candidate",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_english",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "enabled",
+          "disabled"
+        ],
+        "path": "candidate",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+            "stages": {},
+            "timed_total_nanos": 5218711200
+          },
+          "enabled": {
+            "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+            "stages": {
+              "activation_product": {
+                "calls": 400,
+                "exclusive_nanos": 2522100,
+                "logical_bytes": 0,
+                "max_nanos": 141300,
+                "median_nanos": 5200,
+                "min_nanos": 3300,
+                "total_nanos": 2522100
+              },
+              "down_packed_projection": {
+                "calls": 400,
+                "exclusive_nanos": 1186986300,
+                "logical_bytes": 0,
+                "max_nanos": 26982900,
+                "median_nanos": 2684600,
+                "min_nanos": 2438200,
+                "total_nanos": 1186986300
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 318011400,
+                "logical_bytes": 0,
+                "max_nanos": 212049900,
+                "median_nanos": 148505500,
+                "min_nanos": 137542200,
+                "total_nanos": 3829807000
+              },
+              "gate_packed_projection": {
+                "calls": 400,
+                "exclusive_nanos": 1157204000,
+                "logical_bytes": 0,
+                "max_nanos": 7566700,
+                "median_nanos": 2627500,
+                "min_nanos": 2408100,
+                "total_nanos": 1157204000
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 644300,
+                "logical_bytes": 0,
+                "max_nanos": 11700,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 644300
+              },
+              "up_packed_projection": {
+                "calls": 400,
+                "exclusive_nanos": 1163047000,
+                "logical_bytes": 0,
+                "max_nanos": 6187100,
+                "median_nanos": 2633800,
+                "min_nanos": 2426100,
+                "total_nanos": 1163047000
+              },
+              "weighted_accumulation": {
+                "calls": 350,
+                "exclusive_nanos": 1391900,
+                "logical_bytes": 0,
+                "max_nanos": 18700,
+                "median_nanos": 3500,
+                "min_nanos": 1700,
+                "total_nanos": 1391900
+              }
+            },
+            "timed_total_nanos": 3829828100
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 100
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "uninstrumented_total_nanos": 5218711200
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "disabled",
+        "enabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "instrumented_total_nanos": 5239830800,
+      "overhead_percent": -15.763985121060145,
+      "pair": 2,
+      "path": "candidate",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_english",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "disabled",
+          "enabled"
+        ],
+        "path": "candidate",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+            "stages": {},
+            "timed_total_nanos": 6220416300
+          },
+          "enabled": {
+            "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+            "stages": {
+              "activation_product": {
+                "calls": 400,
+                "exclusive_nanos": 2944700,
+                "logical_bytes": 0,
+                "max_nanos": 86400,
+                "median_nanos": 7100,
+                "min_nanos": 3600,
+                "total_nanos": 2944700
+              },
+              "down_packed_projection": {
+                "calls": 400,
+                "exclusive_nanos": 1598688900,
+                "logical_bytes": 0,
+                "max_nanos": 17317000,
+                "median_nanos": 3988600,
+                "min_nanos": 2703500,
+                "total_nanos": 1598688900
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 421015100,
+                "logical_bytes": 0,
+                "max_nanos": 269287000,
+                "median_nanos": 218422400,
+                "min_nanos": 159275200,
+                "total_nanos": 5239807200
+              },
+              "gate_packed_projection": {
+                "calls": 400,
+                "exclusive_nanos": 1629036800,
+                "logical_bytes": 0,
+                "max_nanos": 18301400,
+                "median_nanos": 4027200,
+                "min_nanos": 2692400,
+                "total_nanos": 1629036800
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 774700,
+                "logical_bytes": 0,
+                "max_nanos": 8800,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 774700
+              },
+              "up_packed_projection": {
+                "calls": 400,
+                "exclusive_nanos": 1585588700,
+                "logical_bytes": 0,
+                "max_nanos": 10155600,
+                "median_nanos": 4001900,
+                "min_nanos": 2694600,
+                "total_nanos": 1585588700
+              },
+              "weighted_accumulation": {
+                "calls": 350,
+                "exclusive_nanos": 1758300,
+                "logical_bytes": 0,
+                "max_nanos": 86800,
+                "median_nanos": 4100,
+                "min_nanos": 1900,
+                "total_nanos": 1758300
+              }
+            },
+            "timed_total_nanos": 5239830800
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 0
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "uninstrumented_total_nanos": 6220416300
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "instrumented_total_nanos": 4428524800,
+      "overhead_percent": -1.8084287296928785,
+      "pair": 3,
+      "path": "candidate",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_english",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "enabled",
+          "disabled"
+        ],
+        "path": "candidate",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+            "stages": {},
+            "timed_total_nanos": 4510086500
+          },
+          "enabled": {
+            "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+            "stages": {
+              "activation_product": {
+                "calls": 400,
+                "exclusive_nanos": 3654800,
+                "logical_bytes": 0,
+                "max_nanos": 163400,
+                "median_nanos": 7600,
+                "min_nanos": 3900,
+                "total_nanos": 3654800
+              },
+              "down_packed_projection": {
+                "calls": 400,
+                "exclusive_nanos": 1335836100,
+                "logical_bytes": 0,
+                "max_nanos": 7766800,
+                "median_nanos": 3082600,
+                "min_nanos": 2568300,
+                "total_nanos": 1335836100
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 391758800,
+                "logical_bytes": 0,
+                "max_nanos": 230155600,
+                "median_nanos": 170008400,
+                "min_nanos": 152182500,
+                "total_nanos": 4428496800
+              },
+              "gate_packed_projection": {
+                "calls": 400,
+                "exclusive_nanos": 1351814400,
+                "logical_bytes": 0,
+                "max_nanos": 10024700,
+                "median_nanos": 3124900,
+                "min_nanos": 2556400,
+                "total_nanos": 1351814400
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 869800,
+                "logical_bytes": 0,
+                "max_nanos": 30800,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 869800
+              },
+              "up_packed_projection": {
+                "calls": 400,
+                "exclusive_nanos": 1343087600,
+                "logical_bytes": 0,
+                "max_nanos": 10586600,
+                "median_nanos": 3113500,
+                "min_nanos": 2555800,
+                "total_nanos": 1343087600
+              },
+              "weighted_accumulation": {
+                "calls": 350,
+                "exclusive_nanos": 1475300,
+                "logical_bytes": 0,
+                "max_nanos": 28000,
+                "median_nanos": 3300,
+                "min_nanos": 1600,
+                "total_nanos": 1475300
+              }
+            },
+            "timed_total_nanos": 4428524800
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 0
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "uninstrumented_total_nanos": 4510086500
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "disabled",
+        "enabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "instrumented_total_nanos": 5180569100,
+      "overhead_percent": 4.871263410103621,
+      "pair": 4,
+      "path": "candidate",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_english",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "disabled",
+          "enabled"
+        ],
+        "path": "candidate",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+            "stages": {},
+            "timed_total_nanos": 4939932000
+          },
+          "enabled": {
+            "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+            "stages": {
+              "activation_product": {
+                "calls": 400,
+                "exclusive_nanos": 3823100,
+                "logical_bytes": 0,
+                "max_nanos": 121200,
+                "median_nanos": 8400,
+                "min_nanos": 4400,
+                "total_nanos": 3823100
+              },
+              "down_packed_projection": {
+                "calls": 400,
+                "exclusive_nanos": 1580821500,
+                "logical_bytes": 0,
+                "max_nanos": 19846100,
+                "median_nanos": 3744400,
+                "min_nanos": 2698000,
+                "total_nanos": 1580821500
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 443261500,
+                "logical_bytes": 0,
+                "max_nanos": 294616900,
+                "median_nanos": 195102900,
+                "min_nanos": 170859800,
+                "total_nanos": 5180544400
+              },
+              "gate_packed_projection": {
+                "calls": 400,
+                "exclusive_nanos": 1563615700,
+                "logical_bytes": 0,
+                "max_nanos": 18082900,
+                "median_nanos": 3618900,
+                "min_nanos": 2692100,
+                "total_nanos": 1563615700
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 861600,
+                "logical_bytes": 0,
+                "max_nanos": 13700,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 861600
+              },
+              "up_packed_projection": {
+                "calls": 400,
+                "exclusive_nanos": 1586693400,
+                "logical_bytes": 0,
+                "max_nanos": 11771300,
+                "median_nanos": 3700200,
+                "min_nanos": 2699000,
+                "total_nanos": 1586693400
+              },
+              "weighted_accumulation": {
+                "calls": 350,
+                "exclusive_nanos": 1467600,
+                "logical_bytes": 0,
+                "max_nanos": 76400,
+                "median_nanos": 3300,
+                "min_nanos": 1400,
+                "total_nanos": 1467600
+              }
+            },
+            "timed_total_nanos": 5180569100
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 100
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "uninstrumented_total_nanos": 4939932000
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "instrumented_total_nanos": 4567089800,
+      "overhead_percent": 7.977865894789448,
+      "pair": 5,
+      "path": "candidate",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_english",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "enabled",
+          "disabled"
+        ],
+        "path": "candidate",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+            "stages": {},
+            "timed_total_nanos": 4229653700
+          },
+          "enabled": {
+            "output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+            "stages": {
+              "activation_product": {
+                "calls": 400,
+                "exclusive_nanos": 3046100,
+                "logical_bytes": 0,
+                "max_nanos": 31800,
+                "median_nanos": 7000,
+                "min_nanos": 3400,
+                "total_nanos": 3046100
+              },
+              "down_packed_projection": {
+                "calls": 400,
+                "exclusive_nanos": 1386987600,
+                "logical_bytes": 0,
+                "max_nanos": 13463100,
+                "median_nanos": 3123000,
+                "min_nanos": 2571300,
+                "total_nanos": 1386987600
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 368499800,
+                "logical_bytes": 0,
+                "max_nanos": 281631400,
+                "median_nanos": 162878800,
+                "min_nanos": 153234600,
+                "total_nanos": 4567069800
+              },
+              "gate_packed_projection": {
+                "calls": 400,
+                "exclusive_nanos": 1390060100,
+                "logical_bytes": 0,
+                "max_nanos": 13779800,
+                "median_nanos": 3061200,
+                "min_nanos": 2556600,
+                "total_nanos": 1390060100
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 696900,
+                "logical_bytes": 0,
+                "max_nanos": 5300,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 696900
+              },
+              "up_packed_projection": {
+                "calls": 400,
+                "exclusive_nanos": 1416553200,
+                "logical_bytes": 0,
+                "max_nanos": 11133300,
+                "median_nanos": 3122300,
+                "min_nanos": 2560900,
+                "total_nanos": 1416553200
+              },
+              "weighted_accumulation": {
+                "calls": 350,
+                "exclusive_nanos": 1226100,
+                "logical_bytes": 0,
+                "max_nanos": 13100,
+                "median_nanos": 3200,
+                "min_nanos": 1500,
+                "total_nanos": 1226100
+              }
+            },
+            "timed_total_nanos": 4567089800
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 100
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "558ffeb2ec19e21eccd67d7a42b4588c317cbfb460f400d8bff67ab000861dde",
+      "uninstrumented_total_nanos": 4229653700
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "instrumented_total_nanos": 1943463000,
+      "overhead_percent": -2.6332117999671847,
+      "pair": 1,
+      "path": "reference",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_english",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "enabled",
+          "disabled"
+        ],
+        "path": "reference",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+            "stages": {},
+            "timed_total_nanos": 1996022500
+          },
+          "enabled": {
+            "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+            "stages": {
+              "down_projection": {
+                "calls": 400,
+                "exclusive_nanos": 639465900,
+                "logical_bytes": 0,
+                "max_nanos": 5598000,
+                "median_nanos": 1503200,
+                "min_nanos": 1351800,
+                "total_nanos": 639465900
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 2920300,
+                "logical_bytes": 0,
+                "max_nanos": 87580600,
+                "median_nanos": 77268100,
+                "min_nanos": 74416800,
+                "total_nanos": 1943444200
+              },
+              "f32_gate_up_activation_combined": {
+                "calls": 400,
+                "exclusive_nanos": 1299426700,
+                "logical_bytes": 0,
+                "max_nanos": 4418500,
+                "median_nanos": 3157700,
+                "min_nanos": 2883200,
+                "total_nanos": 1299426700
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 516800,
+                "logical_bytes": 0,
+                "max_nanos": 13600,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 516800
+              },
+              "weighted_accumulation": {
+                "calls": 350,
+                "exclusive_nanos": 1114500,
+                "logical_bytes": 0,
+                "max_nanos": 29300,
+                "median_nanos": 2000,
+                "min_nanos": 1300,
+                "total_nanos": 1114500
+              }
+            },
+            "timed_total_nanos": 1943463000
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 0
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "uninstrumented_total_nanos": 1996022500
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "disabled",
+        "enabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "instrumented_total_nanos": 2084474500,
+      "overhead_percent": 6.329224402858075,
+      "pair": 2,
+      "path": "reference",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_english",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "disabled",
+          "enabled"
+        ],
+        "path": "reference",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+            "stages": {},
+            "timed_total_nanos": 1960396600
+          },
+          "enabled": {
+            "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+            "stages": {
+              "down_projection": {
+                "calls": 400,
+                "exclusive_nanos": 680028500,
+                "logical_bytes": 0,
+                "max_nanos": 4140100,
+                "median_nanos": 1616800,
+                "min_nanos": 1465400,
+                "total_nanos": 680028500
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 3341100,
+                "logical_bytes": 0,
+                "max_nanos": 108543300,
+                "median_nanos": 81314700,
+                "min_nanos": 77115000,
+                "total_nanos": 2084457400
+              },
+              "f32_gate_up_activation_combined": {
+                "calls": 400,
+                "exclusive_nanos": 1399341000,
+                "logical_bytes": 0,
+                "max_nanos": 8136900,
+                "median_nanos": 3370900,
+                "min_nanos": 3038100,
+                "total_nanos": 1399341000
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 631700,
+                "logical_bytes": 0,
+                "max_nanos": 115500,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 631700
+              },
+              "weighted_accumulation": {
+                "calls": 350,
+                "exclusive_nanos": 1115100,
+                "logical_bytes": 0,
+                "max_nanos": 22400,
+                "median_nanos": 2300,
+                "min_nanos": 1200,
+                "total_nanos": 1115100
+              }
+            },
+            "timed_total_nanos": 2084474500
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 100
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "uninstrumented_total_nanos": 1960396600
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "instrumented_total_nanos": 1941602700,
+      "overhead_percent": 1.7229377204065957,
+      "pair": 3,
+      "path": "reference",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_english",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "enabled",
+          "disabled"
+        ],
+        "path": "reference",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+            "stages": {},
+            "timed_total_nanos": 1908716700
+          },
+          "enabled": {
+            "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+            "stages": {
+              "down_projection": {
+                "calls": 400,
+                "exclusive_nanos": 633616800,
+                "logical_bytes": 0,
+                "max_nanos": 2557100,
+                "median_nanos": 1550800,
+                "min_nanos": 1435900,
+                "total_nanos": 633616800
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 2776400,
+                "logical_bytes": 0,
+                "max_nanos": 86490300,
+                "median_nanos": 77174000,
+                "min_nanos": 73964000,
+                "total_nanos": 1941583000
+              },
+              "f32_gate_up_activation_combined": {
+                "calls": 400,
+                "exclusive_nanos": 1303918700,
+                "logical_bytes": 0,
+                "max_nanos": 4828100,
+                "median_nanos": 3204700,
+                "min_nanos": 3016800,
+                "total_nanos": 1303918700
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 486000,
+                "logical_bytes": 0,
+                "max_nanos": 6500,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 486000
+              },
+              "weighted_accumulation": {
+                "calls": 350,
+                "exclusive_nanos": 785100,
+                "logical_bytes": 0,
+                "max_nanos": 16600,
+                "median_nanos": 2000,
+                "min_nanos": 1200,
+                "total_nanos": 785100
+              }
+            },
+            "timed_total_nanos": 1941602700
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 0
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "uninstrumented_total_nanos": 1908716700
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "disabled",
+        "enabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "instrumented_total_nanos": 1933066600,
+      "overhead_percent": -2.193249664303684,
+      "pair": 4,
+      "path": "reference",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_english",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "disabled",
+          "enabled"
+        ],
+        "path": "reference",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+            "stages": {},
+            "timed_total_nanos": 1976414300
+          },
+          "enabled": {
+            "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+            "stages": {
+              "down_projection": {
+                "calls": 400,
+                "exclusive_nanos": 632894500,
+                "logical_bytes": 0,
+                "max_nanos": 3487600,
+                "median_nanos": 1510100,
+                "min_nanos": 1332100,
+                "total_nanos": 632894500
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 3462700,
+                "logical_bytes": 0,
+                "max_nanos": 86446700,
+                "median_nanos": 76812600,
+                "min_nanos": 75143900,
+                "total_nanos": 1933045700
+              },
+              "f32_gate_up_activation_combined": {
+                "calls": 400,
+                "exclusive_nanos": 1294877600,
+                "logical_bytes": 0,
+                "max_nanos": 5849500,
+                "median_nanos": 3141200,
+                "min_nanos": 2810100,
+                "total_nanos": 1294877600
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 579600,
+                "logical_bytes": 0,
+                "max_nanos": 17100,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 579600
+              },
+              "weighted_accumulation": {
+                "calls": 350,
+                "exclusive_nanos": 1231300,
+                "logical_bytes": 0,
+                "max_nanos": 35100,
+                "median_nanos": 2200,
+                "min_nanos": 1100,
+                "total_nanos": 1231300
+              }
+            },
+            "timed_total_nanos": 1933066600
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 100
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "uninstrumented_total_nanos": 1976414300
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_english",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "instrumented_total_nanos": 2134988500,
+      "overhead_percent": -6.457429576523712,
+      "pair": 5,
+      "path": "reference",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_english",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "enabled",
+          "disabled"
+        ],
+        "path": "reference",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+            "stages": {},
+            "timed_total_nanos": 2282371000
+          },
+          "enabled": {
+            "output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+            "stages": {
+              "down_projection": {
+                "calls": 400,
+                "exclusive_nanos": 693899700,
+                "logical_bytes": 0,
+                "max_nanos": 8270500,
+                "median_nanos": 1625300,
+                "min_nanos": 1464700,
+                "total_nanos": 693899700
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 3588900,
+                "logical_bytes": 0,
+                "max_nanos": 119219500,
+                "median_nanos": 82965000,
+                "min_nanos": 75345400,
+                "total_nanos": 2134971700
+              },
+              "f32_gate_up_activation_combined": {
+                "calls": 400,
+                "exclusive_nanos": 1435656800,
+                "logical_bytes": 0,
+                "max_nanos": 13520900,
+                "median_nanos": 3361200,
+                "min_nanos": 3022600,
+                "total_nanos": 1435656800
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 609800,
+                "logical_bytes": 0,
+                "max_nanos": 15300,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 609800
+              },
+              "weighted_accumulation": {
+                "calls": 350,
+                "exclusive_nanos": 1216500,
+                "logical_bytes": 0,
+                "max_nanos": 52400,
+                "median_nanos": 2600,
+                "min_nanos": 1100,
+                "total_nanos": 1216500
+              }
+            },
+            "timed_total_nanos": 2134988500
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 0
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "dff85ff159cdcf93bf2cd82b65c81145ecac2008781670583b66b9bac5ba034b",
+      "uninstrumented_total_nanos": 2282371000
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "instrumented_total_nanos": 2047218100,
+      "overhead_percent": -13.301958790081768,
+      "pair": 1,
+      "path": "candidate",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_thai",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "enabled",
+          "disabled"
+        ],
+        "path": "candidate",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+            "stages": {},
+            "timed_total_nanos": 2361319900
+          },
+          "enabled": {
+            "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+            "stages": {
+              "activation_product": {
+                "calls": 200,
+                "exclusive_nanos": 1390300,
+                "logical_bytes": 0,
+                "max_nanos": 28300,
+                "median_nanos": 6300,
+                "min_nanos": 3600,
+                "total_nanos": 1390300
+              },
+              "down_packed_projection": {
+                "calls": 200,
+                "exclusive_nanos": 636404500,
+                "logical_bytes": 0,
+                "max_nanos": 5780300,
+                "median_nanos": 2899600,
+                "min_nanos": 2637800,
+                "total_nanos": 636404500
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 167281400,
+                "logical_bytes": 0,
+                "max_nanos": 92418400,
+                "median_nanos": 80762700,
+                "min_nanos": 74765700,
+                "total_nanos": 2047197700
+              },
+              "gate_packed_projection": {
+                "calls": 200,
+                "exclusive_nanos": 621581800,
+                "logical_bytes": 0,
+                "max_nanos": 4488100,
+                "median_nanos": 2889900,
+                "min_nanos": 2629900,
+                "total_nanos": 621581800
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 441500,
+                "logical_bytes": 0,
+                "max_nanos": 4300,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 441500
+              },
+              "up_packed_projection": {
+                "calls": 200,
+                "exclusive_nanos": 619464100,
+                "logical_bytes": 0,
+                "max_nanos": 5619500,
+                "median_nanos": 2839600,
+                "min_nanos": 2626100,
+                "total_nanos": 619464100
+              },
+              "weighted_accumulation": {
+                "calls": 200,
+                "exclusive_nanos": 634100,
+                "logical_bytes": 0,
+                "max_nanos": 8400,
+                "median_nanos": 3000,
+                "min_nanos": 1600,
+                "total_nanos": 634100
+              }
+            },
+            "timed_total_nanos": 2047218100
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 0
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "uninstrumented_total_nanos": 2361319900
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "disabled",
+        "enabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "instrumented_total_nanos": 2031615600,
+      "overhead_percent": -6.53527603763403,
+      "pair": 2,
+      "path": "candidate",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_thai",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "disabled",
+          "enabled"
+        ],
+        "path": "candidate",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+            "stages": {},
+            "timed_total_nanos": 2173671000
+          },
+          "enabled": {
+            "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+            "stages": {
+              "activation_product": {
+                "calls": 200,
+                "exclusive_nanos": 1443800,
+                "logical_bytes": 0,
+                "max_nanos": 38400,
+                "median_nanos": 6400,
+                "min_nanos": 3700,
+                "total_nanos": 1443800
+              },
+              "down_packed_projection": {
+                "calls": 200,
+                "exclusive_nanos": 623144700,
+                "logical_bytes": 0,
+                "max_nanos": 5243400,
+                "median_nanos": 2820000,
+                "min_nanos": 2629000,
+                "total_nanos": 623144700
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 163888000,
+                "logical_bytes": 0,
+                "max_nanos": 89196600,
+                "median_nanos": 80490700,
+                "min_nanos": 74021200,
+                "total_nanos": 2031596000
+              },
+              "gate_packed_projection": {
+                "calls": 200,
+                "exclusive_nanos": 623672200,
+                "logical_bytes": 0,
+                "max_nanos": 7531500,
+                "median_nanos": 2784400,
+                "min_nanos": 2621400,
+                "total_nanos": 623672200
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 488800,
+                "logical_bytes": 0,
+                "max_nanos": 46400,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 488800
+              },
+              "up_packed_projection": {
+                "calls": 200,
+                "exclusive_nanos": 618416300,
+                "logical_bytes": 0,
+                "max_nanos": 5331400,
+                "median_nanos": 2825600,
+                "min_nanos": 2619100,
+                "total_nanos": 618416300
+              },
+              "weighted_accumulation": {
+                "calls": 200,
+                "exclusive_nanos": 542200,
+                "logical_bytes": 0,
+                "max_nanos": 7500,
+                "median_nanos": 2500,
+                "min_nanos": 1600,
+                "total_nanos": 542200
+              }
+            },
+            "timed_total_nanos": 2031615600
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 0
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "uninstrumented_total_nanos": 2173671000
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "instrumented_total_nanos": 2111011000,
+      "overhead_percent": -2.3458703435621837,
+      "pair": 3,
+      "path": "candidate",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_thai",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "enabled",
+          "disabled"
+        ],
+        "path": "candidate",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+            "stages": {},
+            "timed_total_nanos": 2161722200
+          },
+          "enabled": {
+            "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+            "stages": {
+              "activation_product": {
+                "calls": 200,
+                "exclusive_nanos": 1327100,
+                "logical_bytes": 0,
+                "max_nanos": 12700,
+                "median_nanos": 6200,
+                "min_nanos": 3500,
+                "total_nanos": 1327100
+              },
+              "down_packed_projection": {
+                "calls": 200,
+                "exclusive_nanos": 641732900,
+                "logical_bytes": 0,
+                "max_nanos": 4792600,
+                "median_nanos": 2978400,
+                "min_nanos": 2639900,
+                "total_nanos": 641732900
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 165320700,
+                "logical_bytes": 0,
+                "max_nanos": 99035000,
+                "median_nanos": 82310300,
+                "min_nanos": 76107500,
+                "total_nanos": 2110991100
+              },
+              "gate_packed_projection": {
+                "calls": 200,
+                "exclusive_nanos": 647131000,
+                "logical_bytes": 0,
+                "max_nanos": 4952700,
+                "median_nanos": 2985900,
+                "min_nanos": 2623300,
+                "total_nanos": 647131000
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 405700,
+                "logical_bytes": 0,
+                "max_nanos": 2200,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 405700
+              },
+              "up_packed_projection": {
+                "calls": 200,
+                "exclusive_nanos": 654506800,
+                "logical_bytes": 0,
+                "max_nanos": 6855900,
+                "median_nanos": 3020400,
+                "min_nanos": 2634400,
+                "total_nanos": 654506800
+              },
+              "weighted_accumulation": {
+                "calls": 200,
+                "exclusive_nanos": 566900,
+                "logical_bytes": 0,
+                "max_nanos": 12000,
+                "median_nanos": 2700,
+                "min_nanos": 1500,
+                "total_nanos": 566900
+              }
+            },
+            "timed_total_nanos": 2111011000
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 0
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "uninstrumented_total_nanos": 2161722200
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "disabled",
+        "enabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "instrumented_total_nanos": 2264434500,
+      "overhead_percent": 5.920988468568341,
+      "pair": 4,
+      "path": "candidate",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_thai",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "disabled",
+          "enabled"
+        ],
+        "path": "candidate",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+            "stages": {},
+            "timed_total_nanos": 2137852500
+          },
+          "enabled": {
+            "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+            "stages": {
+              "activation_product": {
+                "calls": 200,
+                "exclusive_nanos": 1586400,
+                "logical_bytes": 0,
+                "max_nanos": 24000,
+                "median_nanos": 7600,
+                "min_nanos": 3800,
+                "total_nanos": 1586400
+              },
+              "down_packed_projection": {
+                "calls": 200,
+                "exclusive_nanos": 691307000,
+                "logical_bytes": 0,
+                "max_nanos": 6108600,
+                "median_nanos": 3153300,
+                "min_nanos": 2643200,
+                "total_nanos": 691307000
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 186856600,
+                "logical_bytes": 0,
+                "max_nanos": 123719100,
+                "median_nanos": 84065800,
+                "min_nanos": 73521800,
+                "total_nanos": 2264411900
+              },
+              "gate_packed_projection": {
+                "calls": 200,
+                "exclusive_nanos": 689965500,
+                "logical_bytes": 0,
+                "max_nanos": 6534300,
+                "median_nanos": 3117800,
+                "min_nanos": 2624500,
+                "total_nanos": 689965500
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 477100,
+                "logical_bytes": 0,
+                "max_nanos": 4700,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 477100
+              },
+              "up_packed_projection": {
+                "calls": 200,
+                "exclusive_nanos": 693571400,
+                "logical_bytes": 0,
+                "max_nanos": 5531200,
+                "median_nanos": 3091300,
+                "min_nanos": 2634800,
+                "total_nanos": 693571400
+              },
+              "weighted_accumulation": {
+                "calls": 200,
+                "exclusive_nanos": 647900,
+                "logical_bytes": 0,
+                "max_nanos": 13100,
+                "median_nanos": 3000,
+                "min_nanos": 1700,
+                "total_nanos": 647900
+              }
+            },
+            "timed_total_nanos": 2264434500
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 0
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "uninstrumented_total_nanos": 2137852500
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "instrumented_total_nanos": 2028166900,
+      "overhead_percent": 23.077946774867634,
+      "pair": 5,
+      "path": "candidate",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_thai",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "enabled",
+          "disabled"
+        ],
+        "path": "candidate",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+            "stages": {},
+            "timed_total_nanos": 1647871900
+          },
+          "enabled": {
+            "output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+            "stages": {
+              "activation_product": {
+                "calls": 200,
+                "exclusive_nanos": 1054100,
+                "logical_bytes": 0,
+                "max_nanos": 18600,
+                "median_nanos": 4500,
+                "min_nanos": 2600,
+                "total_nanos": 1054100
+              },
+              "down_packed_projection": {
+                "calls": 200,
+                "exclusive_nanos": 628343500,
+                "logical_bytes": 0,
+                "max_nanos": 16756000,
+                "median_nanos": 2708100,
+                "min_nanos": 2322800,
+                "total_nanos": 628343500
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 159580100,
+                "logical_bytes": 0,
+                "max_nanos": 154520200,
+                "median_nanos": 71634100,
+                "min_nanos": 63755400,
+                "total_nanos": 2028145800
+              },
+              "gate_packed_projection": {
+                "calls": 200,
+                "exclusive_nanos": 622400500,
+                "logical_bytes": 0,
+                "max_nanos": 10307800,
+                "median_nanos": 2673300,
+                "min_nanos": 2312500,
+                "total_nanos": 622400500
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 349200,
+                "logical_bytes": 0,
+                "max_nanos": 2900,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 349200
+              },
+              "up_packed_projection": {
+                "calls": 200,
+                "exclusive_nanos": 615781200,
+                "logical_bytes": 0,
+                "max_nanos": 5409100,
+                "median_nanos": 2791000,
+                "min_nanos": 2314500,
+                "total_nanos": 615781200
+              },
+              "weighted_accumulation": {
+                "calls": 200,
+                "exclusive_nanos": 637200,
+                "logical_bytes": 0,
+                "max_nanos": 36800,
+                "median_nanos": 2800,
+                "min_nanos": 1100,
+                "total_nanos": 637200
+              }
+            },
+            "timed_total_nanos": 2028166900
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 100
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "d3952d0353cb3714c317859a76938cd828aea963d09edab314e06bd381f852a2",
+      "uninstrumented_total_nanos": 1647871900
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "instrumented_total_nanos": 1133726200,
+      "overhead_percent": 2.719870893248098,
+      "pair": 1,
+      "path": "reference",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_thai",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "enabled",
+          "disabled"
+        ],
+        "path": "reference",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+            "stages": {},
+            "timed_total_nanos": 1103706800
+          },
+          "enabled": {
+            "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+            "stages": {
+              "down_projection": {
+                "calls": 200,
+                "exclusive_nanos": 366482600,
+                "logical_bytes": 0,
+                "max_nanos": 3078000,
+                "median_nanos": 1773500,
+                "min_nanos": 1549100,
+                "total_nanos": 366482600
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 2224700,
+                "logical_bytes": 0,
+                "max_nanos": 70092300,
+                "median_nanos": 44661500,
+                "min_nanos": 42088300,
+                "total_nanos": 1133703600
+              },
+              "f32_gate_up_activation_combined": {
+                "calls": 200,
+                "exclusive_nanos": 763928700,
+                "logical_bytes": 0,
+                "max_nanos": 23846800,
+                "median_nanos": 3625200,
+                "min_nanos": 3237500,
+                "total_nanos": 763928700
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 456300,
+                "logical_bytes": 0,
+                "max_nanos": 10200,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 456300
+              },
+              "weighted_accumulation": {
+                "calls": 200,
+                "exclusive_nanos": 611300,
+                "logical_bytes": 0,
+                "max_nanos": 34000,
+                "median_nanos": 2600,
+                "min_nanos": 1700,
+                "total_nanos": 611300
+              }
+            },
+            "timed_total_nanos": 1133726200
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 0
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "uninstrumented_total_nanos": 1103706800
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "disabled",
+        "enabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "instrumented_total_nanos": 1160439200,
+      "overhead_percent": 13.203386660888976,
+      "pair": 2,
+      "path": "reference",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_thai",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "disabled",
+          "enabled"
+        ],
+        "path": "reference",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+            "stages": {},
+            "timed_total_nanos": 1025092300
+          },
+          "enabled": {
+            "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+            "stages": {
+              "down_projection": {
+                "calls": 200,
+                "exclusive_nanos": 401850900,
+                "logical_bytes": 0,
+                "max_nanos": 21589300,
+                "median_nanos": 1806900,
+                "min_nanos": 1557000,
+                "total_nanos": 401850900
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 2074400,
+                "logical_bytes": 0,
+                "max_nanos": 60549300,
+                "median_nanos": 44859300,
+                "min_nanos": 41255600,
+                "total_nanos": 1160411100
+              },
+              "f32_gate_up_activation_combined": {
+                "calls": 200,
+                "exclusive_nanos": 755176500,
+                "logical_bytes": 0,
+                "max_nanos": 6719700,
+                "median_nanos": 3660800,
+                "min_nanos": 3246700,
+                "total_nanos": 755176500
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 486700,
+                "logical_bytes": 0,
+                "max_nanos": 13500,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 486700
+              },
+              "weighted_accumulation": {
+                "calls": 200,
+                "exclusive_nanos": 822600,
+                "logical_bytes": 0,
+                "max_nanos": 8700,
+                "median_nanos": 4100,
+                "min_nanos": 1900,
+                "total_nanos": 822600
+              }
+            },
+            "timed_total_nanos": 1160439200
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 100
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "uninstrumented_total_nanos": 1025092300
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "instrumented_total_nanos": 1020663100,
+      "overhead_percent": -0.4918747367063326,
+      "pair": 3,
+      "path": "reference",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_thai",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "enabled",
+          "disabled"
+        ],
+        "path": "reference",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+            "stages": {},
+            "timed_total_nanos": 1025708300
+          },
+          "enabled": {
+            "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+            "stages": {
+              "down_projection": {
+                "calls": 200,
+                "exclusive_nanos": 335434400,
+                "logical_bytes": 0,
+                "max_nanos": 2245600,
+                "median_nanos": 1638100,
+                "min_nanos": 1527500,
+                "total_nanos": 335434400
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 2029500,
+                "logical_bytes": 0,
+                "max_nanos": 42992700,
+                "median_nanos": 40767800,
+                "min_nanos": 39407200,
+                "total_nanos": 1020640500
+              },
+              "f32_gate_up_activation_combined": {
+                "calls": 200,
+                "exclusive_nanos": 682182100,
+                "logical_bytes": 0,
+                "max_nanos": 4150800,
+                "median_nanos": 3372100,
+                "min_nanos": 3170400,
+                "total_nanos": 682182100
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 430600,
+                "logical_bytes": 0,
+                "max_nanos": 16500,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 430600
+              },
+              "weighted_accumulation": {
+                "calls": 200,
+                "exclusive_nanos": 563900,
+                "logical_bytes": 0,
+                "max_nanos": 6600,
+                "median_nanos": 2700,
+                "min_nanos": 1500,
+                "total_nanos": 563900
+              }
+            },
+            "timed_total_nanos": 1020663100
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 0
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "uninstrumented_total_nanos": 1025708300
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "disabled",
+        "enabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "instrumented_total_nanos": 1031316300,
+      "overhead_percent": -8.837423710115898,
+      "pair": 4,
+      "path": "reference",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_thai",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "disabled",
+          "enabled"
+        ],
+        "path": "reference",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+            "stages": {},
+            "timed_total_nanos": 1131293500
+          },
+          "enabled": {
+            "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+            "stages": {
+              "down_projection": {
+                "calls": 200,
+                "exclusive_nanos": 337965500,
+                "logical_bytes": 0,
+                "max_nanos": 2636600,
+                "median_nanos": 1631500,
+                "min_nanos": 1554100,
+                "total_nanos": 337965500
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 1943300,
+                "logical_bytes": 0,
+                "max_nanos": 43807700,
+                "median_nanos": 41060900,
+                "min_nanos": 40107600,
+                "total_nanos": 1031295700
+              },
+              "f32_gate_up_activation_combined": {
+                "calls": 200,
+                "exclusive_nanos": 690318300,
+                "logical_bytes": 0,
+                "max_nanos": 4694100,
+                "median_nanos": 3391900,
+                "min_nanos": 3229100,
+                "total_nanos": 690318300
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 428700,
+                "logical_bytes": 0,
+                "max_nanos": 17900,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 428700
+              },
+              "weighted_accumulation": {
+                "calls": 200,
+                "exclusive_nanos": 639900,
+                "logical_bytes": 0,
+                "max_nanos": 7700,
+                "median_nanos": 3000,
+                "min_nanos": 1900,
+                "total_nanos": 639900
+              }
+            },
+            "timed_total_nanos": 1031316300
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 0
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "uninstrumented_total_nanos": 1131293500
+    },
+    {
+      "attempt_ordinal": 1,
+      "execution_order": [
+        "enabled",
+        "disabled"
+      ],
+      "fixture": "short_thai",
+      "host_id": "ANUSORN-NB",
+      "instrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "instrumented_total_nanos": 1021376300,
+      "overhead_percent": -3.921891407394461,
+      "pair": 5,
+      "path": "reference",
+      "raw_pair_sample": {
+        "contract_sha256": "02322820758848b5ebfe3f020db026f1aa5e3dd54ce007fb71202f50e54aceca",
+        "fixture": "short_thai",
+        "fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+        "host_id": "ANUSORN-NB",
+        "method_contract_sha256": "b2df0dd3ae10028b669e0d31aaf77794eef8015e1411166a0c5a08d9ab263e94",
+        "observer_order": [
+          "enabled",
+          "disabled"
+        ],
+        "path": "reference",
+        "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+        "schema": "m6.3-r2.0-observer-pair-sample-v2",
+        "states": {
+          "disabled": {
+            "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+            "stages": {},
+            "timed_total_nanos": 1063068700
+          },
+          "enabled": {
+            "output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+            "stages": {
+              "down_projection": {
+                "calls": 200,
+                "exclusive_nanos": 333759900,
+                "logical_bytes": 0,
+                "max_nanos": 2182700,
+                "median_nanos": 1622200,
+                "min_nanos": 1516800,
+                "total_nanos": 333759900
+              },
+              "expert_total": {
+                "calls": 25,
+                "exclusive_nanos": 1951700,
+                "logical_bytes": 0,
+                "max_nanos": 43413600,
+                "median_nanos": 40702100,
+                "min_nanos": 39026500,
+                "total_nanos": 1021352900
+              },
+              "f32_gate_up_activation_combined": {
+                "calls": 200,
+                "exclusive_nanos": 684681700,
+                "logical_bytes": 0,
+                "max_nanos": 4373900,
+                "median_nanos": 3351100,
+                "min_nanos": 3153800,
+                "total_nanos": 684681700
+              },
+              "routing_occurrence_scan": {
+                "calls": 3200,
+                "exclusive_nanos": 407800,
+                "logical_bytes": 0,
+                "max_nanos": 7000,
+                "median_nanos": 100,
+                "min_nanos": 0,
+                "total_nanos": 407800
+              },
+              "weighted_accumulation": {
+                "calls": 200,
+                "exclusive_nanos": 551800,
+                "logical_bytes": 0,
+                "max_nanos": 18300,
+                "median_nanos": 2500,
+                "min_nanos": 1500,
+                "total_nanos": 551800
+              }
+            },
+            "timed_total_nanos": 1021376300
+          }
+        },
+        "timed_iterations_per_state": 25,
+        "timer_noop_median_nanos": 0
+      },
+      "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+      "uninstrumented_output_sha256": "900e44de399621ef109c1f538fef954f525617a49bae880d3b41fa0a5fa4a8bf",
+      "uninstrumented_total_nanos": 1063068700
+    }
+  ],
+  "pair_order": [
+    [
+      "enabled",
+      "disabled"
+    ],
+    [
+      "disabled",
+      "enabled"
+    ],
+    [
+      "enabled",
+      "disabled"
+    ],
+    [
+      "disabled",
+      "enabled"
+    ],
+    [
+      "enabled",
+      "disabled"
+    ]
+  ],
+  "prior_failed_observer_controls_sha256": [
+    "140c219c846af500cc99bd352c3d8b3215571048e3cd02271f414bf84d28d64c",
+    "dba8ef0aef549f5fecb020ab626c9691fd6ae3ba79fc007f56828edd0558b597"
+  ],
+  "reason": "at least one within-process outer pair exceeded the frozen 10 percent maximum",
+  "reference_fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+  "release_binary_sha256": "e2c711384697fd0eed53807dce9044af2a31106855827ae2341aea823ddd0b61",
+  "schema": "m6.3-r2.0-observer-controls-v3",
+  "status": "failed_observer_effect_gate",
+  "summary": {
+    "short_english:candidate": {
+      "every_pair_at_most_10_percent": true,
+      "maximum_overhead_percent": 7.977865894789448,
+      "median_at_most_5_percent": true,
+      "median_overhead_percent": -1.8084287296928785,
+      "minimum_overhead_percent": -26.613526726675353,
+      "overhead_percent_by_pair": [
+        -26.613526726675353,
+        -15.763985121060145,
+        -1.8084287296928785,
+        4.871263410103621,
+        7.977865894789448
+      ],
+      "passed": true
+    },
+    "short_english:reference": {
+      "every_pair_at_most_10_percent": true,
+      "maximum_overhead_percent": 6.329224402858075,
+      "median_at_most_5_percent": true,
+      "median_overhead_percent": -2.193249664303684,
+      "minimum_overhead_percent": -6.457429576523712,
+      "overhead_percent_by_pair": [
+        -2.6332117999671847,
+        6.329224402858075,
+        1.7229377204065957,
+        -2.193249664303684,
+        -6.457429576523712
+      ],
+      "passed": true
+    },
+    "short_thai:candidate": {
+      "every_pair_at_most_10_percent": false,
+      "maximum_overhead_percent": 23.077946774867634,
+      "median_at_most_5_percent": true,
+      "median_overhead_percent": -2.3458703435621837,
+      "minimum_overhead_percent": -13.301958790081768,
+      "overhead_percent_by_pair": [
+        -13.301958790081768,
+        -6.53527603763403,
+        -2.3458703435621837,
+        5.920988468568341,
+        23.077946774867634
+      ],
+      "passed": false
+    },
+    "short_thai:reference": {
+      "every_pair_at_most_10_percent": false,
+      "maximum_overhead_percent": 13.203386660888976,
+      "median_at_most_5_percent": true,
+      "median_overhead_percent": -0.4918747367063326,
+      "minimum_overhead_percent": -8.837423710115898,
+      "overhead_percent_by_pair": [
+        2.719870893248098,
+        13.203386660888976,
+        -0.4918747367063326,
+        -8.837423710115898,
+        -3.921891407394461
+      ],
+      "passed": false
+    }
+  }
+}
