@@ -434,6 +434,45 @@ impl R1_1CandidateReader {
     }
 }
 
+#[cfg(feature = "m6-3-r2-native")]
+#[derive(Debug)]
+pub(crate) struct R2_2LayerCandidateReader {
+    layer: usize,
+    reader: R1_1CandidateReader,
+}
+
+#[cfg(feature = "m6-3-r2-native")]
+impl R2_2LayerCandidateReader {
+    pub(crate) fn open(
+        layer: usize,
+        path: &Path,
+        layout: R1_1PackedArtifactLayout,
+        expected_sha256: &str,
+    ) -> Result<Self, RuntimeError> {
+        if layer >= 48 {
+            return Err(error("R2.2 candidate layer ID out of range"));
+        }
+        Ok(Self {
+            layer,
+            reader: R1_1CandidateReader::open(path, layout, expected_sha256)?,
+        })
+    }
+
+    pub(crate) fn layer(&self) -> usize {
+        self.layer
+    }
+
+    pub(crate) fn reader_mut_for_layer(
+        &mut self,
+        layer: usize,
+    ) -> Result<&mut R1_1CandidateReader, RuntimeError> {
+        if layer != self.layer {
+            return Err(error("R2.2 packed artifact layer identity mismatch"));
+        }
+        Ok(&mut self.reader)
+    }
+}
+
 #[cfg(all(test, feature = "m6-3-r2-localization"))]
 #[derive(Debug)]
 pub(crate) struct R2PreloadedCandidateExperts {
@@ -708,9 +747,9 @@ mod tests {
 
     use clr_storage::Sha256Hasher;
 
-    #[cfg(feature = "m6-3-r2-native")]
-    use super::R2_1PackedProjectionBackend;
     use super::{R1_1CandidateReader, R1_1PackedArtifactLayout, R1_1PackedProjection};
+    #[cfg(feature = "m6-3-r2-native")]
+    use super::{R2_1PackedProjectionBackend, R2_2LayerCandidateReader};
 
     static TEMP_ID: AtomicU64 = AtomicU64::new(0);
 
@@ -799,6 +838,27 @@ mod tests {
             .map(|(native, scalar)| (native - scalar).abs())
             .fold(0.0_f32, f32::max);
         assert!(max_abs <= 0.001, "native/scalar expert max abs {max_abs}");
+        fs::remove_file(path).expect("remove fixture");
+    }
+
+    #[cfg(feature = "m6-3-r2-native")]
+    #[test]
+    fn r2_2_layer_reader_rejects_cross_layer_artifact_use() {
+        let (path, layout, hash) = fixture();
+        let mut reader =
+            R2_2LayerCandidateReader::open(24, &path, layout, &hash).expect("layer-bound reader");
+        assert_eq!(reader.layer(), 24);
+        assert!(reader.reader_mut_for_layer(47).is_err());
+        let inner = reader
+            .reader_mut_for_layer(24)
+            .expect("matching layer must be admitted");
+        let expert = inner.load_expert(0).expect("matching-layer expert");
+        let (output, expanded) = expert
+            .apply_with_backend(&[1.0; 32], R2_1PackedProjectionBackend::Scalar)
+            .expect("matching-layer execution");
+        assert_eq!(output.len(), 32);
+        assert_eq!(expanded, 0);
+        assert!(R2_2LayerCandidateReader::open(48, &path, layout, &hash).is_err());
         fs::remove_file(path).expect("remove fixture");
     }
 

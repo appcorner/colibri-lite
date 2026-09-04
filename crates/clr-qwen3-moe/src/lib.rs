@@ -17,6 +17,8 @@ mod m5_4_resident_dense;
 mod model;
 #[cfg(all(test, feature = "m5-3-compute-profiling"))]
 mod profiling;
+#[cfg(all(test, feature = "m6-3-r2-native"))]
+mod r2_2_artifact_tests;
 #[cfg(all(test, feature = "m6-3-r2-localization"))]
 mod r2_localization;
 #[cfg(feature = "m6-3-r2-native")]
