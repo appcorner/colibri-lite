@@ -1,0 +1,123 @@
+{
+  "schema": "m6.3-r2.2-multilayer-sentinel-proof-contract-v1",
+  "schema_version": 1,
+  "status": "pre_registered_before_r2_2_implementation",
+  "created_on": "2026-09-04",
+  "source_commit_at_preregistration": "94d57e61c9cdaf55e21e72e019baea1d9a0079aa",
+  "r2_1_result": {
+    "status": "passed",
+    "samples_sha256": "5f35dd5219079fffad361d0b74344636491359abda69f32668af7138613337ce",
+    "result_sha256": "c1df174cb7fa0ab649797255d0beac2087fe728b78bfa9f621a3c87def663e7e",
+    "decision": "authorize_r2_2_design_only"
+  },
+  "hypothesis": {
+    "id": "native-group32-three-sentinel-layer-generalization-v1",
+    "statement": "The unchanged R2.1 group32 format and AVX2+FMA projection kernel can be applied at representative early, middle, and final MoE layers without material native-vs-scalar drift or held-out semantic regression, while retaining material packed-projection compute benefit.",
+    "candidate_layers": [0, 24, 47],
+    "all_other_layers": "canonical_f32",
+    "purpose": "prove layer generalization and bound propagated impact before any all-layer plan"
+  },
+  "frozen_non_changes": {
+    "group_size": 32,
+    "quantization_grammar_change_allowed": false,
+    "native_kernel_arithmetic_change_allowed": false,
+    "router_change_allowed": false,
+    "attention_change_allowed": false,
+    "activation_change_allowed": false,
+    "cache_policy_change_allowed": false,
+    "threading_change_allowed": false,
+    "avx512_allowed": false,
+    "gpu_allowed": false
+  },
+  "artifact_plan": {
+    "canonical_f32_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "source_relative_paths": {
+      "0": "experts/experts-layer-00000-of-00048.bin",
+      "24": "experts/experts-layer-00024-of-00048.bin",
+      "47": "experts/experts-layer-00047-of-00048.bin"
+    },
+    "packed_artifact_bytes_per_layer": 679477248,
+    "packed_artifact_bytes_total_three_layers": 2038431744,
+    "conversion_must_reuse_r1_1_group32_grammar": true,
+    "per_layer_source_sha256_must_be_frozen_before_conversion": true,
+    "per_layer_output_sha256_must_be_frozen_before_execution": true,
+    "artifact_identity_includes_layer_id": true,
+    "requantization_after_quality_results_allowed": false
+  },
+  "implementation_boundary": {
+    "reader_generalization": "explicit layer_id to independently verified packed artifact mapping",
+    "candidate_layer_set_is_immutable": [0, 24, 47],
+    "kernel_reuse_required": true,
+    "existing_isolated_ffi_boundary_reused": true,
+    "new_unsafe_boundary_allowed": false,
+    "default_runtime_behavior_change_allowed": false,
+    "full_all_layer_artifact_allowed": false,
+    "persistent_native_prepack_bytes": 0,
+    "additional_native_scratch_bytes_max_per_projection_invocation": 1048576,
+    "complete_f32_weight_materializations": 0,
+    "vram_bytes": 0
+  },
+  "quality_gate": {
+    "held_out_fixture_ids": ["short_english", "short_thai"],
+    "generated_token_count": 2,
+    "expected_generated_token_ids": {
+      "short_english": [0, 358],
+      "short_thai": [7360, 91]
+    },
+    "exact_prompt_top20_ids": true,
+    "exact_prompt_argmax": true,
+    "exact_router_guard_layers": [0, 24, 47],
+    "repeatability_repetitions_per_fixture": 2,
+    "repeatability_exact": true,
+    "f32_logit_max_abs_envelope": 0.05,
+    "also_require_quarter_frozen_top1_margin": true,
+    "native_vs_scalar_local_routed_output_max_abs_per_candidate_layer": 0.001,
+    "native_vs_scalar_prompt_logits_max_abs": 0.002,
+    "all_native_outputs_finite": true,
+    "candidate_artifact_identity_exact": true,
+    "failure_decision": "r2_2_no_go_before_official_performance"
+  },
+  "performance_gate": {
+    "must_follow_quality_pass": true,
+    "view": "compute_only_preloaded",
+    "candidate_layers": [0, 24, 47],
+    "fixtures": ["short_english", "short_thai"],
+    "triplet_orders_per_layer_fixture": 6,
+    "paths": ["native_avx2_fma_group32", "scalar_group32", "reference_f32"],
+    "official_process_sample_count": 108,
+    "automatic_retry": false,
+    "native_faster_than_scalar_triplets_min_per_layer_fixture": 5,
+    "median_scalar_over_native_speedup_min": 1.5,
+    "native_over_f32_median_ratio_max": 1.05,
+    "native_over_f32_ratio_max_per_triplet": 1.10,
+    "native_within_per_triplet_ratio_limit_min_per_layer_fixture": 5,
+    "same_release_binary_all_paths": true,
+    "same_host_all_samples": true,
+    "no_results_based_layer_reselection": true
+  },
+  "impact_model": {
+    "purpose": "bound whether a later all-layer plan is worth implementing without claiming all-layer speedup",
+    "inputs": [
+      "R2.1 measured Layer-0 load-plus and compute-only evidence",
+      "R2.2 measured compute-only evidence at Layers 0,24,47",
+      "canonical 48-layer expert byte geometry"
+    ],
+    "required_outputs": [
+      "per-sentinel native/scalar and native/F32 distributions",
+      "three-sentinel worst-case compute ratio",
+      "artifact byte scaling for 48 layers",
+      "explicit uncertainty and non-extrapolation limits"
+    ],
+    "may_claim_full_48_layer_speedup": false
+  },
+  "decision": {
+    "quality_failure": "r2_2_no_go",
+    "performance_failure": "r2_2_no_go_or_new_layer_generalization_hypothesis",
+    "all_gates_pass": "authorize_r2_3_all_layer_plan_design_only",
+    "authorizes_r2_2_implementation_after_contract_freeze": true,
+    "authorizes_r2_3_implementation": false,
+    "authorizes_all_layer_rollout": false,
+    "authorizes_m6_4": false
+  },
+  "results_seen": false
+}

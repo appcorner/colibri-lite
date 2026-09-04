@@ -691,10 +691,16 @@ scalar/native speedup is `3.6810x` English / `3.3597x` Thai compute-only and
 `0.4497` compute-only and `0.0633` / `0.0605` load+compute. All resource guards
 remain satisfied.
 
-The exact next task is `M6.3-R2.2-PR`: design and pre-register an expanded
-multi-layer impact proof before converting or executing any additional layer
-with the candidate. R2.2 implementation, all-layer rollout, and M6.4 remain
-blocked pending that review.
+ADR 0091 now completes `M6.3-R2.2-PR`. R2.2 is frozen as a three-sentinel
+proof on Layers 0/24/47 with all other layers canonical F32. The exact R2.1
+group32 quantization grammar, AVX2+FMA kernel, FFI boundary, scalar fallback,
+and resource limits are reused unchanged. Quality must pass before a 108-sample
+compute-only native/scalar/F32 matrix is allowed.
+
+The exact next task is `M6.3-R2.2a`: generalize the packed artifact seam to an
+explicit layer ID and create/freeze independent Layer-24 and Layer-47 group32
+artifacts. No 48-layer candidate build, all-layer rollout, or M6.4 work is
+authorized.
 
 #### M6.4 - Full hardware-aware runtime
 
