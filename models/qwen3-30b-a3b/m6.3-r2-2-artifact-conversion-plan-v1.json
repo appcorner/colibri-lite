@@ -1,0 +1,49 @@
+{
+  "schema": "m6.3-r2.2-artifact-conversion-plan-v1",
+  "schema_version": 1,
+  "status": "frozen_before_sentinel_conversion",
+  "created_on": "2026-09-04",
+  "contract_sha256": "3071f717b9ea12091323e596b9a3d40aa776b34f27f0cc66db63774e493af0c4",
+  "converter": {
+    "path": "scripts/convert_m6_3_r2_2_group32_layer.py",
+    "sha256": "6a88c5e8fc94f7e832ec50bd5e28431d7180efd4e7825e5643d0aea1a1d28759",
+    "numpy_version": "2.3.3"
+  },
+  "canonical_root": "D:/models/colibri-lite/qwen3-30b-a3b/artifact-v1",
+  "canonical_f32_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+  "source_layer_bytes": 2415919104,
+  "packed_layer_bytes": 679477248,
+  "layers": [
+    {
+      "layer": 0,
+      "source_relative_path": "experts/experts-layer-00000-of-00048.bin",
+      "source_sha256": "73c9afd85e34498480faa50460f040f6e3d3d48de9aa3590d5ac2ef6dfff9d23",
+      "output_path": "D:/tmp/colibri-lite-r2-2/artifacts/layer00-group32-repro.bin",
+      "expected_output_sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+      "purpose": "byte-for-byte converter reproducibility control"
+    },
+    {
+      "layer": 24,
+      "source_relative_path": "experts/experts-layer-00024-of-00048.bin",
+      "source_sha256": "c2ece56eeb01253c7fd4d597ce9cc2f0f0064f74d2ddacccec2f71e8bd7855ea",
+      "output_path": "D:/tmp/colibri-lite-r2-2/artifacts/layer24-group32.bin",
+      "expected_output_sha256": null,
+      "purpose": "R2.2 sentinel candidate"
+    },
+    {
+      "layer": 47,
+      "source_relative_path": "experts/experts-layer-00047-of-00048.bin",
+      "source_sha256": "71b76ba8cf5969a54c19612e296bd40a2642956ead4fa012c88c272c7908d733",
+      "output_path": "D:/tmp/colibri-lite-r2-2/artifacts/layer47-group32.bin",
+      "expected_output_sha256": null,
+      "purpose": "R2.2 sentinel candidate"
+    }
+  ],
+  "conversion_order": [0, 24, 47],
+  "layer0_must_match_expected_before_later_conversion": true,
+  "group_size": 32,
+  "results_seen": false,
+  "authorizes_quality_execution": false,
+  "authorizes_official_performance": false,
+  "authorizes_m6_4": false
+}
