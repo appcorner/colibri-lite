@@ -1,0 +1,116 @@
+{
+  "authorizes_m6_4": false,
+  "authorizes_r2_2_implementation": false,
+  "contract_sha256": "76bfc4a850a8d89fb5901eda338568b7226b36acb7207324575568ea21f6cc2a",
+  "decision": "authorize_r2_2_design_only",
+  "resource_gate": {
+    "candidate_compute_preloaded_zero_load_bytes": true,
+    "candidate_payload_accounting": true,
+    "complete_f32_weight_materializations": 0,
+    "passed": true,
+    "persistent_native_prepack_bytes": 0,
+    "reference_compute_preloaded_zero_load_bytes": true,
+    "reference_payload_accounting": true,
+    "vram_bytes": 0
+  },
+  "schema": "m6.3-r2.1-performance-result-v1",
+  "status": "passed",
+  "summaries": {
+    "short_english:compute_only_preloaded": {
+      "median_native_over_f32_ratio": 0.5024439769550046,
+      "median_scalar_over_native_speedup": 3.6810202152710416,
+      "native_faster_than_f32_triplets": 6,
+      "native_faster_than_scalar_triplets": 6,
+      "native_over_f32_ratios": [
+        0.5382907496710035,
+        0.4154895552506468,
+        0.44416742534197273,
+        0.572829798682194,
+        0.5134528362148332,
+        0.49143511769517617
+      ],
+      "native_over_f32_within_1_10_triplets": 6,
+      "passed": true,
+      "scalar_over_native_ratios": [
+        3.2166887221135747,
+        3.857211460804741,
+        3.6574794325317344,
+        3.2042344452773612,
+        4.03077252019398,
+        3.704560998010349
+      ]
+    },
+    "short_english:load_plus_compute": {
+      "median_native_over_f32_ratio": 0.06333788960915852,
+      "median_scalar_over_native_speedup": 2.0800078916043923,
+      "native_faster_than_f32_triplets": 6,
+      "native_faster_than_scalar_triplets": 6,
+      "native_over_f32_ratios": [
+        0.04827758500101017,
+        0.06864414279918736,
+        0.07382689756903384,
+        0.0638114934834018,
+        0.06286428573491525,
+        0.05816469373494994
+      ],
+      "native_over_f32_within_1_10_triplets": 6,
+      "passed": true,
+      "scalar_over_native_ratios": [
+        3.4711885794036146,
+        1.5900392071788254,
+        1.6464189117715893,
+        2.069798792679118,
+        2.090216990529667,
+        2.2007043337222876
+      ]
+    },
+    "short_thai:compute_only_preloaded": {
+      "median_native_over_f32_ratio": 0.44974200739216447,
+      "median_scalar_over_native_speedup": 3.3597134659563217,
+      "native_faster_than_f32_triplets": 6,
+      "native_faster_than_scalar_triplets": 6,
+      "native_over_f32_ratios": [
+        0.4137178885742132,
+        0.479224457712845,
+        0.47091219583502786,
+        0.4263185636549288,
+        0.4285718189493011,
+        0.599384559304927
+      ],
+      "native_over_f32_within_1_10_triplets": 6,
+      "passed": true,
+      "scalar_over_native_ratios": [
+        3.494183524160063,
+        3.584208288289467,
+        3.22524340775258,
+        3.104074374993494,
+        3.6136976079539576,
+        2.004625459502885
+      ]
+    },
+    "short_thai:load_plus_compute": {
+      "median_native_over_f32_ratio": 0.060487766119638235,
+      "median_scalar_over_native_speedup": 2.0631465636538273,
+      "native_faster_than_f32_triplets": 6,
+      "native_faster_than_scalar_triplets": 6,
+      "native_over_f32_ratios": [
+        0.0602789291346815,
+        0.05701812857026555,
+        0.06132117567523203,
+        0.07172696067539856,
+        0.06069660310459497,
+        0.059625576794512775
+      ],
+      "native_over_f32_within_1_10_triplets": 6,
+      "passed": true,
+      "scalar_over_native_ratios": [
+        2.875100809183518,
+        2.0757664434761898,
+        2.293354973497546,
+        1.713364754019481,
+        2.0505266838314644,
+        1.9681287500005562
+      ]
+    }
+  }
+}

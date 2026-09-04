@@ -684,10 +684,17 @@ fixtures; prompt-logit max-abs is `3.0517578e-5` English and `2.5749207e-5`
 Thai, within the frozen `0.001` and `0.002` limits. This is quality evidence,
 not a performance claim.
 
-The exact next task is `M6.3-R2.1c`: prepare/freeze one three-path release
-binary and run the pre-registered 72 fresh native/scalar/F32 process samples
-with all six balanced triplet orders. R2.2 implementation, all-layer rollout,
-and M6.4 remain blocked.
+R2.1c/R2.1d are now closed `GO`. ADR 0090 records 72/72 fresh process samples
+with no automatic retry. Native beats scalar and F32 in every triplet; median
+scalar/native speedup is `3.6810x` English / `3.3597x` Thai compute-only and
+`2.0800x` / `2.0631x` load+compute. Median native/F32 ratios are `0.5024` /
+`0.4497` compute-only and `0.0633` / `0.0605` load+compute. All resource guards
+remain satisfied.
+
+The exact next task is `M6.3-R2.2-PR`: design and pre-register an expanded
+multi-layer impact proof before converting or executing any additional layer
+with the candidate. R2.2 implementation, all-layer rollout, and M6.4 remain
+blocked pending that review.
 
 #### M6.4 - Full hardware-aware runtime
 

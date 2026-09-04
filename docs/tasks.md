@@ -960,11 +960,16 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   `f0dea27297c03b2f2283c161c91b369169318c309394c1bb786db43a02ba6113`;
   result SHA-256 is
   `8fe232bfc58381e4a3d602e67705e129dafcf133e785c6c15ca6770e1cf22866`.
-- [ ] M6.3-R2.1c After quality PASS, freeze one three-path release binary and run
-  72 official native/scalar/F32 process samples using all six triplet orders.
-- [ ] M6.3-R2.1d Apply the frozen performance/resource gates. PASS may authorize
-  R2.2 design only; R2.2 implementation, all-layer rollout, and M6.4 remain
-  blocked.
+- [x] M6.3-R2.1c Freeze one three-path release binary and run all 72 official
+  native/scalar/F32 process samples using all six triplet orders. The matrix
+  completed 72/72 with no automatic retry; samples SHA-256 is
+  `5f35dd5219079fffad361d0b74344636491359abda69f32668af7138613337ce`.
+- [x] M6.3-R2.1d Apply the frozen performance/resource gates. ADR 0090 closes
+  R2.1 `GO`: all four fixture/view summaries pass, native beats scalar and F32
+  in every triplet, and all frozen resource guards remain satisfied. Result
+  SHA-256 is `c1df174cb7fa0ab649797255d0beac2087fe728b78bfa9f621a3c87def663e7e`.
+  R2.2 design only is authorized; R2.2 implementation, all-layer rollout, and
+  M6.4 remain blocked.
 
 The R2.0 protocol is
 `docs/reports/m6.3-r2-0-expert-compute-bottleneck-localization-protocol.md`.
@@ -980,9 +985,10 @@ localization samples; ADR 0086 closes R2.0 `packed_projection_compute_bound`.
 ADR 0087 pre-registers one AVX2+FMA native packed-projection vertical slice;
 ADR 0088 accepts its isolated dependency/unsafe boundary and R2.1a is complete.
 ADR 0089 closes R2.1b held-out quality `GO` without making a performance claim.
-The exact next task is `M6.3-R2.1c`: freeze one three-path release binary and
-run the pre-registered 72 official native/scalar/F32 process samples. R2.2
-implementation, all-layer rollout, and M6.4 remain blocked.
+ADR 0090 closes R2.1c/R2.1d `GO` after all 72 official samples pass the frozen
+performance and resource gates. The exact next task is `M6.3-R2.2-PR`: design
+and pre-register the expanded multi-layer impact proof. R2.2 implementation,
+all-layer rollout, and M6.4 remain blocked until that design review closes.
 
 ## Standard verification commands
 
