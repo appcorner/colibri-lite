@@ -1,0 +1,44 @@
+{
+  "schema": "m6.3-r2.2-sentinel-artifacts-v1",
+  "schema_version": 1,
+  "status": "frozen_after_conversion_before_candidate_execution",
+  "contract_sha256": "3071f717b9ea12091323e596b9a3d40aa776b34f27f0cc66db63774e493af0c4",
+  "conversion_plan_sha256": "ca005d4b3217fbad952ca0fcd3b7366013d1ad08608d63b82a4c7188f7b1f6e3",
+  "converter_sha256": "6a88c5e8fc94f7e832ec50bd5e28431d7180efd4e7825e5643d0aea1a1d28759",
+  "group_size": 32,
+  "packed_layer_bytes": 679477248,
+  "layer0_reproducibility_control": {
+    "expected_sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+    "actual_sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+    "exact": true
+  },
+  "artifacts": [
+    {
+      "layer": 0,
+      "source_sha256": "73c9afd85e34498480faa50460f040f6e3d3d48de9aa3590d5ac2ef6dfff9d23",
+      "path": "D:/tmp/colibri-lite-r2-2/artifacts/layer00-group32-repro.bin",
+      "bytes": 679477248,
+      "sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2"
+    },
+    {
+      "layer": 24,
+      "source_sha256": "c2ece56eeb01253c7fd4d597ce9cc2f0f0064f74d2ddacccec2f71e8bd7855ea",
+      "path": "D:/tmp/colibri-lite-r2-2/artifacts/layer24-group32.bin",
+      "bytes": 679477248,
+      "sha256": "890936e78829cf013a141b225c7819cb2c10134fbd2c787e4131f7f41844d9b0"
+    },
+    {
+      "layer": 47,
+      "source_sha256": "71b76ba8cf5969a54c19612e296bd40a2642956ead4fa012c88c272c7908d733",
+      "path": "D:/tmp/colibri-lite-r2-2/artifacts/layer47-group32.bin",
+      "bytes": 679477248,
+      "sha256": "a2a45a1f407d5cd2303286843001684fc7800953cd2b67995a2c5e62a9e66a33"
+    }
+  ],
+  "independent_post_conversion_sha256_verified": true,
+  "results_seen": false,
+  "authorizes_quality_execution": false,
+  "authorizes_official_performance": false,
+  "authorizes_all_layer_rollout": false,
+  "authorizes_m6_4": false
+}

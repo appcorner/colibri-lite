@@ -151,6 +151,7 @@
 !/models/qwen3-30b-a3b/m6.3-r2-1-performance-result-v1.json
 !/models/qwen3-30b-a3b/m6.3-r2-2-multilayer-sentinel-proof-contract-v1.json
 !/models/qwen3-30b-a3b/m6.3-r2-2-artifact-conversion-plan-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-2-sentinel-artifacts-v1.json
 /.idea/
 /.vscode/
 *.pdb
