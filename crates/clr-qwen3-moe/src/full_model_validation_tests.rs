@@ -51,6 +51,9 @@ mod r1_3_benchmark_tests;
 #[cfg(feature = "m6-3-r2-native")]
 #[path = "r2_1_quality_tests.rs"]
 mod r2_1_quality_tests;
+#[cfg(feature = "m6-3-r2-native")]
+#[path = "r2_2_quality_tests.rs"]
+mod r2_2_quality_tests;
 #[cfg(feature = "m6-3-r2-localization")]
 #[path = "r2_benchmark_tests.rs"]
 mod r2_benchmark_tests;
