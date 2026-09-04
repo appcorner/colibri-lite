@@ -164,8 +164,10 @@ def main() -> int:
         print("R2.1 performance preflight: PASS")
         return 0
     partial = args.output.with_name(args.output.stem + ".partial.json")
+    result_path = args.output.with_name("m6.3-r2-1-performance-result-v1.json")
     require(not args.output.exists(), "performance output must be new")
     require(not partial.exists(), "performance partial output must be new")
+    require(not result_path.exists(), "performance result must be new")
     require(not args.work_root.exists(), "performance work root must be new")
     args.work_root.mkdir(parents=True)
     samples: list[dict] = []
