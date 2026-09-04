@@ -974,9 +974,15 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   0091. Layers 0/24/47 are frozen; all other layers remain canonical F32. The
   exact R2.1 group32 grammar/kernel is reused unchanged. Contract SHA-256 is
   `3071f717b9ea12091323e596b9a3d40aa776b34f27f0cc66db63774e493af0c4`.
-- [ ] M6.3-R2.2a Generalize the packed artifact reader to explicit layer IDs and
-  create/freeze independent group32 artifacts for Layers 24 and 47. No new
-  unsafe boundary, kernel optimization, or default-runtime change is allowed.
+- [x] M6.3-R2.2a Generalize the packed artifact reader to explicit layer IDs and
+  create/freeze independent group32 artifacts for Layers 24 and 47. Layer-0
+  reproduction matched the admitted SHA exactly; Layer-24 SHA is
+  `890936e78829cf013a141b225c7819cb2c10134fbd2c787e4131f7f41844d9b0`
+  and Layer-47 SHA is
+  `a2a45a1f407d5cd2303286843001684fc7800953cd2b67995a2c5e62a9e66a33`.
+  Frozen Rust reader verification passed all three artifacts; evidence SHA-256
+  is `96c424b2007ef844e622b9976be1b7de144304ea1a392ceedbab10c86385fb4c`.
+  No new unsafe boundary, kernel optimization, or default-runtime change occurred.
 - [ ] M6.3-R2.2b Run the frozen three-sentinel held-out quality gate before any
   official performance sample.
 - [ ] M6.3-R2.2c After quality PASS, run 108 fresh compute-only process samples
@@ -1000,10 +1006,11 @@ ADR 0087 pre-registers one AVX2+FMA native packed-projection vertical slice;
 ADR 0088 accepts its isolated dependency/unsafe boundary and R2.1a is complete.
 ADR 0089 closes R2.1b held-out quality `GO` without making a performance claim.
 ADR 0090 closes R2.1c/R2.1d `GO` after all 72 official samples pass the frozen
-performance and resource gates. ADR 0091 completes `M6.3-R2.2-PR` by freezing
-the Layers 0/24/47 sentinel proof. The exact next task is `M6.3-R2.2a`: build
-the layer-explicit artifact/reader seam and freeze Layer-24/47 group32 artifact
-identities. All-layer rollout and M6.4 remain blocked.
+performance and resource gates. ADR 0091 completes `M6.3-R2.2-PR` by freezing the Layers 0/24/47 sentinel
+proof. R2.2a is now closed `GO`: the layer-bound reader and all three artifact
+identities are independently verified. The exact next task is `M6.3-R2.2b` held-out
+three-sentinel quality. Official R2.2 performance, all-layer rollout, and M6.4
+remain blocked until quality passes.
 
 ## Standard verification commands
 

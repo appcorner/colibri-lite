@@ -1,0 +1,4 @@
+layer	artifact	sha256	bytes	verification_bytes	payload_bytes	peak_expert_bytes
+0	D:\tmp\colibri-lite-r2-2\artifacts\layer00-group32-repro.bin	777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2	679477248	679477248	10616832	5308416
+24	D:\tmp\colibri-lite-r2-2\artifacts\layer24-group32.bin	890936e78829cf013a141b225c7819cb2c10134fbd2c787e4131f7f41844d9b0	679477248	679477248	10616832	5308416
+47	D:\tmp\colibri-lite-r2-2\artifacts\layer47-group32.bin	a2a45a1f407d5cd2303286843001684fc7800953cd2b67995a2c5e62a9e66a33	679477248	679477248	10616832	5308416

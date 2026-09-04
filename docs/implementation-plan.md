@@ -697,10 +697,17 @@ group32 quantization grammar, AVX2+FMA kernel, FFI boundary, scalar fallback,
 and resource limits are reused unchanged. Quality must pass before a 108-sample
 compute-only native/scalar/F32 matrix is allowed.
 
-The exact next task is `M6.3-R2.2a`: generalize the packed artifact seam to an
-explicit layer ID and create/freeze independent Layer-24 and Layer-47 group32
-artifacts. No 48-layer candidate build, all-layer rollout, or M6.4 work is
-authorized.
+R2.2a is now closed `GO`. The frozen converter reproduced the admitted Layer-0
+artifact byte-for-byte, created independently identified Layer-24/47 group32
+artifacts, and the Rust layer-bound reader verified all three complete hashes,
+boundary expert reads, and packed working-set accounting. Cross-layer artifact
+use is explicitly rejected; the kernel, unsafe boundary, and default runtime
+remain unchanged.
+
+The exact next task is `M6.3-R2.2b`: run the frozen held-out quality proof with
+native group32 active only at Layers 0/24/47 and all other layers canonical F32.
+Official R2.2 performance, all-layer rollout, and M6.4 remain blocked until
+quality passes.
 
 #### M6.4 - Full hardware-aware runtime
 

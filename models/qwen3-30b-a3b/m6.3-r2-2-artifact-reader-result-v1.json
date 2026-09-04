@@ -1,0 +1,30 @@
+{
+  "schema": "m6.3-r2.2-artifact-reader-result-v1",
+  "schema_version": 1,
+  "status": "passed",
+  "contract_sha256": "3071f717b9ea12091323e596b9a3d40aa776b34f27f0cc66db63774e493af0c4",
+  "artifact_manifest_sha256": "7abcb5f393472e3e63caf3bb7f06320aebcf292743a0709896d9c0de58a4d8f1",
+  "reader_source_commit": "09f6296de92e86da2c5f5304875f3d7231132c22",
+  "evidence": {
+    "path": "models/qwen3-30b-a3b/m6.3-r2-2-artifact-reader-evidence-v1.tsv",
+    "sha256": "96c424b2007ef844e622b9976be1b7de144304ea1a392ceedbab10c86385fb4c",
+    "test_result": "1 passed; 0 failed"
+  },
+  "layers": [0, 24, 47],
+  "verified_bytes_per_layer": 679477248,
+  "sampled_payload_bytes_per_layer": 10616832,
+  "peak_packed_expert_bytes": 5308416,
+  "layer0_reproduction_exact": true,
+  "cross_layer_mismatch_rejected": true,
+  "complete_f32_weight_materializations": 0,
+  "new_unsafe_boundary": false,
+  "kernel_changed": false,
+  "default_runtime_changed": false,
+  "decision": {
+    "r2_2a": "go",
+    "authorizes_r2_2b_quality": true,
+    "authorizes_official_performance": false,
+    "authorizes_all_layer_rollout": false,
+    "authorizes_m6_4": false
+  }
+}
