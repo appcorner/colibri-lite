@@ -483,6 +483,33 @@ pub(crate) fn r2_routed_preloaded_candidate(
     })
 }
 
+#[cfg(all(test, feature = "m6-3-r2-localization", feature = "m6-3-r2-native"))]
+pub(crate) fn r2_1_routed_preloaded_candidate_with_backend(
+    hidden_states: TensorView<'_>,
+    router: &RouterOutput,
+    config: Qwen3MoeConfig,
+    preloaded: &R2PreloadedCandidateExperts,
+    backend: R2_1PackedProjectionBackend,
+) -> Result<Tensor, RuntimeError> {
+    let hidden_size = config.model().hidden_size();
+    combine_routed_experts(hidden_states, router, config, |expert_id, occurrences| {
+        let expert = preloaded
+            .experts
+            .get(&expert_id)
+            .ok_or_else(|| error("R2.1 selected candidate expert was not preloaded"))?;
+        let mut outputs = Vec::with_capacity(occurrences.len());
+        for &(token, _) in occurrences {
+            let input = &hidden_states.data()[token * hidden_size..(token + 1) * hidden_size];
+            let (output, materializations) = expert.apply_with_backend(input, backend)?;
+            if materializations != 0 {
+                return Err(error("R2.1 preloaded path expanded a complete F32 weight"));
+            }
+            outputs.push(output);
+        }
+        Ok(outputs)
+    })
+}
+
 pub(crate) fn r1_1_routed_experts_with_observer<F>(
     hidden_states: TensorView<'_>,
     router: &RouterOutput,

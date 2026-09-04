@@ -10,9 +10,10 @@ use std::{
 use crate::{
     block::RouterOutput,
     r1_1_direct_candidate::{
-        R1_1CandidateReader, R1_1PackedArtifactLayout, R2PreloadedCandidateExperts,
-        r1_1_routed_experts_with_observer, r2_preload_candidate_experts,
-        r2_routed_preloaded_candidate,
+        R1_1CandidateReader, R1_1PackedArtifactLayout, R2_1PackedProjectionBackend,
+        R2PreloadedCandidateExperts, r1_1_routed_experts_with_observer,
+        r2_1_routed_experts_with_backend, r2_1_routed_preloaded_candidate_with_backend,
+        r2_preload_candidate_experts, r2_routed_preloaded_candidate,
     },
     r2_localization,
     streaming::{
@@ -343,6 +344,48 @@ fn timed_preloaded_candidate(
     }
     let snapshot = r2_localization::finish(session);
     (total_nanos, snapshot, last.expect("timed candidate output"))
+}
+
+fn timed_preloaded_candidate_with_backend(
+    run: &FrozenRuntimeFixture,
+    prepared: &PreparedCandidate,
+    backend: R2_1PackedProjectionBackend,
+) -> (u128, r2_localization::Snapshot, Tensor) {
+    for _ in 0..2 {
+        std::hint::black_box(
+            r2_1_routed_preloaded_candidate_with_backend(
+                run.input.view(),
+                &run.router,
+                prepared.config,
+                &prepared.preloaded,
+                backend,
+            )
+            .expect("R2.1 candidate warmup"),
+        );
+    }
+    let session = r2_localization::start(true);
+    let mut total_nanos = 0_u128;
+    let mut last = None;
+    for _ in 0..25 {
+        let started = Instant::now();
+        let output = r2_1_routed_preloaded_candidate_with_backend(
+            run.input.view(),
+            &run.router,
+            prepared.config,
+            &prepared.preloaded,
+            backend,
+        )
+        .expect("R2.1 candidate timed compute-only");
+        total_nanos = total_nanos.saturating_add(started.elapsed().as_nanos());
+        std::hint::black_box(output.data().first().copied());
+        last = Some(output);
+    }
+    let snapshot = r2_localization::finish(session);
+    (
+        total_nanos,
+        snapshot,
+        last.expect("timed R2.1 candidate output"),
+    )
 }
 
 fn run_preloaded_reference(
@@ -994,6 +1037,63 @@ fn run_load_plus_candidate(run: &FrozenRuntimeFixture) -> LocalizationRun {
     }
 }
 
+fn run_load_plus_candidate_with_backend(
+    run: &FrozenRuntimeFixture,
+    backend: R2_1PackedProjectionBackend,
+) -> LocalizationRun {
+    let verified = verified_candidate_reader();
+    let config = PINNED_QWEN3_30B_A3B_CONFIG
+        .map_to_f32_runtime()
+        .expect("R2.1 config")
+        .runtime_config();
+    for _ in 0..2 {
+        let mut reader = verified
+            .reopen_verified_for_measurement()
+            .expect("reopen R2.1 candidate warmup reader");
+        std::hint::black_box(
+            r2_1_routed_experts_with_backend(
+                run.input.view(),
+                &run.router,
+                config,
+                &mut reader,
+                backend,
+            )
+            .expect("R2.1 candidate load-plus warmup"),
+        );
+    }
+    let session = r2_localization::start(true);
+    let mut timed_total_nanos = 0_u128;
+    let mut candidate_payload_bytes = 0_u64;
+    let mut last = None;
+    for _ in 0..10 {
+        let mut reader = verified
+            .reopen_verified_for_measurement()
+            .expect("reopen R2.1 candidate timed reader");
+        let started = Instant::now();
+        let output = r2_1_routed_experts_with_backend(
+            run.input.view(),
+            &run.router,
+            config,
+            &mut reader,
+            backend,
+        )
+        .expect("R2.1 candidate timed load-plus compute");
+        timed_total_nanos = timed_total_nanos.saturating_add(started.elapsed().as_nanos());
+        candidate_payload_bytes =
+            candidate_payload_bytes.saturating_add(reader.payload_bytes_read());
+        std::hint::black_box(output.data().first().copied());
+        last = Some(output);
+    }
+    let snapshot = r2_localization::finish(session);
+    LocalizationRun {
+        timed_total_nanos,
+        snapshot,
+        output: last.expect("R2.1 candidate load-plus output"),
+        candidate_payload_bytes,
+        f32_expert_load_bytes: 0,
+    }
+}
+
 fn localization_expected_bytes(run: &FrozenRuntimeFixture, view: &str, path: &str) -> u64 {
     if view == "compute_only_preloaded" {
         return 0;
@@ -1182,4 +1282,159 @@ fn m6_3_r2_0_localization_single_sample() {
         snapshot_json(&result.snapshot),
     );
     fs::write(output_path, document).expect("write R2.0 localization sample");
+}
+
+const R2_1_CONTRACT_SHA256: &str =
+    "76bfc4a850a8d89fb5901eda338568b7226b36acb7207324575568ea21f6cc2a";
+
+fn run_r2_1_view(run: &FrozenRuntimeFixture, view: &str, path: &str) -> LocalizationRun {
+    match (view, path) {
+        ("compute_only_preloaded", "reference_f32") => {
+            let (timed_total_nanos, snapshot, output) = run_preloaded_reference(run, true);
+            LocalizationRun {
+                timed_total_nanos,
+                snapshot,
+                output,
+                candidate_payload_bytes: 0,
+                f32_expert_load_bytes: 0,
+            }
+        }
+        ("compute_only_preloaded", "scalar_group32") => {
+            let prepared = prepare_preloaded_candidate(run);
+            let (timed_total_nanos, snapshot, output) = timed_preloaded_candidate_with_backend(
+                run,
+                &prepared,
+                R2_1PackedProjectionBackend::Scalar,
+            );
+            LocalizationRun {
+                timed_total_nanos,
+                snapshot,
+                output,
+                candidate_payload_bytes: 0,
+                f32_expert_load_bytes: 0,
+            }
+        }
+        ("compute_only_preloaded", "native_avx2_fma_group32") => {
+            let prepared = prepare_preloaded_candidate(run);
+            let (timed_total_nanos, snapshot, output) = timed_preloaded_candidate_with_backend(
+                run,
+                &prepared,
+                R2_1PackedProjectionBackend::NativeAvx2Fma,
+            );
+            LocalizationRun {
+                timed_total_nanos,
+                snapshot,
+                output,
+                candidate_payload_bytes: 0,
+                f32_expert_load_bytes: 0,
+            }
+        }
+        ("load_plus_compute", "reference_f32") => run_load_plus_reference(run),
+        ("load_plus_compute", "scalar_group32") => {
+            run_load_plus_candidate_with_backend(run, R2_1PackedProjectionBackend::Scalar)
+        }
+        ("load_plus_compute", "native_avx2_fma_group32") => {
+            run_load_plus_candidate_with_backend(run, R2_1PackedProjectionBackend::NativeAvx2Fma)
+        }
+        _ => panic!("invalid R2.1 performance view/path"),
+    }
+}
+
+#[test]
+fn m6_3_r2_1_performance_single_sample() {
+    assert!(
+        crate::r2_native::avx2_fma_available(),
+        "R2.1 AVX2+FMA host required"
+    );
+    let fixture_name = env::var("COLIBRI_R2_FIXTURE").expect("R2.1 fixture name");
+    let view = env::var("COLIBRI_R2_VIEW").expect("R2.1 performance view");
+    assert!(matches!(
+        view.as_str(),
+        "compute_only_preloaded" | "load_plus_compute"
+    ));
+    let path = env::var("COLIBRI_R2_PATH").expect("R2.1 performance path");
+    assert!(matches!(
+        path.as_str(),
+        "native_avx2_fma_group32" | "scalar_group32" | "reference_f32"
+    ));
+    let triplet: usize = env::var("COLIBRI_R2_PAIR")
+        .expect("R2.1 triplet")
+        .parse()
+        .expect("numeric R2.1 triplet");
+    let order_index: usize = env::var("COLIBRI_R2_ORDER_INDEX")
+        .expect("R2.1 order index")
+        .parse()
+        .expect("numeric R2.1 order index");
+    assert!((1..=6).contains(&triplet));
+    assert!((1..=3).contains(&order_index));
+    let output_path = PathBuf::from(
+        env::var_os("COLIBRI_R2_SAMPLE_OUTPUT").expect("R2.1 performance sample output"),
+    );
+    assert!(!output_path.exists(), "R2.1 performance output must be new");
+    let run = build_runtime_fixture(&fixture_name, false);
+    verify_fixture_identity(&run);
+    let result = run_r2_1_view(&run, &view, &path);
+    let output_sha256 = f32_little_endian_sha256(result.output.data());
+    if path == "reference_f32" {
+        assert_eq!(
+            output_sha256,
+            env::var("COLIBRI_R2_EXPECT_REFERENCE_OUTPUT_SHA256")
+                .expect("expected reference output SHA"),
+        );
+    }
+    let timed_iterations = if view == "compute_only_preloaded" {
+        25
+    } else {
+        10
+    };
+    let expected_path = if path == "reference_f32" {
+        "reference"
+    } else {
+        "candidate"
+    };
+    let expected_logical_expert_bytes = localization_expected_bytes(&run, &view, expected_path);
+    let logical_expert_bytes = snapshot_logical_bytes(&result.snapshot);
+    assert_eq!(logical_expert_bytes, expected_logical_expert_bytes);
+    if path == "reference_f32" {
+        assert_eq!(result.f32_expert_load_bytes, expected_logical_expert_bytes);
+        assert_eq!(result.candidate_payload_bytes, 0);
+    } else {
+        assert_eq!(
+            result.candidate_payload_bytes,
+            expected_logical_expert_bytes
+        );
+        assert_eq!(result.f32_expert_load_bytes, 0);
+    }
+    let attempt_ordinal = 1_u32;
+    let document = format!(
+        concat!(
+            "{{\"schema\":\"m6.3-r2.1-performance-sample-v1\",",
+            "\"contract_sha256\":\"{}\",\"fixture\":\"{}\",",
+            "\"view\":\"{}\",\"path\":\"{}\",",
+            "\"triplet\":{},\"order_index\":{},\"attempt_ordinal\":{},",
+            "\"release_binary_sha256\":\"{}\",\"host_id\":\"{}\",",
+            "\"timed_iterations\":{},\"timed_total_nanos\":{},",
+            "\"output_sha256\":\"{}\",",
+            "\"expected_logical_expert_bytes\":{},\"logical_expert_bytes\":{},",
+            "\"timed_candidate_payload_bytes\":{},",
+            "\"timed_f32_expert_load_bytes\":{}}}\n"
+        ),
+        R2_1_CONTRACT_SHA256,
+        fixture_name,
+        view,
+        path,
+        triplet,
+        order_index,
+        attempt_ordinal,
+        env::var("COLIBRI_R2_RELEASE_BINARY_SHA256").expect("binary SHA"),
+        env::var("COLIBRI_R2_HOST_ID").expect("host ID"),
+        timed_iterations,
+        result.timed_total_nanos,
+        output_sha256,
+        expected_logical_expert_bytes,
+        logical_expert_bytes,
+        result.candidate_payload_bytes,
+        result.f32_expert_load_bytes,
+    );
+    fs::write(output_path, document).expect("write R2.1 performance sample");
 }
