@@ -951,8 +951,15 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   prepack, and zero complete F32 weight materializations are verified. Default
   runtime remains scalar; no official performance timing was run. See
   `docs/reports/m6.3-r2-1a-native-implementation-review.md`.
-- [ ] M6.3-R2.1b Run held-out quality/correctness gates before performance.
-  Any quality failure closes the candidate NO-GO without official timing.
+- [x] M6.3-R2.1b Run held-out quality/correctness gates before performance.
+  ADR 0089 closes quality `GO`: both held-out fixtures preserve exact generated
+  sequences, prompt top-20/argmax, Layer-0/24/47 router IDs, and repeatability.
+  Native-vs-scalar Layer-0 max-abs is `2.3841858e-7` for both fixtures and
+  prompt-logit max-abs is `3.0517578e-5` English / `2.5749207e-5` Thai, below
+  frozen `0.001` / `0.002` limits. Evidence SHA-256 is
+  `f0dea27297c03b2f2283c161c91b369169318c309394c1bb786db43a02ba6113`;
+  result SHA-256 is
+  `8fe232bfc58381e4a3d602e67705e129dafcf133e785c6c15ca6770e1cf22866`.
 - [ ] M6.3-R2.1c After quality PASS, freeze one three-path release binary and run
   72 official native/scalar/F32 process samples using all six triplet orders.
 - [ ] M6.3-R2.1d Apply the frozen performance/resource gates. PASS may authorize
@@ -972,9 +979,10 @@ measurement-method and validation corrections without changing the immutable
 localization samples; ADR 0086 closes R2.0 `packed_projection_compute_bound`.
 ADR 0087 pre-registers one AVX2+FMA native packed-projection vertical slice;
 ADR 0088 accepts its isolated dependency/unsafe boundary and R2.1a is complete.
-The exact next task is `M6.3-R2.1b` held-out quality/correctness validation.
-Official performance timing remains blocked until that quality gate passes, and
-M6.4 remains blocked.
+ADR 0089 closes R2.1b held-out quality `GO` without making a performance claim.
+The exact next task is `M6.3-R2.1c`: freeze one three-path release binary and
+run the pre-registered 72 official native/scalar/F32 process samples. R2.2
+implementation, all-layer rollout, and M6.4 remain blocked.
 
 ## Standard verification commands
 

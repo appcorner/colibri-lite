@@ -677,10 +677,17 @@ scalar fallback. ADR 0088 accepts the single isolated FFI boundary and build-onl
 complete F32 weight materializations remain zero. Default runtime behavior is
 unchanged and no official performance timing has been run.
 
-The exact next task is `M6.3-R2.1b`: run the frozen held-out quality/correctness
-gates on the canonical model and admitted artifact. A quality failure closes
-R2.1 NO-GO without official timing; only quality PASS may open R2.1c. M6.4
-remains blocked.
+R2.1b is now closed `GO`. ADR 0089 records that both held-out fixtures preserve
+exact generated sequences, prompt top-20/argmax, Layer-0/24/47 router IDs, and
+repeatability. Native-vs-scalar Layer-0 max-abs is `2.3841858e-7` for both
+fixtures; prompt-logit max-abs is `3.0517578e-5` English and `2.5749207e-5`
+Thai, within the frozen `0.001` and `0.002` limits. This is quality evidence,
+not a performance claim.
+
+The exact next task is `M6.3-R2.1c`: prepare/freeze one three-path release
+binary and run the pre-registered 72 fresh native/scalar/F32 process samples
+with all six balanced triplet orders. R2.2 implementation, all-layer rollout,
+and M6.4 remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
 

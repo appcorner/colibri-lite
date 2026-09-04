@@ -1,0 +1,74 @@
+{
+  "schema": "m6.3-r2.1-quality-result-v1",
+  "schema_version": 1,
+  "status": "passed",
+  "contract": {
+    "path": "models/qwen3-30b-a3b/m6.3-r2-1-native-packed-projection-contract-v1.json",
+    "sha256": "76bfc4a850a8d89fb5901eda338568b7226b36acb7207324575568ea21f6cc2a"
+  },
+  "execution": {
+    "path": "models/qwen3-30b-a3b/m6.3-r2-1-quality-execution-v1.json",
+    "sha256": "e7509802731935bf116685d98f65189860988899b6afa3431212ad0d8971c2e4",
+    "binary_source_commit": "20861888a832279768d688dcaf4f1417a15a2f80",
+    "release_binary_sha256": "f0cafe2b6bb8b0f4302e1b7c7e3dcfdde95b250cbc7f59e7860ae63fb9c69210"
+  },
+  "candidate": {
+    "id": "cpu-safe-rust-int8-group32-layer0-r1-1a",
+    "bytes": 679477248,
+    "sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2"
+  },
+  "evidence": {
+    "path": "models/qwen3-30b-a3b/m6.3-r2-1-held-out-quality-v1.tsv",
+    "bytes": 1280,
+    "sha256": "f0dea27297c03b2f2283c161c91b369169318c309394c1bb786db43a02ba6113",
+    "test_result": "1 passed; 0 failed",
+    "elapsed_seconds": 828.29
+  },  "fixtures": [
+    {
+      "fixture_id": "short_english",
+      "generated_token_ids": [0, 358],
+      "prompt_argmax": 0,
+      "repeatability": "exact",
+      "f32_fixed_logit_max_abs": 0.0033721923828125,
+      "f32_top20_logit_max_abs": 0.003391265869140625,
+      "f32_allowed_logit_max_abs": 0.05000000074505806,
+      "native_f32_layer0_max_abs": 0.0008989274501800537,
+      "native_scalar_layer0_max_abs": 0.0000002384185791015625,
+      "native_scalar_prompt_logit_max_abs": 0.000030517578125
+    },
+    {
+      "fixture_id": "short_thai",
+      "generated_token_ids": [7360, 91],
+      "prompt_argmax": 7360,
+      "repeatability": "exact",
+      "f32_fixed_logit_max_abs": 0.005416780710220337,
+      "f32_top20_logit_max_abs": 0.007318019866943359,
+      "f32_allowed_logit_max_abs": 0.05000000074505806,
+      "native_f32_layer0_max_abs": 0.0008705556392669678,
+      "native_scalar_layer0_max_abs": 0.0000002384185791015625,
+      "native_scalar_prompt_logit_max_abs": 0.00002574920654296875
+    }
+  ],  "gates": {
+    "expected_generated_sequences_exact": true,
+    "prompt_top20_ids_exact": true,
+    "prompt_argmax_exact": true,
+    "safe_margin_router_layers_exact": true,
+    "repeatability_exact": true,
+    "f32_logit_envelope_passed": true,
+    "native_vs_scalar_layer0_max_abs_limit": 0.001,
+    "native_vs_scalar_layer0_passed": true,
+    "native_vs_scalar_prompt_logit_max_abs_limit": 0.002,
+    "native_vs_scalar_prompt_logits_passed": true,
+    "all_native_outputs_finite": true,
+    "complete_f32_weight_materializations": 0,
+    "candidate_artifact_identity_exact": true
+  },
+  "decision": {
+    "r2_1b": "go",
+    "authorizes_r2_1c_performance": true,
+    "authorizes_r2_2_design": false,
+    "authorizes_r2_2_implementation": false,
+    "authorizes_all_layer_rollout": false,
+    "authorizes_m6_4": false
+  }
+}
