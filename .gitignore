@@ -154,6 +154,9 @@
 !/models/qwen3-30b-a3b/m6.3-r2-2-sentinel-artifacts-v1.json
 !/models/qwen3-30b-a3b/m6.3-r2-2-artifact-reader-evidence-v1.tsv
 !/models/qwen3-30b-a3b/m6.3-r2-2-artifact-reader-result-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-2-quality-execution-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-2-held-out-quality-v1.tsv
+!/models/qwen3-30b-a3b/m6.3-r2-2-quality-result-v1.json
 /.idea/
 /.vscode/
 *.pdb

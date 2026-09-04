@@ -1,0 +1,26 @@
+{
+  "schema": "m6.3-r2.2-quality-execution-v1",
+  "schema_version": 1,
+  "status": "frozen_before_held_out_quality_execution",
+  "contract_sha256": "3071f717b9ea12091323e596b9a3d40aa776b34f27f0cc66db63774e493af0c4",
+  "source_commit": "226f18f60c4efaa6180abbca707f1816dc43f588",
+  "release_binary_relative_path": "target/release/deps/clr_qwen3_moe-98ff24c36e070e31.exe",
+  "release_binary_sha256": "00fac75370364ec6592f5255af9ca3ea4dd8757ee429e08732715debbd0f3dbb",
+  "release_binary_bytes": 44539904,
+  "quality_harness_sha256": "6d30857a02e7fe5e1d0941b5de0a5237198c588b8ef619e4dd2fd84d4c9a1d35",
+  "artifact_manifest_sha256": "7abcb5f393472e3e63caf3bb7f06320aebcf292743a0709896d9c0de58a4d8f1",
+  "reference": {
+    "path": "models/qwen3-30b-a3b/m6.3-r1-2-f32-multitoken-reference-v1.tsv",
+    "sha256": "fa8f1a4f6b30624b78cf8c004f379fdb0633a08a65c102791acc57d0205d54ff"
+  },
+  "artifact_root": "D:/models/colibri-lite/qwen3-30b-a3b/artifact-v1",
+  "sentinel_artifact_root": "D:/tmp/colibri-lite-r2-2/artifacts",
+  "sentinel_layers": [0, 24, 47],
+  "host_id": "ANUSORN-NB",
+  "quality_output_relative_path": "models/qwen3-30b-a3b/m6.3-r2-2-held-out-quality-v1.tsv",
+  "quality_results_seen": false,
+  "authorizes_quality_execution": true,
+  "authorizes_official_performance": false,
+  "authorizes_all_layer_rollout": false,
+  "authorizes_m6_4": false
+}
