@@ -1,0 +1,29 @@
+{
+  "schema": "m6.3-r2.2-quality-execution-v2-transport-result-v1",
+  "schema_version": 1,
+  "execution_ordinal": 3,
+  "classification": "runner_transport_failure_no_quality_verdict",
+  "execution_manifest_sha256": "3bf71645ec68a5ff1ff799f77326dc26a016ed36085f4d0a87df66e6b96af9a5",
+  "runner_sha256": "380b6aa73c24aa5562a13d4584a82e093bd3a94672a6603e0aed0e246c88f9ed",
+  "frozen_binary_sha256": "00fac75370364ec6592f5255af9ca3ea4dd8757ee429e08732715debbd0f3dbb",
+  "quality_harness_sha256": "6d30857a02e7fe5e1d0941b5de0a5237198c588b8ef619e4dd2fd84d4c9a1d35",
+  "durable_run_root": "D:/tmp/colibri-lite-r2-2/quality-durable-v1",
+  "worker_exit_code": 97,
+  "quality_output_exists": false,
+  "power_shell_error": "NativeCommandError at direct native invocation",
+  "root_cause": "native stderr promoted to PowerShell error under ErrorActionPreference Stop",
+  "evidence": {
+    "preflight_sha256": "66141e01b0ba65336966b31e98c79d18a759bc8c2a181f813e682ea2a8376725",
+    "stdout_sha256": "d4dffe5cac7bfa0a323e7baca958e9c8e0e26f85ac563485492fd30f6c741b13",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "worker_error_sha256": "a304f8ebc49582deb3a34bb3de869ed360624f4762f270cbb725570eee70ac05",
+    "exit_code_sha256": "63512f53cc19a54417c287b6dd08939ae77a9301034614782e28ce9e924a9769"
+  },
+  "decision": {
+    "r2_2b": "undecided",
+    "transport_correction_authorized_by": "ADR 0094",
+    "authorizes_r2_2c_performance": false,
+    "authorizes_all_layer_rollout": false,
+    "authorizes_m6_4": false
+  }
+}
