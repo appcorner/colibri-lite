@@ -515,6 +515,30 @@ where
     )
 }
 
+#[cfg(feature = "m6-3-r2-native")]
+pub(crate) fn r2_1_routed_experts_with_backend(
+    hidden_states: TensorView<'_>,
+    router: &RouterOutput,
+    config: Qwen3MoeConfig,
+    reader: &mut R1_1CandidateReader,
+    backend: R2_1PackedProjectionBackend,
+) -> Result<Tensor, RuntimeError> {
+    let hidden_size = config.model().hidden_size();
+    combine_routed_experts(hidden_states, router, config, |expert_id, occurrences| {
+        let expert = reader.load_expert(expert_id)?;
+        let mut outputs = Vec::with_capacity(occurrences.len());
+        for &(token, _) in occurrences {
+            let input = &hidden_states.data()[token * hidden_size..(token + 1) * hidden_size];
+            let (output, materializations) = expert.apply_with_backend(input, backend)?;
+            if materializations != 0 {
+                return Err(error("R2.1 path expanded a complete F32 weight"));
+            }
+            outputs.push(output);
+        }
+        Ok(outputs)
+    })
+}
+
 fn hash_reader(file: &mut File) -> Result<String, RuntimeError> {
     let mut hasher = Sha256Hasher::new();
     let mut buffer = vec![0; 1024 * 1024];

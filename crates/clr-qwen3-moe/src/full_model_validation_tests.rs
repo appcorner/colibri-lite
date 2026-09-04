@@ -21,6 +21,8 @@ use clr_storage::{
 
 #[cfg(feature = "m5-4-resident-dense")]
 use crate::m5_4_resident_dense::{DenseSource, FIXED_RUNTIME_MEMORY_BYTES, ResidentDenseBudget};
+#[cfg(feature = "m6-3-r2-native")]
+use crate::r1_1_direct_candidate::{R2_1PackedProjectionBackend, r2_1_routed_experts_with_backend};
 use crate::{
     KvCache, PINNED_QWEN3_30B_A3B_CONFIG,
     block::{
@@ -46,6 +48,9 @@ use crate::{
 mod m5_2_trace_capture;
 #[path = "r1_3_benchmark_tests.rs"]
 mod r1_3_benchmark_tests;
+#[cfg(feature = "m6-3-r2-native")]
+#[path = "r2_1_quality_tests.rs"]
+mod r2_1_quality_tests;
 #[cfg(feature = "m6-3-r2-localization")]
 #[path = "r2_benchmark_tests.rs"]
 mod r2_benchmark_tests;
@@ -7198,11 +7203,22 @@ struct R1_2Run {
     prompt_argmax: usize,
     prompt_guard_ids: HashMap<usize, Vec<usize>>,
     prompt_logits_sha256: String,
+    #[cfg(feature = "m6-3-r2-native")]
+    prompt_logits: Vec<f32>,
     prompt_final_norm_sha256: String,
     prompt_fixed_logit_error: f32,
     prompt_top20_logit_error: f32,
     generated_ids: Vec<usize>,
     layer0_moe_max_abs_error: f32,
+    #[cfg(feature = "m6-3-r2-native")]
+    native_scalar_layer0_max_abs_error: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum R1_2CandidateMode {
+    Scalar,
+    #[cfg(feature = "m6-3-r2-native")]
+    NativeAvx2Fma,
 }
 
 #[derive(Debug)]
@@ -7218,7 +7234,15 @@ struct R1_2FrozenReference {
 
 fn r1_2_fixture_run(
     fixture: &TierBReference,
+    candidate_reader: Option<&mut R1_1CandidateReader>,
+) -> R1_2Run {
+    r1_2_fixture_run_with_mode(fixture, candidate_reader, R1_2CandidateMode::Scalar)
+}
+
+fn r1_2_fixture_run_with_mode(
+    fixture: &TierBReference,
     mut candidate_reader: Option<&mut R1_1CandidateReader>,
+    candidate_mode: R1_2CandidateMode,
 ) -> R1_2Run {
     assert!(
         fixture.name == "short_english" || fixture.name == "short_thai",
@@ -7259,10 +7283,14 @@ fn r1_2_fixture_run(
     let mut prompt_argmax = None;
     let mut prompt_guard_ids = HashMap::<usize, Vec<usize>>::new();
     let mut prompt_logits_sha256 = None;
+    #[cfg(feature = "m6-3-r2-native")]
+    let mut prompt_logits = None;
     let mut prompt_final_norm_sha256 = None;
     let mut prompt_fixed_logit_error = None;
     let mut prompt_top20_logit_error = None;
     let mut layer0_moe_max_abs_error = 0.0_f32;
+    #[cfg(feature = "m6-3-r2-native")]
+    let mut native_scalar_layer0_max_abs_error = 0.0_f32;
 
     for position in 0..processed_positions {
         let token_id = *sequence
@@ -7316,14 +7344,45 @@ fn r1_2_fixture_run(
                 )
                 .expect("R1.2 independent F32 Layer-0 reference");
                 if let Some(reader) = candidate_reader.as_deref_mut() {
-                    let candidate = r1_1_routed_experts_with_observer(
-                        post_norm.view(),
-                        &router,
-                        config,
-                        reader,
-                        |_, _, _, _| {},
-                    )
-                    .expect("R1.2 direct group-32 Layer-0 candidate");
+                    let candidate = match candidate_mode {
+                        R1_2CandidateMode::Scalar => r1_1_routed_experts_with_observer(
+                            post_norm.view(),
+                            &router,
+                            config,
+                            reader,
+                            |_, _, _, _| {},
+                        )
+                        .expect("R1.2 direct group-32 Layer-0 candidate"),
+                        #[cfg(feature = "m6-3-r2-native")]
+                        R1_2CandidateMode::NativeAvx2Fma => {
+                            let native = r2_1_routed_experts_with_backend(
+                                post_norm.view(),
+                                &router,
+                                config,
+                                reader,
+                                R2_1PackedProjectionBackend::NativeAvx2Fma,
+                            )
+                            .expect("R2.1 native group-32 Layer-0 candidate");
+                            let scalar = r2_1_routed_experts_with_backend(
+                                post_norm.view(),
+                                &router,
+                                config,
+                                reader,
+                                R2_1PackedProjectionBackend::Scalar,
+                            )
+                            .expect("R2.1 scalar group-32 Layer-0 comparator");
+                            let native_scalar_error = native
+                                .data()
+                                .iter()
+                                .zip(scalar.data())
+                                .map(|(left, right)| (left - right).abs())
+                                .fold(0.0_f32, f32::max);
+                            assert!(native_scalar_error.is_finite());
+                            native_scalar_layer0_max_abs_error =
+                                native_scalar_layer0_max_abs_error.max(native_scalar_error);
+                            native
+                        }
+                    };
                     let local_error = candidate
                         .data()
                         .iter()
@@ -7381,6 +7440,10 @@ fn r1_2_fixture_run(
                 prompt_top20_ids = Some(deterministic_top_ids(&logits, 20));
                 prompt_argmax = Some(greedy);
                 prompt_logits_sha256 = Some(f32_little_endian_sha256(logits.data()));
+                #[cfg(feature = "m6-3-r2-native")]
+                {
+                    prompt_logits = Some(logits.data().to_vec());
+                }
                 prompt_final_norm_sha256 = Some(f32_little_endian_sha256(normalized.data()));
                 prompt_fixed_logit_error = Some(maximum_indexed_difference(
                     logits.data(),
@@ -7407,11 +7470,15 @@ fn r1_2_fixture_run(
         prompt_argmax: prompt_argmax.expect("R1.2 prompt argmax"),
         prompt_guard_ids,
         prompt_logits_sha256: prompt_logits_sha256.expect("R1.2 prompt logits hash"),
+        #[cfg(feature = "m6-3-r2-native")]
+        prompt_logits: prompt_logits.expect("R1.2 prompt logits"),
         prompt_final_norm_sha256: prompt_final_norm_sha256.expect("R1.2 prompt norm hash"),
         prompt_fixed_logit_error: prompt_fixed_logit_error.expect("R1.2 fixed-logit error"),
         prompt_top20_logit_error: prompt_top20_logit_error.expect("R1.2 top-20 logit error"),
         generated_ids,
         layer0_moe_max_abs_error,
+        #[cfg(feature = "m6-3-r2-native")]
+        native_scalar_layer0_max_abs_error,
     }
 }
 
