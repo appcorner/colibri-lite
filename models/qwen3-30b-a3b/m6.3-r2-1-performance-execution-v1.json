@@ -1,0 +1,27 @@
+{
+  "schema": "m6.3-r2.1-performance-execution-v1",
+  "schema_version": 1,
+  "status": "frozen_before_official_performance_execution",
+  "contract_sha256": "76bfc4a850a8d89fb5901eda338568b7226b36acb7207324575568ea21f6cc2a",
+  "source_commit": "bf8e402857415f317b678f18c333503cb7dc935d",
+  "release_binary_relative_path": "target/release/deps/clr_qwen3_moe-7945b6cfca669057.exe",
+  "release_binary_sha256": "9b9f3602efbdb49fe8c0ca1a1f734ffbf70cabf9089d4c7822089ad8f2cfa311",
+  "runner_sha256": "613a1e5e730444926a3da7f8e585984b70fe16148c54f1055786911a3c2813d6",
+  "validator_sha256": "30997dc947844aabee11a3d8da78196cfe196d2abab8c78a4fa58fc0ed4c7600",
+  "reference_fixture_record_sha256": "c0490d2a40a214579e7633fcd4706e64186d183a82af6d176eaa1918d7f056e2",
+  "candidate": {
+    "id": "cpu-safe-rust-int8-group32-layer0-r1-1a",
+    "path": "D:/tmp/colibri-lite-runs/m6.3-r1-2-20260831-quality/group32-fresh/group32-r1-2.bin",
+    "bytes": 679477248,
+    "sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2"
+  },
+  "artifact_root": "D:/models/colibri-lite/qwen3-30b-a3b/artifact-v1",
+  "host_id": "ANUSORN-NB",
+  "official_process_sample_count": 72,
+  "automatic_retry": false,
+  "same_release_binary_all_paths": true,
+  "results_seen": false,
+  "authorizes_official_performance": true,
+  "authorizes_r2_2_implementation": false,
+  "authorizes_m6_4": false
+}
