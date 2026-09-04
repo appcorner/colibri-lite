@@ -1,0 +1,39 @@
+{
+  "schema": "m6.3-r2.2-quality-execution-v2",
+  "schema_version": 2,
+  "status": "frozen_before_durable_quality_execution",
+  "contract_sha256": "3071f717b9ea12091323e596b9a3d40aa776b34f27f0cc66db63774e493af0c4",
+  "transport_adr": "0093",
+  "runner_source_commit": "bc6198a",
+  "runner": {
+    "path": "scripts/run_m6_3_r2_2_quality_durable.ps1",
+    "sha256": "380b6aa73c24aa5562a13d4584a82e093bd3a94672a6603e0aed0e246c88f9ed"
+  },
+  "quality_binary": {
+    "source_commit": "226f18f60c4efaa6180abbca707f1816dc43f588",
+    "path": "target/release/deps/clr_qwen3_moe-98ff24c36e070e31.exe",
+    "sha256": "00fac75370364ec6592f5255af9ca3ea4dd8757ee429e08732715debbd0f3dbb",
+    "bytes": 44539904
+  },
+  "quality_harness_sha256": "6d30857a02e7fe5e1d0941b5de0a5237198c588b8ef619e4dd2fd84d4c9a1d35",
+  "reference_sha256": "fa8f1a4f6b30624b78cf8c004f379fdb0633a08a65c102791acc57d0205d54ff",
+  "artifact_manifest_sha256": "7abcb5f393472e3e63caf3bb7f06320aebcf292743a0709896d9c0de58a4d8f1",
+  "sentinel_artifacts": [
+    {"layer":0,"sha256":"777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2","bytes":679477248},
+    {"layer":24,"sha256":"890936e78829cf013a141b225c7819cb2c10134fbd2c787e4131f7f41844d9b0","bytes":679477248},
+    {"layer":47,"sha256":"a2a45a1f407d5cd2303286843001684fc7800953cd2b67995a2c5e62a9e66a33","bytes":679477248}
+  ],
+  "host_id": "ANUSORN-NB",
+  "durable_run_root": "D:/tmp/colibri-lite-r2-2/quality-durable-v1",
+  "quality_output": "models/qwen3-30b-a3b/m6.3-r2-2-held-out-quality-v1.tsv",
+  "prior_executions": [
+    {"ordinal":1,"classification":"interrupted_no_result"},
+    {"ordinal":2,"classification":"transport_interrupted_no_result","authorized_by":"ADR 0092"}
+  ],
+  "current_execution_ordinal": 3,
+  "authorized_by": "ADR 0093 transport-only correction",
+  "quality_results_seen": false,
+  "authorizes_official_performance": false,
+  "authorizes_all_layer_rollout": false,
+  "authorizes_m6_4": false
+}
