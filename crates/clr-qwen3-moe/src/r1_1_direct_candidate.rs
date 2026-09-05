@@ -147,6 +147,24 @@ impl R1_1PackedExpert {
         projection.apply_direct(input).map(|(output, _)| output)
     }
 
+    #[cfg(all(test, feature = "full-model-validation", feature = "m6-3-r2-native"))]
+    pub(crate) fn r2_d4_apply_down_with_backend(
+        &self,
+        input: &[f32],
+        backend: R2_1PackedProjectionBackend,
+    ) -> Result<Vec<f32>, RuntimeError> {
+        let projection = R1_1PackedProjection::new(
+            &self.down_values,
+            &self.down_scales,
+            self.layout.hidden,
+            self.layout.intermediate,
+            self.layout.group_size,
+        )?;
+        projection
+            .apply_with_backend(input, backend)
+            .map(|(output, _)| output)
+    }
+
     pub(crate) fn apply_direct(&self, input: &[f32]) -> Result<(Vec<f32>, usize), RuntimeError> {
         let gate = R1_1PackedProjection::new(
             &self.gate_values,
