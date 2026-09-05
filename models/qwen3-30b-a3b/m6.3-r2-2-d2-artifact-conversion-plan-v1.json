@@ -1,0 +1,70 @@
+{
+  "schema": "m6.3-r2.2-d2-artifact-conversion-plan-v1",
+  "schema_version": 1,
+  "status": "frozen_before_d2_conversion",
+  "contract_sha256": "ea779da7bb4466c59a478c095ee0342c6932c482426e3331bf472c8296c31d30",
+  "source_commit": "900962960d9d1f4713f87b0706bdaed3a3fb6fe9",
+  "converter": {
+    "path": "scripts/convert_m6_3_r2_2_d2_grouped_layer.py",
+    "sha256": "a7b5f9344a404833e9a82bb7743175f040540a9dd9fb2b092816f2b2d4f2e3d5",
+    "numpy_version": "2.3.3",
+    "group32_synthetic_parity_with_frozen_converter": true
+  },
+  "canonical_root": "D:/models/colibri-lite/qwen3-30b-a3b/artifact-v1",
+  "canonical_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+  "source_layer_bytes": 2415919104,
+  "output_root": "D:/tmp/colibri-lite-r2-2/d2-artifacts",
+  "conversion_order": [
+    "layer24_group16", "layer24_group8", "layer47_group16", "layer47_group8"
+  ],
+  "entries": [
+    {
+      "id": "layer24_group16",
+      "layer": 24,
+      "group_size": 16,
+      "source_relative_path": "experts/experts-layer-00024-of-00048.bin",
+      "source_sha256": "c2ece56eeb01253c7fd4d597ce9cc2f0f0064f74d2ddacccec2f71e8bd7855ea",
+      "output_path": "D:/tmp/colibri-lite-r2-2/d2-artifacts/layer24-group16.bin",
+      "expected_expert_bytes": 5898240,
+      "expected_output_bytes": 754974720
+    },
+    {
+      "id": "layer24_group8",
+      "layer": 24,
+      "group_size": 8,
+      "source_relative_path": "experts/experts-layer-00024-of-00048.bin",
+      "source_sha256": "c2ece56eeb01253c7fd4d597ce9cc2f0f0064f74d2ddacccec2f71e8bd7855ea",
+      "output_path": "D:/tmp/colibri-lite-r2-2/d2-artifacts/layer24-group8.bin",
+      "expected_expert_bytes": 7077888,
+      "expected_output_bytes": 905969664
+    },
+
+    {
+      "id": "layer47_group16",
+      "layer": 47,
+      "group_size": 16,
+      "source_relative_path": "experts/experts-layer-00047-of-00048.bin",
+      "source_sha256": "71b76ba8cf5969a54c19612e296bd40a2642956ead4fa012c88c272c7908d733",
+      "output_path": "D:/tmp/colibri-lite-r2-2/d2-artifacts/layer47-group16.bin",
+      "expected_expert_bytes": 5898240,
+      "expected_output_bytes": 754974720
+    },
+    {
+      "id": "layer47_group8",
+      "layer": 47,
+      "group_size": 8,
+      "source_relative_path": "experts/experts-layer-00047-of-00048.bin",
+      "source_sha256": "71b76ba8cf5969a54c19612e296bd40a2642956ead4fa012c88c272c7908d733",
+      "output_path": "D:/tmp/colibri-lite-r2-2/d2-artifacts/layer47-group8.bin",
+      "expected_expert_bytes": 7077888,
+      "expected_output_bytes": 905969664
+    }
+  ],
+  "artifact_creation_is_measurement": false,
+  "results_seen": false,
+  "authorizes_d2_measurement": false,
+  "authorizes_quality_reentry": false,
+  "authorizes_official_performance": false,
+  "authorizes_all_layer_rollout": false,
+  "authorizes_m6_4": false
+}
