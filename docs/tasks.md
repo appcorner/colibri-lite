@@ -983,13 +983,18 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   Frozen Rust reader verification passed all three artifacts; evidence SHA-256
   is `96c424b2007ef844e622b9976be1b7de144304ea1a392ceedbab10c86385fb4c`.
   No new unsafe boundary, kernel optimization, or default-runtime change occurred.
-- [ ] M6.3-R2.2b Run the frozen three-sentinel held-out quality gate before any
-  official performance sample.
-- [ ] M6.3-R2.2c After quality PASS, run 108 fresh compute-only process samples
-  across Layers 0/24/47, both fixtures, all six triplet orders, and three paths.
-- [ ] M6.3-R2.2d Apply the frozen per-layer performance/resource gates and
-  publish the bounded impact model. PASS may authorize R2.3 all-layer plan
-  design only; R2.3 implementation, all-layer rollout, and M6.4 remain blocked.
+- [x] M6.3-R2.2b Run the frozen three-sentinel held-out quality gate before any
+  official performance sample. ADR 0095 closes this gate `NO-GO`: the valid
+  ordinal-4 execution fails `short_thai` exact prompt top-20 ordering on the
+  scalar group32 run. Result SHA-256 is
+  `2b8c841daf9318fcd2b9d08ffdb03dbeef541195ae9f76090ea72e2542bf96be`.
+- [ ] M6.3-R2.2-D1 Localize the quality drift with the frozen sentinel artifacts;
+  distinguish single-layer effects from multi-layer accumulation before any
+  new quality re-entry hypothesis is proposed.
+- [ ] M6.3-R2.2c BLOCKED. The 108 fresh compute-only process samples may run only
+  after a separately reviewed quality re-entry contract passes.
+- [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be
+  produced from the failed three-sentinel quality candidate.
 
 The R2.0 protocol is
 `docs/reports/m6.3-r2-0-expert-compute-bottleneck-localization-protocol.md`.
@@ -1006,11 +1011,12 @@ ADR 0087 pre-registers one AVX2+FMA native packed-projection vertical slice;
 ADR 0088 accepts its isolated dependency/unsafe boundary and R2.1a is complete.
 ADR 0089 closes R2.1b held-out quality `GO` without making a performance claim.
 ADR 0090 closes R2.1c/R2.1d `GO` after all 72 official samples pass the frozen
-performance and resource gates. ADR 0091 completes `M6.3-R2.2-PR` by freezing the Layers 0/24/47 sentinel
-proof. R2.2a is now closed `GO`: the layer-bound reader and all three artifact
-identities are independently verified. The exact next task is `M6.3-R2.2b` held-out
-three-sentinel quality. Official R2.2 performance, all-layer rollout, and M6.4
-remain blocked until quality passes.
+performance and resource gates. ADR 0091 freezes the Layers 0/24/47 sentinel
+proof; ADRs 0092-0094 record quality-execution transport recovery without
+changing the frozen candidate; and ADR 0095 closes R2.2b `NO-GO` on the valid
+ordinal-4 `short_thai` scalar-group32 top-20 ordering failure. The exact next
+task is `M6.3-R2.2-D1` quality-drift localization. R2.2c/R2.2d, all-layer
+rollout, and M6.4 remain blocked.
 
 ## Standard verification commands
 

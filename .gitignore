@@ -158,6 +158,11 @@
 !/models/qwen3-30b-a3b/m6.3-r2-2-quality-execution-v2.json
 !/models/qwen3-30b-a3b/m6.3-r2-2-quality-execution-v3.json
 !/models/qwen3-30b-a3b/m6.3-r2-2-quality-execution-v2-transport-result-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-2-quality-ordinal4-preflight-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-2-quality-ordinal4-stdout-v1.log
+!/models/qwen3-30b-a3b/m6.3-r2-2-quality-ordinal4-stderr-v1.log
+!/models/qwen3-30b-a3b/m6.3-r2-2-quality-ordinal4-completion-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-2-quality-ordinal4-exit-v1.txt
 !/models/qwen3-30b-a3b/m6.3-r2-2-held-out-quality-v1.tsv
 !/models/qwen3-30b-a3b/m6.3-r2-2-quality-result-v1.json
 /.idea/

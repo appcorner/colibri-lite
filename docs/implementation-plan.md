@@ -704,10 +704,17 @@ boundary expert reads, and packed working-set accounting. Cross-layer artifact
 use is explicitly rejected; the kernel, unsafe boundary, and default runtime
 remain unchanged.
 
-The exact next task is `M6.3-R2.2b`: run the frozen held-out quality proof with
-native group32 active only at Layers 0/24/47 and all other layers canonical F32.
-Official R2.2 performance, all-layer rollout, and M6.4 remain blocked until
-quality passes.
+R2.2b is now closed `NO-GO` by ADR 0095. The valid corrected durable execution
+fails `short_thai` exact prompt top-20 ordering on the scalar group32 run after
+exact generated IDs already matched. The top-20 token set is unchanged, but two
+adjacent rank pairs swap. Because scalar fails before native validation, the
+current localization target is the frozen group32 representation/placement
+across Layers 0/24/47 rather than the AVX2 kernel.
+
+The exact next task is `M6.3-R2.2-D1`: pre-register and run quality-drift
+localization that distinguishes single-sentinel effects from multi-layer
+accumulation without relaxing the original quality gate. R2.2c official
+performance, R2.2d, all-layer rollout, and M6.4 remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
 

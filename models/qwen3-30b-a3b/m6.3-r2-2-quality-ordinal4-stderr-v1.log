@@ -1,0 +1,6 @@
+
+thread 'full_model_validation_tests::r2_2_quality_tests::m6_3_r2_2_three_sentinel_layers_pass_held_out_quality' (25144) panicked at crates\clr-qwen3-moe\src\r2_2_quality_tests.rs:261:5:
+assertion `left == right` failed
+  left: [7360, 16222, 19360, 69440, 94482, 143737, 16064, 11, 9248, 126675, 91, 124758, 30372, 760, 35648, 27891, 3693, 129075, 52388, 25]
+ right: [7360, 16222, 19360, 94482, 69440, 143737, 16064, 11, 9248, 126675, 91, 124758, 30372, 760, 35648, 27891, 3693, 52388, 129075, 25]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

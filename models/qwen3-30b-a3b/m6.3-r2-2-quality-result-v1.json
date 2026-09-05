@@ -1,0 +1,41 @@
+{
+  "schema": "m6.3-r2.2-quality-result-v1",
+  "schema_version": 1,
+  "status": "failed",
+  "decision": "r2_2_no_go_before_official_performance",
+  "contract_sha256": "3071f717b9ea12091323e596b9a3d40aa776b34f27f0cc66db63774e493af0c4",
+  "execution_manifest": {
+    "path": "models/qwen3-30b-a3b/m6.3-r2-2-quality-execution-v3.json",
+    "sha256": "9a66ab634170704ac30dea98bc19839ad54f40b068fa75442fd369f9a82c3aa5",
+    "ordinal": 4
+  },
+  "native_exit_code": 101,
+  "test_runtime_seconds": 793.34,
+  "quality_output_created": false,
+  "first_failing_fixture": "short_thai",
+  "first_failing_backend": "scalar_group32",
+  "first_failing_gate": "prompt_top20_ids_exact",
+  "generated_ids_exact_before_failure": true,
+  "later_prompt_argmax_and_router_guard_gates_reached": false,
+  "official_performance_authorized": false,
+  "all_layer_rollout_authorized": false,
+  "m6_4_authorized": false,
+  "top20_observation": {
+    "observed": [7360,16222,19360,69440,94482,143737,16064,11,9248,126675,91,124758,30372,760,35648,27891,3693,129075,52388,25],
+    "frozen": [7360,16222,19360,94482,69440,143737,16064,11,9248,126675,91,124758,30372,760,35648,27891,3693,52388,129075,25],
+    "same_token_set": true,
+    "rank_changes": [
+      {"token": 94482, "frozen_rank": 4, "observed_rank": 5},
+      {"token": 69440, "frozen_rank": 5, "observed_rank": 4},
+      {"token": 52388, "frozen_rank": 18, "observed_rank": 19},
+      {"token": 129075, "frozen_rank": 19, "observed_rank": 18}
+    ]
+  },
+  "evidence": [
+    {"path":"models/qwen3-30b-a3b/m6.3-r2-2-quality-ordinal4-preflight-v1.json","sha256":"66141e01b0ba65336966b31e98c79d18a759bc8c2a181f813e682ea2a8376725"},
+    {"path":"models/qwen3-30b-a3b/m6.3-r2-2-quality-ordinal4-stdout-v1.log","sha256":"091d183fa832ff0be6be4f87478fd6ad995a0a8e38381e584ea572bb4528397f"},
+    {"path":"models/qwen3-30b-a3b/m6.3-r2-2-quality-ordinal4-stderr-v1.log","sha256":"b86e62e6714afbe1429a6153d35be226bd33f7b58cec4ed5c1b89ca48672b74d"},
+    {"path":"models/qwen3-30b-a3b/m6.3-r2-2-quality-ordinal4-completion-v1.json","sha256":"552053b55cf1157939a3b4c8fe4fee5e6203afc5c36c49b4a13b522706e4f82c"},
+    {"path":"models/qwen3-30b-a3b/m6.3-r2-2-quality-ordinal4-exit-v1.txt","sha256":"bdc830287616dae1818ced3e7c186e1387155900ad30d5983ec02da1519c4a95"}
+  ]
+}
