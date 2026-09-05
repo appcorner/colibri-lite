@@ -1,0 +1,17 @@
+{
+  "schema": "m6.3-r2.2-d4d2-execution-v1",
+  "schema_version": 1,
+  "status": "frozen_before_execution",
+  "host": "ANUSORN-NB",
+  "source_commit": "eabab941cb3a91ff144e97cb541f203ae3fee7c2",
+  "runner_commit": "a523a57328cda708e86eb8599b751260d3aaaec5",
+  "release_binary_relative_path": "target/release/deps/clr_qwen3_moe-98ff24c36e070e31.exe",
+  "release_binary_sha256": "5c16312a71fb5421129e4fe6fe36a2ff3fcbddccacb89baebefc24f931744884",
+  "release_binary_bytes": 48745984,
+  "harness_relative_path": "crates/clr-qwen3-moe/src/r2_2_d4d2_tests.rs",
+  "harness_sha256": "cb796265809723ad878cd03db3423771f9774b7fac93d2de28cdbed1ac037eee",
+  "runner_relative_path": "scripts/run_m6_3_r2_2_d4d2_durable.ps1",
+  "runner_sha256": "1b2e4e27c17bc664e287de66ecb6ba10deca1fe2312f5c11f3b8af82f08c31aa",
+  "contract_sha256": "d9f35f16387aced95ead63003c6ba56133a72dd9cc09ee0e72840a4ea4b3cfe1",
+  "reference_sha256": "fa8f1a4f6b30624b78cf8c004f379fdb0633a08a65c102791acc57d0205d54ff"
+}
