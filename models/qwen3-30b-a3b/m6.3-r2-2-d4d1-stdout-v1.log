@@ -1,0 +1,7 @@
+
+running 1 test
+test full_model_validation_tests::r2_2_d4d1_tests::m6_3_r2_2_d4d1_characterize_layer24_down_precision has been running for over 60 seconds
+test full_model_validation_tests::r2_2_d4d1_tests::m6_3_r2_2_d4d1_characterize_layer24_down_precision ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 116 filtered out; finished in 433.87s
+

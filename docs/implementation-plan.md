@@ -769,9 +769,15 @@ precisions across both held-out fixtures and canonical/L0-group32 prefixes.
 Gate/up stay F32, target candidates are not propagated, and the unchanged
 `0.001` local budget applies in all four contexts.
 
-The exact next task is `M6.3-R2.2-D4D1a`: implement/freeze the diagnostic harness
-and execute the 2-fixture x 2-prefix x 3-group matrix once. D5, historical
-R2.2c/R2.2d, all-layer rollout, and M6.4 remain blocked.
+ADR 0105 closes `M6.3-R2.2-D4D1` with deterministic selection `group16` for
+Layer24 `down`. Group32 fails only the English contexts; group16 and group8 pass
+all four contexts, so the frozen coarsest-passing rule selects group16. The
+selected Layer24 hybrid remains `22.916667%` smaller than all-F32.
+
+The exact next task is `M6.3-R2.2-D4D2-PR`: pre-register held-out quality
+re-entry for Layer0 all-group32 + Layer24 F32 gate/up with group16 down +
+Layer47 F32. D5, historical R2.2c/R2.2d, all-layer rollout, and M6.4 remain
+blocked.
 
 #### M6.4 - Full hardware-aware runtime
 

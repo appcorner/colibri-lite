@@ -1031,9 +1031,13 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   characterization across both held-out fixtures using existing group32/16/8
   artifacts and canonical/L0-group32 prefixes only. Contract SHA-256 is
   `16c6015c68834c639a57e4a381217e4cac6d3977c1de89316df073266998fb2a`.
-- [ ] M6.3-R2.2-D4D1a Implement/freeze the cross-fixture Layer24 down-only
+- [x] M6.3-R2.2-D4D1a Implement/freeze the cross-fixture Layer24 down-only
   characterization harness and execute the frozen 2-fixture x 2-prefix x
-  3-group matrix once.
+  3-group matrix once. ADR 0105 selects group16 as the coarsest passing group.
+  Result SHA-256 is
+  `486679e583c1881ef97d7d35ff771cab53f0ba66dd2eac84a5da88929c22bd43`.
+- [ ] M6.3-R2.2-D4D2-PR Pre-register held-out quality re-entry for Layer0
+  all-group32 + Layer24 F32 gate/up and group16 down + Layer47 F32.
 - [ ] M6.3-R2.2c HISTORICAL/BLOCKED. Its 108-sample contract belongs to the
   failed all-three-group32 candidate and must not be reused for the hybrid.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be
