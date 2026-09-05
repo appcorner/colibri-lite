@@ -1,4 +1,4 @@
-//! R1.1 direct-consumption reader for the new group-32/group-64 layouts.
+//! R1.1 direct-consumption reader for grouped packed layouts.
 
 #[cfg(all(test, feature = "m6-3-r2-localization"))]
 use std::collections::HashMap;
@@ -44,7 +44,7 @@ impl R1_1PackedArtifactLayout {
         intermediate: usize,
         hidden: usize,
     ) -> Result<Self, RuntimeError> {
-        if !matches!(group_size, 32 | 64)
+        if !matches!(group_size, 8 | 16 | 32 | 64)
             || experts == 0
             || intermediate == 0
             || hidden == 0
@@ -652,7 +652,10 @@ impl<'a> R1_1PackedProjection<'a> {
         columns: usize,
         group_size: usize,
     ) -> Result<Self, RuntimeError> {
-        if rows == 0 || columns == 0 || !matches!(group_size, 32 | 64) || columns % group_size != 0
+        if rows == 0
+            || columns == 0
+            || !matches!(group_size, 8 | 16 | 32 | 64)
+            || columns % group_size != 0
         {
             return Err(error("invalid R1.1 packed projection layout"));
         }
@@ -864,19 +867,36 @@ mod tests {
 
     #[cfg(feature = "m6-3-r2-native")]
     #[test]
-    fn group64_native_request_falls_back_to_scalar() {
+    fn non_group32_native_request_falls_back_to_scalar() {
         let values = vec![2_i8; 64];
-        let scales = vec![0.25_f32];
-        let projection = R1_1PackedProjection::new(&values, &scales, 1, 64, 64).expect("valid");
-        let (output, expanded) = projection
-            .apply_with_backend(&[1.0; 64], R2_1PackedProjectionBackend::NativeAvx2Fma)
-            .expect("fallback");
-        assert_eq!(output, [32.0]);
-        assert_eq!(expanded, 0);
+        for group_size in [8_usize, 16, 64] {
+            let scales = vec![0.25_f32; 64 / group_size];
+            let projection = R1_1PackedProjection::new(&values, &scales, 1, 64, group_size)
+                .expect("valid characterization group");
+            let (output, expanded) = projection
+                .apply_with_backend(&[1.0; 64], R2_1PackedProjectionBackend::NativeAvx2Fma)
+                .expect("scalar fallback");
+            assert_eq!(output, [32.0]);
+            assert_eq!(expanded, 0);
+        }
     }
 
     #[test]
     fn canonical_layout_sizes_match_frozen_artifacts() {
+        assert_eq!(
+            R1_1PackedArtifactLayout::canonical(8)
+                .expect("group-8")
+                .artifact_bytes()
+                .expect("bytes"),
+            905_969_664
+        );
+        assert_eq!(
+            R1_1PackedArtifactLayout::canonical(16)
+                .expect("group-16")
+                .artifact_bytes()
+                .expect("bytes"),
+            754_974_720
+        );
         assert_eq!(
             R1_1PackedArtifactLayout::canonical(64)
                 .expect("group-64")
