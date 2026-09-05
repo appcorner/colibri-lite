@@ -1000,9 +1000,12 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   characterization for Layers 24/47. Candidate groups are fixed at 32/16/8,
   with deterministic coarsest-passing selection and F32 fallback. Contract
   SHA-256 is `ea779da7bb4466c59a478c095ee0342c6932c482426e3331bf472c8296c31d30`.
-- [ ] M6.3-R2.2-D2a Add characterization-only group16/group8 scalar layout
+- [x] M6.3-R2.2-D2a Add characterization-only group16/group8 scalar layout
   support, freeze a generic converter, then freeze all four new artifact
-  identities before D2 measurement.
+  identities before D2 measurement. Artifact manifest SHA-256 is
+  `bd54c87ae20826086a9f8e6b1e06011bb4f1c65fa973494804c3fcb6b79e0a46`.
+- [ ] M6.3-R2.2-D2b Implement/freeze the local precision characterization
+  harness and run the frozen Layer24/47 context matrix exactly once.
 - [ ] M6.3-R2.2c BLOCKED. The 108 fresh compute-only process samples may run only
   after a separately reviewed quality re-entry contract passes.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be

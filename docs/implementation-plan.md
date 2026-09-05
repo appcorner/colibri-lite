@@ -726,10 +726,14 @@ under canonical and Layer0-group32 prefixes; Layer 47 under canonical and the
 original Layer0+24-group32 failing prefix. No timing or quality-pass claim is
 in scope.
 
-The exact next task is `M6.3-R2.2-D2a`: extend only the scalar
-characterization seam to group16/group8, freeze a generic converter, and freeze
-all four Layer24/47 artifact identities before measurement. R2.2c/R2.2d,
-all-layer rollout, and M6.4 remain blocked.
+`M6.3-R2.2-D2a` is now closed. Scalar characterization-only group16/group8
+support is validated, the generic converter is frozen, and all four new
+Layer24/47 artifact identities are frozen in manifest SHA-256
+`bd54c87ae20826086a9f8e6b1e06011bb4f1c65fa973494804c3fcb6b79e0a46`.
+
+The exact next task is `M6.3-R2.2-D2b`: implement/freeze the local precision
+characterization harness and execute the pre-registered Layer24/47 context
+matrix exactly once. R2.2c/R2.2d, all-layer rollout, and M6.4 remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
 

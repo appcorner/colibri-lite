@@ -1,0 +1,66 @@
+{
+  "schema": "m6.3-r2.2-d2-artifacts-v1",
+  "schema_version": 1,
+  "status": "frozen_after_conversion_before_d2_measurement",
+  "contract_sha256": "ea779da7bb4466c59a478c095ee0342c6932c482426e3331bf472c8296c31d30",
+  "conversion_plan_sha256": "4059d88bfdbc241025490cfcb67a2f5f7f9c541a76c453fdf96a3a8e017a6316",
+  "converter_sha256": "a7b5f9344a404833e9a82bb7743175f040540a9dd9fb2b092816f2b2d4f2e3d5",
+  "new_artifact_root": "D:/tmp/colibri-lite-r2-2/d2-artifacts",
+  "reused_group32_root": "D:/tmp/colibri-lite-r2-2/artifacts",
+  "artifacts": [
+    {
+      "layer": 24,
+      "group_size": 32,
+      "origin": "reused_r2_2",
+      "path": "D:/tmp/colibri-lite-r2-2/artifacts/layer24-group32.bin",
+      "bytes": 679477248,
+      "sha256": "890936e78829cf013a141b225c7819cb2c10134fbd2c787e4131f7f41844d9b0"
+    },
+    {
+      "layer": 24,
+      "group_size": 16,
+      "origin": "d2_new",
+      "path": "D:/tmp/colibri-lite-r2-2/d2-artifacts/layer24-group16.bin",
+      "bytes": 754974720,
+      "sha256": "569b221f448b521488764da8b0e99058f8daded9f41ba10ef7f1f2706ac36416"
+    },    {
+      "layer": 24,
+      "group_size": 8,
+      "origin": "d2_new",
+      "path": "D:/tmp/colibri-lite-r2-2/d2-artifacts/layer24-group8.bin",
+      "bytes": 905969664,
+      "sha256": "4d51c17a2ba040229a8c20c895c5be8f030ab273db3151ccb739df7289965435"
+    },
+    {
+      "layer": 47,
+      "group_size": 32,
+      "origin": "reused_r2_2",
+      "path": "D:/tmp/colibri-lite-r2-2/artifacts/layer47-group32.bin",
+      "bytes": 679477248,
+      "sha256": "a2a45a1f407d5cd2303286843001684fc7800953cd2b67995a2c5e62a9e66a33"
+    },
+    {
+      "layer": 47,
+      "group_size": 16,
+      "origin": "d2_new",
+      "path": "D:/tmp/colibri-lite-r2-2/d2-artifacts/layer47-group16.bin",
+      "bytes": 754974720,
+      "sha256": "ab11ed88973d394e01e3430b9607f0b42c2752cd1631ed8eff2c0c716a639c19"
+    },    {
+      "layer": 47,
+      "group_size": 8,
+      "origin": "d2_new",
+      "path": "D:/tmp/colibri-lite-r2-2/d2-artifacts/layer47-group8.bin",
+      "bytes": 905969664,
+      "sha256": "7a57ce8bcf1d05b0d82491c88e644c994d2adafedf0285596a62da81c29c200d"
+    }
+  ],
+  "new_artifact_count": 4,
+  "reused_artifact_count": 2,
+  "results_seen": false,
+  "authorizes_d2_measurement": true,
+  "authorizes_quality_reentry": false,
+  "authorizes_official_performance": false,
+  "authorizes_all_layer_rollout": false,
+  "authorizes_m6_4": false
+}
