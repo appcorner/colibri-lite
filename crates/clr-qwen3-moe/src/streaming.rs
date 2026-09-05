@@ -124,6 +124,14 @@ struct DecodedExpert {
     down: Vec<f32>,
 }
 
+#[cfg(all(test, feature = "full-model-validation", feature = "m6-3-r2-native"))]
+#[derive(Debug)]
+pub(crate) struct R2D3F32Expert {
+    pub(crate) gate: Vec<f32>,
+    pub(crate) up: Vec<f32>,
+    pub(crate) down: Vec<f32>,
+}
+
 #[cfg(all(test, feature = "m6-3-r2-localization"))]
 pub(crate) struct R2PreloadedF32Experts {
     experts: HashMap<usize, DecodedExpert>,
@@ -506,6 +514,26 @@ where
             Ok(outputs)
         },
     )
+}
+
+#[cfg(all(test, feature = "full-model-validation", feature = "m6-3-r2-native"))]
+pub(crate) fn r2_d3_load_f32_expert(
+    layer_index: usize,
+    expert_id: usize,
+    store: &mut ExpertStore,
+    layout: PackedExpertLayout,
+) -> Result<R2D3F32Expert, StreamingModelError> {
+    let key = ExpertKey {
+        layer_index: u32::try_from(layer_index).unwrap_or(u32::MAX),
+        expert_id: clr_storage::ExpertId(u32::try_from(expert_id).unwrap_or(u32::MAX)),
+    };
+    let lease = store.load(key)?;
+    let decoded = decode_payload(key, lease.bytes(), layout)?;
+    Ok(R2D3F32Expert {
+        gate: decoded.gate,
+        up: decoded.up,
+        down: decoded.down,
+    })
 }
 
 fn decode_payload(

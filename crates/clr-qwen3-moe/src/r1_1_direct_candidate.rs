@@ -111,6 +111,42 @@ pub(crate) struct R1_1PackedExpert {
 }
 
 impl R1_1PackedExpert {
+    #[cfg(all(test, feature = "full-model-validation", feature = "m6-3-r2-native"))]
+    pub(crate) fn r2_d3_apply_gate(&self, input: &[f32]) -> Result<Vec<f32>, RuntimeError> {
+        let projection = R1_1PackedProjection::new(
+            &self.gate_values,
+            &self.gate_scales,
+            self.layout.intermediate,
+            self.layout.hidden,
+            self.layout.group_size,
+        )?;
+        projection.apply_direct(input).map(|(output, _)| output)
+    }
+
+    #[cfg(all(test, feature = "full-model-validation", feature = "m6-3-r2-native"))]
+    pub(crate) fn r2_d3_apply_up(&self, input: &[f32]) -> Result<Vec<f32>, RuntimeError> {
+        let projection = R1_1PackedProjection::new(
+            &self.up_values,
+            &self.up_scales,
+            self.layout.intermediate,
+            self.layout.hidden,
+            self.layout.group_size,
+        )?;
+        projection.apply_direct(input).map(|(output, _)| output)
+    }
+
+    #[cfg(all(test, feature = "full-model-validation", feature = "m6-3-r2-native"))]
+    pub(crate) fn r2_d3_apply_down(&self, input: &[f32]) -> Result<Vec<f32>, RuntimeError> {
+        let projection = R1_1PackedProjection::new(
+            &self.down_values,
+            &self.down_scales,
+            self.layout.hidden,
+            self.layout.intermediate,
+            self.layout.group_size,
+        )?;
+        projection.apply_direct(input).map(|(output, _)| output)
+    }
+
     pub(crate) fn apply_direct(&self, input: &[f32]) -> Result<(Vec<f32>, usize), RuntimeError> {
         let gate = R1_1PackedProjection::new(
             &self.gate_values,
