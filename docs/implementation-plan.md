@@ -750,9 +750,17 @@ no packed subset meets the frozen local budget. The proposed three-sentinel
 representation models `31.944444%` fewer bytes than all-F32, but this is not a
 runtime or performance claim.
 
-The exact next task is `M6.3-R2.2-D4-PR`: pre-register held-out quality re-entry
-for Layer0 all-group32 + Layer24 down-group32/F32 gate-up + Layer47 F32. R2.2c/
-R2.2d, all-layer rollout, and M6.4 remain blocked.
+ADR 0102 now pre-registers `M6.3-R2.2-D4` held-out quality re-entry with
+contract SHA-256
+`5f2b27b623a0456ad15e14b542816e4d5ad17bf32dacd91099184adfc86fb4fe`.
+The exact policy is Layer0 all-group32 + Layer24 down-group32/F32 gate-up +
+Layer47 F32. This quality seam may decode a complete F32 expert and therefore
+cannot support resource/I/O/performance claims.
+
+The exact next task is `M6.3-R2.2-D4a`: implement/freeze the hybrid quality
+harness and execute it once. The historical R2.2c 108-sample contract remains
+blocked/inapplicable to this new candidate; a D4 PASS can authorize only D5
+hybrid artifact/layout and performance-contract design.
 
 #### M6.4 - Full hardware-aware runtime
 

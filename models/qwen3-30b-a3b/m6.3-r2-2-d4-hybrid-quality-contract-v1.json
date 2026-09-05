@@ -1,0 +1,77 @@
+{
+  "schema": "m6.3-r2.2-d4-hybrid-quality-contract-v1",
+  "schema_version": 1,
+  "status": "pre_registered_before_d4_implementation",
+  "source_commit": "186a3ab",
+  "parent_d3_result_sha256": "b7ff3aafae497c5ecc5e482662f8fc87ed79beaf513dc8bf41658f633ecf18a5",
+  "fixtures": ["short_english", "short_thai"],
+  "generated_token_count": 2,
+  "candidate_policy": {
+    "layer0": {"gate":"group32","up":"group32","down":"group32"},
+    "layer24": {"gate":"f32","up":"f32","down":"group32"},
+    "layer47": {"gate":"f32","up":"f32","down":"f32"},
+    "all_other_layers": "canonical_f32"
+  },
+  "execution_paths": [
+    {"id":"scalar_hybrid","runs_per_fixture":1},
+    {"id":"native_hybrid","runs_per_fixture":2}
+  ],
+  "quality_gates": {
+    "exact_generated_ids": true,
+    "exact_prompt_top20_order": true,
+    "exact_prompt_argmax": true,
+    "exact_router_guards_layers": [0,24,47],
+    "all_logits_finite": true,
+    "f32_logit_envelope": "min(0.05, fixture.margin/4)"
+  },
+  "local_gates": {
+    "scalar_hybrid_vs_f32_routed_max_abs": {"layers":[0,24],"limit":0.001},
+    "native_vs_scalar_routed_max_abs": {"layers":[0,24],"limit":0.001},
+    "native_vs_scalar_prompt_logit_max_abs": 0.002
+  },
+  "repeatability": {
+    "native_generated_ids_exact": true,
+    "native_prompt_top20_exact": true,
+    "native_prompt_argmax_exact": true,
+    "native_router_guards_exact": true,
+    "native_prompt_logits_sha256_exact": true,
+    "native_final_norm_sha256_exact": true,
+    "native_local_error_maps_exact": true
+  },
+  "source_artifacts": {
+    "canonical_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "layer0_group32_sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+    "layer24_group32_sha256": "890936e78829cf013a141b225c7819cb2c10134fbd2c787e4131f7f41844d9b0",
+    "reference_sha256": "fa8f1a4f6b30624b78cf8c004f379fdb0633a08a65c102791acc57d0205d54ff"
+  },
+  "modeled_three_sentinel_bytes": {
+    "candidate": 4932501504,
+    "all_f32": 7247757312,
+    "saving_bytes": 2315255808,
+    "saving_percent": 31.944444
+  },
+  "implementation_boundary": {
+    "quality_semantics_only": true,
+    "test_seam_may_decode_complete_f32_expert": true,
+    "resource_io_working_set_claim_allowed": false,
+    "production_hybrid_artifact_layout_in_scope": false
+  },
+  "prohibitions": {
+    "automatic_retry": true,
+    "post_result_threshold_change": true,
+    "post_result_policy_change": true,
+    "new_group_size": true,
+    "higher_bit_width": true,
+    "native_kernel_change": true,
+    "historical_r2_2c_reuse": true,
+    "performance_claim": true
+  },
+  "decision": {
+    "pass_authorizes": "D5 hybrid artifact-layout and performance-contract design only",
+    "historical_r2_2c_authorized": false,
+    "all_layer_rollout_authorized": false,
+    "m6_4_authorized": false
+  },
+  "quality_output_path": "models/qwen3-30b-a3b/m6.3-r2-2-d4-held-out-quality-v1.tsv",
+  "results_seen": false
+}

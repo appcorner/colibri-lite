@@ -1018,10 +1018,14 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   0101 selects Layer24 `down`-only group32 and Layer47 canonical F32 fallback.
   Result SHA-256 is
   `b7ff3aafae497c5ecc5e482662f8fc87ed79beaf513dc8bf41658f633ecf18a5`.
-- [ ] M6.3-R2.2-D4-PR Pre-register held-out quality re-entry for the exact hybrid
+- [x] M6.3-R2.2-D4-PR Pre-register held-out quality re-entry for the exact hybrid
   policy: Layer0 all-group32, Layer24 down-group32 with F32 gate/up, Layer47 F32.
-- [ ] M6.3-R2.2c BLOCKED. The 108 fresh compute-only process samples may run only
-  after a separately reviewed quality re-entry contract passes.
+  Contract SHA-256 is
+  `5f2b27b623a0456ad15e14b542816e4d5ad17bf32dacd91099184adfc86fb4fe`.
+- [ ] M6.3-R2.2-D4a Implement/freeze the hybrid quality harness and execute the
+  frozen two-fixture quality re-entry once with one scalar and two native runs.
+- [ ] M6.3-R2.2c HISTORICAL/BLOCKED. Its 108-sample contract belongs to the
+  failed all-three-group32 candidate and must not be reused for the hybrid.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be
   produced from the failed three-sentinel quality candidate.
 
@@ -1046,9 +1050,9 @@ changing the frozen candidate; and ADR 0095 closes R2.2b `NO-GO` on the valid or
 scalar-group32 top-20 ordering failure. ADRs 0096-0097 pre-register and close
 D1, which localizes the original drift; ADR 0099 closes D2 grouped-granularity
 characterization; ADR 0101 closes D3 with Layer24 `down`-only group32 and
-Layer47 F32 fallback. The exact next task is `M6.3-R2.2-D4-PR` held-out quality
-re-entry design for that hybrid policy. R2.2c/R2.2d, all-layer rollout, and
-M6.4 remain blocked.
+Layer47 F32 fallback. ADR 0102 pre-registers D4 held-out quality re-entry for
+that hybrid policy. The exact next task is `M6.3-R2.2-D4a` implementation and
+execution. Historical R2.2c/R2.2d, all-layer rollout, and M6.4 remain blocked.
 
 ## Standard verification commands
 
