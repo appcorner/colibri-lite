@@ -1,0 +1,73 @@
+{
+  "schema": "m6.3-r2.2-d4d1-layer24-down-precision-contract-v1",
+  "schema_version": 1,
+  "status": "pre_registered_before_d4d1_implementation",
+  "source_commit": "a6765f4a2b1ff745ae4fdbdb83bf332d67e47312",
+  "parent_d4_result_sha256": "47dbccb7406ee12fcca5b0a4b48790a749c54388fc5780f5dfbb6765dd012822",
+  "target_layer": 24,
+  "target_projection": "down",
+  "fixtures": ["short_english", "short_thai"],
+  "backend": "scalar_only",
+  "groups": [32, 16, 8],
+  "local_max_abs_limit": 0.001,
+  "performance_timing": false,
+  "contexts": [
+    {"id":"f32_prefix","layer0_group32":false},
+    {"id":"layer0_group32_prefix","layer0_group32":true}
+  ],
+  "measurement": {
+    "same_input_router_f32_comparator": true,
+    "gate_up_are_canonical_f32": true,
+    "down_is_selected_grouped_int8": true,
+    "target_candidate_not_propagated": true,
+    "maximum_over_complete_prompt": true,
+    "router_ids_recorded": true,
+    "candidate_output_finite": true
+  },
+
+  "artifacts": {
+    "layer0_group32": {
+      "sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2"
+    },
+    "layer24_group32": {
+      "sha256": "890936e78829cf013a141b225c7819cb2c10134fbd2c787e4131f7f41844d9b0",
+      "expert_bytes": 5308416,
+      "hybrid_expert_bytes": 14352384,
+      "hybrid_layer_bytes": 1837105152
+    },
+    "layer24_group16": {
+      "sha256": "569b221f448b521488764da8b0e99058f8daded9f41ba10ef7f1f2706ac36416",
+      "expert_bytes": 5898240,
+      "hybrid_expert_bytes": 14548992,
+      "hybrid_layer_bytes": 1862270976
+    },
+    "layer24_group8": {
+      "sha256": "4d51c17a2ba040229a8c20c895c5be8f030ab273db3151ccb739df7289965435",
+      "expert_bytes": 7077888,
+      "hybrid_expert_bytes": 14942208,
+      "hybrid_layer_bytes": 1912602624
+    }
+  },
+  "selection_rule": {
+    "group_order": [32, 16, 8],
+    "candidate_pass_requires_all_fixture_prefix_contexts_at_or_below_limit": true,
+    "select_first_passing_group": true,
+    "if_none_pass": "canonical_f32_fallback",
+    "selection_only_informs_future_quality_reentry_design": true
+  },
+  "prohibitions": {
+    "generation": true,
+    "performance_timing": true,
+    "automatic_retry": true,
+    "new_artifact": true,
+    "new_group_size": true,
+    "higher_bit_width": true,
+    "native_kernel_change": true,
+    "post_result_threshold_change": true,
+    "post_result_policy_change": true,
+    "d5_authorization": true,
+    "historical_r2_2c_reuse": true,
+    "m6_4_authorization": true
+  },
+  "results_seen": false
+}

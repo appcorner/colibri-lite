@@ -1027,9 +1027,13 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   ADR 0103 closes D4 `NO-GO`: `short_english` Layer24 scalar-hybrid/F32 local
   max-abs is `0.0010073595` against the frozen `0.001` limit. Result SHA-256 is
   `47dbccb7406ee12fcca5b0a4b48790a749c54388fc5780f5dfbb6765dd012822`.
-- [ ] M6.3-R2.2-D4D1-PR Pre-register Layer24 down-projection precision
+- [x] M6.3-R2.2-D4D1-PR Pre-register Layer24 down-projection precision
   characterization across both held-out fixtures using existing group32/16/8
-  artifacts and canonical/L0-group32 prefixes only.
+  artifacts and canonical/L0-group32 prefixes only. Contract SHA-256 is
+  `16c6015c68834c639a57e4a381217e4cac6d3977c1de89316df073266998fb2a`.
+- [ ] M6.3-R2.2-D4D1a Implement/freeze the cross-fixture Layer24 down-only
+  characterization harness and execute the frozen 2-fixture x 2-prefix x
+  3-group matrix once.
 - [ ] M6.3-R2.2c HISTORICAL/BLOCKED. Its 108-sample contract belongs to the
   failed all-three-group32 candidate and must not be reused for the hybrid.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be

@@ -762,10 +762,16 @@ ADR 0103 closes `M6.3-R2.2-D4` `NO-GO`. The frozen run failed first on
 the unchanged `0.001` limit. The miss is only `7.3595e-6`, but the threshold is
 not relaxed and the run is not retried.
 
-The exact next task is `M6.3-R2.2-D4D1-PR`: pre-register Layer24 `down`-only
-precision characterization across both held-out fixtures, using only the
-already frozen group32/group16/group8 artifacts and canonical/L0-group32
-prefixes. D5, historical R2.2c/R2.2d, all-layer rollout, and M6.4 remain blocked.
+ADR 0104 now pre-registers `M6.3-R2.2-D4D1` with contract SHA-256
+`16c6015c68834c639a57e4a381217e4cac6d3977c1de89316df073266998fb2a`.
+It evaluates Layer24 `down` only at the already-frozen group32/group16/group8
+precisions across both held-out fixtures and canonical/L0-group32 prefixes.
+Gate/up stay F32, target candidates are not propagated, and the unchanged
+`0.001` local budget applies in all four contexts.
+
+The exact next task is `M6.3-R2.2-D4D1a`: implement/freeze the diagnostic harness
+and execute the 2-fixture x 2-prefix x 3-group matrix once. D5, historical
+R2.2c/R2.2d, all-layer rollout, and M6.4 remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
 

@@ -203,6 +203,15 @@
 !/models/qwen3-30b-a3b/m6.3-r2-2-d4-stderr-v1.log
 !/models/qwen3-30b-a3b/m6.3-r2-2-d4-completion-v1.json
 !/models/qwen3-30b-a3b/m6.3-r2-2-d4-exit-v1.txt
+!/models/qwen3-30b-a3b/m6.3-r2-2-d4d1-layer24-down-precision-contract-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-2-d4d1-execution-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-2-d4d1-evidence-v1.tsv
+!/models/qwen3-30b-a3b/m6.3-r2-2-d4d1-result-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-2-d4d1-preflight-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-2-d4d1-stdout-v1.log
+!/models/qwen3-30b-a3b/m6.3-r2-2-d4d1-stderr-v1.log
+!/models/qwen3-30b-a3b/m6.3-r2-2-d4d1-completion-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-2-d4d1-exit-v1.txt
 /.idea/
 /.vscode/
 *.pdb
