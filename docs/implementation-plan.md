@@ -744,9 +744,15 @@ at Layers 24/47 under the unchanged D2 contexts. Omitted projections are F32,
 target variants are not propagated, and the fixed selection rule chooses the
 first all-context passing variant in packed-count-first order.
 
-The exact next task is `M6.3-R2.2-D3a`: implement/freeze only the test diagnostic
-seam and execute the frozen 4-context x 7-variant matrix once. R2.2c/R2.2d,
-all-layer rollout, and M6.4 remain blocked.
+`M6.3-R2.2-D3a` is now closed by ADR 0101. Layer 24 selects only `down`
+as group32 while `gate/up` remain F32; Layer 47 selects canonical F32 because
+no packed subset meets the frozen local budget. The proposed three-sentinel
+representation models `31.944444%` fewer bytes than all-F32, but this is not a
+runtime or performance claim.
+
+The exact next task is `M6.3-R2.2-D4-PR`: pre-register held-out quality re-entry
+for Layer0 all-group32 + Layer24 down-group32/F32 gate-up + Layer47 F32. R2.2c/
+R2.2d, all-layer rollout, and M6.4 remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
 

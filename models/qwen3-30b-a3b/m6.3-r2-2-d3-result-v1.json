@@ -1,0 +1,51 @@
+{
+  "schema": "m6.3-r2.2-d3-result-v1",
+  "schema_version": 1,
+  "status": "closed",
+  "classification": "projection_sensitive_hybrid_found_for_layer24_layer47_f32_fallback",
+  "contract_sha256": "0faa6aa9200346aad94b0c69d6c6ed353682bf53410b258c38bfb61224f63ceb",
+  "execution_sha256": "7c2c865887526a544f8c6a0fe6ac3724075596d5a91db84d04985c7aff3e69a9",
+  "evidence_sha256": "592adc98df7bdd0b6a3fc4f3f82ca4e4a2002cffb4a73ab8df7a59cd6693452c",
+  "native_exit_code": 0,
+  "runtime_seconds": 269.30,
+  "rows": 28,
+  "seam_controls": {
+    "group32_control_exact_all_rows": true,
+    "router_guard_exact_all_rows": true,
+    "candidate_finite_all_rows": true
+  },
+  "local_max_abs_limit": 0.001,
+  "selection": {
+    "layer24": {
+      "selected_variant": "down",
+      "packed_projections": ["down"],
+      "f32_projections": ["gate", "up"],
+      "worst_context_local_max_abs": 0.00048826634883880615,
+      "modeled_layer_bytes": 1837105152
+    },
+    "layer47": {
+      "selected_variant": "canonical_f32_fallback",
+      "packed_projections": [],
+      "f32_projections": ["gate", "up", "down"],
+      "best_observed_variant": "up",
+      "best_observed_worst_context_local_max_abs": 0.0163116455078125,
+      "modeled_layer_bytes": 2415919104
+    }
+  },
+  "proposed_three_sentinel_policy": {
+    "layer0": "all_group32",
+    "layer24": "down_group32_gate_up_f32",
+    "layer47": "canonical_f32",
+    "modeled_total_bytes": 4932501504,
+    "all_f32_total_bytes": 7247757312,
+    "modeled_saving_bytes": 2315255808,
+    "modeled_saving_percent": 31.944444
+  },
+  "decision": {
+    "d3_complete": true,
+    "future_quality_reentry_design_authorized": true,
+    "r2_2c_authorized": false,
+    "all_layer_rollout_authorized": false,
+    "m6_4_authorized": false
+  }
+}

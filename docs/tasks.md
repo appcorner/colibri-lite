@@ -1013,8 +1013,13 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   gate/up/down at Layers 24/47 before implementing any hybrid representation.
   Contract SHA-256 is
   `0faa6aa9200346aad94b0c69d6c6ed353682bf53410b258c38bfb61224f63ceb`.
-- [ ] M6.3-R2.2-D3a Implement/freeze the test-only projection-hybrid diagnostic
-  seam and execute the frozen 4-context x 7-variant matrix exactly once.
+- [x] M6.3-R2.2-D3a Implement/freeze the test-only projection-hybrid diagnostic
+  seam and execute the frozen 4-context x 7-variant matrix exactly once. ADR
+  0101 selects Layer24 `down`-only group32 and Layer47 canonical F32 fallback.
+  Result SHA-256 is
+  `b7ff3aafae497c5ecc5e482662f8fc87ed79beaf513dc8bf41658f633ecf18a5`.
+- [ ] M6.3-R2.2-D4-PR Pre-register held-out quality re-entry for the exact hybrid
+  policy: Layer0 all-group32, Layer24 down-group32 with F32 gate/up, Layer47 F32.
 - [ ] M6.3-R2.2c BLOCKED. The 108 fresh compute-only process samples may run only
   after a separately reviewed quality re-entry contract passes.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be
@@ -1039,9 +1044,11 @@ performance and resource gates. ADR 0091 freezes the Layers 0/24/47 sentinel
 proof; ADRs 0092-0094 record quality-execution transport recovery without
 changing the frozen candidate; and ADR 0095 closes R2.2b `NO-GO` on the valid ordinal-4 `short_thai`
 scalar-group32 top-20 ordering failure. ADRs 0096-0097 pre-register and close
-D1: Layer 47 is singly sufficient for one swap while Layers 0+24 show a
-separate interaction. The exact next task is `M6.3-R2.2-D2` precision
-characterization. R2.2c/R2.2d, all-layer rollout, and M6.4 remain blocked.
+D1, which localizes the original drift; ADR 0099 closes D2 grouped-granularity
+characterization; ADR 0101 closes D3 with Layer24 `down`-only group32 and
+Layer47 F32 fallback. The exact next task is `M6.3-R2.2-D4-PR` held-out quality
+re-entry design for that hybrid policy. R2.2c/R2.2d, all-layer rollout, and
+M6.4 remain blocked.
 
 ## Standard verification commands
 
