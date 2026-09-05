@@ -1,0 +1,24 @@
+{
+  "schema": "m6.3-r2.2-d4d2-result-v1",
+  "schema_version": 1,
+  "status": "closed_no_go",
+  "contract_sha256": "d9f35f16387aced95ead63003c6ba56133a72dd9cc09ee0e72840a4ea4b3cfe1",
+  "execution_sha256": "c0b803c075a18e50254b7545def6c7b06c7dba9afef689207094550e72c83fdb",
+  "binary_sha256": "5c16312a71fb5421129e4fe6fe36a2ff3fcbddccacb89baebefc24f931744884",
+  "harness_sha256": "cb796265809723ad878cd03db3423771f9774b7fac93d2de28cdbed1ac037eee",
+  "native_exit_code": 101,
+  "runtime_seconds": 793.70,
+  "evidence_output_exists": false,
+  "first_failure": {
+    "fixture": "short_thai",
+    "layer": 24,
+    "path": "scalar_hybrid_vs_f32",
+    "precision": "group16_down",
+    "observed_max_abs": 0.0012040138,
+    "limit": 0.001,
+    "ratio_to_limit": 1.2040138,
+    "excess_percent": 20.40138
+  },
+  "failure_classification": "valid_quality_gate_failure",
+  "interpretation": "prompt-only cross-fixture characterization did not generalize to propagated autoregressive sequence state"
+}

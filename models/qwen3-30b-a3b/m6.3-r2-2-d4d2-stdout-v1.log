@@ -1,0 +1,12 @@
+
+running 1 test
+test full_model_validation_tests::r2_2_d4d2_tests::m6_3_r2_2_d4d2_group16_hybrid_pass_held_out_quality has been running for over 60 seconds
+test full_model_validation_tests::r2_2_d4d2_tests::m6_3_r2_2_d4d2_group16_hybrid_pass_held_out_quality ... FAILED
+
+failures:
+
+failures:
+    full_model_validation_tests::r2_2_d4d2_tests::m6_3_r2_2_d4d2_group16_hybrid_pass_held_out_quality
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 117 filtered out; finished in 793.70s
+

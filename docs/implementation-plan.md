@@ -780,9 +780,15 @@ contract SHA-256
 The exact policy is Layer0 all-group32 + Layer24 F32 gate/up with group16 down +
 Layer47 F32. Native AVX2+FMA remains Layer0-only; Layer24 group16 stays scalar.
 
-The exact next task is `M6.3-R2.2-D4D2a`: implement/freeze the bilingual hybrid
-quality harness and execute it once. D5, historical R2.2c/R2.2d, all-layer
-rollout, and M6.4 remain blocked.
+ADR 0107 closes `M6.3-R2.2-D4D2` `NO-GO`. The full autoregressive run fails
+first on `short_thai` Layer24 scalar-hybrid/F32 local max-abs `0.0012040138`
+versus the unchanged `0.001` limit. This shows that prompt-only D4D1 precision
+characterization does not generalize to propagated sequence state.
+
+The exact next task is `M6.3-R2.2-D4D3-PR`: pre-register sequence-aware
+Layer24 down-projection precision characterization over the full two-token
+trajectory using only the already-frozen group32/group16/group8 artifacts. D5,
+historical R2.2c/R2.2d, all-layer rollout, and M6.4 remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
 

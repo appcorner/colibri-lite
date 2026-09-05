@@ -1,0 +1,4 @@
+
+thread 'full_model_validation_tests::r2_2_d4d2_tests::m6_3_r2_2_d4d2_group16_hybrid_pass_held_out_quality' (892) panicked at crates\clr-qwen3-moe\src\r2_2_d4d2_tests.rs:371:9:
+short_thai Layer-24 scalar-hybrid/F32 error 0.0012040138 exceeds 0.001
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
