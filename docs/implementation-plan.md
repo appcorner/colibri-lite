@@ -711,13 +711,17 @@ adjacent rank pairs swap. Because scalar fails before native validation, the
 current localization target is the frozen group32 representation/placement
 across Layers 0/24/47 rather than the AVX2 kernel.
 
-ADR 0096 now pre-registers `M6.3-R2.2-D1` with contract SHA-256
-`6f08cdaf5c0d297f887d00c2bd8cccfb6096885772bc8e464aaba9e0eeebdb9b`.
-The diagnostic is scalar-only, prompt-only, `short_thai`, and covers the fixed
-F32 control plus all seven non-empty subsets of Layers 0/24/47 in a frozen
-order. The exact next task is to implement/freeze that harness and execute each
-state once. R2.2c official performance, R2.2d, all-layer rollout, and M6.4
-remain blocked.
+ADRs 0096-0097 now pre-register and close `M6.3-R2.2-D1`. The frozen eight-state
+scalar-only `short_thai` matrix shows Layer 47 alone is sufficient for the
+rank-18/19 swap, while Layers 0+24 interact to cross both observed ranking
+boundaries despite each singleton preserving exact top-20 order. Local
+scalar/F32 routed max-abs is `8.7054e-4` at Layer 0, `1.1682e-2` at Layer 24,
+and `6.8835e-2` at Layer 47. Router guards and argmax remain exact throughout.
+
+The exact next task is `M6.3-R2.2-D2`: verify supported precision/granularity
+options and pre-register depth-sensitive characterization for Layers 24/47
+before creating any new artifacts. R2.2c official performance, R2.2d,
+all-layer rollout, and M6.4 remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
 

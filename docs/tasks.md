@@ -991,9 +991,13 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
 - [x] M6.3-R2.2-D1-PR Pre-register scalar-only `short_thai` quality-drift
   localization across the fixed eight sentinel states. Contract SHA-256 is
   `6f08cdaf5c0d297f887d00c2bd8cccfb6096885772bc8e464aaba9e0eeebdb9b`.
-- [ ] M6.3-R2.2-D1 Implement/freeze the prompt-only diagnostic harness, then run
-  the eight states exactly once in the frozen order and classify the
-  minimal-cardinality failing subsets.
+- [x] M6.3-R2.2-D1 Implement/freeze the prompt-only diagnostic harness, then run
+  the eight states exactly once in the frozen order. ADR 0097 closes D1:
+  Layer 47 alone is sufficient for the lower rank swap; Layers 0+24 form a
+  separate pair interaction. Evidence SHA-256 is
+  `d6d05c0f5201fde047237082bb01af684215d3c17c5dd242c9357fc23c6bf473`.
+- [ ] M6.3-R2.2-D2 Pre-register depth-sensitive precision characterization for
+  Layers 24/47 before creating any new candidate artifacts or observing results.
 - [ ] M6.3-R2.2c BLOCKED. The 108 fresh compute-only process samples may run only
   after a separately reviewed quality re-entry contract passes.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be
@@ -1016,10 +1020,11 @@ ADR 0089 closes R2.1b held-out quality `GO` without making a performance claim.
 ADR 0090 closes R2.1c/R2.1d `GO` after all 72 official samples pass the frozen
 performance and resource gates. ADR 0091 freezes the Layers 0/24/47 sentinel
 proof; ADRs 0092-0094 record quality-execution transport recovery without
-changing the frozen candidate; and ADR 0095 closes R2.2b `NO-GO` on the valid
-ordinal-4 `short_thai` scalar-group32 top-20 ordering failure. The exact next
-task is `M6.3-R2.2-D1` quality-drift localization. R2.2c/R2.2d, all-layer
-rollout, and M6.4 remain blocked.
+changing the frozen candidate; and ADR 0095 closes R2.2b `NO-GO` on the valid ordinal-4 `short_thai`
+scalar-group32 top-20 ordering failure. ADRs 0096-0097 pre-register and close
+D1: Layer 47 is singly sufficient for one swap while Layers 0+24 show a
+separate interaction. The exact next task is `M6.3-R2.2-D2` precision
+characterization. R2.2c/R2.2d, all-layer rollout, and M6.4 remain blocked.
 
 ## Standard verification commands
 

@@ -1,0 +1,68 @@
+{
+  "schema": "m6.3-r2.2-d1-result-v1",
+  "schema_version": 1,
+  "status": "completed",
+  "classification": "depth_sensitive_group32_with_layer47_singleton_and_layer0_layer24_interaction",
+  "contract_sha256": "6f08cdaf5c0d297f887d00c2bd8cccfb6096885772bc8e464aaba9e0eeebdb9b",
+  "execution_sha256": "811764a916c9461e3a0df0a2aee2fe95e316f101cda1eaa088360fd2dd8063f4",
+  "evidence": {
+    "path": "models/qwen3-30b-a3b/m6.3-r2-2-d1-evidence-v1.tsv",
+    "sha256": "d6d05c0f5201fde047237082bb01af684215d3c17c5dd242c9357fc23c6bf473",
+    "rows": 8,
+    "test_exit_code": 0,
+    "test_runtime_seconds": 436.49
+  },
+  "global_invariants": {
+    "f32_control_exact": true,
+    "top20_token_set_exact_all_states": true,
+    "argmax_exact_all_states": true,
+    "router_guards_exact_all_states": true,
+    "native_kernel_in_scope": false
+  },
+  "minimal_failing_subsets": [
+    {"layers":[47],"cardinality":1,"effect":"rank18_19_swap"},
+    {"layers":[0,24],"cardinality":2,"effect":"rank4_5_and_rank18_19_swaps","interaction":true}
+  ],
+  "local_error_max_abs": {
+    "layer0": 0.0008705407381057739,
+    "layer24": 0.011681884527206421,
+    "layer47": 0.06883478164672852,
+    "original_r2_2_limit": 0.001,
+    "layer0_over_limit_ratio": 0.8705407381057739,
+    "layer24_over_limit_ratio": 11.681884527206421,
+    "layer47_over_limit_ratio": 68.83478164672852
+  },
+  "state_results": [
+    {"layers":[],"top20_exact":true,"ranks":{"94482":4,"69440":5,"52388":18,"129075":19}},
+    {"layers":[0],"top20_exact":true,"ranks":{"94482":4,"69440":5,"52388":18,"129075":19}},
+    {"layers":[24],"top20_exact":true,"ranks":{"94482":4,"69440":5,"52388":18,"129075":19}},
+    {"layers":[47],"top20_exact":false,"ranks":{"94482":4,"69440":5,"52388":19,"129075":18}},
+    {"layers":[0,24],"top20_exact":false,"ranks":{"94482":5,"69440":4,"52388":19,"129075":18}},
+    {"layers":[0,47],"top20_exact":false,"ranks":{"94482":4,"69440":5,"52388":19,"129075":18}},
+    {"layers":[24,47],"top20_exact":false,"ranks":{"94482":5,"69440":4,"52388":19,"129075":18}},
+    {"layers":[0,24,47],"top20_exact":false,"ranks":{"94482":5,"69440":4,"52388":19,"129075":18}}
+  ],
+  "interpretation": {
+    "router_instability": false,
+    "argmax_instability": false,
+    "native_kernel_cause_supported": false,
+    "group32_generalizes_uniformly_by_depth": false,
+    "layer47_singleton_sufficient": true,
+    "layer0_layer24_pair_interaction": true
+  },
+  "durable_evidence": [
+    {"path":"models/qwen3-30b-a3b/m6.3-r2-2-d1-preflight-v1.json","sha256":"828dcc294a1b92a61e44dd9d9dd68ab807578947d95bf35ea631de18ee03b6e1"},
+    {"path":"models/qwen3-30b-a3b/m6.3-r2-2-d1-stdout-v1.log","sha256":"75effce9fa9ddd85f31b10cd7116e9a4a5178a988e4b346d07d38fb0051bff8e"},
+    {"path":"models/qwen3-30b-a3b/m6.3-r2-2-d1-stderr-v1.log","sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+    {"path":"models/qwen3-30b-a3b/m6.3-r2-2-d1-completion-v1.json","sha256":"9851430c03e2766188f4e12ddb1eb78fcac2f3c9617e1f9999195ba77758d830"},
+    {"path":"models/qwen3-30b-a3b/m6.3-r2-2-d1-exit-v1.txt","sha256":"13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"}
+  ],
+  "decision": {
+    "d1_complete": true,
+    "quality_reentry_authorized": false,
+    "r2_2c_performance_authorized": false,
+    "all_layer_rollout_authorized": false,
+    "m6_4_authorized": false,
+    "next": "pre_register_depth_sensitive_precision_characterization"
+  }
+}
