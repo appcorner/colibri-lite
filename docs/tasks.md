@@ -1022,8 +1022,14 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   policy: Layer0 all-group32, Layer24 down-group32 with F32 gate/up, Layer47 F32.
   Contract SHA-256 is
   `5f2b27b623a0456ad15e14b542816e4d5ad17bf32dacd91099184adfc86fb4fe`.
-- [ ] M6.3-R2.2-D4a Implement/freeze the hybrid quality harness and execute the
+- [x] M6.3-R2.2-D4a Implement/freeze the hybrid quality harness and execute the
   frozen two-fixture quality re-entry once with one scalar and two native runs.
+  ADR 0103 closes D4 `NO-GO`: `short_english` Layer24 scalar-hybrid/F32 local
+  max-abs is `0.0010073595` against the frozen `0.001` limit. Result SHA-256 is
+  `47dbccb7406ee12fcca5b0a4b48790a749c54388fc5780f5dfbb6765dd012822`.
+- [ ] M6.3-R2.2-D4D1-PR Pre-register Layer24 down-projection precision
+  characterization across both held-out fixtures using existing group32/16/8
+  artifacts and canonical/L0-group32 prefixes only.
 - [ ] M6.3-R2.2c HISTORICAL/BLOCKED. Its 108-sample contract belongs to the
   failed all-three-group32 candidate and must not be reused for the hybrid.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be

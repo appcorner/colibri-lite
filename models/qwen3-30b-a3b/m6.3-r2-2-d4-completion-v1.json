@@ -1,0 +1,6 @@
+﻿{
+    "schema":  "m6.3-r2.2-d4-durable-completion-v1",
+    "exit_code":  101,
+    "d4_output_exists":  false,
+    "d4_output_bytes":  0
+}

@@ -757,10 +757,15 @@ The exact policy is Layer0 all-group32 + Layer24 down-group32/F32 gate-up +
 Layer47 F32. This quality seam may decode a complete F32 expert and therefore
 cannot support resource/I/O/performance claims.
 
-The exact next task is `M6.3-R2.2-D4a`: implement/freeze the hybrid quality
-harness and execute it once. The historical R2.2c 108-sample contract remains
-blocked/inapplicable to this new candidate; a D4 PASS can authorize only D5
-hybrid artifact/layout and performance-contract design.
+ADR 0103 closes `M6.3-R2.2-D4` `NO-GO`. The frozen run failed first on
+`short_english` Layer24 scalar-hybrid/F32 local max-abs `0.0010073595` versus
+the unchanged `0.001` limit. The miss is only `7.3595e-6`, but the threshold is
+not relaxed and the run is not retried.
+
+The exact next task is `M6.3-R2.2-D4D1-PR`: pre-register Layer24 `down`-only
+precision characterization across both held-out fixtures, using only the
+already frozen group32/group16/group8 artifacts and canonical/L0-group32
+prefixes. D5, historical R2.2c/R2.2d, all-layer rollout, and M6.4 remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
 

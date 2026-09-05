@@ -1,0 +1,42 @@
+{
+  "schema": "m6.3-r2.2-d4-result-v1",
+  "schema_version": 1,
+  "status": "closed_no_go",
+  "contract_sha256": "5f2b27b623a0456ad15e14b542816e4d5ad17bf32dacd91099184adfc86fb4fe",
+  "execution_sha256": "240df0d9988002b52b1a3f47189e7dc5110114b359cb8dcf142f9b75342b59bd",
+  "release_binary_sha256": "90878330b6cf8341010a7bc979302984ccb98024c80f9d1104290c4b5dd8ba20",
+  "harness_sha256": "12c7a0507611e0f5276cf8fed2a513243aeaada3205b13d2d174831fc630f2c2",
+  "native_exit_code": 101,
+  "runtime_seconds": 556.37,
+  "quality_output_exists": false,
+  "first_failure": {
+    "fixture": "short_english",
+    "layer": 24,
+    "comparison": "scalar_hybrid_vs_same_input_router_f32",
+    "observed_max_abs": 0.0010073595,
+    "limit": 0.001,
+    "excess_abs": 0.0000073595,
+    "observed_to_limit_ratio": 1.0073595
+  },
+  "interpretation": {
+    "transport_failure": false,
+    "threshold_change_allowed": false,
+    "automatic_retry_allowed": false,
+    "hybrid_quality_pass": false,
+    "reason": "Layer24 down-only group32 does not generalize to the held-out short_english fixture under the frozen 0.001 local budget"
+  },
+  "durable_evidence": {
+    "preflight_sha256": "6dd67910e3d07d74469243c7feebaa92a752ca5a60db8c47f12332f7edf96d15",
+    "stdout_sha256": "3e02cf208edf583ad7899ef9faaaa2e676b129c5a2752d50059a460a314536c6",
+    "stderr_sha256": "0d996744aa88e39d856d53f50ebebc3fb89ed08f3caaded6d03645720e5e257e",
+    "completion_sha256": "e5596725540033fa9ea176b4a4706feb8002645af82496a22d6bbd897795bde4",
+    "exit_sha256": "bdc830287616dae1818ced3e7c186e1387155900ad30d5983ec02da1519c4a95"
+  },
+  "decision": {
+    "d5_authorized": false,
+    "historical_r2_2c_authorized": false,
+    "all_layer_rollout_authorized": false,
+    "m6_4_authorized": false,
+    "next": "pre_register_layer24_down_precision_cross_fixture_characterization"
+  }
+}
