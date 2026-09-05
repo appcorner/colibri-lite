@@ -1,0 +1,38 @@
+{
+  "schema": "m6.3-r2.2-d2-execution-v1",
+  "schema_version": 1,
+  "status": "frozen_before_d2_measurement",
+  "contract_sha256": "ea779da7bb4466c59a478c095ee0342c6932c482426e3331bf472c8296c31d30",
+  "artifact_manifest_sha256": "bd54c87ae20826086a9f8e6b1e06011bb4f1c65fa973494804c3fcb6b79e0a46",
+  "reference_sha256": "fa8f1a4f6b30624b78cf8c004f379fdb0633a08a65c102791acc57d0205d54ff",
+  "harness": {
+    "source_commit": "46dd5b030eb1e0d6ae88711c75539c238a3df98d",
+    "path": "crates/clr-qwen3-moe/src/r2_2_d2_tests.rs",
+    "sha256": "457a3ba73312e93fbd5b7b86c1cdda6b62ec5c1491b6236491a316e18b80c1a8"
+  },
+  "release_binary": {
+    "path": "target/release/deps/clr_qwen3_moe-98ff24c36e070e31.exe",
+    "sha256": "caa27c71e0d75e7f45ceb2c24b9e48d82db6199a1c07b32b8bfc6fcc32d3cc33",
+    "bytes": 46561280,
+    "features": ["full-model-validation", "m6-3-r2-native"]
+  },
+  "runner": {
+    "source_commit": "e9d9646",
+    "path": "scripts/run_m6_3_r2_2_d2_durable.ps1",
+    "sha256": "382185efac5fa757507edf88b5aa4d173f3687e8e987965e5219ec0d2b7a1e13"
+  },
+  "host_id": "ANUSORN-NB",
+  "group32_artifact_root": "D:/tmp/colibri-lite-r2-2/artifacts",
+  "d2_artifact_root": "D:/tmp/colibri-lite-r2-2/d2-artifacts",
+  "durable_run_root": "D:/tmp/colibri-lite-r2-2/d2-durable-v1",
+  "evidence_output": "models/qwen3-30b-a3b/m6.3-r2-2-d2-evidence-v1.tsv",
+  "measurement_rows_expected": 12,
+  "context_count": 4,
+  "candidate_group_sizes": [32, 16, 8],
+  "results_seen": false,
+  "automatic_retry": false,
+  "authorizes_quality_reentry": false,
+  "authorizes_official_performance": false,
+  "authorizes_all_layer_rollout": false,
+  "authorizes_m6_4": false
+}
