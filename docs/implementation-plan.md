@@ -774,10 +774,15 @@ Layer24 `down`. Group32 fails only the English contexts; group16 and group8 pass
 all four contexts, so the frozen coarsest-passing rule selects group16. The
 selected Layer24 hybrid remains `22.916667%` smaller than all-F32.
 
-The exact next task is `M6.3-R2.2-D4D2-PR`: pre-register held-out quality
-re-entry for Layer0 all-group32 + Layer24 F32 gate/up with group16 down +
-Layer47 F32. D5, historical R2.2c/R2.2d, all-layer rollout, and M6.4 remain
-blocked.
+ADR 0106 now pre-registers `M6.3-R2.2-D4D2` held-out quality re-entry with
+contract SHA-256
+`d9f35f16387aced95ead63003c6ba56133a72dd9cc09ee0e72840a4ea4b3cfe1`.
+The exact policy is Layer0 all-group32 + Layer24 F32 gate/up with group16 down +
+Layer47 F32. Native AVX2+FMA remains Layer0-only; Layer24 group16 stays scalar.
+
+The exact next task is `M6.3-R2.2-D4D2a`: implement/freeze the bilingual hybrid
+quality harness and execute it once. D5, historical R2.2c/R2.2d, all-layer
+rollout, and M6.4 remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
 

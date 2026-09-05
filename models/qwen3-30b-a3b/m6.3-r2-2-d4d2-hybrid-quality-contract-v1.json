@@ -1,0 +1,72 @@
+{
+  "schema": "m6.3-r2.2-d4d2-hybrid-quality-contract-v1",
+  "schema_version": 1,
+  "status": "pre_registered_before_d4d2_implementation",
+  "source_commit": "2a3a6af",
+  "parent_d4d1_result_sha256": "486679e583c1881ef97d7d35ff771cab53f0ba66dd2eac84a5da88929c22bd43",
+  "fixtures": ["short_english", "short_thai"],
+  "candidate_policy": {
+    "layer0": "group32_gate_up_down",
+    "layer24": "f32_gate_up_group16_down",
+    "layer47": "canonical_f32",
+    "other_layers": "canonical_f32"
+  },
+  "runs_per_fixture": {
+    "scalar_hybrid": 1,
+    "mixed_backend_hybrid": 2
+  },
+  "backend_policy": {
+    "scalar_hybrid_layer0": "scalar_group32",
+    "scalar_hybrid_layer24": "scalar_group16_down",
+    "mixed_backend_layer0": "native_avx2_fma_group32",
+    "mixed_backend_layer24": "scalar_group16_down"
+  },
+  "quality_gates": {
+    "exact_two_token_generation": true,
+    "exact_prompt_top20_order": true,
+    "exact_prompt_argmax": true,
+    "exact_router_guards_layers": [0, 24, 47],
+    "all_logits_finite": true,
+    "scalar_candidate_f32_local_max_abs_limit": 0.001,
+    "mixed_scalar_layer0_max_abs_limit": 0.001,
+    "mixed_scalar_prompt_logit_max_abs_limit": 0.002,
+    "existing_f32_logit_envelope": true,
+    "mixed_repeatability_exact": true
+  },
+  "source_artifacts": {
+    "canonical_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "layer0_group32_sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+    "layer24_group16_sha256": "569b221f448b521488764da8b0e99058f8daded9f41ba10ef7f1f2706ac36416",
+    "reference_sha256": "fa8f1a4f6b30624b78cf8c004f379fdb0633a08a65c102791acc57d0205d54ff"
+  },
+  "modeled_three_sentinel_bytes": {
+    "candidate": 4957667328,
+    "all_f32": 7247757312,
+    "saving_bytes": 2290089984,
+    "saving_percent": 31.597222
+  },
+  "implementation_boundary": {
+    "quality_semantics_only": true,
+    "layer24_group16_native_kernel_allowed": false,
+    "test_seam_may_decode_complete_f32_expert": true,
+    "resource_io_working_set_claim_allowed": false,
+    "production_hybrid_artifact_layout_in_scope": false
+  },
+  "prohibitions": {
+    "automatic_retry": true,
+    "post_result_threshold_change": true,
+    "post_result_policy_change": true,
+    "new_group_size": true,
+    "higher_bit_width": true,
+    "native_group16_implementation": true,
+    "historical_r2_2c_reuse": true,
+    "performance_claim": true
+  },
+  "decision": {
+    "pass_authorizes": "d5_hybrid_artifact_layout_backend_performance_contract_design_only",
+    "d5_implementation_authorized": false,
+    "historical_r2_2c_authorized": false,
+    "all_layer_rollout_authorized": false,
+    "m6_4_authorized": false
+  }
+}

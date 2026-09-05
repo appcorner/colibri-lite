@@ -1036,8 +1036,11 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   3-group matrix once. ADR 0105 selects group16 as the coarsest passing group.
   Result SHA-256 is
   `486679e583c1881ef97d7d35ff771cab53f0ba66dd2eac84a5da88929c22bd43`.
-- [ ] M6.3-R2.2-D4D2-PR Pre-register held-out quality re-entry for Layer0
-  all-group32 + Layer24 F32 gate/up and group16 down + Layer47 F32.
+- [x] M6.3-R2.2-D4D2-PR Pre-register held-out quality re-entry for Layer0
+  all-group32 + Layer24 F32 gate/up and group16 down + Layer47 F32. Contract
+  SHA-256 is `d9f35f16387aced95ead63003c6ba56133a72dd9cc09ee0e72840a4ea4b3cfe1`.
+- [ ] M6.3-R2.2-D4D2a Implement/freeze the group16 hybrid quality harness and
+  execute the frozen bilingual quality re-entry once.
 - [ ] M6.3-R2.2c HISTORICAL/BLOCKED. Its 108-sample contract belongs to the
   failed all-three-group32 candidate and must not be reused for the hybrid.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be
