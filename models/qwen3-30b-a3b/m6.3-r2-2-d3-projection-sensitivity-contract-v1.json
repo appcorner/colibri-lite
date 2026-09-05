@@ -1,0 +1,81 @@
+{
+  "schema": "m6.3-r2.2-d3-projection-sensitivity-contract-v1",
+  "schema_version": 1,
+  "status": "pre_registered_before_d3_implementation",
+  "source_commit": "8031eb5",
+  "parent_d2_result_sha256": "847b146f56e0c04f5836875ab178bab320a76a493df64b6a6ba5d8c517bb518c",
+  "fixture": "short_thai",
+  "layers": [24, 47],
+  "backend": "scalar_group32_only",
+  "performance_timing": false,
+  "local_max_abs_limit": 0.001,
+  "projection_order": ["gate", "up", "down"],
+  "variants": [
+    {"id":"gate_up_down","packed":["gate","up","down"]},
+    {"id":"gate_up","packed":["gate","up"]},
+    {"id":"gate_down","packed":["gate","down"]},
+    {"id":"up_down","packed":["up","down"]},
+    {"id":"gate","packed":["gate"]},
+    {"id":"up","packed":["up"]},
+    {"id":"down","packed":["down"]}
+  ],
+  "contexts": {
+    "layer24": [
+      {"id":"f32_prefix","group32_prefix_layers":[]},
+      {"id":"layer0_group32_prefix","group32_prefix_layers":[0]}
+    ],    "layer47": [
+      {"id":"f32_prefix","group32_prefix_layers":[]},
+      {"id":"r2_2_failing_prefix","group32_prefix_layers":[0,24]}
+    ]
+  },
+  "measurement": {
+    "same_input_router_f32_comparator": true,
+    "target_variant_not_propagated": true,
+    "maximum_over_complete_prompt": true,
+    "per_position_errors_recorded": true,
+    "router_ids_recorded": true,
+    "candidate_output_finite": true,
+    "modeled_bytes_recorded": true
+  },
+  "modeled_bytes_per_expert": {
+    "all_f32": 18874368,
+    "three_packed": 5308416,
+    "two_packed_one_f32": 9830400,
+    "one_packed_two_f32": 14352384
+  },
+  "modeled_bytes_per_layer": {
+    "all_f32": 2415919104,
+    "three_packed": 679477248,
+    "two_packed_one_f32": 1258291200,
+    "one_packed_two_f32": 1837105152
+  },
+  "selection_rule": {
+    "variant_order": ["gate_up_down","gate_up","gate_down","up_down","gate","up","down"],
+    "candidate_pass_requires_all_layer_contexts_at_or_below_limit": true,
+    "select_first_passing_variant": true,
+    "if_none_pass": "canonical_f32_fallback",
+    "selection_only_informs_future_quality_reentry_design": true
+  },
+  "source_artifacts": {
+    "layer0_group32_sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+    "layer24_group32_sha256": "890936e78829cf013a141b225c7819cb2c10134fbd2c787e4131f7f41844d9b0",
+    "layer47_group32_sha256": "a2a45a1f407d5cd2303286843001684fc7800953cd2b67995a2c5e62a9e66a33",
+    "canonical_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2"
+  },
+  "prohibitions": {
+    "new_quantized_artifact": true,
+    "new_group_size": true,
+    "higher_bit_width": true,
+    "native_kernel_change": true,
+    "automatic_retry": true,
+    "post_result_variant_reselection": true,
+    "quality_pass_claim": true,
+    "performance_claim": true
+  },
+  "decision": {
+    "d3_completion": "propose_projection_hybrid_for_separate_quality_reentry_review",
+    "r2_2c_authorized": false,
+    "all_layer_rollout_authorized": false,
+    "m6_4_authorized": false
+  }
+}

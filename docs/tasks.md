@@ -1009,8 +1009,12 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   closes D2 `NO-GO` for grouped-int8 granularity: no 32/16/8 candidate meets
   the `0.001` local budget in all contexts. Result SHA-256 is
   `847b146f56e0c04f5836875ab178bab320a76a493df64b6a6ba5d8c517bb518c`.
-- [ ] M6.3-R2.2-D3-PR Pre-register projection-sensitivity localization for
+- [x] M6.3-R2.2-D3-PR Pre-register projection-sensitivity localization for
   gate/up/down at Layers 24/47 before implementing any hybrid representation.
+  Contract SHA-256 is
+  `0faa6aa9200346aad94b0c69d6c6ed353682bf53410b258c38bfb61224f63ceb`.
+- [ ] M6.3-R2.2-D3a Implement/freeze the test-only projection-hybrid diagnostic
+  seam and execute the frozen 4-context x 7-variant matrix exactly once.
 - [ ] M6.3-R2.2c BLOCKED. The 108 fresh compute-only process samples may run only
   after a separately reviewed quality re-entry contract passes.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be

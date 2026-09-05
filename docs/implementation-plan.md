@@ -737,9 +737,15 @@ fallback keeps Layers 24 and 47 canonical F32, so the resulting sentinel policy
 collapses to the already validated Layer-0 group32 slice rather than a new
 multi-layer candidate.
 
-The exact next task is `M6.3-R2.2-D3-PR`: pre-register projection-sensitivity
-localization for `gate`, `up`, and `down` at Layers 24/47 before implementing
-any hybrid projection representation or higher bit width. R2.2c/R2.2d,
+ADR 0100 now pre-registers `M6.3-R2.2-D3` with contract SHA-256
+`0faa6aa9200346aad94b0c69d6c6ed353682bf53410b258c38bfb61224f63ceb`.
+It evaluates all seven non-empty group32 projection subsets of `gate/up/down`
+at Layers 24/47 under the unchanged D2 contexts. Omitted projections are F32,
+target variants are not propagated, and the fixed selection rule chooses the
+first all-context passing variant in packed-count-first order.
+
+The exact next task is `M6.3-R2.2-D3a`: implement/freeze only the test diagnostic
+seam and execute the frozen 4-context x 7-variant matrix once. R2.2c/R2.2d,
 all-layer rollout, and M6.4 remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
