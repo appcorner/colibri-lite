@@ -1,0 +1,25 @@
+{
+  "schema": "m6.3-r2.2-d4d1-execution-v1",
+  "schema_version": 1,
+  "status": "frozen_before_d4d1_execution",
+  "source_commit": "3e0bf9350548af1fbeede67a09c2c7f77ac547b7",
+  "runner_commit": "4e6adc9782067fb98d0239d852e70744cdf4a972",
+  "contract_sha256": "16c6015c68834c639a57e4a381217e4cac6d3977c1de89316df073266998fb2a",
+  "harness_sha256": "2be948bebcaca213cec1f64ee5b11eaad2168a819ff60edc3de91a7560d341dc",
+  "runner_sha256": "96bb0206fb68433e2ae25549f5e9bea4bf823f8ad61da3f686c9ad3878a9aed2",
+  "release_binary_relative_path": "target/release/deps/clr_qwen3_moe-98ff24c36e070e31.exe",
+  "release_binary_sha256": "85080ddcbe0f9792adda033c9b042d39e2b0dc514f7cab73ba00ac16e27b2418",
+  "release_binary_bytes": 47716864,
+  "reference_sha256": "fa8f1a4f6b30624b78cf8c004f379fdb0633a08a65c102791acc57d0205d54ff",
+  "host": "ANUSORN-NB",
+  "test": "full_model_validation_tests::r2_2_d4d1_tests::m6_3_r2_2_d4d1_characterize_layer24_down_precision",
+  "no_retry": true,
+  "artifacts": [
+    {"id":"layer0_group32","bytes":679477248,"sha256":"777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2"},
+    {"id":"layer24_group32","bytes":679477248,"sha256":"890936e78829cf013a141b225c7819cb2c10134fbd2c787e4131f7f41844d9b0"},
+    {"id":"layer24_group16","bytes":754974720,"sha256":"569b221f448b521488764da8b0e99058f8daded9f41ba10ef7f1f2706ac36416"},
+    {"id":"layer24_group8","bytes":905969664,"sha256":"4d51c17a2ba040229a8c20c895c5be8f030ab273db3151ccb739df7289965435"}
+  ],
+  "output": "models/qwen3-30b-a3b/m6.3-r2-2-d4d1-evidence-v1.tsv",
+  "results_seen": false
+}
