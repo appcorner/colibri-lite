@@ -165,6 +165,10 @@
 !/models/qwen3-30b-a3b/m6.3-r2-2-quality-ordinal4-exit-v1.txt
 !/models/qwen3-30b-a3b/m6.3-r2-2-held-out-quality-v1.tsv
 !/models/qwen3-30b-a3b/m6.3-r2-2-quality-result-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-2-d1-quality-drift-localization-contract-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-2-d1-execution-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-2-d1-evidence-v1.tsv
+!/models/qwen3-30b-a3b/m6.3-r2-2-d1-result-v1.json
 /.idea/
 /.vscode/
 *.pdb

@@ -711,10 +711,13 @@ adjacent rank pairs swap. Because scalar fails before native validation, the
 current localization target is the frozen group32 representation/placement
 across Layers 0/24/47 rather than the AVX2 kernel.
 
-The exact next task is `M6.3-R2.2-D1`: pre-register and run quality-drift
-localization that distinguishes single-sentinel effects from multi-layer
-accumulation without relaxing the original quality gate. R2.2c official
-performance, R2.2d, all-layer rollout, and M6.4 remain blocked.
+ADR 0096 now pre-registers `M6.3-R2.2-D1` with contract SHA-256
+`6f08cdaf5c0d297f887d00c2bd8cccfb6096885772bc8e464aaba9e0eeebdb9b`.
+The diagnostic is scalar-only, prompt-only, `short_thai`, and covers the fixed
+F32 control plus all seven non-empty subsets of Layers 0/24/47 in a frozen
+order. The exact next task is to implement/freeze that harness and execute each
+state once. R2.2c official performance, R2.2d, all-layer rollout, and M6.4
+remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
 

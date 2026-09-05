@@ -988,9 +988,12 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   ordinal-4 execution fails `short_thai` exact prompt top-20 ordering on the
   scalar group32 run. Result SHA-256 is
   `2b8c841daf9318fcd2b9d08ffdb03dbeef541195ae9f76090ea72e2542bf96be`.
-- [ ] M6.3-R2.2-D1 Localize the quality drift with the frozen sentinel artifacts;
-  distinguish single-layer effects from multi-layer accumulation before any
-  new quality re-entry hypothesis is proposed.
+- [x] M6.3-R2.2-D1-PR Pre-register scalar-only `short_thai` quality-drift
+  localization across the fixed eight sentinel states. Contract SHA-256 is
+  `6f08cdaf5c0d297f887d00c2bd8cccfb6096885772bc8e464aaba9e0eeebdb9b`.
+- [ ] M6.3-R2.2-D1 Implement/freeze the prompt-only diagnostic harness, then run
+  the eight states exactly once in the frozen order and classify the
+  minimal-cardinality failing subsets.
 - [ ] M6.3-R2.2c BLOCKED. The 108 fresh compute-only process samples may run only
   after a separately reviewed quality re-entry contract passes.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be

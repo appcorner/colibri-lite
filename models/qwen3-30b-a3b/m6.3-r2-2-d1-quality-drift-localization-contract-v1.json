@@ -1,0 +1,55 @@
+{
+  "schema": "m6.3-r2.2-d1-quality-drift-localization-contract-v1",
+  "schema_version": 1,
+  "status": "pre_registered_before_d1_implementation",
+  "source_commit": "688efa6",
+  "parent_quality_result_sha256": "2b8c841daf9318fcd2b9d08ffdb03dbeef541195ae9f76090ea72e2542bf96be",
+  "parent_r2_2_contract_sha256": "3071f717b9ea12091323e596b9a3d40aa776b34f27f0cc66db63774e493af0c4",
+  "hypothesis": "short_thai top20 reorder is caused by one sentinel placement or by accumulated interaction among frozen group32 placements",
+  "fixture": "short_thai",
+  "mode": "prompt_only_diagnostic",
+  "backend": "scalar_group32",
+  "canonical_f32_for_all_unselected_layers": true,
+  "sentinel_layers": [0,24,47],
+  "execution_order": [
+    [], [0], [24], [47], [0,24], [0,47], [24,47], [0,24,47]
+  ],
+  "runs_per_state": 1,
+  "automatic_retry": false,
+  "results_based_subset_reselection": false,
+  "generation_in_scope": false,
+  "performance_timing_in_scope": false,
+  "measurements": {
+    "prompt_top20_ids": true,
+    "prompt_top20_exact_order_match": true,
+    "prompt_top20_token_set_match": true,
+    "prompt_argmax": true,
+    "router_guards_layers": [0,24,47],
+    "frozen_fixed_logit_max_abs": true,
+    "frozen_top20_logit_max_abs": true,
+    "tracked_tokens": [94482,69440,52388,129075],
+    "tracked_token_logits_and_ranks": true,
+    "active_layer_scalar_vs_f32_local_routed_max_abs": true
+  },
+  "artifact_identities": {
+    "layer0_sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+    "layer24_sha256": "890936e78829cf013a141b225c7819cb2c10134fbd2c787e4131f7f41844d9b0",
+    "layer47_sha256": "a2a45a1f407d5cd2303286843001684fc7800953cd2b67995a2c5e62a9e66a33",
+    "requantization_allowed": false
+  },
+  "classification": {
+    "minimal_cardinality_failing_subsets_must_be_published": true,
+    "singleton_failure": "single_layer_sufficient",
+    "all_singletons_pass_pair_or_triple_fails": "accumulation_or_interaction",
+    "pair_fails_while_both_member_singletons_pass": "pair_interaction",
+    "f32_control_must_match_frozen_semantics": true
+  },
+  "decision_boundary": {
+    "diagnostic_only": true,
+    "may_relax_r2_2_quality_gate": false,
+    "may_authorize_r2_2c_performance": false,
+    "may_authorize_all_layer_rollout": false,
+    "may_authorize_m6_4": false,
+    "next_after_d1": "separate reviewed quality re-entry hypothesis only"
+  }
+}
