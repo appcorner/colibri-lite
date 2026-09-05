@@ -1,0 +1,36 @@
+{
+  "schema": "m6.3-r2.2-d3-execution-v1",
+  "schema_version": 1,
+  "status": "frozen_before_d3_execution",
+  "source_commit": "7c12da5919b32b11e93c7ef51f7470c1d5f02e0d",
+  "runner_commit": "7c06d08dbd5472aff29fd3a9fc8a85cd56f54d92",
+  "contract_sha256": "0faa6aa9200346aad94b0c69d6c6ed353682bf53410b258c38bfb61224f63ceb",
+  "harness_sha256": "4af1d0b690f1371c14e3d1106f434253baf6ed7ec8670671a3dc22535b1548f9",
+  "runner_sha256": "bbc542af33e0c175daed70d40860abe6bdbfbc1cff74af3bf753e893423eb52c",
+  "release_binary": {
+    "path": "target/release/deps/clr_qwen3_moe-98ff24c36e070e31.exe",
+    "sha256": "e1400e341b1964cb8aa4526dd58dd5928a94b555e60495d7c9cdddd46974ce4c",
+    "bytes": 46650368,
+    "features": ["full-model-validation", "m6-3-r2-native"]
+  },
+  "reference_sha256": "fa8f1a4f6b30624b78cf8c004f379fdb0633a08a65c102791acc57d0205d54ff",
+  "host": "ANUSORN-NB",
+  "run_root": "D:/tmp/colibri-lite-r2-2/d3-durable-v1",
+  "output_path": "models/qwen3-30b-a3b/m6.3-r2-2-d3-evidence-v1.tsv",
+  "artifacts": [
+    {"layer":0,"group_size":32,"sha256":"777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2","bytes":679477248},
+    {"layer":24,"group_size":32,"sha256":"890936e78829cf013a141b225c7819cb2c10134fbd2c787e4131f7f41844d9b0","bytes":679477248},
+    {"layer":47,"group_size":32,"sha256":"a2a45a1f407d5cd2303286843001684fc7800953cd2b67995a2c5e62a9e66a33","bytes":679477248}
+  ],
+  "matrix": {
+    "fixture": "short_thai",
+    "contexts": 4,
+    "variants_per_context": 7,
+    "total_rows": 28,
+    "variants": ["gate_up_down","gate_up","gate_down","up_down","gate","up","down"]
+  },
+  "automatic_retry": false,
+  "authorizes_official_performance": false,
+  "authorizes_all_layer_rollout": false,
+  "authorizes_m6_4": false
+}
