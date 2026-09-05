@@ -1,0 +1,34 @@
+{
+  "schema": "m6.3-r2.2-d1-execution-v1",
+  "schema_version": 1,
+  "status": "frozen_before_d1_execution",
+  "contract_sha256": "6f08cdaf5c0d297f887d00c2bd8cccfb6096885772bc8e464aaba9e0eeebdb9b",
+  "parent_quality_result_sha256": "2b8c841daf9318fcd2b9d08ffdb03dbeef541195ae9f76090ea72e2542bf96be",
+  "binary": {
+    "source_commit": "ce0c624c4e77ba529dbe8fcb075f670b12322433",
+    "path": "target/release/deps/clr_qwen3_moe-98ff24c36e070e31.exe",
+    "sha256": "bcca7639e6458e4529a3bd9bf7bd9ee2201995b2aaf3935fb3134d243dbe8271",
+    "bytes": 45543936
+  },
+  "harness_sha256": "ac4ff731ef854e361a3f3f4225df3667b1d0faf98c5066afed2d1516dfaa4718",
+  "runner": {
+    "source_commit": "e8b9b560cfb565f115f0d048723963d07ffdc3fc",
+    "path": "scripts/run_m6_3_r2_2_d1_durable.ps1",
+    "sha256": "7a28a7986304dc9b55bcd75205fa2098a4c6a0fd534a2cf5be7ca35afaacf7f0"
+  },
+  "reference_sha256": "fa8f1a4f6b30624b78cf8c004f379fdb0633a08a65c102791acc57d0205d54ff",
+  "artifact_manifest_sha256": "7abcb5f393472e3e63caf3bb7f06320aebcf292743a0709896d9c0de58a4d8f1",
+  "sentinel_artifacts": [
+    {"layer":0,"sha256":"777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2","bytes":679477248},
+    {"layer":24,"sha256":"890936e78829cf013a141b225c7819cb2c10134fbd2c787e4131f7f41844d9b0","bytes":679477248},
+    {"layer":47,"sha256":"a2a45a1f407d5cd2303286843001684fc7800953cd2b67995a2c5e62a9e66a33","bytes":679477248}
+  ],
+  "host_id": "ANUSORN-NB",
+  "execution_order": [[],[0],[24],[47],[0,24],[0,47],[24,47],[0,24,47]],
+  "durable_run_root": "D:/tmp/colibri-lite-r2-2/d1-durable-v1",
+  "output": "models/qwen3-30b-a3b/m6.3-r2-2-d1-evidence-v1.tsv",
+  "results_seen": false,
+  "authorizes_performance": false,
+  "authorizes_all_layer_rollout": false,
+  "authorizes_m6_4": false
+}
