@@ -996,8 +996,13 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   Layer 47 alone is sufficient for the lower rank swap; Layers 0+24 form a
   separate pair interaction. Evidence SHA-256 is
   `d6d05c0f5201fde047237082bb01af684215d3c17c5dd242c9357fc23c6bf473`.
-- [ ] M6.3-R2.2-D2 Pre-register depth-sensitive precision characterization for
-  Layers 24/47 before creating any new candidate artifacts or observing results.
+- [x] M6.3-R2.2-D2-PR Pre-register depth-sensitive scalar precision
+  characterization for Layers 24/47. Candidate groups are fixed at 32/16/8,
+  with deterministic coarsest-passing selection and F32 fallback. Contract
+  SHA-256 is `ea779da7bb4466c59a478c095ee0342c6932c482426e3331bf472c8296c31d30`.
+- [ ] M6.3-R2.2-D2a Add characterization-only group16/group8 scalar layout
+  support, freeze a generic converter, then freeze all four new artifact
+  identities before D2 measurement.
 - [ ] M6.3-R2.2c BLOCKED. The 108 fresh compute-only process samples may run only
   after a separately reviewed quality re-entry contract passes.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be

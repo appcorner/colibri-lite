@@ -1,0 +1,80 @@
+{
+  "schema": "m6.3-r2.2-d2-precision-characterization-contract-v1",
+  "schema_version": 1,
+  "status": "pre_registered_before_d2_implementation",
+  "source_commit": "40f21c6",
+  "parent_d1_result_sha256": "602614c45accb4393cfa1cec28801d9f906002943b1a0523b7c1d9319cf3a9f0",
+  "hypothesis": "finer scalar-only grouped int8 granularity can recover the original local <=0.001 budget on depth-sensitive Layers 24 and 47",
+  "layers": [24,47],
+  "fixture": "short_thai",
+  "backend": "scalar_only",
+  "performance_timing": false,
+  "candidate_group_sizes": [32,16,8],
+  "new_layout_support_allowed": [16,8],
+  "native_kernel_change_allowed": false,
+  "quantization_grammar": {
+    "values": "signed_int8",
+    "scale": "f32_little_endian_per_row_group",
+    "scale_formula": "max_abs_over_group_div_127",
+    "rounding": "half_away_from_zero",
+    "clamp": [-127,127]
+  },
+  "local_max_abs_limit": 0.001,
+  "contexts": {
+    "layer24": [
+      {"id":"f32_prefix","group32_prefix_layers":[]},
+      {"id":"layer0_group32_prefix","group32_prefix_layers":[0]}
+    ],
+    "layer47": [
+      {"id":"f32_prefix","group32_prefix_layers":[]},
+      {"id":"r2_2_failing_prefix","group32_prefix_layers":[0,24]}
+    ]
+  },
+  "measurement": {
+    "same_input_router_f32_comparator": true,
+    "maximum_over_complete_prompt": true,
+    "router_ids_recorded": true,
+    "candidate_output_finite": true,
+    "artifact_bytes_published": true
+  },
+  "selection_rule": {
+    "order_coarsest_to_finest": [32,16,8],
+    "candidate_pass_requires_all_layer_contexts_at_or_below_limit": true,
+    "select_first_passing_group": true,
+    "if_none_pass": "canonical_f32_fallback",
+    "selection_is_only_for_future_quality_reentry_design": true
+  },
+  "expected_artifact_bytes": {
+    "group16_expert": 5898240,
+    "group16_layer": 754974720,
+    "group8_expert": 7077888,
+    "group8_layer": 905969664
+  },
+  "source_artifacts": {
+    "layer24_f32_sha256": "c2ece56eeb01253c7fd4d597ce9cc2f0f0064f74d2ddacccec2f71e8bd7855ea",
+    "layer47_f32_sha256": "71b76ba8cf5969a54c19612e296bd40a2642956ead4fa012c88c272c7908d733",
+    "group32_layer24_sha256": "890936e78829cf013a141b225c7819cb2c10134fbd2c787e4131f7f41844d9b0",
+    "group32_layer47_sha256": "a2a45a1f407d5cd2303286843001684fc7800953cd2b67995a2c5e62a9e66a33"
+  },
+  "new_artifacts": {
+    "root": "D:/tmp/colibri-lite-r2-2/d2-artifacts",
+    "conversion_order": [
+      "layer24_group16", "layer24_group8", "layer47_group16", "layer47_group8"
+    ],
+    "identities_must_be_frozen_before_measurement": true
+  },
+  "prohibitions": {
+    "automatic_retry": true,
+    "post_result_requantization": true,
+    "extra_group_size_after_results": true,
+    "context_reselection_after_results": true,
+    "quality_pass_claim": true,
+    "performance_claim": true
+  },
+  "decision": {
+    "d2_completion": "propose_hybrid_precision_policy_for_separate_quality_reentry_review",
+    "r2_2c_authorized": false,
+    "all_layer_rollout_authorized": false,
+    "m6_4_authorized": false
+  }
+}

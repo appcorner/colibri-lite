@@ -718,9 +718,17 @@ boundaries despite each singleton preserving exact top-20 order. Local
 scalar/F32 routed max-abs is `8.7054e-4` at Layer 0, `1.1682e-2` at Layer 24,
 and `6.8835e-2` at Layer 47. Router guards and argmax remain exact throughout.
 
-The exact next task is `M6.3-R2.2-D2`: verify supported precision/granularity
-options and pre-register depth-sensitive characterization for Layers 24/47
-before creating any new artifacts. R2.2c official performance, R2.2d,
+ADR 0098 now pre-registers `M6.3-R2.2-D2` with contract SHA-256
+`ea779da7bb4466c59a478c095ee0342c6932c482426e3331bf472c8296c31d30`.
+The scalar characterization candidates are frozen at group32/group16/group8
+with a deterministic coarsest-passing rule and F32 fallback. Layer 24 is tested
+under canonical and Layer0-group32 prefixes; Layer 47 under canonical and the
+original Layer0+24-group32 failing prefix. No timing or quality-pass claim is
+in scope.
+
+The exact next task is `M6.3-R2.2-D2a`: extend only the scalar
+characterization seam to group16/group8, freeze a generic converter, and freeze
+all four Layer24/47 artifact identities before measurement. R2.2c/R2.2d,
 all-layer rollout, and M6.4 remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
