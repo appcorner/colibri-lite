@@ -1004,8 +1004,13 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   support, freeze a generic converter, then freeze all four new artifact
   identities before D2 measurement. Artifact manifest SHA-256 is
   `bd54c87ae20826086a9f8e6b1e06011bb4f1c65fa973494804c3fcb6b79e0a46`.
-- [ ] M6.3-R2.2-D2b Implement/freeze the local precision characterization
-  harness and run the frozen Layer24/47 context matrix exactly once.
+- [x] M6.3-R2.2-D2b Implement/freeze the local precision characterization
+  harness and run the frozen Layer24/47 context matrix exactly once. ADR 0099
+  closes D2 `NO-GO` for grouped-int8 granularity: no 32/16/8 candidate meets
+  the `0.001` local budget in all contexts. Result SHA-256 is
+  `847b146f56e0c04f5836875ab178bab320a76a493df64b6a6ba5d8c517bb518c`.
+- [ ] M6.3-R2.2-D3-PR Pre-register projection-sensitivity localization for
+  gate/up/down at Layers 24/47 before implementing any hybrid representation.
 - [ ] M6.3-R2.2c BLOCKED. The 108 fresh compute-only process samples may run only
   after a separately reviewed quality re-entry contract passes.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be

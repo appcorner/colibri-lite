@@ -1,0 +1,53 @@
+{
+  "schema": "m6.3-r2.2-d2-result-v1",
+  "schema_version": 1,
+  "status": "complete",
+  "decision": "no_grouped_int8_candidate_meets_local_budget",
+  "contract_sha256": "ea779da7bb4466c59a478c095ee0342c6932c482426e3331bf472c8296c31d30",
+  "artifact_manifest_sha256": "bd54c87ae20826086a9f8e6b1e06011bb4f1c65fa973494804c3fcb6b79e0a46",
+  "execution_sha256": "27dd1f5de1bdb8c794d6af235612db7d4e3c85dcdb7bfbed84d2217ca7dd3ec0",
+  "evidence_sha256": "f15f2286fb622475a9bfcfc125beb14823e5e76f112886c65e070f1db2c551dc",
+  "execution": {
+    "exit_code": 0,
+    "test_result": "pass",
+    "elapsed_seconds": 352.44,
+    "stderr_bytes": 0,
+    "rows": 12
+  },
+  "local_max_abs_limit": 0.001,
+  "layers": {
+    "24": {
+      "group32_max_abs": 0.011681884527206421,
+      "group16_max_abs": 0.013287454843521118,
+      "group8_max_abs": 0.015152156352996826,
+      "group32_pass_all_contexts": false,
+      "group16_pass_all_contexts": false,
+      "group8_pass_all_contexts": false,
+      "selected_representation": "canonical_f32"
+    },    "47": {
+      "group32_max_abs": 0.068834781646728516,
+      "group16_max_abs": 0.0515899658203125,
+      "group8_max_abs": 0.02985382080078125,
+      "group32_pass_all_contexts": false,
+      "group16_pass_all_contexts": false,
+      "group8_pass_all_contexts": false,
+      "selected_representation": "canonical_f32"
+    }
+  },
+  "selection_rule_applied": {
+    "order_coarsest_to_finest": [32, 16, 8],
+    "if_none_pass": "canonical_f32_fallback",
+    "layer24": "canonical_f32",
+    "layer47": "canonical_f32"
+  },
+  "observations": {
+    "layer24_finer_groups_reduced_storage_efficiency_without_reducing_local_output_error": true,
+    "layer47_finer_groups_reduced_local_output_error_but_not_enough_to_meet_budget": true,
+    "all_router_guards_exact": true,
+    "all_candidate_outputs_finite": true
+  },
+  "authorizes_quality_reentry": false,
+  "authorizes_official_performance": false,
+  "authorizes_all_layer_rollout": false,
+  "authorizes_m6_4": false
+}

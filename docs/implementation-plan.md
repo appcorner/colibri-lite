@@ -731,9 +731,16 @@ support is validated, the generic converter is frozen, and all four new
 Layer24/47 artifact identities are frozen in manifest SHA-256
 `bd54c87ae20826086a9f8e6b1e06011bb4f1c65fa973494804c3fcb6b79e0a46`.
 
-The exact next task is `M6.3-R2.2-D2b`: implement/freeze the local precision
-characterization harness and execute the pre-registered Layer24/47 context
-matrix exactly once. R2.2c/R2.2d, all-layer rollout, and M6.4 remain blocked.
+`M6.3-R2.2-D2b` is now closed by ADR 0099. No grouped-int8 candidate among
+32/16/8 meets the frozen `0.001` local budget in all contexts. The deterministic
+fallback keeps Layers 24 and 47 canonical F32, so the resulting sentinel policy
+collapses to the already validated Layer-0 group32 slice rather than a new
+multi-layer candidate.
+
+The exact next task is `M6.3-R2.2-D3-PR`: pre-register projection-sensitivity
+localization for `gate`, `up`, and `down` at Layers 24/47 before implementing
+any hybrid projection representation or higher bit width. R2.2c/R2.2d,
+all-layer rollout, and M6.4 remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
 
