@@ -1074,11 +1074,19 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   production-like D5 hybrid reader/path. ADR 0114 closes D5b `GO`; evidence is
   byte-identical to accepted D4D4 evidence. Result SHA-256 is
   `0c742147f967583a735a5a0d8a9dcc2482878204fcf257507532839d40a3872e`.
-- [ ] M6.3-R2.2-D5c Execute the frozen 40-sample paired performance/resource
-  matrix for the production-like D5 hybrid versus canonical F32. The v1
-  transport attempt admitted zero samples because current Windows ETW cannot
-  reproduce the previously validated exact physical-I/O join. ADR 0116 freezes
-  a D5-specific READY/GO memory collector and requires a fresh v2 matrix.
+- [x] M6.3-R2.2-D5c Execute the frozen 40-sample paired performance/resource
+  matrix for the production-like D5 hybrid versus canonical F32. ADR 0117
+  closes D5c `GO`: English median wall speedup is `3.4380%`, Thai is `4.0296%`,
+  every fixture/cache cell meets the frozen `>=4/5` hybrid-win rule, worst
+  memory regression is `0.8145%`, and logical expert bytes decrease in every
+  pair. Samples SHA-256 is
+  `47ac917cb7b3886e4ff786639c832e28936f1d64fd6c4335e5819d3f924c8415`;
+  result SHA-256 is
+  `b6387a2975074a9f2fc164c04a1741fc6324d64c54fd1947a27fd4e023a730e3`.
+- [ ] M6.3-R2.3 All-layer plan design/review only. Use the validated D5 policy
+  and measured evidence to design a bounded 48-layer candidate plan with
+  explicit quality, memory, runtime, and measurement gates before any rollout.
+  R2.3 implementation and M6.4 remain unauthorized until this review closes.
 - [ ] M6.3-R2.2c HISTORICAL/BLOCKED. Its 108-sample contract belongs to the
   failed all-three-group32 candidate and must not be reused for the hybrid.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be

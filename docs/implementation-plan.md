@@ -831,10 +831,17 @@ hybrid artifact. Quality no longer blocks official D5 performance timing.
 
 The first D5c transport attempt admitted zero samples: inference and READY/GO
 completed, but the reused R1.3 ETW exact physical-I/O join is unavailable on the
-current Windows trace. ADR 0116 freezes a contract-scoped remediation that drops
+current Windows trace. ADR 0116 froze a contract-scoped remediation that drops
 non-required physical-I/O tracing while preserving READY/GO and process-memory
-sampling. The exact next task remains `M6.3-R2.2-D5c`, now as a fresh 40-process
-v2 matrix. Historical R2.2c/R2.2d, all-layer rollout, and M6.4 remain blocked.
+sampling. The fresh 40-process v2 matrix then completed successfully.
+
+ADR 0117 closes `M6.3-R2.2-D5c` `GO`. English median wall speedup is `3.4380%`
+and Thai is `4.0296%`; hybrid wins are `5/5`, `5/5`, `4/5`, and `5/5` across
+the four fixture/cache cells. Worst median memory regression is `0.8145%`, and
+logical expert payload decreases in every pair. The exact next task is
+`M6.3-R2.3` all-layer plan design/review only. R2.3 implementation, a 48-layer
+rollout, historical R2.2c/R2.2d reuse, and M6.4 remain blocked until that review
+closes.
 
 #### M6.4 - Full hardware-aware runtime
 
