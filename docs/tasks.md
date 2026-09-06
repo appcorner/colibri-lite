@@ -1075,7 +1075,10 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   byte-identical to accepted D4D4 evidence. Result SHA-256 is
   `0c742147f967583a735a5a0d8a9dcc2482878204fcf257507532839d40a3872e`.
 - [ ] M6.3-R2.2-D5c Execute the frozen 40-sample paired performance/resource
-  matrix for the production-like D5 hybrid versus canonical F32.
+  matrix for the production-like D5 hybrid versus canonical F32. The v1
+  transport attempt admitted zero samples because current Windows ETW cannot
+  reproduce the previously validated exact physical-I/O join. ADR 0116 freezes
+  a D5-specific READY/GO memory collector and requires a fresh v2 matrix.
 - [ ] M6.3-R2.2c HISTORICAL/BLOCKED. Its 108-sample contract belongs to the
   failed all-three-group32 candidate and must not be reused for the hybrid.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be

@@ -829,9 +829,12 @@ ADR 0114 closes `M6.3-R2.2-D5b` `GO`. The production-like D5 path reproduces
 the accepted D4D4 evidence byte-for-byte while directly consuming the Layer24
 hybrid artifact. Quality no longer blocks official D5 performance timing.
 
-The exact next task is `M6.3-R2.2-D5c`: execute the frozen 40-sample paired
-performance/resource matrix against canonical F32. Historical R2.2c/R2.2d,
-all-layer rollout, and M6.4 remain blocked pending the D5 performance decision.
+The first D5c transport attempt admitted zero samples: inference and READY/GO
+completed, but the reused R1.3 ETW exact physical-I/O join is unavailable on the
+current Windows trace. ADR 0116 freezes a contract-scoped remediation that drops
+non-required physical-I/O tracing while preserving READY/GO and process-memory
+sampling. The exact next task remains `M6.3-R2.2-D5c`, now as a fresh 40-process
+v2 matrix. Historical R2.2c/R2.2d, all-layer rollout, and M6.4 remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
 

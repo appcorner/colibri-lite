@@ -1,0 +1,48 @@
+{
+  "schema": "m6.3-r2.2-d5c-transport-failure-v1",
+  "schema_version": 1,
+  "status": "measurement_transport_failure_not_scientific_result",
+  "execution_freeze_commit": "b47791ace3b14862cb9e65c00da392eaafce3139",
+  "execution_manifest_sha256": "02fab83620fe391fc8389f02d122ff6a2f7c8092cf6dc8cd84c5e66b96645d5d",
+  "sample_id": "short_english-first_process_touch-pair-01-order-1-production_hybrid",
+  "accepted_sample_count": 0,
+  "automatic_retry_performed": false,
+  "inference_process_exit_code": 0,
+  "memory_observation_count": 1165,
+  "ready_go_handshake_passed": true,
+  "collector_exit_code": 1,
+  "etw": {
+    "status": "not_measured",
+    "parser_exit_code": 1,
+    "file_read_event_count": 3593,
+    "correlated_event_count": 0,
+    "physical_read_bytes": null,
+    "trace_bytes": 19922944,
+    "trace_sha256": "1c182983055fbb018e2434d97cb8685c4bc6a7176cd172c0fabca48305b46059",
+    "tracerpt_version": "10.0.26100.1"
+  },
+  "diagnosis": {
+    "old_exact_join": "Kernel File Read.FileKey = Kernel Disk.FileObject with disk PID equal to inference PID",
+    "disk_pid_filter_removal_restored_correlation": false,
+    "filekey_fileobject_intersection_count": 0,
+    "filekey_iorequestpacket_intersection_count": 0,
+    "fileobject_fileobject_intersection_count": 0,
+    "fileobject_iorequestpacket_intersection_count": 0,
+    "irp_fileobject_intersection_count": 0,
+    "irp_iorequestpacket_intersection_count": 0,
+    "conclusion": "current Windows ETW fields do not provide the previously validated exact physical-I/O join; no heuristic correlation is allowed"
+  },
+  "evidence_hashes": {
+    "capture_json_sha256": "b5ffdad2ddf1c0b8cb944f9fb1c80a907231bfdfd9ef8beaceb9b229bd4ac679",
+    "correlation_json_sha256": "ef87d400bc990e0a84f5547f4b9903df66a3fe621ad7fbc19eb5f22e29059359",
+    "metrics_tsv_sha256": "3ed5db390cddf3d8da72b5c5ea03e969465113f73035fd44fc0e9a13a32e66f6",
+    "process_stdout_sha256": "fe5948a0d6ec8db0ad7c06db549a4c9479565b098cdad8485a823a2fc554d5a6",
+    "process_stderr_sha256": "f01a374e9c81e3db89b3a42940c4d6a5447684986a1296e42bf13f196eed6295",
+    "etl_sha256": "1c182983055fbb018e2434d97cb8685c4bc6a7176cd172c0fabca48305b46059",
+    "csv_sha256": "fb97964c2e0456ff52cda6ae534bed5dac8885b75221905d2d0f9f88e883d5f6",
+    "summary_sha256": "8e05e1d8aa09e8a2ef31ac2f04224cddb5762db6e8ca2935326008f9391daffd"
+  },
+  "performance_metrics_admitted": false,
+  "scientific_decision": "none",
+  "remediation": "freeze a D5c-specific READY/GO memory collector because physical I/O is not a D5 contract metric; then run a fresh 40-sample matrix"
+}
