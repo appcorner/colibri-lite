@@ -1,0 +1,51 @@
+{
+  "schema": "m6.3-r2.2-d5b-result-v1",
+  "schema_version": 1,
+  "status": "pass",
+  "decision": "go_to_d5c_performance",
+  "contract_sha256": "34b5a5a032bf6251b7d724c115bad9db44fc11f08092d235155e32c304d8acd3",
+  "d5a_result_sha256": "8ca431533ed94c8a07fe3e88512cf3300ef41d5a78e09027a920f84c8e269836",
+  "execution_sha256": "0b6fec60356c8defc3e45549841ab643c462f7da860a423a38eb18ca7cb71fce",
+  "harness_source_commit": "1e8f381a7f89dcb734f38afa80f1572dc5f902d0",
+  "harness_sha256": "33b65e2b4b442902c6133f93962008492318c93d068e4da27a2a6f19a0c60e07",
+  "runner_source_commit": "1ce804a0182c2d175559284d60812b05fb3b9ffc",
+  "runner_sha256": "0769ddb4b5a7c841cef903806ce6b29ce0e34f515e8bf1964558d986d1c74313",
+  "release_binary_sha256": "606496675c81b4efd16708ea13f13206908d2ca363d156935f727e7a3469c781",
+  "layer24_hybrid_artifact_sha256": "d94d12cbea648e2f2911573c893f564254cbde526d60132c600ed24e88317ac2",
+  "exit_code": 0,
+  "test_runtime_seconds": 745.56,
+  "stderr_bytes": 0,
+  "evidence_sha256": "a330462130baa7b06b52122ce5851ffe412ff6496ade909b418c370d04767a6b",
+  "d4d4_evidence_sha256": "a330462130baa7b06b52122ce5851ffe412ff6496ade909b418c370d04767a6b",
+  "evidence_byte_identical_to_d4d4": true,
+  "fixtures": {
+    "short_english": {
+      "generated_ids": [
+        0,
+        358
+      ],
+      "layer0_scalar_f32_max_abs": 0.0008989572525024414,
+      "layer24_scalar_f32_max_abs": 0.0006817728281021118,
+      "mixed_scalar_layer0_max_abs": 2.384185791015625e-07,
+      "mixed_scalar_prompt_logit_max_abs": 2.288818359375e-05,
+      "repeatability": "exact"
+    },
+    "short_thai": {
+      "generated_ids": [
+        7360,
+        91
+      ],
+      "layer0_scalar_f32_max_abs": 0.0008705407381057739,
+      "layer24_scalar_f32_max_abs": 0.0006819292902946472,
+      "mixed_scalar_layer0_max_abs": 2.384185791015625e-07,
+      "mixed_scalar_prompt_logit_max_abs": 3.337860107421875e-05,
+      "repeatability": "exact"
+    }
+  },
+  "authorizations": {
+    "d5c_paired_performance_resource": true,
+    "historical_r2_2c": false,
+    "all_layer_rollout": false,
+    "m6_4": false
+  }
+}

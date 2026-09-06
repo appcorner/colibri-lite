@@ -825,9 +825,13 @@ artifact is 1,912,602,624 bytes with SHA-256
 All 128 experts verify byte-exact against canonical F32 gate/up plus frozen
 group8 down sources; the direct reader has no F32 down buffer.
 
-The exact next task is `M6.3-R2.2-D5b`: rerun the exact D4D4 bilingual quality
-gates through the production-like D5 hybrid reader/path. D5c performance timing,
-historical R2.2c/R2.2d, all-layer rollout, and M6.4 remain blocked until PASS.
+ADR 0114 closes `M6.3-R2.2-D5b` `GO`. The production-like D5 path reproduces
+the accepted D4D4 evidence byte-for-byte while directly consuming the Layer24
+hybrid artifact. Quality no longer blocks official D5 performance timing.
+
+The exact next task is `M6.3-R2.2-D5c`: execute the frozen 40-sample paired
+performance/resource matrix against canonical F32. Historical R2.2c/R2.2d,
+all-layer rollout, and M6.4 remain blocked pending the D5 performance decision.
 
 #### M6.4 - Full hardware-aware runtime
 
