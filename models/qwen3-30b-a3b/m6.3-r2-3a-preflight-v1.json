@@ -1,0 +1,15 @@
+﻿{
+    "schema":  "m6.3-r2.3a-durable-preflight-v1",
+    "host":  "ANUSORN-NB",
+    "binary_sha256":  "3419b81c80f343cca7fe91c003a656a43155c86fbe3be45118198ca494c75ec9",
+    "harness_sha256":  "0710e566ef9550cc46601617f14ee952aa4830163afcfacd87a8a73b79b7dfe9",
+    "implementation_contract_sha256":  "97dd33b5cdb576d1ebcf9b3b7661f5462c912be40c7485c7e6bd7f8773d7771b",
+    "plan_review_result_sha256":  "c525cfc8ed536fb7d0033104f41e5e2f64a0d9a2842c4fcddba5b32dfac7e6e2",
+    "old_reference_sha256":  "fa8f1a4f6b30624b78cf8c004f379fdb0633a08a65c102791acc57d0205d54ff",
+    "model_manifest_sha256":  "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "generated_token_count":  4,
+    "fixtures":  [
+                     "short_english",
+                     "short_thai"
+                 ]
+}

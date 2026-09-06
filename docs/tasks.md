@@ -1098,8 +1098,15 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   full-model quality, production layout, and paired performance workflow.
   ADR 0120 freezes contract SHA-256
   `97dd33b5cdb576d1ebcf9b3b7661f5462c912be40c7485c7e6bd7f8773d7771b`.
-- [ ] M6.3-R2.3a Generate/freeze the canonical-F32 bilingual four-token
-  quality reference before any new candidate layer executes.
+- [x] M6.3-R2.3a Generate/freeze the canonical-F32 bilingual four-token
+  quality reference before any new candidate layer executes. ADR 0121 closes
+  R2.3a `PASS`; English freezes `0,358,2776,264`, Thai freezes
+  `7360,91,16,15`. Reference SHA-256 is
+  `9f8de6841ff883c062c2ed8387dba93631c9de0565943f1de2bb1a27f0fada1e`;
+  result SHA-256 is
+  `8a5c0f254e0d9b36bc8556ed9e4330dc4896f12a3767f2525c9fd04a63790203`.
+- [ ] M6.3-R2.3b Characterize Layers `1-23,25-46` under the frozen 21-candidate
+  projection-subset x group-size grid and sequence-aware local gates.
 - [ ] M6.3-R2.2c HISTORICAL/BLOCKED. Its 108-sample contract belongs to the
   failed all-three-group32 candidate and must not be reused for the hybrid.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be

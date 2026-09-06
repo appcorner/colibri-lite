@@ -851,10 +851,12 @@ SHA-256 `97dd33b5cdb576d1ebcf9b3b7661f5462c912be40c7485c7e6bd7f8773d7771b`.
 The contract orders R2.3a-F: four-token F32 reference, 21-candidate per-layer
 characterization for all 45 unmeasured layers, deterministic cumulative
 interaction admission, production-layout quality re-entry, a 72-process
-F32/D5/R2.3 triplet performance proof, then decision review. The exact next
-task is `M6.3-R2.3a`: freeze the canonical-F32 bilingual four-token quality
-reference before any new candidate layer executes. Historical R2.2c/R2.2d
-reuse and M6.4 remain blocked.
+F32/D5/R2.3 triplet performance proof, then decision review. ADR 0121 closes
+`M6.3-R2.3a` `PASS`: English freezes `[0,358,2776,264]`, Thai freezes
+`[7360,91,16,15]`, and all old two-token/prompt/router/hash anchors remain
+exact. The exact next task is `M6.3-R2.3b`: characterize Layers `1-23,25-46`
+under the frozen 21-candidate grid and sequence-aware gates. Historical
+R2.2c/R2.2d reuse and M6.4 remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
 

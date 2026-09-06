@@ -1,0 +1,8 @@
+﻿{
+    "schema":  "m6.3-r2.3a-durable-completion-v1",
+    "exit_code":  0,
+    "runtime_seconds":  439.892212,
+    "output_exists":  true,
+    "output_bytes":  2290,
+    "stderr_bytes":  0
+}
