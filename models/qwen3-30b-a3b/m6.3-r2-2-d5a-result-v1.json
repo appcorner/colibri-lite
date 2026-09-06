@@ -1,0 +1,35 @@
+{
+  "schema": "m6.3-r2.2-d5a-result-v1",
+  "schema_version": 1,
+  "status": "pass",
+  "contract_sha256": "34b5a5a032bf6251b7d724c115bad9db44fc11f08092d235155e32c304d8acd3",
+  "implementation_commit": "50915d2ea56a5ea0a48664b87a612975478a1c49",
+  "reader_sha256": "8068b903e20edc0de400a036523c519f4be872f1669354215ac29f0c9e54ac39",
+  "builder_sha256": "ce0d3c088c27a7458d818fcc42a7abe08481fc40d49af0da81dfd1ef2d5e26dc",
+  "verifier_sha256": "51848c96b1ad711fa1b8655eeaa9c8e1b78675961ec877fcd21177771d96df07",
+  "artifact_manifest_sha256": "4d39f6a149826853ec420f1c9a1ca89f2aa6ed2c9e56759abb6e21d27fe72f9d",
+  "artifact": {
+    "path": "D:/tmp/colibri-lite-r2-2/d5-artifacts/layer24-hybrid-f32-gate-up-group8-down.bin",
+    "bytes": 1912602624,
+    "sha256": "d94d12cbea648e2f2911573c893f564254cbde526d60132c600ed24e88317ac2",
+    "expert_bytes": 14942208,
+    "layout": "f32_gate_f32_up_group8_down"
+  },
+  "verification": {
+    "synthetic_reader_tests_passed": 3,
+    "clippy_deny_warnings_passed": true,
+    "real_experts_checked": 128,
+    "real_hybrid_bytes_checked": 1912602624,
+    "byte_exact_against_sources": true,
+    "whole_f32_expert_materialized": false,
+    "f32_down_materialized": false,
+    "requantization_performed": false
+  },
+  "decision": {
+    "d5a_pass": true,
+    "d5b_production_path_quality_authorized": true,
+    "d5c_performance_authorized": false,
+    "all_layer_rollout_authorized": false,
+    "m6_4_authorized": false
+  }
+}

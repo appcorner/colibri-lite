@@ -1,0 +1,50 @@
+{
+  "artifact": {
+    "bytes": 1912602624,
+    "path": "D:\\tmp\\colibri-lite-r2-2\\d5-artifacts\\layer24-hybrid-f32-gate-up-group8-down.bin",
+    "sha256": "d94d12cbea648e2f2911573c893f564254cbde526d60132c600ed24e88317ac2"
+  },
+  "construction": "copy_f32_gate_up_and_frozen_group8_down_without_requantization",
+  "expert_layout": {
+    "down_scales": {
+      "dtype": "f32_le",
+      "length": 786432,
+      "offset": 14155776
+    },
+    "down_values": {
+      "dtype": "i8",
+      "length": 1572864,
+      "offset": 12582912
+    },
+    "expert_bytes": 14942208,
+    "gate": {
+      "dtype": "f32_le",
+      "length": 6291456,
+      "offset": 0
+    },
+    "up": {
+      "dtype": "f32_le",
+      "length": 6291456,
+      "offset": 6291456
+    }
+  },
+  "experts": 128,
+  "f32_down_materialized": false,
+  "group_size": 8,
+  "hidden": 2048,
+  "intermediate": 768,
+  "layer": 24,
+  "schema": "m6.3-r2.2-d5-layer24-hybrid-artifact-v1",
+  "schema_version": 1,
+  "source_f32": {
+    "bytes": 2415919104,
+    "path": "D:\\models\\colibri-lite\\qwen3-30b-a3b\\artifact-v1\\experts\\experts-layer-00024-of-00048.bin",
+    "sha256": "c2ece56eeb01253c7fd4d597ce9cc2f0f0064f74d2ddacccec2f71e8bd7855ea"
+  },
+  "source_group8": {
+    "bytes": 905969664,
+    "path": "D:\\tmp\\colibri-lite-r2-2\\d2-artifacts\\layer24-group8.bin",
+    "sha256": "4d51c17a2ba040229a8c20c895c5be8f030ab273db3151ccb739df7289965435"
+  },
+  "whole_f32_expert_materialized": false
+}

@@ -1065,8 +1065,13 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   backend boundary, and paired performance/resource contract for the validated
   Layer0 group32 + Layer24 group8-down + Layer47 F32 policy. Contract SHA-256 is
   `34b5a5a032bf6251b7d724c115bad9db44fc11f08092d235155e32c304d8acd3`.
-- [ ] M6.3-R2.2-D5a Implement/freeze the production-like Layer24 hybrid artifact
+- [x] M6.3-R2.2-D5a Implement/freeze the production-like Layer24 hybrid artifact
   and direct-consumption reader without whole-expert or F32-down materialization.
+  ADR 0113 closes D5a `PASS`; all 128 experts and 1,912,602,624 hybrid bytes
+  verify byte-exact against frozen F32 gate/up and group8 down sources. Result
+  SHA-256 is `8ca431533ed94c8a07fe3e88512cf3300ef41d5a78e09027a920f84c8e269836`.
+- [ ] M6.3-R2.2-D5b Run the exact D4D4 bilingual quality gates through the
+  production-like D5 hybrid reader/path. D5c timing remains blocked until PASS.
 - [ ] M6.3-R2.2c HISTORICAL/BLOCKED. Its 108-sample contract belongs to the
   failed all-three-group32 candidate and must not be reused for the hybrid.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be

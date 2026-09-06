@@ -240,6 +240,7 @@
 !/models/qwen3-30b-a3b/m6.3-r2-2-d4d4-completion-v1.json
 !/models/qwen3-30b-a3b/m6.3-r2-2-d4d4-exit-v1.txt
 !/models/qwen3-30b-a3b/m6.3-r2-2-d5-contract-v1.json
+!/models/qwen3-30b-a3b/m6.3-r2-2-d5a-result-v1.json
 !/models/qwen3-30b-a3b/m6.3-r2-2-d5-*.json
 !/models/qwen3-30b-a3b/m6.3-r2-2-d5-*.tsv
 !/models/qwen3-30b-a3b/m6.3-r2-2-d5-*.log

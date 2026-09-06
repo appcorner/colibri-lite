@@ -819,10 +819,15 @@ revalidation, then 40 fresh paired performance/resource process samples. Layer24
 must directly consume F32 gate/up plus packed group8 down without reconstructing
 F32 down or a whole F32 expert; native group8 remains prohibited.
 
-The exact next task is `M6.3-R2.2-D5a`: implement/freeze the production-like
-Layer24 hybrid artifact and direct-consumption reader. Performance timing remains
-blocked until production-path quality passes. Historical R2.2c/R2.2d, all-layer
-rollout, and M6.4 remain blocked.
+ADR 0113 closes `M6.3-R2.2-D5a` `PASS`. The production-like Layer24 hybrid
+artifact is 1,912,602,624 bytes with SHA-256
+`d94d12cbea648e2f2911573c893f564254cbde526d60132c600ed24e88317ac2`.
+All 128 experts verify byte-exact against canonical F32 gate/up plus frozen
+group8 down sources; the direct reader has no F32 down buffer.
+
+The exact next task is `M6.3-R2.2-D5b`: rerun the exact D4D4 bilingual quality
+gates through the production-like D5 hybrid reader/path. D5c performance timing,
+historical R2.2c/R2.2d, all-layer rollout, and M6.4 remain blocked until PASS.
 
 #### M6.4 - Full hardware-aware runtime
 
