@@ -1,0 +1,32 @@
+{
+  "schema": "m6.3-r2.3a-execution-v1",
+  "schema_version": 1,
+  "status": "frozen_before_execution",
+  "harness_source_commit": "9be1e501d97e48811f411b4eecdb85558d1254ca",
+  "runner_commit": "1e19a12b6bfa51d27ef2ef97eac140a40ad3fa58",
+  "implementation_contract_sha256": "97dd33b5cdb576d1ebcf9b3b7661f5462c912be40c7485c7e6bd7f8773d7771b",
+  "plan_review_result_sha256": "c525cfc8ed536fb7d0033104f41e5e2f64a0d9a2842c4fcddba5b32dfac7e6e2",
+  "old_reference_sha256": "fa8f1a4f6b30624b78cf8c004f379fdb0633a08a65c102791acc57d0205d54ff",
+  "model_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+  "harness": {
+    "path": "crates/clr-qwen3-moe/src/r2_3a_reference_tests.rs",
+    "sha256": "0710e566ef9550cc46601617f14ee952aa4830163afcfacd87a8a73b79b7dfe9"
+  },
+  "runner": {
+    "path": "scripts/run_m6_3_r2_3a_durable.ps1",
+    "sha256": "8948a3a63f19329c785fe9af4a3c0e5dc42baec1f632bf03974ab3a6a07fe399"
+  },
+  "binary": {
+    "path": "target/release/deps/clr_qwen3_moe-98ff24c36e070e31.exe",
+    "bytes": 50015744,
+    "sha256": "3419b81c80f343cca7fe91c003a656a43155c86fbe3be45118198ca494c75ec9"
+  },
+  "test": "full_model_validation_tests::r2_3a_reference_tests::m6_3_r2_3a_freeze_four_token_f32_reference",
+  "host": "ANUSORN-NB",
+  "durable_root": "D:/tmp/colibri-lite-r2-3/r2-3a-durable-v1",
+  "output": "D:/tmp/colibri-lite-r2-3/r2-3a-durable-v1/m6.3-r2-3a-f32-four-token-reference-v1.tsv",
+  "fixtures": ["short_english", "short_thai"],
+  "generated_token_count": 4,
+  "automatic_retry": false,
+  "resume": false
+}
