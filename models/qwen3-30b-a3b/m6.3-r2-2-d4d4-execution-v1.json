@@ -1,0 +1,37 @@
+{
+  "schema": "m6.3-r2.2-d4d4-execution-v1",
+  "schema_version": 1,
+  "status": "frozen_before_d4d4_measurement",
+  "contract_sha256": "3f8cb0c72180b46b8e6fe29d1b27ea50251119cc9f5ce9d3356d0e0eb5e1d9ed",
+  "reference_sha256": "fa8f1a4f6b30624b78cf8c004f379fdb0633a08a65c102791acc57d0205d54ff",
+  "harness_source_commit": "030b7fa1bc0905a7808029224c2e09f8d6957c9b",
+  "harness_sha256": "4cc6633a830e25c17f19a98b93c591367167ac4dbade3c5666d5d21f3c2cd47a",
+  "release_binary_path": "target\\release\\deps\\clr_qwen3_moe-98ff24c36e070e31.exe",
+  "release_binary_sha256": "a782f25104b2ab5126c70c24af6471bb800eed81ccb387e62dd73b4447397596",
+  "release_binary_bytes": 49820160,
+  "features": ["full-model-validation", "m6-3-r2-native"],
+  "runner_source_commit": "c52f16ad17d9438cc799a136927b0b9408b21a54",
+  "runner_sha256": "58ce3e2b2983e8fe68e026c187d59ddb4a8a38af7f9edf6ca7da9f505cd600b4",
+  "host": "ANUSORN-NB",
+  "group32_root": "D:\\tmp\\colibri-lite-r2-2\\artifacts",
+  "d2_artifact_root": "D:\\tmp\\colibri-lite-r2-2\\d2-artifacts",
+  "durable_root": "D:\\tmp\\colibri-lite-r2-2\\d4d4-durable-v1",
+  "evidence_output": "models\\qwen3-30b-a3b\\m6.3-r2-2-d4d4-held-out-quality-v1.tsv",
+  "quality_matrix": {
+    "fixtures": 2,
+    "scalar_runs_per_fixture": 1,
+    "mixed_runs_per_fixture": 2,
+    "generated_token_count": 2
+  },
+  "source_artifacts": {
+    "layer0_group32_sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+    "layer24_group8_sha256": "4d51c17a2ba040229a8c20c895c5be8f030ab273db3151ccb739df7289965435"
+  },
+  "results_seen": false,
+  "automatic_retry": false,
+  "performance_claim_allowed": false,
+  "historical_r2_2c_reuse_allowed": false,
+  "d5_implementation_authorized": false,
+  "all_layer_rollout_authorized": false,
+  "m6_4_authorized": false
+}
