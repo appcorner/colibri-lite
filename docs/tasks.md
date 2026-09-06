@@ -1088,10 +1088,15 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   `4c4f37356e01d57b247664d0c2537b2f928ad329863778f98a9de0b54624ba2c`;
   ADR 0118 freezes non-extrapolation, 48-layer status, interaction/fallback,
   quality, performance, and physical-I/O claim boundaries.
-- [ ] M6.3-R2.3 All-layer plan design/review only. Use the validated D5 policy
-  and measured evidence to design a bounded 48-layer candidate plan with
-  explicit quality, memory, runtime, and measurement gates before any rollout.
-  R2.3 implementation and M6.4 remain unauthorized until this review closes.
+- [x] M6.3-R2.3 All-layer plan design/review only. ADR 0119 closes the
+  review `GO` with all 48 layers explicitly classified: Layer0 and Layer24
+  retain only validated policies, Layer47 remains F32-locked, and the other
+  45 layers remain unmeasured/F32 by default. Result SHA-256 is
+  `c525cfc8ed536fb7d0033104f41e5e2f64a0d9a2842c4fcddba5b32dfac7e6e2`.
+- [ ] M6.3-R2.3-IC Design/freeze the exact implementation contract for the
+  reviewed per-layer characterization, cumulative interaction/fallback,
+  full-model quality, production layout, and paired performance workflow.
+  No artifact generation or runtime implementation is authorized yet.
 - [ ] M6.3-R2.2c HISTORICAL/BLOCKED. Its 108-sample contract belongs to the
   failed all-three-group32 candidate and must not be reused for the hybrid.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be

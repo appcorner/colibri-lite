@@ -841,14 +841,16 @@ the four fixture/cache cells. Worst median memory regression is `0.8145%`, and
 logical expert payload decreases in every pair.
 
 ADR 0118 pre-registers `M6.3-R2.3` all-layer plan design/review under contract
-SHA-256 `4c4f37356e01d57b247664d0c2537b2f928ad329863778f98a9de0b54624ba2c`.
-The review starts all unmeasured layers in F32, forbids sentinel/depth
-interpolation, and must define deterministic per-layer characterization,
+SHA-256 `4c4f37356e01d57b247664d0c2537b2f928ad329863778f98a9de0b54624ba2c`;
+ADR 0119 closes that review `GO` with result SHA-256
+`c525cfc8ed536fb7d0033104f41e5e2f64a0d9a2842c4fcddba5b32dfac7e6e2`.
+All 48 layers now have explicit status, but only Layers 0 and 24 have admitted
+non-F32 policies; Layer47 is F32-locked and the other 45 layers remain
+unmeasured/F32. The exact next task is `M6.3-R2.3-IC`: design and freeze the
+implementation contract for deterministic per-layer characterization,
 cumulative interaction/fallback, full-model quality, production layout, and
-paired performance/resource proof before any implementation authorization.
-The exact next task is to execute this R2.3 plan review. R2.3 implementation,
-a 48-layer rollout, historical R2.2c/R2.2d reuse, and M6.4 remain blocked until
-that review closes.
+paired performance/resource proof. Artifact generation, runtime implementation,
+a 48-layer rollout, historical R2.2c/R2.2d reuse, and M6.4 remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
 

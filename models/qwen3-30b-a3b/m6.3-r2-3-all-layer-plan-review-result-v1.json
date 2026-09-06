@@ -1,0 +1,395 @@
+{
+  "all_layer_runtime_implementation_authorized": false,
+  "contract_sha256": "4c4f37356e01d57b247664d0c2537b2f928ad329863778f98a9de0b54624ba2c",
+  "counts": {
+    "admitted_existing_non_f32": 2,
+    "f32_locked_existing": 1,
+    "total": 48,
+    "unmeasured_default_f32": 45
+  },
+  "cumulative_interaction_admission": {
+    "after_each_batch": "rerun_frozen_full_model_bilingual_quality_guard",
+    "batch_size": 4,
+    "failed_batch_localization": "bisect_by_ascending_layer_id_lower_half_then_upper_half",
+    "post_failure_precision_retry_allowed": false,
+    "post_failure_threshold_change_allowed": false,
+    "rank": "ascending worst_sequence_local_error / logical_bytes_saved, tie lower_layer_id",
+    "single_layer_failure": "revert_to_f32_and_lock_out_for_contract"
+  },
+  "decision": "go",
+  "future_characterization_ladder": [
+    "canonical_f32_same_input_control",
+    "complete_group32_diagnostic",
+    "full_seven_projection_subset_group32_matrix_if_complete_group32_fails",
+    "independent_group32_group16_group8_precision_grid_for_eligible_subset",
+    "select_lowest_byte_candidate_passing_local_limit_or_f32",
+    "sequence_aware_prompt_plus_frozen_generated_token_validation"
+  ],
+  "future_performance_proof": {
+    "balanced_path_order": true,
+    "bilingual_workloads": true,
+    "cache_labels": "first_process_touch_and_likely_warm_not_physical_cold_warm",
+    "fresh_paired_processes": true,
+    "metrics": [
+      "wall_seconds",
+      "prefill_tokens_per_second",
+      "decode_tokens_per_second",
+      "peak_working_set_bytes",
+      "peak_private_bytes",
+      "logical_expert_bytes",
+      "candidate_artifact_bytes"
+    ],
+    "physical_ssd_claim": "blocked_until_windows_telemetry_revalidated",
+    "pre_register_before_official_timing": true
+  },
+  "go_authorizes": "r2_3_implementation_contract_design_only",
+  "impact_model": {
+    "central_projection": {
+      "reason": "not identifiable before direct characterization of the 45 unmeasured layers",
+      "speedup_percent": null,
+      "storage_reduction_percent": null
+    },
+    "measured_lower_anchor": {
+      "additional_layers_beyond_D5": 0,
+      "english_median_wall_speedup_percent": 3.4380408492842314,
+      "expert_payload_storage_reduction_bytes": 2239758336,
+      "expert_payload_storage_reduction_percent": 1.931423611111,
+      "interpretation": "measured D5 policy remains the floor if no new layer is admitted",
+      "thai_median_wall_speedup_percent": 4.029556583245903
+    },
+    "storage_only_arithmetic_ceiling": {
+      "hypothesis": "all 45 currently unmeasured layers hypothetically use complete group32 while Layer47 remains F32 and Layer24 keeps validated hybrid",
+      "is_candidate_projection": false,
+      "quality_or_speedup_claim": false,
+      "reduction_bytes": 80379641856,
+      "reduction_percent": 69.314236111111
+    },
+    "upper_projection": {
+      "reason": "not defensibly bounded from sentinel speedup because depth and projection sensitivity are non-monotonic",
+      "speedup_percent": null
+    }
+  },
+  "layer_status": [
+    {
+      "evidence": "D5b_quality_plus_D5c_performance",
+      "layer": 0,
+      "policy": "group32_gate_up_down_native_avx2_fma_with_scalar_fallback",
+      "status": "admitted_existing"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 1,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 2,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 3,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 4,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 5,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 6,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 7,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 8,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 9,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 10,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 11,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 12,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 13,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 14,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 15,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 16,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 17,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 18,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 19,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 20,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 21,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 22,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 23,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "D4D3_selection_plus_D5b_quality_plus_D5c_performance",
+      "layer": 24,
+      "policy": "f32_gate_up_group8_down_scalar",
+      "status": "admitted_existing"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 25,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 26,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 27,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 28,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 29,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 30,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 31,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 32,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 33,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 34,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 35,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 36,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 37,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 38,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 39,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 40,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 41,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 42,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 43,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 44,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 45,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "none_for_non_f32_policy",
+      "layer": 46,
+      "policy": "canonical_f32_until_direct_layer_evidence",
+      "status": "unmeasured_default_f32"
+    },
+    {
+      "evidence": "D2_D3_depth_sensitivity_no_packed_subset_pass",
+      "layer": 47,
+      "policy": "canonical_f32",
+      "status": "f32_locked_existing"
+    }
+  ],
+  "m6_4_authorized": false,
+  "parent_d5c_result_sha256": "b6387a2975074a9f2fc164c04a1741fc6324d64c54fd1947a27fd4e023a730e3",
+  "production_layout": {
+    "complete_f32_projection_materialization_for_candidate_convenience": false,
+    "direct_consume_only_admitted_representation": true,
+    "explicit_backend_boundary_required": true,
+    "f32_fallback_required": true,
+    "per_layer_frozen_layout_and_sha256_required": true,
+    "whole_f32_expert_materialization_for_candidate_convenience": false
+  },
+  "quality_reentry": {
+    "local_candidate_f32_max_abs_limit": 0.001,
+    "may_strengthen_before_execution": true,
+    "may_weaken": false,
+    "minimum_semantic_gate": "accepted_D5b_exact_semantics",
+    "performance_blocked_until_pass": true
+  },
+  "review_pass_checks": {
+    "deterministic_characterization_ladder": true,
+    "deterministic_interaction_and_fallback": true,
+    "every_current_non_f32_layer_has_direct_evidence": true,
+    "every_layer_has_explicit_status": true,
+    "full_model_quality_plan_present": true,
+    "impact_model_states_uncertainty": true,
+    "paired_performance_resource_plan_present": true,
+    "physical_io_claim_boundary_present": true,
+    "production_layout_plan_present": true,
+    "unauthorized_implementation_performed": false,
+    "unmeasured_layers_default_to_f32": true
+  },
+  "review_source_commit": "e3d243895c18cc73d2c369f57b799b8e599d351e",
+  "schema": "m6.3-r2.3-all-layer-plan-review-result-v1",
+  "schema_version": 1
+}
