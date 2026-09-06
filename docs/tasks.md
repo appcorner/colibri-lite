@@ -1044,9 +1044,12 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   `NO-GO`: `short_thai` Layer24 scalar-hybrid/F32 local max-abs is
   `0.0012040138` against the unchanged `0.001` limit. Result SHA-256 is
   `4a88b339991f9e5591a3b8c7f2a3665e83f74f830878c440ea8deaeb1453bb57`.
-- [ ] M6.3-R2.2-D4D3-PR Pre-register sequence-aware Layer24 down-projection
+- [x] M6.3-R2.2-D4D3-PR Pre-register sequence-aware Layer24 down-projection
   precision characterization over the full two-token trajectory using only
-  existing group32/group16/group8 artifacts.
+  existing group32/group16/group8 artifacts. Contract SHA-256 is
+  `dddc8b4ec320835686e5c5286b420e5b39bb4f3bbb3ef95e0f6b82bab473470a`.
+- [ ] M6.3-R2.2-D4D3a Implement/freeze the sequence-aware characterization
+  harness and execute the frozen 2-fixture x 3-group trajectory matrix once.
 - [ ] M6.3-R2.2c HISTORICAL/BLOCKED. Its 108-sample contract belongs to the
   failed all-three-group32 candidate and must not be reused for the hybrid.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be
