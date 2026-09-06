@@ -73,6 +73,9 @@ mod r2_2_d4d3_tests;
 #[path = "r2_2_d4d4_tests.rs"]
 mod r2_2_d4d4_tests;
 #[cfg(feature = "m6-3-r2-native")]
+#[path = "r2_2_d5b_tests.rs"]
+mod r2_2_d5b_tests;
+#[cfg(feature = "m6-3-r2-native")]
 #[path = "r2_2_diagnostic_tests.rs"]
 mod r2_2_diagnostic_tests;
 #[cfg(feature = "m6-3-r2-native")]
