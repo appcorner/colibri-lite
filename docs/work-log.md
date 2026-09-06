@@ -2081,3 +2081,46 @@ Evidence:
 Next:
 
 - M6.3-R2.0b reference-only Layer-0 fixture freeze and execution-identity binding. Build measurement-only preloaded support by reusing existing compute functions; do not start candidate localization timing until the fixture record, instrumented commit, release binary, timer identity, and collector versions are frozen and observer controls pass.
+
+## 2026-09-06 - M6.3 D5c GO through R2.3a reference closure
+
+Completed:
+
+- Closed `M6.3-R2.2-D5c` `GO` on 40 fresh paired processes after an explicit
+  Windows ETW transport remediation. English median wall speedup versus F32 was
+  `3.4380%`; Thai was `4.0296%`; all fixture/cache cells met the frozen pair-win
+  gate and worst median memory regression was `0.8145%`.
+- Pre-registered and closed the R2.3 all-layer plan review `GO` without depth
+  interpolation. Layer0 and Layer24 retain only validated non-F32 policies,
+  Layer47 is F32-locked, and the other 45 layers remain F32 by default.
+- Froze the R2.3 implementation contract with phase order R2.3a-F and explicit
+  prohibitions against result-dependent retuning, new precision families,
+  native group16/group8, cache-policy changes, and premature M6.4 work.
+- Closed `M6.3-R2.3a` `PASS` with a canonical-F32 bilingual four-token
+  reference: English `[0,358,2776,264]`, Thai `[7360,91,16,15]`.
+
+Evidence:
+
+- D5c samples SHA-256:
+  `47ac917cb7b3886e4ff786639c832e28936f1d64fd6c4335e5819d3f924c8415`.
+- D5c result SHA-256:
+  `b6387a2975074a9f2fc164c04a1741fc6324d64c54fd1947a27fd4e023a730e3`.
+- R2.3 plan-review result SHA-256:
+  `c525cfc8ed536fb7d0033104f41e5e2f64a0d9a2842c4fcddba5b32dfac7e6e2`.
+- R2.3 implementation-contract SHA-256:
+  `97dd33b5cdb576d1ebcf9b3b7661f5462c912be40c7485c7e6bd7f8773d7771b`.
+- R2.3a reference SHA-256:
+  `9f8de6841ff883c062c2ed8387dba93631c9de0565943f1de2bb1a27f0fada1e`.
+- R2.3a result SHA-256:
+  `8a5c0f254e0d9b36bc8556ed9e4330dc4896f12a3767f2525c9fd04a63790203`.
+- R2.3a one-shot test: exit 0, stderr empty, `438.91s` test runtime.
+
+Next:
+
+- `M6.3-R2.3b` per-layer candidate characterization for layers
+  `1-23,25-46`: 45 layers x 21 frozen candidates = 945 layer-candidates.
+- Every candidate must pass same-input and sequence-aware bilingual max-abs
+  `<=0.001`; deterministic selection maximizes logical bytes saved, then larger
+  group size, then the frozen projection-subset order; otherwise fall back to
+  canonical F32.
+- R2.3c and later phases remain blocked until R2.3b is formally closed.

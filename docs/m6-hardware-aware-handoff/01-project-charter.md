@@ -1,5 +1,13 @@
 # M6 Project Charter
 
+## Current status pointer
+
+M6.3 is active. D5 is closed `GO`, the R2.3 all-layer plan review and
+implementation contract are frozen, and R2.3a is closed `PASS`. The exact next
+task is `M6.3-R2.3b` per-layer characterization. See
+`12-r2-3-current-state.md` and `13-r2-3b-codex-handover.md` before continuing
+implementation.
+
 ## Objective
 
 Maximize measured decode tokens/s for a supported Qwen3-MoE plan while staying

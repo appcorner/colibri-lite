@@ -15,22 +15,22 @@ context, quality, and correctness budgets.
 
 ## Current milestone
 
-M6 is planned and starts with freezing `reference-f32-v1` plus backend-neutral
-correctness contracts. The direction is hardware-aware planning and validated
-quantized execution, rather than minimum RAM alone. See the
-[M6 handoff pack](docs/m6-hardware-aware-handoff/01-project-charter.md).
+M6 is active. `M6.3-R2.2-D5c` closed `GO` on the production-like hybrid path,
+with median wall-time speedup of `3.438%` English and `4.030%` Thai versus
+canonical F32 while keeping the frozen memory and logical-byte gates. `M6.3-R2.3`
+then completed the all-layer plan review and froze its implementation contract.
 
-M0--M4 are complete and M5 is closed as research evidence. The
-Qwen3-30B-A3B F32 path
-executes all 48 layers and generates deterministic tokens with streamed experts
-and a byte-budgeted strict global-LRU cache. It is correctness-valid and
-low-memory feasible, but not production-performance-ready.
+`M6.3-R2.3a` is now closed `PASS`: a canonical-F32 bilingual four-token quality
+reference is frozen before any new layer candidate executes. English generates
+`[0, 358, 2776, 264]`; Thai generates `[7360, 91, 16, 15]`. The exact next task
+is `M6.3-R2.3b` per-layer candidate characterization for the 45 currently
+unmeasured layers. All unmeasured layers remain F32 by default until they pass
+the frozen local and sequence-aware gates.
 
-The current storage-access optimization path is stopped. The resident-dense
-plus strict-global-LRU simulation is the selected candidate for a separate
-measurement-only prototype review. The reusable-buffer prototype is
-diagnostic/microbenchmark only, mmap is
-rejected for runtime adoption, and the reference reader remains the default.
+See the [M6 handoff pack](docs/m6-hardware-aware-handoff/01-project-charter.md)
+and the [current R2.3 state](docs/m6-hardware-aware-handoff/12-r2-3-current-state.md).
+M0--M4 are complete and M5 is closed as research evidence. M6.4 remains blocked
+until the complete R2.3 workflow closes and a separate entry review authorizes it.
 
 The frozen tiny model accepts token IDs directly:
 
@@ -283,7 +283,7 @@ In short:
 ```text
 M4: Can the full model run correctly with bounded RAM?  YES
 M5: Is a storage-path performance recovery proven?      NO -- RESEARCH REVIEW CLOSURE
-M6: Is a hardware-aware performance plan validated?     NEXT
+M6: Is a hardware-aware performance path validated?     IN PROGRESS -- D5 GO, R2.3a PASS
 ```
 
 ## Project documents
@@ -299,3 +299,5 @@ M6: Is a hardware-aware performance plan validated?     NEXT
 - [M4 release closure](docs/reports/m4-release-closure.md)
 - [M5.3 phase closure](docs/reports/m5.3-phase-closure.md)
 - [M6 hardware-aware handoff](docs/m6-hardware-aware-handoff/01-project-charter.md)
+- [M6.3-R2.3 current state](docs/m6-hardware-aware-handoff/12-r2-3-current-state.md)
+- [Codex handover for R2.3b](docs/m6-hardware-aware-handoff/13-r2-3b-codex-handover.md)
