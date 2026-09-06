@@ -1,0 +1,28 @@
+﻿{
+    "schema":  "m6.3-r2.2-d4d3-execution-v1",
+    "schema_version":  1,
+    "status":  "frozen_before_d4d3_measurement",
+    "contract_sha256":  "dddc8b4ec320835686e5c5286b420e5b39bb4f3bbb3ef95e0f6b82bab473470a",
+    "reference_sha256":  "fa8f1a4f6b30624b78cf8c004f379fdb0633a08a65c102791acc57d0205d54ff",
+    "harness_source_commit":  "dfb8c238de95d44fc894ae1534fe96caa01d6167",
+    "harness_sha256":  "5191b300a7ac7d4f2b74c6d7507759da7fb38efe53128443413dd33210da052b",
+    "release_binary_path":  "target\\release\\deps\\clr_qwen3_moe-98ff24c36e070e31.exe",
+    "release_binary_sha256":  "7aa878e205323879c85605a8829c69c530b2c8e33fd00de5d75496f8a359a2ef",
+    "release_binary_bytes":  48793088,
+    "features":  [
+                     "full-model-validation",
+                     "m6-3-r2-native"
+                 ],
+    "runner_source_commit":  "7d44ea3917fc66de55d98dad989087350790ced3",
+    "runner_sha256":  "92bc5e5f2d530c025f938a1bb1d67619fc13878888036600cfd7272758c73ac7",
+    "host":  "ANUSORN-NB",
+    "group32_root":  "D:\\tmp\\colibri-lite-r2-2\\artifacts",
+    "d2_artifact_root":  "D:\\tmp\\colibri-lite-r2-2\\d2-artifacts",
+    "durable_root":  "D:\\tmp\\colibri-lite-r2-2\\d4d3-durable-v1",
+    "evidence_output":  "models\\qwen3-30b-a3b\\m6.3-r2-2-d4d3-evidence-v1.tsv",
+    "expected_rows":  6,
+    "fixture_count":  2,
+    "group_count":  3,
+    "results_seen":  false,
+    "automatic_retry":  false
+}
