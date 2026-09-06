@@ -1,0 +1,152 @@
+{
+  "schema": "m6.3-r2.3-implementation-contract-v1",
+  "schema_version": 1,
+  "status": "pre_registered_before_r2_3_implementation",
+  "source_commit": "5d6835e82b4fc9eeacdec006bd698a150c7d7837",
+  "parent_plan_review_result_sha256": "c525cfc8ed536fb7d0033104f41e5e2f64a0d9a2842c4fcddba5b32dfac7e6e2",
+  "parent_d5c_result_sha256": "b6387a2975074a9f2fc164c04a1741fc6324d64c54fd1947a27fd4e023a730e3",
+  "scope": {
+    "layers": 48,
+    "unmeasured_layers": 45,
+    "cpu_first_windows_x64": true,
+    "gpu_required": false,
+    "m6_4_allowed": false,
+    "new_quantization_family_allowed": false,
+    "native_group16_or_group8_allowed": false,
+    "cache_policy_change_allowed": false
+  },
+  "phase_order": [
+    "r2_3a_freeze_extended_f32_quality_reference",
+    "r2_3b_per_layer_candidate_characterization",
+    "r2_3c_cumulative_interaction_admission",
+    "r2_3d_production_layout_and_quality_reentry",
+    "r2_3e_paired_performance_resource_proof",
+    "r2_3f_decision_review"
+  ],
+  "r2_3a_quality_reference": {
+    "fixtures": ["short_english", "short_thai"],
+    "canonical_f32_only": true,
+    "generated_token_count": 4,
+    "freeze_before_candidate_execution": true,
+    "freeze": [
+      "generated_token_ids",
+      "prompt_argmax",
+      "prompt_top20",
+      "selected_router_guards",
+      "fixed_logit_indices_and_values",
+      "top20_logit_values",
+      "final_norm_and_prompt_logit_hashes"
+    ]
+  },
+  "r2_3b_characterization": {
+    "layers": "1-23,25-46",
+    "canonical_f32_control_required": true,
+    "projection_subsets": [
+      "gate_up_down",
+      "gate_up",
+      "gate_down",
+      "up_down",
+      "gate",
+      "up",
+      "down"
+    ],
+    "group_sizes": [32, 16, 8],
+    "candidate_grid_per_layer": 21,
+    "same_input_local_max_abs_limit": 0.001,
+    "sequence_aware_generated_token_count": 1,
+    "sequence_aware_max_abs_limit": 0.001,
+    "group_size_monotonicity_assumed": false,
+    "depth_interpolation_allowed": false,
+    "candidate_selection": {
+      "primary": "maximum_logical_bytes_saved_among_candidates_passing_all_local_and_sequence_gates",
+      "tie_1": "larger_group_size",
+      "tie_2_projection_subset_order": [
+        "gate_up_down",
+        "gate_up",
+        "gate_down",
+        "up_down",
+        "gate",
+        "up",
+        "down"
+      ],
+      "fallback": "canonical_f32"
+    },
+    "rejected_artifact_policy": "ephemeral_artifact_may_be_deleted_after_source_builder_layout_and_sha256_evidence_are_frozen",
+    "automatic_retry": false
+  },
+  "r2_3c_cumulative_admission": {
+    "eligible_layers": "only_layers_with_selected_non_f32_candidate_from_r2_3b",
+    "rank_formula": "worst_sequence_local_max_abs / logical_bytes_saved",
+    "rank_tie_break": "lower_layer_id",
+    "batch_size": 4,
+    "quality_reference": "r2_3a_frozen_four_token_reference",
+    "after_each_batch_full_model_quality": true,
+    "failed_batch_localization": "bisect_by_ascending_layer_id_lower_half_then_upper_half",
+    "single_layer_failure": "revert_to_f32_and_lock_out_for_contract",
+    "post_failure_threshold_change_allowed": false,
+    "post_failure_precision_retry_allowed": false,
+    "automatic_retry": false
+  },
+  "r2_3d_production_layout": {
+    "freeze_final_48_layer_policy_manifest": true,
+    "artifact_sha256_required_per_non_f32_layer": true,
+    "direct_consumption_required": true,
+    "candidate_convenience_whole_f32_expert_materialization_allowed": false,
+    "candidate_convenience_complete_f32_projection_materialization_allowed": false,
+    "explicit_f32_fallback_required": true,
+    "backend": {
+      "group32": "existing_native_avx2_fma_with_scalar_fallback",
+      "group16": "scalar_packed_only",
+      "group8": "scalar_packed_only",
+      "new_unsafe_boundary_allowed": false
+    },
+    "production_path_quality_must_pass_before_performance": true,
+    "production_path_quality_reuses_r2_3a_four_token_semantics": true
+  },
+  "r2_3e_performance": {
+    "paths": ["reference_f32", "d5_baseline", "r2_3_candidate"],
+    "fixtures": ["short_english", "short_thai"],
+    "cache_labels": ["first_process_touch", "likely_warm"],
+    "triplets_per_fixture_cache_label": 6,
+    "triplet_orders": "all_six_permutations_exactly_once_per_fixture_cache_label",
+    "total_process_samples": 72,
+    "automatic_retry": false,
+    "metrics": [
+      "wall_seconds",
+      "prefill_tokens_per_second",
+      "decode_tokens_per_second",
+      "peak_working_set_bytes",
+      "peak_private_bytes",
+      "logical_artifact_bytes_read",
+      "expert_payload_bytes_read",
+      "candidate_artifact_bytes_read"
+    ],
+    "go_rule": {
+      "quality_pass_required": true,
+      "candidate_median_wall_speedup_vs_d5_min_percent_each_fixture": 1.0,
+      "candidate_wall_wins_vs_d5_min_per_6_each_fixture_cache_label": 5,
+      "candidate_wall_wins_vs_f32_min_per_6_each_fixture_cache_label": 5,
+      "peak_working_set_regression_vs_d5_max_percent": 1.0,
+      "peak_private_bytes_regression_vs_d5_max_percent": 1.0,
+      "logical_expert_bytes_must_be_less_than_d5_every_triplet": true
+    },
+    "physical_ssd_claim": "not_measured_unless_separate_windows_telemetry_contract_is_pre_registered_and_revalidated"
+  },
+  "r2_3f_decision": {
+    "go_authorizes": "separate_m6_4_entry_review_only",
+    "no_go_authorizes": "retain_d5_policy_only",
+    "all_layer_rollout_automatic": false,
+    "m6_4_automatic": false
+  },
+  "global_prohibitions": [
+    "historical_r2_2c_or_r2_2d_reuse",
+    "sentinel_speedup_multiplication_as_measured_all_layer_claim",
+    "result_dependent_threshold_retuning",
+    "result_dependent_pair_or_triplet_reordering",
+    "new_precision_family",
+    "native_group16",
+    "native_group8",
+    "cache_policy_change",
+    "m6_4_implementation"
+  ]
+}

@@ -1093,10 +1093,13 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   retain only validated policies, Layer47 remains F32-locked, and the other
   45 layers remain unmeasured/F32 by default. Result SHA-256 is
   `c525cfc8ed536fb7d0033104f41e5e2f64a0d9a2842c4fcddba5b32dfac7e6e2`.
-- [ ] M6.3-R2.3-IC Design/freeze the exact implementation contract for the
+- [x] M6.3-R2.3-IC Design/freeze the exact implementation contract for the
   reviewed per-layer characterization, cumulative interaction/fallback,
   full-model quality, production layout, and paired performance workflow.
-  No artifact generation or runtime implementation is authorized yet.
+  ADR 0120 freezes contract SHA-256
+  `97dd33b5cdb576d1ebcf9b3b7661f5462c912be40c7485c7e6bd7f8773d7771b`.
+- [ ] M6.3-R2.3a Generate/freeze the canonical-F32 bilingual four-token
+  quality reference before any new candidate layer executes.
 - [ ] M6.3-R2.2c HISTORICAL/BLOCKED. Its 108-sample contract belongs to the
   failed all-three-group32 candidate and must not be reused for the hybrid.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be

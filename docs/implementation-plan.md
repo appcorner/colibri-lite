@@ -846,11 +846,15 @@ ADR 0119 closes that review `GO` with result SHA-256
 `c525cfc8ed536fb7d0033104f41e5e2f64a0d9a2842c4fcddba5b32dfac7e6e2`.
 All 48 layers now have explicit status, but only Layers 0 and 24 have admitted
 non-F32 policies; Layer47 is F32-locked and the other 45 layers remain
-unmeasured/F32. The exact next task is `M6.3-R2.3-IC`: design and freeze the
-implementation contract for deterministic per-layer characterization,
-cumulative interaction/fallback, full-model quality, production layout, and
-paired performance/resource proof. Artifact generation, runtime implementation,
-a 48-layer rollout, historical R2.2c/R2.2d reuse, and M6.4 remain blocked.
+unmeasured/F32. ADR 0120 freezes the exact R2.3 implementation contract,
+SHA-256 `97dd33b5cdb576d1ebcf9b3b7661f5462c912be40c7485c7e6bd7f8773d7771b`.
+The contract orders R2.3a-F: four-token F32 reference, 21-candidate per-layer
+characterization for all 45 unmeasured layers, deterministic cumulative
+interaction admission, production-layout quality re-entry, a 72-process
+F32/D5/R2.3 triplet performance proof, then decision review. The exact next
+task is `M6.3-R2.3a`: freeze the canonical-F32 bilingual four-token quality
+reference before any new candidate layer executes. Historical R2.2c/R2.2d
+reuse and M6.4 remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
 
