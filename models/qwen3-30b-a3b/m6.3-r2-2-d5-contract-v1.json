@@ -1,0 +1,80 @@
+{
+  "schema": "m6.3-r2.2-d5-contract-v1",
+  "schema_version": 1,
+  "status": "pre_registered_before_d5_implementation",
+  "source_commit": "bdea25ee04151cc847cbb85fcde6f0ef0c781c82",
+  "parent_d4d4_result_sha256": "ab77024116847b59fe53ce8571794b6584139d9ff173a338f485e44d567dc4cc",
+  "validated_policy": {
+    "layer0": "group32_gate_up_down",
+    "layer24": "f32_gate_up_group8_down",
+    "layer47": "canonical_f32",
+    "other_layers": "canonical_f32"
+  },
+  "phase_order": ["artifact_layout", "production_path_quality", "paired_performance_resource"],
+  "artifact_layout": {
+    "layer0_reuse_frozen_group32": true,
+    "layer24_new_hybrid_artifact": "f32_gate_f32_up_group8_down",
+    "layer24_hybrid_expert_bytes": 14942208,
+    "layer24_hybrid_layer_bytes": 1912602624,
+    "complete_f32_down_materialization_allowed": false,
+    "whole_expert_f32_materialization_allowed": false,
+    "artifact_hash_required_before_execution": true
+  },
+  "backend_boundary": {
+    "layer0_group32": "native_avx2_fma_with_scalar_fallback",
+    "layer24_f32_gate_up": "existing_f32_scalar_path",
+    "layer24_group8_down": "scalar_packed_only",
+    "native_group8_allowed": false,
+    "new_unsafe_boundary_allowed": false
+  },
+  "quality_gate": {
+    "fixtures": ["short_english", "short_thai"],
+    "generated_token_count": 2,
+    "reuse_d4d4_thresholds_exactly": true,
+    "must_pass_before_performance": true,
+    "automatic_retry": false
+  },
+  "performance_matrix": {
+    "paths": ["reference_f32", "production_hybrid"],
+    "fixtures": ["short_english", "short_thai"],
+    "cache_labels": ["first_process_touch", "likely_warm"],
+    "pairs_per_fixture_cache_label": 5,
+    "total_process_samples": 40,
+    "balanced_pair_order": true,
+    "automatic_retry": false
+  },
+  "measured_metrics": [
+    "wall_seconds",
+    "prefill_tokens_per_second",
+    "decode_tokens_per_second",
+    "peak_working_set_bytes",
+    "peak_private_bytes",
+    "logical_artifact_bytes_read",
+    "expert_payload_bytes_read",
+    "candidate_artifact_bytes_read"
+  ],
+  "performance_go_rule": {
+    "quality_pass_required": true,
+    "hybrid_median_wall_speedup_min_percent_each_fixture": 1.0,
+    "hybrid_pair_wins_min_per_5_each_fixture_cache_label": 4,
+    "peak_working_set_regression_max_percent": 1.0,
+    "peak_private_bytes_regression_max_percent": 1.0,
+    "logical_expert_byte_reduction_must_be_positive": true
+  },
+  "prohibitions": {
+    "historical_r2_2c_reuse": true,
+    "threshold_retuning_after_result": true,
+    "new_group_size": true,
+    "higher_bit_width": true,
+    "native_group8_implementation": true,
+    "cache_policy_change": true,
+    "all_layer_rollout": true,
+    "m6_4_implementation": true
+  },
+  "decision": {
+    "go_authorizes": "separate_all_layer_plan_review_only",
+    "d5_implementation_authorized_by_this_contract": true,
+    "all_layer_rollout_authorized": false,
+    "m6_4_authorized": false
+  }
+}

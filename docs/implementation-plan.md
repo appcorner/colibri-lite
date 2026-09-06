@@ -812,11 +812,17 @@ guards, finite logits, local error budgets, mixed/scalar prompt-logit budget,
 and exact mixed-run repeatability. Layer24 scalar-hybrid/F32 max-abs is
 `0.0006817728` English and `0.0006819293` Thai.
 
-The exact next task is `M6.3-R2.2-D5-PR`: pre-register a production-like hybrid
-artifact/layout, backend boundary, and paired performance/resource contract for
-the validated Layer0 group32 + Layer24 F32 gate/up with group8 down + Layer47
-F32 policy. D5 implementation, historical R2.2c/R2.2d, all-layer rollout, and
-M6.4 remain blocked until that review.
+ADR 0112 now pre-registers `M6.3-R2.2-D5` with contract SHA-256
+`34b5a5a032bf6251b7d724c115bad9db44fc11f08092d235155e32c304d8acd3`.
+D5 is ordered as production-like hybrid artifact/layout, production-path quality
+revalidation, then 40 fresh paired performance/resource process samples. Layer24
+must directly consume F32 gate/up plus packed group8 down without reconstructing
+F32 down or a whole F32 expert; native group8 remains prohibited.
+
+The exact next task is `M6.3-R2.2-D5a`: implement/freeze the production-like
+Layer24 hybrid artifact and direct-consumption reader. Performance timing remains
+blocked until production-path quality passes. Historical R2.2c/R2.2d, all-layer
+rollout, and M6.4 remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
 

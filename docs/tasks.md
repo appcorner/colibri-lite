@@ -1061,9 +1061,12 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   `GO`; both held-out fixtures pass all frozen quality/local/repeatability gates.
   Result SHA-256 is
   `ab77024116847b59fe53ce8571794b6584139d9ff173a338f485e44d567dc4cc`.
-- [ ] M6.3-R2.2-D5-PR Pre-register the production-like hybrid artifact/layout,
+- [x] M6.3-R2.2-D5-PR Pre-register the production-like hybrid artifact/layout,
   backend boundary, and paired performance/resource contract for the validated
-  Layer0 group32 + Layer24 group8-down + Layer47 F32 policy.
+  Layer0 group32 + Layer24 group8-down + Layer47 F32 policy. Contract SHA-256 is
+  `34b5a5a032bf6251b7d724c115bad9db44fc11f08092d235155e32c304d8acd3`.
+- [ ] M6.3-R2.2-D5a Implement/freeze the production-like Layer24 hybrid artifact
+  and direct-consumption reader without whole-expert or F32-down materialization.
 - [ ] M6.3-R2.2c HISTORICAL/BLOCKED. Its 108-sample contract belongs to the
   failed all-three-group32 candidate and must not be reused for the hybrid.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be
