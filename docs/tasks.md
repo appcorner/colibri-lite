@@ -1053,8 +1053,11 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   ADR 0109 selects Layer24 `down` group8 as the first precision that passes all
   measured positions in both held-out fixtures. Result SHA-256 is
   `6bda021e44212caf40117c6a7a80a8dbe451bfd6812968aaf315cae422d07a43`.
-- [ ] M6.3-R2.2-D4D4-PR Pre-register held-out quality re-entry for Layer0
-  all-group32 + Layer24 F32 gate/up and group8 down + Layer47 F32.
+- [x] M6.3-R2.2-D4D4-PR Pre-register held-out quality re-entry for Layer0
+  all-group32 + Layer24 F32 gate/up and group8 down + Layer47 F32. Contract
+  SHA-256 is `3f8cb0c72180b46b8e6fe29d1b27ea50251119cc9f5ce9d3356d0e0eb5e1d9ed`.
+- [ ] M6.3-R2.2-D4D4a Implement/freeze the group8 hybrid quality harness and
+  execute the frozen bilingual quality re-entry once.
 - [ ] M6.3-R2.2c HISTORICAL/BLOCKED. Its 108-sample contract belongs to the
   failed all-three-group32 candidate and must not be reused for the hybrid.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be

@@ -800,10 +800,15 @@ both held-out fixtures with worst max-abs `0.0006819293`. Prompt Layer24 router
 guards and frozen greedy outputs remain exact. This is still characterization,
 not a held-out quality PASS.
 
-The exact next task is `M6.3-R2.2-D4D4-PR`: pre-register a held-out quality
-re-entry for Layer0 all-group32 + Layer24 F32 gate/up with group8 down +
-Layer47 F32. D5, historical R2.2c/R2.2d, all-layer rollout, and M6.4 remain
-blocked.
+ADR 0110 now pre-registers `M6.3-R2.2-D4D4` held-out quality re-entry with
+contract SHA-256
+`3f8cb0c72180b46b8e6fe29d1b27ea50251119cc9f5ce9d3356d0e0eb5e1d9ed`.
+The exact policy is Layer0 all-group32 + Layer24 F32 gate/up with group8 down +
+Layer47 F32. Native AVX2+FMA remains Layer0-only; Layer24 group8 stays scalar.
+
+The exact next task is `M6.3-R2.2-D4D4a`: implement/freeze the bilingual hybrid
+quality harness and execute it once. D5, historical R2.2c/R2.2d, all-layer
+rollout, and M6.4 remain blocked.
 
 #### M6.4 - Full hardware-aware runtime
 
