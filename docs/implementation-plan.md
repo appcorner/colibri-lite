@@ -806,9 +806,17 @@ contract SHA-256
 The exact policy is Layer0 all-group32 + Layer24 F32 gate/up with group8 down +
 Layer47 F32. Native AVX2+FMA remains Layer0-only; Layer24 group8 stays scalar.
 
-The exact next task is `M6.3-R2.2-D4D4a`: implement/freeze the bilingual hybrid
-quality harness and execute it once. D5, historical R2.2c/R2.2d, all-layer
-rollout, and M6.4 remain blocked.
+ADR 0111 closes `M6.3-R2.2-D4D4` `GO`. The frozen group8 hybrid preserves
+exact bilingual two-token generation, prompt top-20/argmax, Layers0/24/47 router
+guards, finite logits, local error budgets, mixed/scalar prompt-logit budget,
+and exact mixed-run repeatability. Layer24 scalar-hybrid/F32 max-abs is
+`0.0006817728` English and `0.0006819293` Thai.
+
+The exact next task is `M6.3-R2.2-D5-PR`: pre-register a production-like hybrid
+artifact/layout, backend boundary, and paired performance/resource contract for
+the validated Layer0 group32 + Layer24 F32 gate/up with group8 down + Layer47
+F32 policy. D5 implementation, historical R2.2c/R2.2d, all-layer rollout, and
+M6.4 remain blocked until that review.
 
 #### M6.4 - Full hardware-aware runtime
 

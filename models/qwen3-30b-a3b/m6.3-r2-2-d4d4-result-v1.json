@@ -1,0 +1,46 @@
+{
+  "schema": "m6.3-r2.2-d4d4-result-v1",
+  "schema_version": 1,
+  "status": "closed_go",
+  "contract_sha256": "3f8cb0c72180b46b8e6fe29d1b27ea50251119cc9f5ce9d3356d0e0eb5e1d9ed",
+  "execution_sha256": "5bb39da88bad268f41eb348c746cba0c9f07e4958a5df0f3116f693e8dba5be5",
+  "evidence_sha256": "a330462130baa7b06b52122ce5851ffe412ff6496ade909b418c370d04767a6b",
+  "native_exit_code": 0,
+  "runtime_seconds": 767.61,
+  "candidate_policy": {
+    "layer0": "group32_gate_up_down",
+    "layer24": "f32_gate_up_group8_down",
+    "layer47": "canonical_f32"
+  },
+  "fixture_results": {
+    "short_english": {
+      "generated_ids": [0, 358],
+      "scalar_f32_layer0_max_abs": 0.0008989572525024414,
+      "scalar_f32_layer24_max_abs": 0.0006817728281021118,
+      "mixed_scalar_layer0_max_abs": 2.384185791015625e-7,
+      "mixed_scalar_prompt_logit_max_abs": 2.288818359375e-5,
+      "repeatability": "exact"
+    },
+    "short_thai": {
+      "generated_ids": [7360, 91],
+      "scalar_f32_layer0_max_abs": 0.0008705407381057739,
+      "scalar_f32_layer24_max_abs": 0.0006819292902946472,
+      "mixed_scalar_layer0_max_abs": 2.384185791015625e-7,
+      "mixed_scalar_prompt_logit_max_abs": 3.337860107421875e-5,
+      "repeatability": "exact"
+    }
+  },
+  "all_prompt_top20_exact": true,
+  "all_prompt_argmax_exact": true,
+  "all_router_guards_exact": true,
+  "all_logits_finite": true,
+  "all_quality_gates_pass": true,
+  "decision": {
+    "d4d4_go": true,
+    "d5_hybrid_artifact_layout_backend_performance_contract_design_authorized": true,
+    "d5_implementation_authorized": false,
+    "historical_r2_2c_authorized": false,
+    "all_layer_rollout_authorized": false,
+    "m6_4_authorized": false
+  }
+}

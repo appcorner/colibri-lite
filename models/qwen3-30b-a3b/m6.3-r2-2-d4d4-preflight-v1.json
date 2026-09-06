@@ -1,0 +1,9 @@
+﻿{
+    "schema":  "m6.3-r2.2-d4d4-durable-preflight-v1",
+    "host":  "ANUSORN-NB",
+    "binary_sha256":  "a782f25104b2ab5126c70c24af6471bb800eed81ccb387e62dd73b4447397596",
+    "harness_sha256":  "4cc6633a830e25c17f19a98b93c591367167ac4dbade3c5666d5d21f3c2cd47a",
+    "contract_sha256":  "3f8cb0c72180b46b8e6fe29d1b27ea50251119cc9f5ce9d3356d0e0eb5e1d9ed",
+    "reference_sha256":  "fa8f1a4f6b30624b78cf8c004f379fdb0633a08a65c102791acc57d0205d54ff",
+    "verified_artifact_count":  2
+}
