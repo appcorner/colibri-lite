@@ -1,0 +1,68 @@
+{
+  "schema": "m6.3-r2.2-d5c-execution-v1",
+  "schema_version": 1,
+  "status": "frozen_before_official_measurement",
+  "source_commit": "322b1fc8824cd108983aac58636907feee54a57a",
+  "contract_sha256": "34b5a5a032bf6251b7d724c115bad9db44fc11f08092d235155e32c304d8acd3",
+  "d5b_quality_go_result_sha256": "0c742147f967583a735a5a0d8a9dcc2482878204fcf257507532839d40a3872e",
+  "harness": {
+    "path": "crates/clr-qwen3-moe/src/r2_2_d5c_benchmark_tests.rs",
+    "sha256": "6fcbc065d4cf6d16aa2999cb50f9720a151eff3687dfcec012df403f806ccc3c",
+    "source_commit": "322b1fc8824cd108983aac58636907feee54a57a"
+  },
+  "binary": {
+    "path": "target/release/deps/clr_qwen3_moe-98ff24c36e070e31.exe",
+    "bytes": 49966080,
+    "sha256": "452ab02c0e99ae46034bf431b126f07ee7b003a267506db88d335545b42d71ae"
+  },
+  "runner": {
+    "path": "scripts/run_m6_3_r2_2_d5c_paired.py",
+    "bytes": 17247,
+    "sha256": "1753e51835ae4b54318f2dffa8a671acebe93799623d469a44f88f1cb940bd76"
+  },
+  "validator": {
+    "path": "scripts/validate_m6_3_r2_2_d5c_result.py",
+    "bytes": 9830,
+    "sha256": "7257c02ba86c42fd096d375d103b356ed5c59caaf772730da275874377141e9f"
+  },
+  "measurement_stack": {
+    "parser_sha256": "33ca6008dd39aee452646a4b31285eb1863f71fae6b6dc366f0a7a38586b7ff2",
+    "collector_sha256": "3282b91e18ce64bb0b69bf9fd2beb12a6f621bf502ab12867f76255126b2aef2",
+    "provider_sha256": "1445d29341f5d9c1765f92fe17a70ab9bcaea6ad8f98c12fcf26a854f2ccf505",
+    "model_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "reference_sha256": "fa8f1a4f6b30624b78cf8c004f379fdb0633a08a65c102791acc57d0205d54ff"
+  },
+  "artifacts": {
+    "layer0_group32": {
+      "bytes": 679477248,
+      "sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2"
+    },
+    "layer24_production_hybrid": {
+      "bytes": 1912602624,
+      "sha256": "d94d12cbea648e2f2911573c893f564254cbde526d60132c600ed24e88317ac2"
+    }
+  },
+  "matrix": {
+    "fixtures": ["short_english", "short_thai"],
+    "cache_labels": ["first_process_touch", "likely_warm"],
+    "pairs_per_fixture_cache_label": 5,
+    "paths": ["reference_f32", "production_hybrid"],
+    "total_process_samples": 40,
+    "balanced_pair_order": true
+  },
+  "decision_interpretation": {
+    "fixture_wall_speedup": "median of 10 paired wall-speedup percentages per fixture",
+    "cell_win_gate": "at least 4 of 5 hybrid wall-time wins in every fixture/cache-label cell",
+    "memory_gate": "compare median process peak working-set and private bytes within each cell; worst regression <= 1 percent",
+    "logical_gate": "positive expert-payload byte reduction in every pair"
+  },
+  "execution": {
+    "host": "ANUSORN-NB",
+    "administrator_required": true,
+    "administrator_confirmed_via_nb_dc": true,
+    "output_root": "D:/tmp/colibri-lite-r2-2/d5c-official-v1",
+    "automatic_retry": false,
+    "exact_prefix_resume_requires_explicit_review": true,
+    "results_seen": false
+  }
+}

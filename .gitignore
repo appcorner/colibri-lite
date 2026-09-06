@@ -245,6 +245,10 @@
 !/models/qwen3-30b-a3b/m6.3-r2-2-d5b-*.tsv
 !/models/qwen3-30b-a3b/m6.3-r2-2-d5b-*.log
 !/models/qwen3-30b-a3b/m6.3-r2-2-d5b-*.txt
+!/models/qwen3-30b-a3b/m6.3-r2-2-d5c-*.json
+!/models/qwen3-30b-a3b/m6.3-r2-2-d5c-*.tsv
+!/models/qwen3-30b-a3b/m6.3-r2-2-d5c-*.log
+!/models/qwen3-30b-a3b/m6.3-r2-2-d5c-*.txt
 !/models/qwen3-30b-a3b/m6.3-r2-2-d5-*.json
 !/models/qwen3-30b-a3b/m6.3-r2-2-d5-*.tsv
 !/models/qwen3-30b-a3b/m6.3-r2-2-d5-*.log
