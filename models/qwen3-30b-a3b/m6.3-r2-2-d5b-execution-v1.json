@@ -1,0 +1,34 @@
+{
+  "schema": "m6.3-r2.2-d5b-execution-v1",
+  "schema_version": 1,
+  "status": "frozen_before_d5b_measurement",
+  "contract_sha256": "34b5a5a032bf6251b7d724c115bad9db44fc11f08092d235155e32c304d8acd3",
+  "d5a_result_sha256": "8ca431533ed94c8a07fe3e88512cf3300ef41d5a78e09027a920f84c8e269836",
+  "reference_sha256": "fa8f1a4f6b30624b78cf8c004f379fdb0633a08a65c102791acc57d0205d54ff",
+  "harness_source_commit": "1e8f381a7f89dcb734f38afa80f1572dc5f902d0",
+  "harness_sha256": "33b65e2b4b442902c6133f93962008492318c93d068e4da27a2a6f19a0c60e07",
+  "release_binary_path": "target\\release\\deps\\clr_qwen3_moe-98ff24c36e070e31.exe",
+  "release_binary_sha256": "606496675c81b4efd16708ea13f13206908d2ca363d156935f727e7a3469c781",
+  "release_binary_bytes": 49923584,
+  "features": [
+    "full-model-validation",
+    "m6-3-r2-native"
+  ],
+  "runner_source_commit": "1ce804a0182c2d175559284d60812b05fb3b9ffc",
+  "runner_sha256": "0769ddb4b5a7c841cef903806ce6b29ce0e34f515e8bf1964558d986d1c74313",
+  "host": "ANUSORN-NB",
+  "layer0_group32_sha256": "777820df3bfd7fa918035757245611c033f80eda9c92bbfca577f61ef504b1a2",
+  "layer24_d5_hybrid_sha256": "d94d12cbea648e2f2911573c893f564254cbde526d60132c600ed24e88317ac2",
+  "durable_root": "D:\\tmp\\colibri-lite-r2-2\\d5b-durable-v1",
+  "evidence_output": "models\\qwen3-30b-a3b\\m6.3-r2-2-d5b-held-out-quality-v1.tsv",
+  "fixtures": [
+    "short_english",
+    "short_thai"
+  ],
+  "runs_per_fixture": {
+    "scalar_hybrid": 1,
+    "mixed_backend_hybrid": 2
+  },
+  "automatic_retry": false,
+  "results_seen": false
+}
