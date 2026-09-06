@@ -1083,6 +1083,11 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   `47ac917cb7b3886e4ff786639c832e28936f1d64fd6c4335e5819d3f924c8415`;
   result SHA-256 is
   `b6387a2975074a9f2fc164c04a1741fc6324d64c54fd1947a27fd4e023a730e3`.
+- [x] M6.3-R2.3-PR Pre-register the all-layer plan review before design.
+  Contract SHA-256 is
+  `4c4f37356e01d57b247664d0c2537b2f928ad329863778f98a9de0b54624ba2c`;
+  ADR 0118 freezes non-extrapolation, 48-layer status, interaction/fallback,
+  quality, performance, and physical-I/O claim boundaries.
 - [ ] M6.3-R2.3 All-layer plan design/review only. Use the validated D5 policy
   and measured evidence to design a bounded 48-layer candidate plan with
   explicit quality, memory, runtime, and measurement gates before any rollout.

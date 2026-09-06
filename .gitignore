@@ -253,6 +253,7 @@
 !/models/qwen3-30b-a3b/m6.3-r2-2-d5-*.tsv
 !/models/qwen3-30b-a3b/m6.3-r2-2-d5-*.log
 !/models/qwen3-30b-a3b/m6.3-r2-2-d5-*.txt
+!/models/qwen3-30b-a3b/m6.3-r2-3-*.json
 /.idea/
 /.vscode/
 *.pdb

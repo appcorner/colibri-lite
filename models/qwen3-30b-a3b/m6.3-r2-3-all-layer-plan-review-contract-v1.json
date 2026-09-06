@@ -1,0 +1,57 @@
+{
+  "schema": "m6.3-r2.3-all-layer-plan-review-contract-v1",
+  "schema_version": 1,
+  "status": "pre_registered_before_r2_3_plan_review",
+  "source_commit": "ae4c50ca14b301ecfd4867746517d3ef1fdfaf66",
+  "parent_d5c_result_sha256": "b6387a2975074a9f2fc164c04a1741fc6324d64c54fd1947a27fd4e023a730e3",
+  "parent_d5c_samples_sha256": "47ac917cb7b3886e4ff786639c832e28936f1d64fd6c4335e5819d3f924c8415",
+  "evidence_inputs": {
+    "d5_contract_sha256": "34b5a5a032bf6251b7d724c115bad9db44fc11f08092d235155e32c304d8acd3",
+    "d5a_result_sha256": "8ca431533ed94c8a07fe3e88512cf3300ef41d5a78e09027a920f84c8e269836",
+    "d5b_result_sha256": "0c742147f967583a735a5a0d8a9dcc2482878204fcf257507532839d40a3872e",
+    "d4d3_result_sha256": "6bda021e44212caf40117c6a7a80a8dbe451bfd6812968aaf315cae422d07a43",
+    "r2_1d_result_sha256": "c1df174cb7fa0ab649797255d0beac2087fe728b78bfa9f621a3c87def663e7e",
+    "model_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2"
+  },
+  "review_scope": {
+    "layer_count": 48,
+    "design_review_only": true,
+    "artifact_creation_allowed": false,
+    "runtime_code_changes_allowed": false,
+    "performance_execution_allowed": false,
+    "m6_4_allowed": false
+  },
+  "frozen_existing_layer_evidence": {
+    "layer0": "group32_gate_up_down_native_validated",
+    "layer24": "f32_gate_up_group8_down_scalar_validated",
+    "layer47": "canonical_f32_required_by_existing_evidence",
+    "all_other_layers": "unmeasured_default_f32"
+  },
+  "non_extrapolation_rules": [
+    "no unmeasured layer may inherit Layer0, Layer24, or Layer47 precision policy",
+    "no monotonic precision assumption is allowed across group32/group16/group8",
+    "no projection-subset tolerance may be inferred from depth neighbors",
+    "no sentinel speedup may be multiplied by layer count and reported as measured all-layer speedup"
+  ],
+  "required_plan_deliverables": [
+    "explicit 48-layer status matrix",
+    "deterministic per-layer characterization ladder",
+    "deterministic cumulative interaction/admission procedure",
+    "full-model quality re-entry plan",
+    "production artifact/layout plan",
+    "paired performance/resource plan",
+    "rollback and F32 fallback rules",
+    "impact model with lower/central/upper uncertainty and no measured-all-layer claim"
+  ],
+  "review_pass_rule": {
+    "every_layer_has_explicit_status": true,
+    "every_non_f32_future_candidate_requires_direct_layer_evidence": true,
+    "interaction_failures_have_pre_registered_localization_and_fallback": true,
+    "future_quality_gate_reuses_or_strengthens_existing_thresholds": true,
+    "future_performance_gate_is_pre_registered_before_all_layer_candidate_execution": true,
+    "physical_io_claim_requires_separately_revalidated_windows_telemetry": true,
+    "no_implementation_is_authorized_by_incomplete_review": true
+  },
+  "review_go_authorizes": "r2_3_implementation_contract_design_only",
+  "review_no_go_authorizes": "nothing"
+}

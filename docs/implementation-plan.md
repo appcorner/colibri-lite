@@ -838,10 +838,17 @@ sampling. The fresh 40-process v2 matrix then completed successfully.
 ADR 0117 closes `M6.3-R2.2-D5c` `GO`. English median wall speedup is `3.4380%`
 and Thai is `4.0296%`; hybrid wins are `5/5`, `5/5`, `4/5`, and `5/5` across
 the four fixture/cache cells. Worst median memory regression is `0.8145%`, and
-logical expert payload decreases in every pair. The exact next task is
-`M6.3-R2.3` all-layer plan design/review only. R2.3 implementation, a 48-layer
-rollout, historical R2.2c/R2.2d reuse, and M6.4 remain blocked until that review
-closes.
+logical expert payload decreases in every pair.
+
+ADR 0118 pre-registers `M6.3-R2.3` all-layer plan design/review under contract
+SHA-256 `4c4f37356e01d57b247664d0c2537b2f928ad329863778f98a9de0b54624ba2c`.
+The review starts all unmeasured layers in F32, forbids sentinel/depth
+interpolation, and must define deterministic per-layer characterization,
+cumulative interaction/fallback, full-model quality, production layout, and
+paired performance/resource proof before any implementation authorization.
+The exact next task is to execute this R2.3 plan review. R2.3 implementation,
+a 48-layer rollout, historical R2.2c/R2.2d reuse, and M6.4 remain blocked until
+that review closes.
 
 #### M6.4 - Full hardware-aware runtime
 
