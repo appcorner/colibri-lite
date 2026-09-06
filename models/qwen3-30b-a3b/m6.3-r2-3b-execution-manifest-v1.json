@@ -1,0 +1,110 @@
+{
+  "files": [
+    {
+      "bytes": 23425,
+      "path": "crates/clr-qwen3-moe/src/r2_3b_characterization_tests.rs",
+      "sha256": "99731bcc5c0170fafa31d7bbdb7ae9d505c14fa8ba77524a1a81a65421d53470"
+    },
+    {
+      "bytes": 4851,
+      "path": "scripts/build_m6_3_r2_3b_artifact.py",
+      "sha256": "78c3e4bb6bb2a6c7d17d4d6992c5e4afa69c0946158d3ab13c501c4523163967"
+    },
+    {
+      "bytes": 15103,
+      "path": "scripts/run_m6_3_r2_3b.py",
+      "sha256": "e8ffab9d2645e5e168349a687370404fa414115fb89d73e6ec58bbc0218cb1ee"
+    },
+    {
+      "bytes": 9603,
+      "path": "scripts/validate_m6_3_r2_3b.py",
+      "sha256": "1c11be9e79d930b673050de0ead21767e1837fe464dfaad876068137467196e2"
+    }
+  ],
+  "gates": {
+    "automatic_retry": false,
+    "generated_tokens_propagated": 1,
+    "same_input_max_abs": 0.001,
+    "sequence_aware_bilingual_max_abs": 0.001
+  },
+  "grid": {
+    "candidate_count": 945,
+    "groups": [
+      32,
+      16,
+      8
+    ],
+    "layers": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46
+    ],
+    "subsets": [
+      "gate_up_down",
+      "gate_up",
+      "gate_down",
+      "up_down",
+      "gate",
+      "up",
+      "down"
+    ]
+  },
+  "identities": {
+    "canonical_root_manifest_sha256": "f133d733612840ad691d637732d4ef2de1e0242c4bb1d92521b49dfcfb1b8cd2",
+    "implementation_contract_path": "models/qwen3-30b-a3b/m6.3-r2-3-implementation-contract-v1.json",
+    "implementation_contract_sha256": "97dd33b5cdb576d1ebcf9b3b7661f5462c912be40c7485c7e6bd7f8773d7771b",
+    "r2_3a_reference_path": "models/qwen3-30b-a3b/m6.3-r2-3a-f32-four-token-reference-v1.tsv",
+    "r2_3a_reference_sha256": "9f8de6841ff883c062c2ed8387dba93631c9de0565943f1de2bb1a27f0fada1e"
+  },
+  "machinery_commit": "c7fbf57a3364ced673d7709ec3da90500bb9baa4",
+  "release_test_binary": {
+    "bytes": 50093056,
+    "name": "clr_qwen3_moe-98ff24c36e070e31.exe",
+    "sha256": "abd92c4ab80dbb062467b12372843dee7c981b98e92c013af8a3e7eadbf99b2b"
+  },
+  "schema": "colibri-m6.3-r2.3b-execution-manifest-v1",
+  "schema_version": 1,
+  "test_filter": "full_model_validation_tests::r2_3b_characterization_tests::m6_3_r2_3b_characterize_layer_group_candidates"
+}
