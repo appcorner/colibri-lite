@@ -1048,8 +1048,13 @@ admitted group-32 paths, but it may not optimize either path or authorize M6.4.
   precision characterization over the full two-token trajectory using only
   existing group32/group16/group8 artifacts. Contract SHA-256 is
   `dddc8b4ec320835686e5c5286b420e5b39bb4f3bbb3ef95e0f6b82bab473470a`.
-- [ ] M6.3-R2.2-D4D3a Implement/freeze the sequence-aware characterization
+- [x] M6.3-R2.2-D4D3a Implement/freeze the sequence-aware characterization
   harness and execute the frozen 2-fixture x 3-group trajectory matrix once.
+  ADR 0109 selects Layer24 `down` group8 as the first precision that passes all
+  measured positions in both held-out fixtures. Result SHA-256 is
+  `6bda021e44212caf40117c6a7a80a8dbe451bfd6812968aaf315cae422d07a43`.
+- [ ] M6.3-R2.2-D4D4-PR Pre-register held-out quality re-entry for Layer0
+  all-group32 + Layer24 F32 gate/up and group8 down + Layer47 F32.
 - [ ] M6.3-R2.2c HISTORICAL/BLOCKED. Its 108-sample contract belongs to the
   failed all-three-group32 candidate and must not be reused for the hybrid.
 - [ ] M6.3-R2.2d BLOCKED with R2.2c. No bounded impact/promotion decision may be

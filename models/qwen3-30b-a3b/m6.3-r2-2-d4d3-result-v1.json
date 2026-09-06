@@ -1,0 +1,51 @@
+{
+  "schema": "m6.3-r2.2-d4d3-result-v1",
+  "schema_version": 1,
+  "status": "closed_selection",
+  "contract_sha256": "dddc8b4ec320835686e5c5286b420e5b39bb4f3bbb3ef95e0f6b82bab473470a",
+  "execution_sha256": "077cefd3f0e42be302e0099d3455f3c66495e483bd62610ef8dfd4873f6f05d0",
+  "evidence_sha256": "6c9d96ddaed8b1e8eb096f1fabe8a6b1257ae6ab7fce4c93105070ef9e0fdf6f",
+  "native_exit_code": 0,
+  "evidence_rows": 6,
+  "local_max_abs_limit": 0.001,
+  "group_max_over_all_fixtures_positions": {
+    "32": 0.00117570161819458,
+    "16": 0.0012040138244628906,
+    "8": 0.0006819292902946472
+  },
+  "group_pass_all_fixtures_positions": {
+    "32": false,
+    "16": false,
+    "8": true
+  },
+  "selected_group": 8,
+  "selected_policy": {
+    "layer0": "group32_gate_up_down",
+    "layer24": "f32_gate_up_group8_down",
+    "layer47": "canonical_f32"
+  },
+  "modeled_layer24_bytes": {
+    "selected_hybrid": 1912602624,
+    "all_f32": 2415919104,
+    "saving_bytes": 503316480,
+    "saving_percent": 20.833333,
+    "extra_vs_group16_hybrid_bytes": 50331648,
+    "extra_vs_group16_hybrid_percent": 2.702703
+  },
+  "modeled_three_sentinel_bytes": {
+    "selected_policy": 5007998976,
+    "all_f32": 7247757312,
+    "saving_percent": 30.902778
+  },
+  "all_prompt_router_guards_exact": true,
+  "all_candidate_outputs_finite": true,
+  "all_frozen_greedy_matches": true,
+  "decision": {
+    "selected_group8_for_layer24_down": true,
+    "quality_reentry_authorized": "separate_pre_registered_d4d4_only",
+    "d5_authorized": false,
+    "historical_r2_2c_authorized": false,
+    "all_layer_rollout_authorized": false,
+    "m6_4_authorized": false
+  }
+}

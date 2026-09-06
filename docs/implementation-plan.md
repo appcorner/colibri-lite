@@ -785,7 +785,7 @@ first on `short_thai` Layer24 scalar-hybrid/F32 local max-abs `0.0012040138`
 versus the unchanged `0.001` limit. This shows that prompt-only D4D1 precision
 characterization does not generalize to propagated sequence state.
 
-ADR 0108 now pre-registers `M6.3-R2.2-D4D3` sequence-aware Layer24 down-projection
+ADR 0108 pre-registers `M6.3-R2.2-D4D3` sequence-aware Layer24 down-projection
 precision characterization with contract SHA-256
 `dddc8b4ec320835686e5c5286b420e5b39bb4f3bbb3ef95e0f6b82bab473470a`.
 It evaluates only the already-frozen group32/group16/group8 artifacts over the
@@ -793,9 +793,17 @@ full frozen two-token trajectory while propagating candidate hidden state. Layer
 remains group32, Layer24 gate/up remain F32, and no performance or quality-pass
 claim is in scope.
 
-The exact next task is `M6.3-R2.2-D4D3a`: implement/freeze the sequence-aware
-characterization harness and execute it once. D5, historical R2.2c/R2.2d,
-all-layer rollout, and M6.4 remain blocked.
+ADR 0109 now closes D4D3 with deterministic selection `group8` for Layer24
+`down`. Group32 and group16 each exceed the unchanged `0.001` local budget on
+at least one propagated position, while group8 passes all measured positions in
+both held-out fixtures with worst max-abs `0.0006819293`. Prompt Layer24 router
+guards and frozen greedy outputs remain exact. This is still characterization,
+not a held-out quality PASS.
+
+The exact next task is `M6.3-R2.2-D4D4-PR`: pre-register a held-out quality
+re-entry for Layer0 all-group32 + Layer24 F32 gate/up with group8 down +
+Layer47 F32. D5, historical R2.2c/R2.2d, all-layer rollout, and M6.4 remain
+blocked.
 
 #### M6.4 - Full hardware-aware runtime
 
