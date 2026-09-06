@@ -84,6 +84,8 @@ mod r2_2_diagnostic_tests;
 #[cfg(feature = "m6-3-r2-native")]
 #[path = "r2_2_quality_tests.rs"]
 mod r2_2_quality_tests;
+#[path = "r2_3a_reference_tests.rs"]
+mod r2_3a_reference_tests;
 #[cfg(feature = "m6-3-r2-localization")]
 #[path = "r2_benchmark_tests.rs"]
 mod r2_benchmark_tests;
