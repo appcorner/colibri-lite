@@ -28,6 +28,8 @@ mod r2_native;
 mod quantized_layer0;
 #[allow(dead_code)]
 mod r1_1_direct_candidate;
+#[allow(dead_code)]
+mod r2_2_d5_hybrid;
 mod session;
 mod source_config;
 mod streaming;
